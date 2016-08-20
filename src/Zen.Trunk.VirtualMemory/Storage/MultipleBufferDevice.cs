@@ -84,7 +84,7 @@
 		#endregion
 
 		#region Public Methods
-		public async Task<ushort> AddDevice(string name, string pathName, ushort deviceId = 0, uint createPageCount = 0)
+		public async Task<ushort> AddDeviceAsync(string name, string pathName, ushort deviceId = 0, uint createPageCount = 0)
 		{
 			// Determine whether this is a primary device add
 			bool isPrimary = false;
@@ -151,20 +151,20 @@
 			// If we are mounted then we need to open this device
 			if (DeviceState == MountableDeviceState.Open)
 			{
-				await childDevice.Open().ConfigureAwait(false);
+				await childDevice.OpenAsync().ConfigureAwait(false);
 			}
 
 			return deviceId;
 		}
 
-		public async Task RemoveDevice(ushort deviceId)
+		public async Task RemoveDeviceAsync(ushort deviceId)
 		{
 			ISingleBufferDevice childDevice;
 			if (_devices.TryRemove(deviceId, out childDevice))
 			{
 				if (DeviceState == MountableDeviceState.Open)
 				{
-					await childDevice.Close();
+					await childDevice.CloseAsync();
 				}
 
 				childDevice.Dispose();
@@ -177,19 +177,19 @@
 			return device.ExpandDevice(pageCount);
 		}
 
-		public Task LoadBuffer(DevicePageId pageId, VirtualBuffer buffer)
+		public Task LoadBufferAsync(DevicePageId pageId, VirtualBuffer buffer)
 		{
 			var device = GetDevice(pageId.DeviceId);
-			return device.LoadBuffer(pageId.PhysicalPageId, buffer);
+			return device.LoadBufferAsync(pageId.PhysicalPageId, buffer);
 		}
 
-		public Task SaveBuffer(DevicePageId pageId, VirtualBuffer buffer)
+		public Task SaveBufferAsync(DevicePageId pageId, VirtualBuffer buffer)
 		{
 			var device = GetDevice(pageId.DeviceId);
-			return device.SaveBuffer(pageId.PhysicalPageId, buffer);
+			return device.SaveBufferAsync(pageId.PhysicalPageId, buffer);
 		}
 
-		public async Task FlushBuffers(bool flushReads, bool flushWrites, params ushort[] deviceIds)
+		public async Task FlushBuffersAsync(bool flushReads, bool flushWrites, params ushort[] deviceIds)
 		{
 			List<Task> subTasks = new List<Task>();
 
@@ -197,7 +197,7 @@
 			{
 				foreach (ISingleBufferDevice device in _devices.Values)
 				{
-					subTasks.Add(device.FlushBuffers(flushReads, flushWrites));
+					subTasks.Add(device.FlushBuffersAsync(flushReads, flushWrites));
 				}
 			}
 			else
@@ -205,7 +205,7 @@
 				foreach (ushort deviceId in deviceIds)
 				{
 					var device = GetDevice(deviceId);
-					subTasks.Add(device.FlushBuffers(flushReads, flushWrites));
+					subTasks.Add(device.FlushBuffersAsync(flushReads, flushWrites));
 				}
 			}
 
@@ -244,7 +244,7 @@
 				},
 				(device) =>
 				{
-					device.Open();
+					device.OpenAsync();
 				});
 			return CompletedTask.Default;
 		}
@@ -284,7 +284,7 @@
 				},
 				(device) =>
 				{
-					device.Close();
+					device.CloseAsync();
 				});
 			return CompletedTask.Default;
 		}

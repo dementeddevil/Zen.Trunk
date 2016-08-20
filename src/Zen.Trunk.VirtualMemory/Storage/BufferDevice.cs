@@ -52,7 +52,7 @@
 		/// Opens this instance.
 		/// </summary>
 		/// <returns></returns>
-		public async Task Open()
+		public async Task OpenAsync()
 		{
 			Tracer.WriteVerboseLine("Open - Enter");
 			CheckDisposed();
@@ -77,7 +77,7 @@
 		/// Closes this instance.
 		/// </summary>
 		/// <returns></returns>
-		public async Task Close()
+		public async Task CloseAsync()
 		{
 			Tracer.WriteVerboseLine("Close - Enter");
 			CheckDisposed();

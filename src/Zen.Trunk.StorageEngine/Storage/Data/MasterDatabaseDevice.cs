@@ -167,7 +167,7 @@ namespace Zen.Trunk.Storage.Data
 			}
 
 			// Now mount the device
-			await device.Open(true).ConfigureAwait(false);
+			await device.OpenAsync(true).ConfigureAwait(false);
 
 			// If we get this far then commit transaction used to create
 			//	the database device
@@ -364,7 +364,7 @@ namespace Zen.Trunk.Storage.Data
 			List<Task> subTasks = new List<Task>();
 			foreach (DatabaseDevice device in _userDatabases.Values)
 			{
-				subTasks.Add(device.Close());
+				subTasks.Add(device.CloseAsync());
 			}
 			await TaskExtra
 				.WhenAllOrEmpty(subTasks.ToArray())

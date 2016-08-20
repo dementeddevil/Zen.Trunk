@@ -6,19 +6,19 @@
 	using System.Threading.Tasks;
 	using System.Threading.Tasks.Dataflow;
 
-	/// <summary>
+    /// <summary>
 	/// Implements the logical-virtual lookup service
 	/// </summary>
-	public sealed class LogicalVirtualManager : IDisposable
-	{
+	public sealed class LogicalVirtualManager : IDisposable, ILogicalVirtualManager
+    {
 		#region Private Types
-		private class GetNewLogicalRequest : TaskRequest<ulong>
+		private class GetNewLogicalRequest : TaskRequest<LogicalPageId>
 		{
 		}
 
-		private class AddLookupRequest : TaskRequest<ulong>
+		private class AddLookupRequest : TaskRequest<LogicalPageId>
 		{
-			public AddLookupRequest(DevicePageId pageId, ulong logicalId)
+			public AddLookupRequest(DevicePageId pageId, LogicalPageId logicalId)
 			{
 				PageId = pageId;
 				LogicalId = logicalId;
@@ -27,42 +27,32 @@
 			public DevicePageId PageId
 			{
 				get;
-				private set;
 			}
 
-			public ulong LogicalId
+			public LogicalPageId LogicalId
 			{
 				get;
-				private set;
 			}
 		}
 
-		private class GetLogicalRequest : TaskRequest<ulong>
+		private class GetLogicalRequest : TaskRequest<LogicalPageId>
 		{
 			public GetLogicalRequest(DevicePageId pageId)
 			{
 				PageId = pageId;
 			}
 
-			public DevicePageId PageId
-			{
-				get;
-				private set;
-			}
+			public DevicePageId PageId { get; }
 		}
 
 		private class GetVirtualRequest : TaskRequest<DevicePageId>
 		{
-			public GetVirtualRequest(ulong logicalId)
+			public GetVirtualRequest(LogicalPageId logicalId)
 			{
 				LogicalId = logicalId;
 			}
 
-			public ulong LogicalId
-			{
-				get;
-				private set;
-			}
+			public LogicalPageId LogicalId { get; }
 		}
 		#endregion
 
@@ -74,10 +64,10 @@
 		private ITargetBlock<GetLogicalRequest> _getLogicalPort;
 		private ITargetBlock<GetVirtualRequest> _getVirtualPort;
 
-		private Dictionary<ulong, DevicePageId> _logicalToVirtual =
-			new Dictionary<ulong, DevicePageId>(1024);
-		private Dictionary<DevicePageId, ulong> _virtualToLogical =
-			new Dictionary<DevicePageId, ulong>(1024);
+		private Dictionary<LogicalPageId, DevicePageId> _logicalToVirtual =
+			new Dictionary<LogicalPageId, DevicePageId>(1024);
+		private Dictionary<DevicePageId, LogicalPageId> _virtualToLogical =
+			new Dictionary<DevicePageId, LogicalPageId>(1024);
 		private ulong _nextLogicalId = 1;
 		#endregion
 
@@ -96,7 +86,7 @@
 					{
 						ulong nextLogicalId = _nextLogicalId;
 						_nextLogicalId++;
-						request.TrySetResult(nextLogicalId);
+						request.TrySetResult(new LogicalPageId(nextLogicalId));
 					}
 					catch (Exception e)
 					{
@@ -115,18 +105,16 @@
 				{
 					try
 					{
-						ulong logicalId = request.LogicalId;
+						var logicalId = request.LogicalId;
 						if (_virtualToLogical.ContainsKey(request.PageId) ||
 							_logicalToVirtual.ContainsKey(request.LogicalId))
 						{
 							throw new ArgumentException("Mapping already exists.");
-							//throw new DeviceInvalidPageException(
-							//	request.Message.PageId.DeviceId, logicalId, true);
 						}
 
 						_virtualToLogical.Add(request.PageId, request.LogicalId);
 						_logicalToVirtual.Add(request.LogicalId, request.PageId);
-						_nextLogicalId = Math.Max(_nextLogicalId, 1 + logicalId);
+						_nextLogicalId = Math.Max(_nextLogicalId, 1 + logicalId.Value);
 						request.TrySetResult(logicalId);
 					}
 					catch (Exception e)
@@ -146,13 +134,10 @@
 				{
 					try
 					{
-						ulong logicalId;
+                        LogicalPageId logicalId;
 						if (!_virtualToLogical.TryGetValue(request.PageId, out logicalId))
 						{
 							throw new ArgumentException("Page id not found.");
-							//throw new DeviceInvalidPageException(
-							//	request.PageId.DeviceId,
-							//	request.PageId.PhysicalPageId, false);
 						}
 						request.TrySetResult(logicalId);
 					}
@@ -203,7 +188,7 @@
 			_shutdownToken.Cancel();
 		}
 
-		public Task<ulong> GetNewLogical()
+		public Task<LogicalPageId> GetNewLogicalAsync()
 		{
 			var request = new GetNewLogicalRequest();
 			if (!_getNewLogicalPort.Post(request))
@@ -213,7 +198,7 @@
 			return request.Task;
 		}
 
-		public Task<ulong> AddLookup(DevicePageId pageId, ulong logicalId)
+		public Task<LogicalPageId> AddLookupAsync(DevicePageId pageId, LogicalPageId logicalId)
 		{
 			var request = new AddLookupRequest(pageId, logicalId);
 			if (!_addLookupPort.Post(request))
@@ -223,7 +208,7 @@
 			return request.Task;
 		}
 
-		public Task<ulong> GetLogical(DevicePageId pageId)
+		public Task<LogicalPageId> GetLogicalAsync(DevicePageId pageId)
 		{
 			var request = new GetLogicalRequest(pageId);
 			if (!_getLogicalPort.Post(request))
@@ -233,7 +218,7 @@
 			return request.Task;
 		}
 
-		public Task<DevicePageId> GetVirtual(ulong logicalId)
+		public Task<DevicePageId> GetVirtualAsync(LogicalPageId logicalId)
 		{
 			var request = new GetVirtualRequest(logicalId);
 			if (!_getVirtualPort.Post(request))

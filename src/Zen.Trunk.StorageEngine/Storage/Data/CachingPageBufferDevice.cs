@@ -210,7 +210,7 @@
 					{
 						flushWrites = true;
 					}
-					await bufferDevice.FlushBuffers(flushReads, flushWrites, entry.Key);
+					await bufferDevice.FlushBuffersAsync(flushReads, flushWrites, entry.Key);
 				}
 			}
 
@@ -300,14 +300,14 @@
 		/// </summary>
 		public void Dispose()
 		{
-			Close().Wait();
+			CloseAsync().Wait();
 		}
 
 		/// <summary>
 		/// Closes this instance.
 		/// </summary>
 		/// <returns></returns>
-		public async Task Close()
+		public async Task CloseAsync()
 		{
 			if (!_isDisposed)
 			{
@@ -335,19 +335,19 @@
 			}
 		}
 
-		public Task<ushort> AddDevice(string name, string pathName, ushort deviceId = 0, uint createPageCount = 0)
+		public Task<ushort> AddDeviceAsync(string name, string pathName, ushort deviceId = 0, uint createPageCount = 0)
 		{
 			CheckDisposed();
-			return _bufferDevice.AddDevice(name, pathName, deviceId, createPageCount);
+			return _bufferDevice.AddDeviceAsync(name, pathName, deviceId, createPageCount);
 		}
 
-		public Task RemoveDevice(ushort deviceId)
+		public Task RemoveDeviceAsync(ushort deviceId)
 		{
 			CheckDisposed();
-			return _bufferDevice.RemoveDevice(deviceId);
+			return _bufferDevice.RemoveDeviceAsync(deviceId);
 		}
 
-		public Task<PageBuffer> InitPage(DevicePageId pageId)
+		public Task<PageBuffer> InitPageAsync(DevicePageId pageId)
 		{
 			var request = new PreparePageBufferRequest(pageId);
 			if (!_initBufferPort.Post(request))
@@ -357,7 +357,7 @@
 			return request.Task;
 		}
 
-		public Task<PageBuffer> LoadPage(DevicePageId pageId)
+		public Task<PageBuffer> LoadPageAsync(DevicePageId pageId)
 		{
 			var request = new PreparePageBufferRequest(pageId);
 			if (!_loadBufferPort.Post(request))
@@ -367,7 +367,7 @@
 			return request.Task;
 		}
 
-		public Task FlushPages(FlushCachingDeviceParameters flushParams)
+		public Task FlushPagesAsync(FlushCachingDeviceParameters flushParams)
 		{
 			var request = new FlushCachingDeviceRequest(flushParams);
 			if (!_flushBuffersPort.Post(request))
@@ -541,11 +541,11 @@
 					Task requestTask;
 					if (isLoad)
 					{
-						requestTask = buffer.RequestLoad(request.PageId, 0);
+						requestTask = buffer.RequestLoadAsync(request.PageId, 0);
 					}
 					else
 					{
-						requestTask = buffer.Init(request.PageId, 0);
+						requestTask = buffer.InitAsync(request.PageId, 0);
 					}
 
 					// Attach the continuations that will clean up the task
@@ -599,7 +599,7 @@
 					}
 					try
 					{
-						await FlushPages(flushParams);
+						await FlushPagesAsync(flushParams);
 						lastFlush = DateTime.UtcNow;
 					}
 					finally
@@ -719,7 +719,7 @@
 				{
 					// Create a task that tackles the load operation and notifies
 					//	all waiting callers when complete - whatever the outcome
-					Task loadTask = cacheInfo.BufferInternal.Load();
+					Task loadTask = cacheInfo.BufferInternal.LoadAsync();
 					loadTask.ContinueWith(
 						(task) =>
 						{
@@ -749,7 +749,7 @@
 					// This may throw if another thread changes the
 					//	buffer state before the ioSave begins the
 					//	write operation - ignore these errors
-					blockState.SaveTasks.Add(cacheInfo.BufferInternal.Save());
+					blockState.SaveTasks.Add(cacheInfo.BufferInternal.SaveAsync());
 
 					blockState.MarkDeviceAsAccessedForSave(pageId.DeviceId);
 				}
@@ -781,7 +781,7 @@
 		{
 			try
 			{
-				await cacheInfo.BufferInternal.Load();
+				await cacheInfo.BufferInternal.LoadAsync();
 			}
 			catch (OperationCanceledException)
 			{

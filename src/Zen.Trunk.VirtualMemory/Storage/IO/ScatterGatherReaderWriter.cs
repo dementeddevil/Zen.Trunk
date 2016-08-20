@@ -39,8 +39,8 @@ namespace Zen.Trunk.Storage.IO
 					while (!_shutdown.IsCancellationRequested)
 					{
 						await Task.Delay(200);
-						await _readBuffers.OptimisedFlush();
-						await _writeBuffers.OptimisedFlush();
+						await _readBuffers.OptimisedFlushAsync();
+						await _writeBuffers.OptimisedFlushAsync();
 					}
 				},
 				_shutdown.Token);
@@ -102,11 +102,11 @@ namespace Zen.Trunk.Storage.IO
 			List<Task> tasks = new List<Task>();
 			if (flushReads)
 			{
-				tasks.Add(_readBuffers.Flush());
+				tasks.Add(_readBuffers.FlushAsync());
 			}
 			if (flushWrites)
 			{
-				tasks.Add(_writeBuffers.Flush());
+				tasks.Add(_writeBuffers.FlushAsync());
 			}
 			return TaskExtra.WhenAllOrEmpty(tasks.ToArray());
 		}

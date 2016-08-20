@@ -79,7 +79,7 @@ namespace Zen.Trunk.Storage.IO
 		/// <summary>
 		/// Flushes the buffers stored in this instance to the underlying
 		/// </summary>
-		public async Task Flush()
+		public async Task FlushAsync()
 		{
 			// Obtain the completion objects to be flushed
 			List<ScatterGatherRequestArray> arrayList = null;
@@ -125,7 +125,7 @@ namespace Zen.Trunk.Storage.IO
 		/// </remarks>
 		[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly",
 			MessageId = "Optimised", Justification = "English spelling")]
-		public async Task OptimisedFlush()
+		public async Task OptimisedFlushAsync()
 		{
 			CoalesceIfNeeded();
 			await FlushIfNeeded();
@@ -251,11 +251,11 @@ namespace Zen.Trunk.Storage.IO
 			{
 				if (_isReader)
 				{
-					return array.FlushAsRead(_stream);
+					return array.FlushAsReadAsync(_stream);
 				}
 				else
 				{
-					return array.FlushAsWrite(_stream);
+					return array.FlushAsWriteAsync(_stream);
 				}
 			}
 			return CompletedTask.Default;

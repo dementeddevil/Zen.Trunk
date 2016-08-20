@@ -46,7 +46,7 @@ namespace Zen.Trunk.Storage.Data
 		/// Gets/sets the logical page ID.
 		/// </summary>
 		/// <value>Logical ID expressed as UInt32.</value>
-		public ulong LogicalId
+		public LogicalPageId LogicalId
 		{
 			get
 			{

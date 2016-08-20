@@ -394,7 +394,7 @@ namespace Zen.Trunk.Storage.Log
 				List<Task> secondaryTasks = new List<Task>();
 				foreach (LogPageDevice device in _secondaryDevices.Values)
 				{
-					secondaryTasks.Add(device.Open(true));
+					secondaryTasks.Add(device.OpenAsync(true));
 				}
 				await TaskExtra
 					.WhenAllOrEmpty(secondaryTasks.ToArray())
@@ -428,7 +428,7 @@ namespace Zen.Trunk.Storage.Log
 						info.Id, info.PathName, this);
 					_secondaryDevices.Add(info.Id, secondaryDevice);
 
-					secondaryTasks.Add(secondaryDevice.Open(false));
+					secondaryTasks.Add(secondaryDevice.OpenAsync(false));
 				}
 				await TaskExtra
 					.WhenAllOrEmpty(secondaryTasks.ToArray())
@@ -563,7 +563,7 @@ namespace Zen.Trunk.Storage.Log
 				DeviceState == MountableDeviceState.Opening)
 			{
 				await device
-					.Open(request.Message.IsCreate)
+					.OpenAsync(request.Message.IsCreate)
 					.ConfigureAwait(false);
 			}
 

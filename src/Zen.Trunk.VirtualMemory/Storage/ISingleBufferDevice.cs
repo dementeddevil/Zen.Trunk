@@ -22,9 +22,12 @@
 			get;
 		}
 
-		Task LoadBuffer(uint physicalPageId, VirtualBuffer buffer);
-		Task SaveBuffer(uint physicalPageId, VirtualBuffer buffer);
-		Task FlushBuffers(bool flushReads, bool flushWrites);
-		uint ExpandDevice(int pageCount);
+		Task LoadBufferAsync(uint physicalPageId, VirtualBuffer buffer);
+
+        Task SaveBufferAsync(uint physicalPageId, VirtualBuffer buffer);
+
+        Task FlushBuffersAsync(bool flushReads, bool flushWrites);
+
+        uint ExpandDevice(int pageCount);
 	}
 }

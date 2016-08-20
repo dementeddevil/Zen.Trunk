@@ -217,7 +217,7 @@ namespace Zen.Trunk.Storage.Data
 		private HashSet<uint> _assignedObjectIds = new HashSet<uint>();
 
 		// Logical id mapping
-		private LogicalVirtualManager _logicalVirtual;
+		private ILogicalVirtualManager _logicalVirtual;
 		#endregion
 
 		#region Public Constructors
@@ -574,7 +574,7 @@ namespace Zen.Trunk.Storage.Data
 
 			// Open/create the primary device
 			Tracer.WriteInfoLine("OnOpen: Opening primary device");
-			await _primaryDevice.Open(IsCreate);
+			await _primaryDevice.OpenAsync(IsCreate);
 
 			// Load or create the root page
 			Tracer.WriteInfoLine("OnOpen: Opening secondary devices");
@@ -600,7 +600,7 @@ namespace Zen.Trunk.Storage.Data
 					rootPage.AllocatedPages = bufferDevice.GetDeviceInfo(_primaryDevice.DeviceId).PageCount;
 					foreach (var distPageDevice in _devices.Values)
 					{
-						await distPageDevice.Open(IsCreate);
+						await distPageDevice.OpenAsync(IsCreate);
 						rootPage.AllocatedPages += bufferDevice.GetDeviceInfo(distPageDevice.DeviceId).PageCount;
 					}
 				}
@@ -626,13 +626,13 @@ namespace Zen.Trunk.Storage.Data
 			// Close secondary distribution page devices
 			foreach (DistributionPageDevice device in _devices.Values)
 			{
-				await device.Close().ConfigureAwait(false);
+				await device.CloseAsync().ConfigureAwait(false);
 			}
 
 			// Close primary distribution page device
 			if (_primaryDevice != null)
 			{
-				await _primaryDevice.Close().ConfigureAwait(false);
+				await _primaryDevice.CloseAsync().ConfigureAwait(false);
 			}
 		}
 
@@ -648,7 +648,7 @@ namespace Zen.Trunk.Storage.Data
 			{
 				return this;
 			}
-			if (serviceType == typeof(LogicalVirtualManager))
+			if (serviceType == typeof(ILogicalVirtualManager))
 			{
 				return _logicalVirtual;
 			}
@@ -672,6 +672,7 @@ namespace Zen.Trunk.Storage.Data
 		private void Initialise()
 		{
 			// Create logical/virtual lookup manager
+            // TODO: Get this from IoC
 			_logicalVirtual = new LogicalVirtualManager();
 
 			// Setup ports
@@ -816,11 +817,11 @@ namespace Zen.Trunk.Storage.Data
 			ushort deviceId;
 			if (priFileGroupDevice && IsPrimaryFileGroup)
 			{
-				deviceId = await pageBufferDevice.AddDevice("MASTER", fullPathName, 1, allocationPages).ConfigureAwait(false);
+				deviceId = await pageBufferDevice.AddDeviceAsync("MASTER", fullPathName, 1, allocationPages).ConfigureAwait(false);
 			}
 			else
 			{
-				deviceId = await pageBufferDevice.AddDevice(request.Message.Name, fullPathName, request.Message.DeviceId, allocationPages).ConfigureAwait(false);
+				deviceId = await pageBufferDevice.AddDeviceAsync(request.Message.Name, fullPathName, request.Message.DeviceId, allocationPages).ConfigureAwait(false);
 			}
 			Tracer.WriteVerboseLine("AddDevice -> device id = {0}", deviceId);
 
@@ -845,7 +846,7 @@ namespace Zen.Trunk.Storage.Data
 			if (Owner.DeviceState == MountableDeviceState.Opening ||
 				Owner.DeviceState == MountableDeviceState.Open)
 			{
-				await newDevice.Open(request.Message.IsCreate).ConfigureAwait(false);
+				await newDevice.OpenAsync(request.Message.IsCreate).ConfigureAwait(false);
 			}
 
 			// Notify caller that add request completed
@@ -874,7 +875,7 @@ namespace Zen.Trunk.Storage.Data
 			if (logicalPage != null && request.Message.AssignAutomaticLogicalId)
 			{
 				// Get next logical id from the logical/virtual manager
-				logicalPage.LogicalId = await _logicalVirtual.GetNewLogical().ConfigureAwait(false);
+				logicalPage.LogicalId = await _logicalVirtual.GetNewLogicalAsync().ConfigureAwait(false);
 			}
 
 			// Stage #2: Assign virtual id
@@ -903,7 +904,7 @@ namespace Zen.Trunk.Storage.Data
 				(request.Message.AssignLogicalId || request.Message.AssignAutomaticLogicalId))
 			{
 				// Post request to logical/virtual manager
-				ulong logicalId = await _logicalVirtual.AddLookup(pageId, logicalPage.LogicalId).ConfigureAwait(false);
+				ulong logicalId = await _logicalVirtual.AddLookupAsync(pageId, logicalPage.LogicalId).ConfigureAwait(false);
 
 				// Update page with new logical id as necessary
 				if (!request.Message.AssignAutomaticLogicalId)
@@ -918,7 +919,7 @@ namespace Zen.Trunk.Storage.Data
 			request.Message.Page.PreInitInternal();
 			using (StatefulBufferScope<PageBuffer> scope =
 				new StatefulBufferScope<PageBuffer>(
-					await pageBufferDevice.InitPage(pageId)
+					await pageBufferDevice.InitPageAsync(pageId)
 						.ConfigureAwait(false)))
 			{
 				// Stage #4: Setup logical id in page buffer as required
@@ -959,7 +960,7 @@ namespace Zen.Trunk.Storage.Data
 				}
 
 				// Map from logical page to virtual page
-				pageId = await _logicalVirtual.GetVirtual(logicalPage.LogicalId).ConfigureAwait(false);
+				pageId = await _logicalVirtual.GetVirtualAsync(logicalPage.LogicalId).ConfigureAwait(false);
 				request.Message.Page.VirtualId = pageId.VirtualPageId;
 			}
 
@@ -969,7 +970,7 @@ namespace Zen.Trunk.Storage.Data
 			request.Message.Page.PreLoadInternal();
 			using (StatefulBufferScope<PageBuffer> scope =
 				new StatefulBufferScope<PageBuffer>(
-					await pageBufferDevice.LoadPage(pageId)
+					await pageBufferDevice.LoadPageAsync(pageId)
 						.ConfigureAwait(false)))
 			{
 				// Setup logical id in page buffer as required

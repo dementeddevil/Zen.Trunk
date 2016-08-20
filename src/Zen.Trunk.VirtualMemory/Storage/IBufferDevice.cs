@@ -11,8 +11,8 @@
 			get;
 		}
 
-		Task Open();
+		Task OpenAsync();
 
-		Task Close();
+		Task CloseAsync();
 	}
 }

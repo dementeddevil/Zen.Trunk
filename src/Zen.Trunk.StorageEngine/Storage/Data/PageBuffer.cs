@@ -181,14 +181,14 @@
 			}
 
 			public virtual Task Init(
-				PageBuffer instance, DevicePageId pageId, ulong logicalId)
+				PageBuffer instance, DevicePageId pageId, LogicalPageId logicalId)
 			{
 				InvalidState();
 				return CompletedTask.Default;
 			}
 
 			public virtual Task RequestLoad(
-				PageBuffer instance, DevicePageId pageId, ulong logicalId)
+				PageBuffer instance, DevicePageId pageId, LogicalPageId logicalId)
 			{
 				InvalidState();
 				return CompletedTask.Default;
@@ -244,7 +244,7 @@
 			}
 
 			public override Task Init(
-				PageBuffer instance, DevicePageId pageId, ulong logicalId)
+				PageBuffer instance, DevicePageId pageId, LogicalPageId logicalId)
 			{
 				instance.PageId = pageId;
 				instance.LogicalId = logicalId;
@@ -255,7 +255,7 @@
 				return instance.SwitchState(PageBufferStateType.Allocated);
 			}
 
-			public override Task RequestLoad(PageBuffer instance, DevicePageId pageId, ulong logicalId)
+			public override Task RequestLoad(PageBuffer instance, DevicePageId pageId, LogicalPageId logicalId)
 			{
 				instance.PageId = pageId;
 				instance.LogicalId = logicalId;
@@ -591,7 +591,7 @@
 			}
 		}
 
-		public ulong LogicalId
+		public LogicalPageId LogicalId
 		{
 			get;
 			internal set;
@@ -661,22 +661,22 @@
 			}
 		}
 
-		public Task Init(DevicePageId pageId, ulong logicalId)
+		public Task InitAsync(DevicePageId pageId, LogicalPageId logicalId)
 		{
 			return CurrentPageBufferState.Init(this, pageId, logicalId);
 		}
 
-		public Task RequestLoad(DevicePageId pageId, ulong logicalId)
+		public Task RequestLoadAsync(DevicePageId pageId, LogicalPageId logicalId)
 		{
 			return CurrentPageBufferState.RequestLoad(this, pageId, logicalId);
 		}
 
-		public Task Load()
+		public Task LoadAsync()
 		{
 			return CurrentPageBufferState.Load(this);
 		}
 
-		public Task Save()
+		public Task SaveAsync()
 		{
 			return CurrentPageBufferState.Save(this);
 		}
@@ -772,14 +772,14 @@
 			var mbd = _bufferDevice as IMultipleBufferDevice;
 			if (mbd != null)
 			{
-				return mbd.LoadBuffer(PageId, buffer);
+				return mbd.LoadBufferAsync(PageId, buffer);
 			}
 			else
 			{
 				var sbd = _bufferDevice as ISingleBufferDevice;
 				if (sbd != null)
 				{
-					return sbd.LoadBuffer(PageId.PhysicalPageId, buffer);
+					return sbd.LoadBufferAsync(PageId.PhysicalPageId, buffer);
 				}
 				else
 				{
@@ -793,14 +793,14 @@
 			var mbd = _bufferDevice as IMultipleBufferDevice;
 			if (mbd != null)
 			{
-				await mbd.SaveBuffer(PageId, buffer);
+				await mbd.SaveBufferAsync(PageId, buffer);
 			}
 			else
 			{
 				var sbd = _bufferDevice as ISingleBufferDevice;
 				if (sbd != null)
 				{
-					await sbd.SaveBuffer(PageId.PhysicalPageId, buffer);
+					await sbd.SaveBufferAsync(PageId.PhysicalPageId, buffer);
 				}
 				else
 				{

@@ -616,7 +616,7 @@ namespace Zen.Trunk.Storage.Data
 			}
 		}
 
-		public Task Import(LogicalVirtualManager logicalVirtualManager)
+		public Task Import(ILogicalVirtualManager logicalVirtualManager)
 		{
 			DevicePageId startPageId = new DevicePageId(VirtualId).NextPage;
 
@@ -642,7 +642,7 @@ namespace Zen.Trunk.Storage.Data
 							startPageId.DeviceId,
 							startPageId.PhysicalPageId + pageOffset);
 
-						addTasks.Add(logicalVirtualManager.AddLookup(
+						addTasks.Add(logicalVirtualManager.AddLookupAsync(
 							pageId, _extents[extentIndex].Pages[pageIndex].LogicalId));
 					}
 				}

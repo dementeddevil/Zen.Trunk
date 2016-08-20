@@ -416,18 +416,18 @@ namespace Zen.Trunk.Storage.Data
 
 			// Mount the underlying device
 			Tracer.WriteVerboseLine("Opening underlying buffer device...");
-			await _bufferDevice.Open().ConfigureAwait(false);
+			await _bufferDevice.OpenAsync().ConfigureAwait(false);
 
 			// Mount the primary file-group device
 			Tracer.WriteVerboseLine("Opening primary file-group device...");
-			await fgDevice.Open(IsCreate).ConfigureAwait(false);
+			await fgDevice.OpenAsync(IsCreate).ConfigureAwait(false);
 
 			// At this point the primary file-group is mounted and all
 			//	secondary file-groups are mounted too (via AddFileGroupDevice)
 
 			// Mount the log device
 			Tracer.WriteVerboseLine("Opening log device...");
-			await _logDevice.Open(IsCreate).ConfigureAwait(false);
+			await _logDevice.OpenAsync(IsCreate).ConfigureAwait(false);
 
 			// If this is not create then we need to perform recovery
 			if (!IsCreate)
@@ -469,7 +469,7 @@ namespace Zen.Trunk.Storage.Data
 			// Close all secondary file-groups in parallel
 			Task[] secondaryDeviceTasks = _fileGroupByName.Values
 				.Where((item) => !item.IsPrimaryFileGroup)
-				.Select((item) => Task.Run(() => item.Close()))
+				.Select((item) => Task.Run(() => item.CloseAsync()))
 				.ToArray();
 			await TaskExtra
 				.WhenAllOrEmpty(secondaryDeviceTasks)
@@ -480,17 +480,17 @@ namespace Zen.Trunk.Storage.Data
 				.FirstOrDefault((item) => item.IsPrimaryFileGroup);
 			if (primaryDevice != null)
 			{
-				await primaryDevice.Close().ConfigureAwait(false);
+				await primaryDevice.CloseAsync().ConfigureAwait(false);
 			}
 
 			// Close the caching page device
-			await _dataBufferDevice.Close().ConfigureAwait(false);
+			await _dataBufferDevice.CloseAsync().ConfigureAwait(false);
 
 			// Close the log device
-			await _logDevice.Close().ConfigureAwait(false);
+			await _logDevice.CloseAsync().ConfigureAwait(false);
 
 			// Close underlying buffer device
-			await _bufferDevice.Close().ConfigureAwait(false);
+			await _bufferDevice.CloseAsync().ConfigureAwait(false);
 
 			// Invalidate objects
 			_logDevice = null;
@@ -632,7 +632,7 @@ namespace Zen.Trunk.Storage.Data
 				DeviceState == MountableDeviceState.Opening ||
 				DeviceState == MountableDeviceState.Open))
 			{
-				await fileGroupDevice.Open(isFileGroupCreate).ConfigureAwait(false);
+				await fileGroupDevice.OpenAsync(isFileGroupCreate).ConfigureAwait(false);
 			}
 
 			// We're done
@@ -696,7 +696,7 @@ namespace Zen.Trunk.Storage.Data
 
 				// Load the buffer from the underlying cache
 				DevicePageId pageId = new DevicePageId(request.Message.Page.VirtualId);
-				request.Message.Page.DataBuffer = await _dataBufferDevice.LoadPage(pageId).ConfigureAwait(false);
+				request.Message.Page.DataBuffer = await _dataBufferDevice.LoadPageAsync(pageId).ConfigureAwait(false);
 				request.Message.Page.PostLoadInternal();
 			}
 			else
@@ -725,7 +725,7 @@ namespace Zen.Trunk.Storage.Data
 
 		private async Task<bool> FlushDeviceBuffersHandler(FlushFileGroupRequest request)
 		{
-			await _dataBufferDevice.FlushPages(request.Message);
+			await _dataBufferDevice.FlushPagesAsync(request.Message);
 			return true;
 		}
 
@@ -770,7 +770,7 @@ namespace Zen.Trunk.Storage.Data
 				// Ask data device to dump all unwritten/logged pages to disk
 				// Typically this shouldn't find many pages to write except under
 				//	heavy load.
-				await _dataBufferDevice.FlushPages(new FlushCachingDeviceParameters(true)).ConfigureAwait(false);
+				await _dataBufferDevice.FlushPagesAsync(new FlushCachingDeviceParameters(true)).ConfigureAwait(false);
 			}
 			catch (Exception error)
 			{

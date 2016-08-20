@@ -74,7 +74,7 @@
 			return false;
 		}
 
-		public async Task FlushAsRead(AdvancedFileStream stream)
+		public async Task FlushAsReadAsync(AdvancedFileStream stream)
 		{
 #if IOTRACE
 			Trace.TraceInformation("SGW - Reading {0} memory blocks from disk",
@@ -117,7 +117,7 @@
 			}
 		}
 
-		public async Task FlushAsWrite(AdvancedFileStream stream)
+		public async Task FlushAsWriteAsync(AdvancedFileStream stream)
 		{
 #if IOTRACE
 			Trace.TraceInformation("SGW - Writing {0} memory blocks to disk",

@@ -151,7 +151,7 @@
 		#endregion
 
 		#region Public Methods
-		public async Task LoadBuffer(uint physicalPageId, VirtualBuffer buffer)
+		public async Task LoadBufferAsync(uint physicalPageId, VirtualBuffer buffer)
 		{
 			if (IsScatterGatherIOEnabled)
 			{
@@ -173,7 +173,7 @@
 			}
 		}
 
-		public async Task SaveBuffer(uint physicalPageId, VirtualBuffer buffer)
+		public async Task SaveBufferAsync(uint physicalPageId, VirtualBuffer buffer)
 		{
 			if (IsScatterGatherIOEnabled)
 			{
@@ -196,7 +196,7 @@
 			}
 		}
 
-		public async Task FlushBuffers(bool flushReads, bool flushWrites)
+		public async Task FlushBuffersAsync(bool flushReads, bool flushWrites)
 		{
 			if (IsScatterGatherIOEnabled)
 			{

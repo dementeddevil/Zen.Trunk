@@ -7,7 +7,8 @@
 	[CLSCompliant(false)]
 	public interface IMountableDevice
 	{
-		Task Open(bool isCreate);
-		Task Close();
+		Task OpenAsync(bool isCreate);
+
+        Task CloseAsync();
 	}
 }
