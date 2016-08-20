@@ -800,7 +800,7 @@ namespace Zen.Trunk.Storage.Data
 			VirtualPageId pageId;
 			if (!request.Message.AssignVirtualId)
 			{
-				pageId = new VirtualPageId(request.Message.Page.VirtualId);
+				pageId = request.Message.Page.VirtualId;
 			}
 			else
 			{
@@ -815,7 +815,7 @@ namespace Zen.Trunk.Storage.Data
 					.ConfigureAwait(false);
 
 				// Setup the page virtual id
-				request.Message.Page.VirtualId = pageId.Value;
+				request.Message.Page.VirtualId = pageId;
 			}
 
 			// Stage #3: Add virtual/logical mapping
@@ -867,7 +867,7 @@ namespace Zen.Trunk.Storage.Data
 			request.Message.Page.FileGroupId = FileGroupId;
 
 			// Setup virtual and logical defaults
-			var pageId = new VirtualPageId(request.Message.Page.VirtualId);
+			var pageId = request.Message.Page.VirtualId;
 
 			// Stage #1: Determine virtual id if we only have logical id.
 			var logicalPage = request.Message.Page as LogicalPage;
@@ -880,7 +880,7 @@ namespace Zen.Trunk.Storage.Data
 
 				// Map from logical page to virtual page
 				pageId = await _logicalVirtual.GetVirtualAsync(logicalPage.LogicalId).ConfigureAwait(false);
-				request.Message.Page.VirtualId = pageId.Value;
+				request.Message.Page.VirtualId = pageId;
 			}
 
 			// Stage #2: Load the buffer from the underlying cache
@@ -941,7 +941,7 @@ namespace Zen.Trunk.Storage.Data
 				var pageId = new VirtualPageId(request.DeviceId, distPhyId);
 				using (var page = new DistributionPage())
 				{
-					page.VirtualId = pageId.Value;
+					page.VirtualId = pageId;
 					page.DistributionLock = ObjectLockType.Exclusive;
 
 					// Add page to the device
@@ -1116,7 +1116,7 @@ namespace Zen.Trunk.Storage.Data
 					}
 					else if (failedDueToFull)
 					{
-						throw new FileGroupFullException(0, FileGroupName, "Failed to expand file-group device; device is full.");
+						throw new FileGroupFullException(0, FileGroupId, FileGroupName, "Failed to expand file-group device; device is full.");
 					}
 					else
 					{
@@ -1155,7 +1155,7 @@ namespace Zen.Trunk.Storage.Data
 			}
 
 			// File group must be full if we reach this point!
-			throw new FileGroupFullException(FileGroupId, null);
+			throw new FileGroupFullException(0, FileGroupId, null);
 		}
 
 		private async Task<ObjectId> AddTableHandler(AddTableRequest request)
@@ -1218,7 +1218,7 @@ namespace Zen.Trunk.Storage.Data
 
 		private async Task<uint> AddTableIndexHandler(AddTableIndexRequest request)
 		{
-			uint indexId = 0;
+			uint ObjectId = 0;
 
 		    var table = new DatabaseTable(this)
 		    {
@@ -1228,7 +1228,7 @@ namespace Zen.Trunk.Storage.Data
 		    };
 		    //table.AddIndex
 
-			return indexId;
+			return ObjectId;
 		}
 		#endregion
 	}

@@ -6,11 +6,6 @@
 
 namespace Zen.Trunk.Storage.Data
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Text;
-
     /// <summary>
     /// TODO: Update summary.
     /// </summary>
@@ -40,7 +35,7 @@ namespace Zen.Trunk.Storage.Data
         /// <remarks>
         /// This value is not persisted.
         /// </remarks>
-        public byte FileGroupId
+        public FileGroupId FileGroupId
         {
             get;
             set;
@@ -53,7 +48,7 @@ namespace Zen.Trunk.Storage.Data
         /// <remarks>
         /// This value is not persisted.
         /// </remarks>
-        public ulong RootPageVirtualPageId
+        public VirtualPageId RootPageVirtualPageId
         {
             get;
             set;

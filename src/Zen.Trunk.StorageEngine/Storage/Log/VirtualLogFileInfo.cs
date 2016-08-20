@@ -44,7 +44,7 @@ namespace Zen.Trunk.Storage.Log
 		/// <summary>
 		/// Gets/sets the virtual log index into the device.
 		/// </summary>
-		public ushort IndexId
+		public ushort ObjectId
 		{
 			get
 			{

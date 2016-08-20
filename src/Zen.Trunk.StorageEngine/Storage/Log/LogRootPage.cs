@@ -215,7 +215,7 @@ namespace Zen.Trunk.Storage.Log
 			// Create log file and assign Id
 			var info = new VirtualLogFileInfo();
 			info.DeviceId = deviceId;
-			info.IndexId = LogFileCount;
+			info.ObjectId = LogFileCount;
 
 			// Chain the log file if we can
 			var lastLogFileId = new LogFileId(lastLogFile);

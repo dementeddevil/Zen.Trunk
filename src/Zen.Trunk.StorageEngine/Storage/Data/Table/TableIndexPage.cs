@@ -41,7 +41,7 @@
 					_rootIndex = value;
 					if (_rootIndex != null)
 					{
-						ObjectId = _rootIndex.IndexId;
+						ObjectId = _rootIndex.ObjectId;
 					}
 				}
 			}

@@ -43,10 +43,10 @@
 		#endregion
 
 		#region Index Lock/Unlock
-		void LockRootIndex(IndexId indexId, TimeSpan timeout, bool writable);
-		void UnlockRootIndex(IndexId indexId, bool writable);
-		void LockInternalIndex(IndexId indexId, LogicalPageId logicalId, TimeSpan timeout, bool writable);
-		void UnlockInternalIndex(IndexId indexId, LogicalPageId logicalId, bool writable);
+		void LockRootIndex(ObjectId ObjectId, TimeSpan timeout, bool writable);
+		void UnlockRootIndex(ObjectId ObjectId, bool writable);
+		void LockInternalIndex(ObjectId ObjectId, LogicalPageId logicalId, TimeSpan timeout, bool writable);
+		void UnlockInternalIndex(ObjectId ObjectId, LogicalPageId logicalId, bool writable);
 		#endregion
 
 		#region Data Lock/Unlock

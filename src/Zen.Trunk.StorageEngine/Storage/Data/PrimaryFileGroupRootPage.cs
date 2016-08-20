@@ -278,7 +278,7 @@ namespace Zen.Trunk.Storage.Data
 				indexRef.Read (streamManager);
 				indexRef.RootIndex.IndexFileGroup = _fileGroups[indexRef.FileGroupId].Name;
 
-				_indices.Add (indexRef.RootIndex.IndexId, indexRef);
+				_indices.Add (indexRef.RootIndex.ObjectId, indexRef);
 			}*/
 			for (var index = 0; index < _objectCount.Value; ++index)
 			{

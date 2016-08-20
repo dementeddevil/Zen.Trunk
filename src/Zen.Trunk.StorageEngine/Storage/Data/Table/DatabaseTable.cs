@@ -381,7 +381,7 @@
 			_lockTimeout = TimeSpan.FromSeconds(10);
 #endif
 
-			FileGroupId = FileGroupDevice.Invalid;
+			FileGroupId = FileGroupId.Invalid;
 		}
 		#endregion
 
@@ -390,7 +390,7 @@
 		/// Gets or sets the file group id.
 		/// </summary>
 		/// <value>The file group id.</value>
-		public byte FileGroupId
+		public FileGroupId FileGroupId
 		{
 			get;
 			set;

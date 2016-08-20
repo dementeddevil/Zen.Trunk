@@ -115,7 +115,6 @@
     <Compile Include="Storage\Data\Table\TableSchemaPage.cs" />
     <Compile Include="Storage\FileGroupId.cs" />
     <Compile Include="Storage\IMountableDevice.cs" />
-    <Compile Include="Storage\IndexId.cs" />
     <Compile Include="Storage\Locking\GlobalLockManager.cs" />
     <Compile Include="Storage\Locking\DistributionLockOwnerBlock.cs" />
     <Compile Include="Storage\Locking\IDatabaseLockManager.cs" />

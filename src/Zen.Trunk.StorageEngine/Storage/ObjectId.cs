@@ -37,6 +37,15 @@ namespace Zen.Trunk.Storage
 
         #region Public Methods
         /// <summary>
+        /// Convert this object identifier into an index identifier.
+        /// </summary>
+        /// <returns></returns>
+        public ObjectId ToObjectId()
+        {
+            return new ObjectId(Value);
+        }
+
+        /// <summary>
         /// Overridden. Gets a string representation of the type.
         /// </summary>
         /// <returns></returns>

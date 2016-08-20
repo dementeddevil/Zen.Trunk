@@ -38,13 +38,19 @@ namespace Zen.Trunk.Storage
         #endregion
 
         #region Public Methods
+
+        public FileGroupId Next()
+        {
+            return new FileGroupId((byte)(Value + 1));    
+        }
+
         /// <summary>
         /// Overridden. Gets a string representation of the type.
         /// </summary>
         /// <returns></returns>
         public override string ToString()
         {
-            return $"FileGroupId{Value:X8}";
+            return $"FileGroupId{Value:X2}";
         }
 
         /// <summary>

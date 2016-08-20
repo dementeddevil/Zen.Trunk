@@ -499,7 +499,7 @@ namespace Zen.Trunk.Storage.Data
 
 						// Determine the virtual id for this page
 						var pageIndex = (extent * PagesPerExtent) + index;
-						virtPageId = VirtualId + pageIndex + 1;
+						virtPageId = VirtualId.Value + pageIndex + 1;
 						break;
 					}
 				}
@@ -576,7 +576,7 @@ namespace Zen.Trunk.Storage.Data
 
 		public Task Import(ILogicalVirtualManager logicalVirtualManager)
 		{
-			var startPageId = new VirtualPageId(VirtualId).NextPage;
+			var startPageId = VirtualId.NextPage;
 
 			// Loop through next 512 device pages adding logical
 			//	lookups where we have allocated pages.
@@ -632,8 +632,7 @@ namespace Zen.Trunk.Storage.Data
 			}
 
 			// Determine the physical page index for this page
-			var pageId = new VirtualPageId(VirtualId);
-			var pageIndex = pageId.PhysicalPageId;
+			var pageIndex = VirtualId.PhysicalPageId;
 
 			// Determine the number of extents that are usable
 			var usableExtents = ExtentTrackingCount;
@@ -676,7 +675,7 @@ namespace Zen.Trunk.Storage.Data
 			if (lm != null)
 			{
 				lm.LockDistributionHeader(
-					DataBuffer.PageId.Value,
+					DataBuffer.PageId,
 					TimeSpan.FromMilliseconds(40));
 
 				// Reload header
@@ -699,7 +698,7 @@ namespace Zen.Trunk.Storage.Data
 				WriteHeader();
 
 				// Unlock distribution page header
-				lm.UnlockDistributionHeader(DataBuffer.PageId.Value);
+				lm.UnlockDistributionHeader(DataBuffer.PageId);
 			}
 
 			base.PostUpdateTimestamp();

@@ -152,7 +152,7 @@
 			// Sanity checks
 			foreach (var def in Indices)
 			{
-				if (def.IndexId == request.Message.IndexId)
+				if (def.ObjectId == request.Message.ObjectId)
 				{
 					throw new CoreException("Duplicate index ID found.");
 				}
@@ -677,7 +677,7 @@
 	public class SplitTableIndexPageParameters
 	{
 		#region Private Fields
-		private readonly uint _indexObjectId;
+		private readonly ObjectId _indexObjectId;
 		private readonly TableIndexPage _parentPage;
 		private readonly TableIndexPage _pageToSplit;
 		private readonly TableIndexPage _splitPage;
@@ -688,7 +688,7 @@
 		/// Initialises an instance of <see cref="T:SplitTableIndexPageParameters" />.
 		/// </summary>
 		public SplitTableIndexPageParameters(
-			uint indexObjectId,
+			ObjectId indexObjectId,
 			TableIndexPage pageToSplit,
 			TableIndexPage splitPage)
 		{
@@ -712,7 +712,7 @@
 		#endregion
 
 		#region Public Properties
-		public uint IndexObjectId => _indexObjectId;
+		public ObjectId IndexObjectId => _indexObjectId;
 
 	    /// <summary>
 		/// Gets the parent page.

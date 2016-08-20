@@ -104,7 +104,7 @@ namespace Zen.Trunk.Storage.Data
 			new Dictionary<FileGroupId, FileGroupDevice>();
 		private readonly Dictionary<string, FileGroupDevice> _fileGroupByName =
 			new Dictionary<string, FileGroupDevice>();
-		private FileGroupId _nextFileGroupId = new FileGroupId((byte)(FileGroupId.Primary.Value + 1));
+		private FileGroupId _nextFileGroupId = FileGroupId.Primary.Next();
 
 		// Log device
 		private MasterLogPageDevice _logDevice;
@@ -546,7 +546,7 @@ namespace Zen.Trunk.Storage.Data
 					(fileGroupId != FileGroupId.Master &&
 					fileGroupId != FileGroupId.Primary))
 				{
-					fileGroupId = new FileGroupId(_nextFileGroupId++);
+					fileGroupId = _nextFileGroupId = _nextFileGroupId.Next();
 				}
 
 				// Create new file group device and add to map

@@ -6,8 +6,8 @@
 	public class RootIndexInfo : BufferFieldWrapper
 	{
 		#region Private Fields
-		private byte _indexFileGroupId;	// not serialized
-		private readonly BufferFieldUInt32 _indexId;
+		private FileGroupId _indexFileGroupId;	// not serialized
+		private readonly BufferFieldUInt32 _ObjectId;
 		private readonly BufferFieldUInt32 _ownerObjectId;
 		private readonly BufferFieldStringFixed _name;
 		private readonly BufferFieldUInt64 _rootLogicalId;
@@ -26,11 +26,11 @@
 		/// <summary>
 		/// Initializes a new instance of the <see cref="RootIndexInfo"/> class.
 		/// </summary>
-		/// <param name="indexId">The index id.</param>
-		public RootIndexInfo(uint indexId)
+		/// <param name="ObjectId">The index id.</param>
+		public RootIndexInfo(uint ObjectId)
 		{
-			_indexId = new BufferFieldUInt32(indexId);
-			_ownerObjectId = new BufferFieldUInt32(_indexId);
+			_ObjectId = new BufferFieldUInt32(ObjectId);
+			_ownerObjectId = new BufferFieldUInt32(_ObjectId);
 			_name = new BufferFieldStringFixed(_ownerObjectId, 16);
 			_rootLogicalId = new BufferFieldUInt64(_name);
 			_rootIndexDepth = new BufferFieldByte(_rootLogicalId);
@@ -42,7 +42,7 @@
 		/// Gets the index id.
 		/// </summary>
 		/// <value>The index id.</value>
-		public uint IndexId => _indexId.Value;
+		public ObjectId ObjectId => new ObjectId(_ObjectId.Value);
 
 	    /// <summary>
 		/// Gets or sets the owner object id.
@@ -80,7 +80,7 @@
 		/// Gets or sets the index file group id.
 		/// </summary>
 		/// <value>The index file group id.</value>
-		public byte IndexFileGroupId
+		public FileGroupId IndexFileGroupId
 		{
 			get
 			{
@@ -130,7 +130,7 @@
 		/// Gets the first buffer field object.
 		/// </summary>
 		/// <value>A <see cref="T:BufferField"/> object.</value>
-		protected override BufferField FirstField => _indexId;
+		protected override BufferField FirstField => _ObjectId;
 
 	    /// <summary>
 		/// Gets the last buffer field object.

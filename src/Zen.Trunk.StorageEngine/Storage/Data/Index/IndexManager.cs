@@ -103,8 +103,8 @@
 		where IndexRootClass : RootIndexInfo
 	{
 		#region Private Fields
-		private readonly Dictionary<uint, IndexRootClass> _indices =
-			new Dictionary<uint, IndexRootClass>();
+		private readonly Dictionary<ObjectId, IndexRootClass> _indices =
+			new Dictionary<ObjectId, IndexRootClass>();
 		#endregion
 
 		#region Protected Constructors
@@ -124,14 +124,14 @@
 	    #endregion
 
 		#region Internal Methods
-		internal IndexRootClass GetIndexInfo(uint indexId)
+		internal IndexRootClass GetIndexInfo(ObjectId ObjectId)
 		{
-			return _indices[indexId];
+			return _indices[ObjectId];
 		}
 
 		internal void AddIndexInfo(IndexRootClass index)
 		{
-			_indices.Add(index.IndexId, index);
+			_indices.Add(index.ObjectId, index);
 		}
 		#endregion
 	}
