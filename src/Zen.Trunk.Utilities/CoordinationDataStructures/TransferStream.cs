@@ -32,7 +32,7 @@ namespace System.Threading
 			// Validate arguments
 			if (writeableStream == null)
 			{
-				throw new ArgumentNullException("writeableStream");
+				throw new ArgumentNullException(nameof(writeableStream));
 			}
 			if (!writeableStream.CanWrite)
 			{
@@ -72,15 +72,15 @@ namespace System.Threading
 			// Validate all arguments
 			if (buffer == null)
 			{
-				throw new ArgumentNullException("buffer");
+				throw new ArgumentNullException(nameof(buffer));
 			}
 			if (offset < 0 || offset >= buffer.Length)
 			{
-				throw new ArgumentOutOfRangeException("offset");
+				throw new ArgumentOutOfRangeException(nameof(offset));
 			}
 			if (count < 0 || offset + count > buffer.Length)
 			{
-				throw new ArgumentOutOfRangeException("count");
+				throw new ArgumentOutOfRangeException(nameof(count));
 			}
 			if (count == 0)
 			{

@@ -36,7 +36,7 @@ namespace Zen.Trunk.Storage.Data
 		/// Initializes a new instance of the <see cref="MasterDatabaseDevice"/> class.
 		/// </summary>
 		public MasterDatabaseDevice()
-			: base(0)
+			: base(DatabaseId.Zero)
 		{
 		}
 
@@ -45,7 +45,7 @@ namespace Zen.Trunk.Storage.Data
 		/// </summary>
 		/// <param name="parentServiceProvider">The parent service provider.</param>
 		public MasterDatabaseDevice(IServiceProvider parentServiceProvider)
-			: base(0, parentServiceProvider)
+			: base(DatabaseId.Zero, parentServiceProvider)
 		{
 		}
 		#endregion
@@ -58,7 +58,7 @@ namespace Zen.Trunk.Storage.Data
 		/// Gets the primary file group id.
 		/// </summary>
 		/// <value>The primary file group id.</value>
-		protected override byte PrimaryFileGroupId => FileGroupDevice.Master;
+		protected override FileGroupId PrimaryFileGroupId => FileGroupId.Master;
 
 	    #endregion
 
@@ -88,7 +88,7 @@ namespace Zen.Trunk.Storage.Data
 				// Create new database device
 				// NOTE: This object is the parent service provider
 				var dbId = (ushort)Interlocked.Increment(ref _nextDatabaseId);
-				device = new DatabaseDevice(dbId, this);
+				device = new DatabaseDevice(new DatabaseId(dbId), this);
 			}
 
 			// Create transaction context for the new database device
@@ -130,12 +130,12 @@ namespace Zen.Trunk.Storage.Data
 						if (needToCreateMasterFilegroup)
 						{
 							await device.AddFileGroupDevice(new AddFileGroupDeviceParameters(
-								FileGroupDevice.Master, fileGroup.Item1, file.Name, file.FileName, createPageCount, deviceId++)).ConfigureAwait(false);
+								FileGroupId.Master, fileGroup.Item1, file.Name, file.FileName, createPageCount, deviceId++)).ConfigureAwait(false);
 						}
 						else
 						{
 							await device.AddFileGroupDevice(new AddFileGroupDeviceParameters(
-								FileGroupDevice.Primary, fileGroup.Item1, file.Name, file.FileName, createPageCount, deviceId++)).ConfigureAwait(false);
+								FileGroupId.Primary, fileGroup.Item1, file.Name, file.FileName, createPageCount, deviceId++)).ConfigureAwait(false);
 						}
 
 						primaryName = file.Name;
@@ -144,7 +144,7 @@ namespace Zen.Trunk.Storage.Data
 					else
 					{
 						await device.AddFileGroupDevice(new AddFileGroupDeviceParameters(
-							FileGroupDevice.Invalid, fileGroup.Item1, file.Name, file.FileName, createPageCount, deviceId++)).ConfigureAwait(false);
+							FileGroupId.Invalid, fileGroup.Item1, file.Name, file.FileName, createPageCount, deviceId++)).ConfigureAwait(false);
 					}
 
 					mountingPrimary = needToCreateMasterFilegroup = false;

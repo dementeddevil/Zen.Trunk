@@ -29,7 +29,7 @@ namespace System.Collections.Concurrent
 				if (collection == null)
 					throw new ArgumentNullException("bc");
 				if (millisecondsTimeout < -1)
-					throw new ArgumentOutOfRangeException("millisecondsTimeout");
+					throw new ArgumentOutOfRangeException(nameof(millisecondsTimeout));
 				_collection = collection;
 				_millisecondsTimeout = millisecondsTimeout;
 				_cancellationToken = cancellationToken;
@@ -89,7 +89,7 @@ namespace System.Collections.Concurrent
 			internal BlockingCollectionPartitioner(BlockingCollection<T> collection)
 			{
 				if (collection == null)
-					throw new ArgumentNullException("collection");
+					throw new ArgumentNullException(nameof(collection));
 				_collection = collection;
 			}
 
@@ -102,7 +102,7 @@ namespace System.Collections.Concurrent
 			public override IList<IEnumerator<T>> GetPartitions(int partitionCount)
 			{
 				if (partitionCount < 1)
-					throw new ArgumentOutOfRangeException("partitionCount");
+					throw new ArgumentOutOfRangeException(nameof(partitionCount));
 				var dynamicPartitioner = GetDynamicPartitions();
 				return Enumerable.Range(0, partitionCount).Select(_ => dynamicPartitioner.GetEnumerator()).ToArray();
 			}
@@ -166,9 +166,9 @@ namespace System.Collections.Concurrent
 		public static IDisposable AddFromObservable<T>(this BlockingCollection<T> target, IObservable<T> source, bool completeAddingWhenDone)
 		{
 			if (target == null)
-				throw new ArgumentNullException("target");
+				throw new ArgumentNullException(nameof(target));
 			if (source == null)
-				throw new ArgumentNullException("source");
+				throw new ArgumentNullException(nameof(source));
 			return source.Subscribe(new DelegateBasedObserver<T>
 			(
 				onNext: item => target.Add(item),

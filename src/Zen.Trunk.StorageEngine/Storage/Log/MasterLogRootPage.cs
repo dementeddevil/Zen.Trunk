@@ -244,7 +244,7 @@ namespace Zen.Trunk.Storage.Log
 		{
 			if (index < 0 || index >= _checkPointHistoryCount.Value)
 			{
-				throw new ArgumentOutOfRangeException("index", index, "Index out of range");
+				throw new ArgumentOutOfRangeException(nameof(index), index, "Index out of range");
 			}
 			if (lastCheckPoint == null)
 				return null;

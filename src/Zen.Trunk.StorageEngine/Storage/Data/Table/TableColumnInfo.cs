@@ -703,7 +703,7 @@
 			// Sanity checks
 			if (streamManager == null)
 			{
-				throw new ArgumentNullException("streamManager");
+				throw new ArgumentNullException(nameof(streamManager));
 			}
 
 			// TODO: Deal with NULL processing
@@ -791,7 +791,7 @@
 			// Sanity checks
 			if (streamManager == null)
 			{
-				throw new ArgumentNullException("streamManager");
+				throw new ArgumentNullException(nameof(streamManager));
 			}
 
 			switch (DataType)

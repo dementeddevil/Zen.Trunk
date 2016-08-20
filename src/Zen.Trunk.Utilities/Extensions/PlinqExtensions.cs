@@ -110,8 +110,8 @@ namespace System.Linq
             IProducerConsumerCollection<TSource> target)
         {
             // Validate arguments
-            if (source == null) throw new ArgumentNullException("source");
-            if (target == null) throw new ArgumentNullException("target");
+            if (source == null) throw new ArgumentNullException(nameof(source));
+            if (target == null) throw new ArgumentNullException(nameof(target));
 
             // Store all results into the collection
             source.ForAll(item => target.TryAdd(item));
@@ -126,7 +126,7 @@ namespace System.Linq
             this IEnumerable<TSource> source,
             ParallelLinqOptions parallelOptions)
         {
-            if (source == null) throw new ArgumentNullException("source");
+            if (source == null) throw new ArgumentNullException(nameof(source));
 
             // Validate unsupported options
             if (parallelOptions.TaskScheduler != null && parallelOptions.TaskScheduler != TaskScheduler.Default)

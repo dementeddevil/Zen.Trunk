@@ -112,7 +112,7 @@ namespace Zen.Trunk.Storage.Data
 
 		private readonly Dictionary<ushort, DeviceInfo> _devices = new Dictionary<ushort, DeviceInfo>();
 		//private Dictionary<uint, IndexRefInfo> _indices = new Dictionary<uint,IndexRefInfo> ();
-		private readonly Dictionary<uint, ObjectRefInfo> _objects = new Dictionary<uint, ObjectRefInfo>();
+		private readonly Dictionary<ObjectId, ObjectRefInfo> _objects = new Dictionary<ObjectId, ObjectRefInfo>();
 		#endregion
 
 		#region Public Constructors

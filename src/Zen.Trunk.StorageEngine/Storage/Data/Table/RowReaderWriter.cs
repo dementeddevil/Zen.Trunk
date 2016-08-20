@@ -41,7 +41,7 @@
 				if (index < 0 || index >= _rowValues.Length)
 				{
 					throw new ArgumentOutOfRangeException(
-						"index", index, "index out of range.");
+						nameof(index), index, "index out of range.");
 				}
 				return _rowValues[index];
 			}
@@ -50,7 +50,7 @@
 				if (index < 0 || index >= _rowValues.Length)
 				{
 					throw new ArgumentOutOfRangeException(
-						"index", index, "index out of range.");
+						nameof(index), index, "index out of range.");
 				}
 				_rowValues[index] = value;
 			}

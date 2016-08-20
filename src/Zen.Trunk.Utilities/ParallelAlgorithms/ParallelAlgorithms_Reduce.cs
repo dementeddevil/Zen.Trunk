@@ -37,7 +37,7 @@ namespace System.Threading.Algorithms
             IList<T> input, ParallelOptions parallelOptions,
             T seed, Func<T, T, T> associativeCommutativeOperation)
         {
-            if (input == null) throw new ArgumentNullException("input");
+            if (input == null) throw new ArgumentNullException(nameof(input));
             return Reduce(0, input.Count, parallelOptions, i => input[i], seed, associativeCommutativeOperation);
         }
 
@@ -69,10 +69,10 @@ namespace System.Threading.Algorithms
             int fromInclusive, int toExclusive, ParallelOptions parallelOptions, 
             Func<int, T> mapOperation, T seed, Func<T, T, T> associativeCommutativeOperation)
         {
-            if (parallelOptions == null) throw new ArgumentNullException("parallelOptions");
-            if (mapOperation == null) throw new ArgumentNullException("mapOperation");
-            if (associativeCommutativeOperation == null) throw new ArgumentNullException("associativeCommutativeOperation");
-            if (toExclusive < fromInclusive) throw new ArgumentOutOfRangeException("toExclusive");
+            if (parallelOptions == null) throw new ArgumentNullException(nameof(parallelOptions));
+            if (mapOperation == null) throw new ArgumentNullException(nameof(mapOperation));
+            if (associativeCommutativeOperation == null) throw new ArgumentNullException(nameof(associativeCommutativeOperation));
+            if (toExclusive < fromInclusive) throw new ArgumentOutOfRangeException(nameof(toExclusive));
 
             var obj = new object(); // used as a monitor for the final reduction
             var result = seed; // accumulator for final reduction

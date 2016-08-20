@@ -283,7 +283,7 @@ namespace Zen.Trunk.Storage.Log
 			// Check within bounds...
 			if (index >= LogFileCount)
 			{
-				throw new ArgumentOutOfRangeException("index");
+				throw new ArgumentOutOfRangeException(nameof(index));
 			}
 
 			return _logFiles[(int)index];

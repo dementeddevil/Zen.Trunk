@@ -399,7 +399,7 @@ namespace Zen.Trunk.Storage.IO
 			{
 				if (value < 0)
 				{
-					throw new ArgumentOutOfRangeException("value", "value cannot be negative.");
+					throw new ArgumentOutOfRangeException(nameof(value), "value cannot be negative.");
 				}
 				if (_writePos > 0)
 				{
@@ -576,16 +576,16 @@ namespace Zen.Trunk.Storage.IO
 		{
 			if (buffer == null)
 			{
-				throw new ArgumentNullException("buffer");
+				throw new ArgumentNullException(nameof(buffer));
 			}
 			if (offset < 0)
 			{
-				throw new ArgumentOutOfRangeException("offset",
+				throw new ArgumentOutOfRangeException(nameof(offset),
 					"offset cannot be negative.");
 			}
 			if (count < 0)
 			{
-				throw new ArgumentOutOfRangeException("count",
+				throw new ArgumentOutOfRangeException(nameof(count),
 					"numBytes cannot be negative.");
 			}
 			if ((buffer.Length - offset) < count)
@@ -725,15 +725,15 @@ namespace Zen.Trunk.Storage.IO
 		{
 			if (buffer == null)
 			{
-				throw new ArgumentNullException("buffer");
+				throw new ArgumentNullException(nameof(buffer));
 			}
 			if (offset < 0)
 			{
-				throw new ArgumentOutOfRangeException("offset", "offset cannot be negative.");
+				throw new ArgumentOutOfRangeException(nameof(offset), "offset cannot be negative.");
 			}
 			if (count < 0)
 			{
-				throw new ArgumentOutOfRangeException("count", "count cannot be negative.");
+				throw new ArgumentOutOfRangeException(nameof(count), "count cannot be negative.");
 			}
 			if ((buffer.Length - offset) < count)
 			{
@@ -846,7 +846,7 @@ namespace Zen.Trunk.Storage.IO
 		{
 			if (asyncResult == null)
 			{
-				throw new ArgumentNullException("asyncResult");
+				throw new ArgumentNullException(nameof(asyncResult));
 			}
 			if (!_isAsync)
 			{
@@ -905,7 +905,7 @@ namespace Zen.Trunk.Storage.IO
 		{
 			if (asyncResult == null)
 			{
-				throw new ArgumentNullException("asyncResult");
+				throw new ArgumentNullException(nameof(asyncResult));
 			}
 			var result = asyncResult as AdvancedStreamAsyncResult;
 			if ((result == null) || result._isWrite || !result._isScatterGather)
@@ -952,7 +952,7 @@ namespace Zen.Trunk.Storage.IO
 		{
 			if (asyncResult == null)
 			{
-				throw new ArgumentNullException("asyncResult");
+				throw new ArgumentNullException(nameof(asyncResult));
 			}
 			if (!_isAsync)
 			{
@@ -1003,7 +1003,7 @@ namespace Zen.Trunk.Storage.IO
 		{
 			if (asyncResult == null)
 			{
-				throw new ArgumentNullException("asyncResult");
+				throw new ArgumentNullException(nameof(asyncResult));
 			}
 			var result = asyncResult as AdvancedStreamAsyncResult;
 			if ((result == null) || !result._isWrite || !result._isScatterGather)
@@ -1123,15 +1123,15 @@ namespace Zen.Trunk.Storage.IO
 		{
 			if (buffer == null)
 			{
-				throw new ArgumentNullException("buffer", "null buffer");
+				throw new ArgumentNullException(nameof(buffer), "null buffer");
 			}
 			if (offset < 0)
 			{
-				throw new ArgumentOutOfRangeException("offset", "offset cannot be negative.");
+				throw new ArgumentOutOfRangeException(nameof(offset), "offset cannot be negative.");
 			}
 			if (count < 0)
 			{
-				throw new ArgumentOutOfRangeException("count", "count cannot be negative.");
+				throw new ArgumentOutOfRangeException(nameof(count), "count cannot be negative.");
 			}
 			if ((buffer.Length - offset) < count)
 			{
@@ -1315,7 +1315,7 @@ namespace Zen.Trunk.Storage.IO
 		{
 			if (fileSecurity == null)
 			{
-				throw new ArgumentNullException("fileSecurity");
+				throw new ArgumentNullException(nameof(fileSecurity));
 			}
 			if (_handle.IsClosed)
 			{
@@ -1335,7 +1335,7 @@ namespace Zen.Trunk.Storage.IO
 		{
 			if (value < 0)
 			{
-				throw new ArgumentOutOfRangeException("value", "value cannot be negative.");
+				throw new ArgumentOutOfRangeException(nameof(value), "value cannot be negative.");
 			}
 			if (_handle.IsClosed)
 			{
@@ -1414,15 +1414,15 @@ namespace Zen.Trunk.Storage.IO
 		{
 			if (array == null)
 			{
-				throw new ArgumentNullException("array", "array is null");
+				throw new ArgumentNullException(nameof(array), "array is null");
 			}
 			if (offset < 0)
 			{
-				throw new ArgumentOutOfRangeException("offset", "offset cannot be negative.");
+				throw new ArgumentOutOfRangeException(nameof(offset), "offset cannot be negative.");
 			}
 			if (count < 0)
 			{
-				throw new ArgumentOutOfRangeException("count", "count cannot be negative.");
+				throw new ArgumentOutOfRangeException(nameof(count), "count cannot be negative.");
 			}
 			if ((array.Length - offset) < count)
 			{
@@ -1587,7 +1587,7 @@ namespace Zen.Trunk.Storage.IO
 			{
 				throw new ArgumentException(string.Format(
 					"Buffer size must be multiple of system page size ({0}) bytes).",
-					AdvancedFileStream.SystemPageSize), "bufferSize");
+					AdvancedFileStream.SystemPageSize), nameof(bufferSize));
 			}
 
 			// Ensure we have absolute path
@@ -2400,7 +2400,7 @@ namespace Zen.Trunk.Storage.IO
 				var errorCode = Marshal.GetLastWin32Error();
 				if (errorCode == __Error.ERROR_INVALID_PARAMETER)
 				{
-					throw new ArgumentOutOfRangeException("value", "file length too large.");
+					throw new ArgumentOutOfRangeException(nameof(value), "file length too large.");
 				}
 				__Error.WinIOError(errorCode, string.Empty);
 			}

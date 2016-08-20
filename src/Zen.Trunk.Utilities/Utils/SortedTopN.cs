@@ -15,8 +15,8 @@ namespace System.Linq
 
         public SortedTopN(int count, IComparer<TKey> comparer)
         {
-            if (count < 1) throw new ArgumentOutOfRangeException("count");
-            if (comparer == null) throw new ArgumentNullException("comparer");
+            if (count < 1) throw new ArgumentOutOfRangeException(nameof(count));
+            if (comparer == null) throw new ArgumentNullException(nameof(comparer));
             _n = count;
             _topNKeys = new List<TKey>(count);
             _topNValues = new List<TValue>(count);

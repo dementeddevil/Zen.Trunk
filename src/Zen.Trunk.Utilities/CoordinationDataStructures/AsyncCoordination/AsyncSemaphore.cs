@@ -35,8 +35,8 @@ namespace System.Threading.Async
         /// <param name="maxCount">The maximum count allowed.</param>
         public AsyncSemaphore(int initialCount, int maxCount)
         {
-            if (maxCount <= 0) throw new ArgumentOutOfRangeException("maxCount");
-            if (initialCount > maxCount || initialCount < 0) throw new ArgumentOutOfRangeException("initialCount");
+            if (maxCount <= 0) throw new ArgumentOutOfRangeException(nameof(maxCount));
+            if (initialCount > maxCount || initialCount < 0) throw new ArgumentOutOfRangeException(nameof(initialCount));
             _currentCount = initialCount;
             _maxCount = maxCount;
             _waitingTasks = new Queue<TaskCompletionSource<object>>();

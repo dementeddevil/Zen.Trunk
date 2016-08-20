@@ -77,7 +77,7 @@ namespace Zen.Trunk.Storage
 		{
 			if (info == null)
 			{
-				throw new ArgumentNullException("info");
+				throw new ArgumentNullException(nameof(info));
 			}
 			base.GetObjectData(info, context);
 			info.AddValue("DeviceId", _deviceId);
@@ -168,40 +168,46 @@ namespace Zen.Trunk.Storage
 	public class FileGroupException : DeviceException
 	{
 		#region Public Constructors
-		public FileGroupException(ushort deviceId, string fileGroup)
+		public FileGroupException(ushort deviceId, FileGroupId fileGroupId, string fileGroupName)
 			: base(deviceId)
 		{
-			FileGroup = fileGroup;
+            FileGroupId = fileGroupId;
+            FileGroupName = fileGroupName;
 		}
 		
 		public FileGroupException(
-			ushort deviceId, string fileGroup, string message)
+			ushort deviceId, FileGroupId fileGroupId, string fileGroupName, string message)
 			: base(deviceId, message)
 		{
-			FileGroup = fileGroup;
+            FileGroupId = fileGroupId;
+            FileGroupName = fileGroupName;
 		}
 		
 		public FileGroupException(
-			ushort deviceId, 
-			string fileGroup,
+			ushort deviceId,
+            FileGroupId fileGroupId, 
+            string fileGroupName,
 			string message, 
 			Exception innerException)
 			: base(deviceId, message, innerException)
 		{
-			FileGroup = fileGroup;
+		    FileGroupId = fileGroupId;
+			FileGroupName = fileGroupName;
 		}
 		#endregion
 
 		#region Public Properties
+        /// <summary>
+        /// Gets the file group id.
+        /// </summary>
+        /// <value>The file group id.</value>
+        public FileGroupId FileGroupId { get; }
+
 		/// <summary>
-		/// Gets or sets the file group.
+		/// Gets the file group.
 		/// </summary>
-		/// <value>The file group.</value>
-		public string FileGroup
-		{
-			get;
-			private set;
-		}
+		/// <value>The file group name.</value>
+		public string FileGroupName { get; }
 		#endregion
 	}
 
@@ -209,21 +215,22 @@ namespace Zen.Trunk.Storage
 	public class FileGroupInvalidException : FileGroupException
 	{
 		#region Public Constructors
-		public FileGroupInvalidException(ushort deviceId, string fileGroup)
-			: base(deviceId, fileGroup)
+		public FileGroupInvalidException(ushort deviceId, FileGroupId fileGroupId, string fileGroupName)
+			: base(deviceId, fileGroupId, fileGroupName)
 		{
 		}
 		public FileGroupInvalidException(
-			ushort deviceId, string fileGroup, string message)
-			: base(deviceId, fileGroup, message)
+			ushort deviceId, FileGroupId fileGroupId, string fileGroupName, string message)
+			: base(deviceId, fileGroupId, fileGroupName, message)
 		{
 		}
 		public FileGroupInvalidException(
-			ushort deviceId, 
-			string fileGroup,
+			ushort deviceId,
+            FileGroupId fileGroupId,
+            string fileGroupName,
 			string message, 
 			Exception innerException)
-			: base(deviceId, fileGroup, message, innerException)
+			: base(deviceId, fileGroupId, fileGroupName, message, innerException)
 		{
 		}
 		#endregion
@@ -233,21 +240,22 @@ namespace Zen.Trunk.Storage
 	public class FileGroupFullException : FileGroupException
 	{
 		#region Public Constructors
-		public FileGroupFullException(ushort deviceId, string fileGroup)
-			: base(deviceId, fileGroup)
+		public FileGroupFullException(ushort deviceId, FileGroupId fileGroupId, string fileGroupName)
+			: base(deviceId, fileGroupId, fileGroupName)
 		{
 		}
 		public FileGroupFullException(
-			ushort deviceId, string fileGroup, string message)
-			: base(deviceId, fileGroup, message)
+			ushort deviceId, FileGroupId fileGroupId, string fileGroupName, string message)
+			: base(deviceId, fileGroupId, fileGroupName, message)
 		{
 		}
 		public FileGroupFullException(
-			ushort deviceId, 
-			string fileGroup,
-			string message, 
+			ushort deviceId,
+            FileGroupId fileGroupId, 
+            string fileGroupName,
+            string message, 
 			Exception innerException)
-			: base(deviceId, fileGroup, message, innerException)
+			: base(deviceId, fileGroupId, fileGroupName, message, innerException)
 		{
 		}
 		#endregion

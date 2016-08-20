@@ -52,15 +52,15 @@ namespace Zen.Trunk.Storage.Data
 		/// <value></value>
 		/// <remarks>
 		/// The setting of this property is only supported prior to initialising
-		/// the underlying _buffer object.
+		/// the underlying buffer object.
 		/// </remarks>
-		public override ulong VirtualId
+		public override VirtualPageId VirtualId
 		{
 			get
 			{
 				if (_buffer != null)
 				{
-					return _buffer.PageId.Value;
+					return _buffer.PageId;
 				}
 				return base.VirtualId;
 			}
@@ -145,7 +145,7 @@ namespace Zen.Trunk.Storage.Data
 	    /// <summary>
 		/// Gets/sets the page file-group ID.
 		/// </summary>
-		public byte FileGroupId
+		public FileGroupId FileGroupId
 		{
 			get;
 			set;

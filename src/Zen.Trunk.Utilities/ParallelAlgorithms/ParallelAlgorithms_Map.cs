@@ -33,9 +33,9 @@ namespace System.Threading.Algorithms
         /// <returns>The output data, transformed using the transform function.</returns>
         public static TOutput[] Map<TInput, TOutput>(IList<TInput> input, ParallelOptions parallelOptions, Func<TInput, TOutput> transform)
         {
-            if (input == null) throw new ArgumentNullException("input");
-            if (parallelOptions == null) throw new ArgumentNullException("parallelOptions");
-            if (transform == null) throw new ArgumentNullException("transform");
+            if (input == null) throw new ArgumentNullException(nameof(input));
+            if (parallelOptions == null) throw new ArgumentNullException(nameof(parallelOptions));
+            if (transform == null) throw new ArgumentNullException(nameof(transform));
 
             var output = new TOutput[input.Count];
             Parallel.For(0, input.Count, parallelOptions, i => output[i] = transform(input[i]));

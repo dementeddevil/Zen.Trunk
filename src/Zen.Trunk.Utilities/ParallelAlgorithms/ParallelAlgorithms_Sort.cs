@@ -27,7 +27,7 @@ namespace System.Threading.Algorithms
         /// <param name="comparer">The comparer used to compare two elements during the sort operation.</param>
         public static void Sort<T>(T[] array, IComparer<T> comparer)
         {
-            if (array == null) throw new ArgumentNullException("array");
+            if (array == null) throw new ArgumentNullException(nameof(array));
             Sort<T, object>(array, null, 0, array.Length, comparer);
         }
 
@@ -70,7 +70,7 @@ namespace System.Threading.Algorithms
         /// <param name="comparer">The comparer used to compare two elements during the sort operation.</param>
         public static void Sort<TKey, TValue>(TKey[] keys, TValue[] items, IComparer<TKey> comparer)
         {
-            if (keys == null) throw new ArgumentNullException("keys");
+            if (keys == null) throw new ArgumentNullException(nameof(keys));
             Sort(keys, items, 0, keys.Length, comparer);
         }
 
@@ -96,7 +96,7 @@ namespace System.Threading.Algorithms
         /// <param name="comparer">The comparer used to compare two elements during the sort operation.</param>
         public static void Sort<TKey, TValue>(TKey [] keys, TValue [] items, Int32 index, Int32 length, IComparer<TKey> comparer)
         {
-            if (keys == null) throw new ArgumentNullException("keys");
+            if (keys == null) throw new ArgumentNullException(nameof(keys));
             if ((index < 0) || (length < 0)) throw new ArgumentOutOfRangeException(length < 0 ? "length" : "index");
             if (((keys.Length - index) < length) || ((items != null) && (index > (items.Length - length)))) throw new ArgumentException("index");
 

@@ -21,8 +21,8 @@ namespace System.Linq
         public static Task<TResult> Select<TSource, TResult>(this Task<TSource> source, Func<TSource, TResult> selector)
         {
             // Validate arguments
-            if (source == null) throw new ArgumentNullException("source");
-            if (selector == null) throw new ArgumentNullException("selector");
+            if (source == null) throw new ArgumentNullException(nameof(source));
+            if (selector == null) throw new ArgumentNullException(nameof(selector));
 
             // Use a continuation to run the selector function
             return source.ContinueWith(t => selector(t.Result), TaskContinuationOptions.NotOnCanceled);
@@ -31,8 +31,8 @@ namespace System.Linq
         public static Task<TResult> SelectMany<TSource, TResult>(this Task<TSource> source, Func<TSource, Task<TResult>> selector)
         {
             // Validate arguments
-            if (source == null) throw new ArgumentNullException("source");
-            if (selector == null) throw new ArgumentNullException("selector");
+            if (source == null) throw new ArgumentNullException(nameof(source));
+            if (selector == null) throw new ArgumentNullException(nameof(selector));
 
             // Use a continuation to run the selector function.
             return source.ContinueWith(t => selector(t.Result), TaskContinuationOptions.NotOnCanceled).Unwrap();
@@ -44,9 +44,9 @@ namespace System.Linq
             Func<TSource, TCollection, TResult> resultSelector)
         {
             // Validate arguments
-            if (source == null) throw new ArgumentNullException("source");
-            if (collectionSelector == null) throw new ArgumentNullException("collectionSelector");
-            if (resultSelector == null) throw new ArgumentNullException("resultSelector");
+            if (source == null) throw new ArgumentNullException(nameof(source));
+            if (collectionSelector == null) throw new ArgumentNullException(nameof(collectionSelector));
+            if (resultSelector == null) throw new ArgumentNullException(nameof(resultSelector));
 
             // When the source completes, run the collectionSelector to get the next Task,
             // and continue off of it to run the result selector
@@ -60,8 +60,8 @@ namespace System.Linq
         public static Task<TSource> Where<TSource>(this Task<TSource> source, Func<TSource, bool> predicate)
         {
             // Validate arguments
-            if (source == null) throw new ArgumentNullException("source");
-            if (predicate == null) throw new ArgumentNullException("predicate");
+            if (source == null) throw new ArgumentNullException(nameof(source));
+            if (predicate == null) throw new ArgumentNullException(nameof(predicate));
 
             // Create a continuation to run the predicate and return the source's result.
             // If the predicate returns false, cancel the returned Task.
@@ -92,12 +92,12 @@ namespace System.Linq
             IEqualityComparer<TKey> comparer)
         {
             // Validate arguments
-            if (outer == null) throw new ArgumentNullException("outer");
-            if (inner == null) throw new ArgumentNullException("inner");
-            if (outerKeySelector == null) throw new ArgumentNullException("outerKeySelector");
-            if (innerKeySelector == null) throw new ArgumentNullException("innerKeySelector");
-            if (resultSelector == null) throw new ArgumentNullException("resultSelector");
-            if (comparer == null) throw new ArgumentNullException("comparer");
+            if (outer == null) throw new ArgumentNullException(nameof(outer));
+            if (inner == null) throw new ArgumentNullException(nameof(inner));
+            if (outerKeySelector == null) throw new ArgumentNullException(nameof(outerKeySelector));
+            if (innerKeySelector == null) throw new ArgumentNullException(nameof(innerKeySelector));
+            if (resultSelector == null) throw new ArgumentNullException(nameof(resultSelector));
+            if (comparer == null) throw new ArgumentNullException(nameof(comparer));
 
             // First continue off of the outer and then off of the inner.  Two separate
             // continuations are used so that each may be canceled easily using the NotOnCanceled option.
@@ -142,12 +142,12 @@ namespace System.Linq
             IEqualityComparer<TKey> comparer)
         {
             // Validate arguments
-            if (outer == null) throw new ArgumentNullException("outer");
-            if (inner == null) throw new ArgumentNullException("inner");
-            if (outerKeySelector == null) throw new ArgumentNullException("outerKeySelector");
-            if (innerKeySelector == null) throw new ArgumentNullException("innerKeySelector");
-            if (resultSelector == null) throw new ArgumentNullException("resultSelector");
-            if (comparer == null) throw new ArgumentNullException("comparer");
+            if (outer == null) throw new ArgumentNullException(nameof(outer));
+            if (inner == null) throw new ArgumentNullException(nameof(inner));
+            if (outerKeySelector == null) throw new ArgumentNullException(nameof(outerKeySelector));
+            if (innerKeySelector == null) throw new ArgumentNullException(nameof(innerKeySelector));
+            if (resultSelector == null) throw new ArgumentNullException(nameof(resultSelector));
+            if (comparer == null) throw new ArgumentNullException(nameof(comparer));
 
             // First continue off of the outer and then off of the inner.  Two separate
             // continuations are used so that each may be canceled easily using the NotOnCanceled option.
@@ -178,9 +178,9 @@ namespace System.Linq
             this Task<TSource> source, Func<TSource, TKey> keySelector, Func<TSource, TElement> elementSelector)
         {
             // Validate arguments
-            if (source == null) throw new ArgumentNullException("source");
-            if (keySelector == null) throw new ArgumentNullException("keySelector");
-            if (elementSelector == null) throw new ArgumentNullException("elementSelector");
+            if (source == null) throw new ArgumentNullException(nameof(source));
+            if (keySelector == null) throw new ArgumentNullException(nameof(keySelector));
+            if (elementSelector == null) throw new ArgumentNullException(nameof(elementSelector));
 
             // When the source completes, return a grouping of just the one element
             return source.ContinueWith(t =>
@@ -207,7 +207,7 @@ namespace System.Linq
         {
             // A single item is already in sorted order, no matter what the key selector is, so just
             // return the original.
-            if (source == null) throw new ArgumentNullException("source");
+            if (source == null) throw new ArgumentNullException(nameof(source));
             return source;
         }
 
@@ -215,7 +215,7 @@ namespace System.Linq
         {
             // A single item is already in sorted order, no matter what the key selector is, so just
             // return the original.
-            if (source == null) throw new ArgumentNullException("source");
+            if (source == null) throw new ArgumentNullException(nameof(source));
             return source;
         }
 
@@ -223,7 +223,7 @@ namespace System.Linq
         {
             // A single item is already in sorted order, no matter what the key selector is, so just
             // return the original.
-            if (source == null) throw new ArgumentNullException("source");
+            if (source == null) throw new ArgumentNullException(nameof(source));
             return source;
         }
 
@@ -231,7 +231,7 @@ namespace System.Linq
         {
             // A single item is already in sorted order, no matter what the key selector is, so just
             // return the original.
-            if (source == null) throw new ArgumentNullException("source");
+            if (source == null) throw new ArgumentNullException(nameof(source));
             return source;
         }
     }

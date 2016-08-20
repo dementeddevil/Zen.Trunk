@@ -330,7 +330,7 @@ namespace Zen.Trunk.Storage.IO
 		{
 			if (offset < 0)
 			{
-				throw new ArgumentOutOfRangeException("offset");
+				throw new ArgumentOutOfRangeException(nameof(offset));
 			}
 
 			var result = new SafeCommitableMemoryHandle();

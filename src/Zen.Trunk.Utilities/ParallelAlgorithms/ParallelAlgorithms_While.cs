@@ -30,9 +30,9 @@ namespace System.Threading.Algorithms
         public static void ParallelWhile(
             ParallelOptions parallelOptions, Func<bool> condition, Action body)
         {
-            if (parallelOptions == null) throw new ArgumentNullException("parallelOptions");
-            if (condition == null) throw new ArgumentNullException("condition");
-            if (body == null) throw new ArgumentNullException("body");
+            if (parallelOptions == null) throw new ArgumentNullException(nameof(parallelOptions));
+            if (condition == null) throw new ArgumentNullException(nameof(condition));
+            if (body == null) throw new ArgumentNullException(nameof(body));
 
             Parallel.ForEach(SingleItemPartitioner.Create(IterateUntilFalse(condition)), parallelOptions, ignored => body());
         }

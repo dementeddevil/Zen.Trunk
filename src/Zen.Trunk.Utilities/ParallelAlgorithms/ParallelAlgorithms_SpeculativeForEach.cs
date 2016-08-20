@@ -36,7 +36,7 @@ namespace System.Threading.Algorithms
             IEnumerable<TSource> source, ParallelOptions options, Func<TSource, TResult> body)
         {
             // Validate parameters; the Parallel.ForEach we delegate to will validate the rest
-            if (body == null) throw new ArgumentNullException("body");
+            if (body == null) throw new ArgumentNullException(nameof(body));
 
             // Store one result.  We box it if it's a value type to avoid torn writes and enable
             // CompareExchange even for value types.

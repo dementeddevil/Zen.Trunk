@@ -26,8 +26,8 @@ namespace System
             this AggregateException aggregateException,
             Func<Exception, bool> predicate, bool leaveStructureIntact)
         {
-            if (aggregateException == null) throw new ArgumentNullException("aggregateException");
-            if (predicate == null) throw new ArgumentNullException("predicate");
+            if (aggregateException == null) throw new ArgumentNullException(nameof(aggregateException));
+            if (predicate == null) throw new ArgumentNullException(nameof(predicate));
 
             // If leaveStructureIntact, use this implementation
             if (leaveStructureIntact)

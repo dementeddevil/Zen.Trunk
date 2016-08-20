@@ -48,7 +48,7 @@ namespace Zen.Trunk.Storage.Data
 			#endregion
 		}
 
-		private class AddFileGroupTableRequest : TransactionContextTaskRequest<AddFileGroupTableParameters, uint>
+		private class AddFileGroupTableRequest : TransactionContextTaskRequest<AddFileGroupTableParameters, ObjectId>
 		{
 			#region Public Constructors
 			/// <summary>
@@ -82,7 +82,7 @@ namespace Zen.Trunk.Storage.Data
 		#endregion
 
 		#region Private Fields
-		private readonly ushort _dbId;
+		private readonly DatabaseId _dbId;
 		private ITargetBlock<AddFileGroupDeviceRequest> _addFileGroupDevicePort;
 		private ITargetBlock<RemoveFileGroupDeviceRequest> _removeFileGroupDevicePort;
 		private ITargetBlock<InitFileGroupPageRequest> _initFileGroupPagePort;
@@ -100,22 +100,23 @@ namespace Zen.Trunk.Storage.Data
 		private IDatabaseLockManager _lockManager;
 
 		// File-group mapping
-		private readonly Dictionary<byte, FileGroupDevice> _fileGroupById =
-			new Dictionary<byte, FileGroupDevice>();
+		private readonly Dictionary<FileGroupId, FileGroupDevice> _fileGroupById =
+			new Dictionary<FileGroupId, FileGroupDevice>();
 		private readonly Dictionary<string, FileGroupDevice> _fileGroupByName =
 			new Dictionary<string, FileGroupDevice>();
-		private byte _nextFileGroupId = FileGroupDevice.Primary + 1;
+		private FileGroupId _nextFileGroupId = new FileGroupId((byte)(FileGroupId.Primary.Value + 1));
 
 		// Log device
 		private MasterLogPageDevice _logDevice;
 		private Task _currentCheckPointTask;
-		#endregion
+        #endregion
 
-		#region Public Constructors
-		/// <summary>
-		/// Initializes a new instance of the <see cref="DatabaseDevice"/> class.
-		/// </summary>
-		public DatabaseDevice(ushort dbId)
+        #region Public Constructors
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DatabaseDevice"/> class.
+        /// </summary>
+        /// <param name="dbId">The database identifier.</param>
+        public DatabaseDevice(DatabaseId dbId)
 		{
 			_dbId = dbId;
 			Initialise();
@@ -124,8 +125,9 @@ namespace Zen.Trunk.Storage.Data
 		/// <summary>
 		/// Initializes a new instance of the <see cref="DatabaseDevice"/> class.
 		/// </summary>
+		/// <param name="dbId">The database identifier.</param>
 		/// <param name="parentServiceProvider">The parent service provider.</param>
-		public DatabaseDevice(ushort dbId, IServiceProvider parentServiceProvider)
+		public DatabaseDevice(DatabaseId dbId, IServiceProvider parentServiceProvider)
 			: base(parentServiceProvider)
 		{
 			_dbId = dbId;
@@ -147,7 +149,7 @@ namespace Zen.Trunk.Storage.Data
 		/// Gets the primary file group id.
 		/// </summary>
 		/// <value>The primary file group id.</value>
-		protected virtual byte PrimaryFileGroupId => FileGroupDevice.Primary;
+		protected virtual FileGroupId PrimaryFileGroupId => FileGroupId.Primary;
 
 	    #endregion
 
@@ -204,7 +206,7 @@ namespace Zen.Trunk.Storage.Data
 		/// <returns></returns>
 		public FileGroupDevice GetFileGroupDevice(string fileGroupName)
 		{
-			return GetFileGroupDevice(FileGroupDevice.Invalid, fileGroupName);
+			return GetFileGroupDevice(FileGroupId.Invalid, fileGroupName);
 		}
 
 		/// <summary>
@@ -212,7 +214,7 @@ namespace Zen.Trunk.Storage.Data
 		/// </summary>
 		/// <param name="fileGroupId">The file group id.</param>
 		/// <returns></returns>
-		public FileGroupDevice GetFileGroupDevice(byte fileGroupId)
+		public FileGroupDevice GetFileGroupDevice(FileGroupId fileGroupId)
 		{
 			return GetFileGroupDevice(fileGroupId, null);
 		}
@@ -497,7 +499,7 @@ namespace Zen.Trunk.Storage.Data
 
 			// Table action ports
 			_addFileGroupTablePort =
-				new TransactionContextActionBlock<AddFileGroupTableRequest, uint>(
+				new TransactionContextActionBlock<AddFileGroupTableRequest, ObjectId>(
 					(request) => AddFileGroupTableHandler(request),
 					new ExecutionDataflowBlockOptions
 					{
@@ -541,19 +543,19 @@ namespace Zen.Trunk.Storage.Data
 				//	master or primary
 				// Everything else is recoded.
 				if (!request.Message.FileGroupIdValid ||
-					(fileGroupId != FileGroupDevice.Master &&
-					fileGroupId != FileGroupDevice.Primary))
+					(fileGroupId != FileGroupId.Master &&
+					fileGroupId != FileGroupId.Primary))
 				{
-					fileGroupId = _nextFileGroupId++;
+					fileGroupId = new FileGroupId(_nextFileGroupId++);
 				}
 
 				// Create new file group device and add to map
-				if (fileGroupId == FileGroupDevice.Master)
+				if (fileGroupId == FileGroupId.Master)
 				{
 					fileGroupDevice = new MasterDatabasePrimaryFileGroupDevice(
 						this, fileGroupId, request.Message.FileGroupName);
 				}
-				else if (fileGroupId == FileGroupDevice.Primary)
+				else if (fileGroupId == FileGroupId.Primary)
 				{
 					fileGroupDevice = new PrimaryFileGroupDevice(
 						this, fileGroupId, request.Message.FileGroupName);
@@ -589,9 +591,8 @@ namespace Zen.Trunk.Storage.Data
 
 		private async Task<bool> RemoveFileGroupDeviceHandler(RemoveFileGroupDeviceRequest request)
 		{
-			var fileGroupDevice = GetFileGroupDevice(
-				FileGroupDevice.Invalid, request.Message.FileGroupName);
-			await fileGroupDevice.RemoveDataDevice(request.Message);
+			var fileGroupDevice = GetFileGroupDevice(FileGroupId.Invalid, request.Message.FileGroupName);
+			await fileGroupDevice.RemoveDataDevice(request.Message).ConfigureAwait(false);
 			return true;
 		}
 
@@ -677,7 +678,7 @@ namespace Zen.Trunk.Storage.Data
 			return true;
 		}
 
-		private Task<uint> AddFileGroupTableHandler(AddFileGroupTableRequest request)
+		private Task<ObjectId> AddFileGroupTableHandler(AddFileGroupTableRequest request)
 		{
 			var fileGroupDevice = GetFileGroupDevice(
 				request.Message.FileGroupId, request.Message.FileGroupName);
@@ -749,22 +750,22 @@ namespace Zen.Trunk.Storage.Data
 			return _fileGroupById.Values.FirstOrDefault((item) => item.IsPrimaryFileGroup);
 		}
 
-		private FileGroupDevice GetFileGroupDevice(byte fileGroupId, string fileGroupName)
+		private FileGroupDevice GetFileGroupDevice(FileGroupId fileGroupId, string fileGroupName)
 		{
 			if (!string.IsNullOrEmpty(fileGroupName))
 			{
 				fileGroupName = fileGroupName.Trim().ToUpper();
 			}
 
-			var idValid = (fileGroupId != FileGroupDevice.Invalid);
-			FileGroupDevice fileGroupDevice = null;
+			var idValid = (fileGroupId != FileGroupId.Invalid);
+			FileGroupDevice fileGroupDevice;
 			if ((idValid && _fileGroupById.TryGetValue(fileGroupId, out fileGroupDevice)) ||
 				(!string.IsNullOrEmpty(fileGroupName) && _fileGroupByName.TryGetValue(fileGroupName, out fileGroupDevice)))
 			{
 				return fileGroupDevice;
 			}
 
-			throw new FileGroupInvalidException(fileGroupId, fileGroupName);
+			throw new FileGroupInvalidException(0, fileGroupId, fileGroupName);
 		}
 		#endregion
 	}

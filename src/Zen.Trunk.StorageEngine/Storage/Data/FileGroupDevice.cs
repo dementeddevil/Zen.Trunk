@@ -183,12 +183,6 @@ namespace Zen.Trunk.Storage.Data
 		}
 		#endregion
 
-		#region Public Fields
-		public const byte Invalid = 0;
-		public const byte Master = 1;
-		public const byte Primary = 2;
-		#endregion
-
 		#region Private Fields
 		private DatabaseDevice _owner;
 
@@ -221,7 +215,7 @@ namespace Zen.Trunk.Storage.Data
 		/// <param name="owner">The owner.</param>
 		/// <param name="id">The id.</param>
 		/// <param name="name">The name.</param>
-		public FileGroupDevice(IServiceProvider parentServiceProvider, byte id, string name)
+		public FileGroupDevice(IServiceProvider parentServiceProvider, FileGroupId id, string name)
 			: base(parentServiceProvider)
 		{
 			FileGroupId = id;
@@ -252,7 +246,7 @@ namespace Zen.Trunk.Storage.Data
 		/// Gets the file group id.
 		/// </summary>
 		/// <value>The file group id.</value>
-		public byte FileGroupId
+		public FileGroupId FileGroupId
 		{
 			get;
 			private set;
@@ -274,7 +268,7 @@ namespace Zen.Trunk.Storage.Data
 		/// <value>
 		/// 	<c>true</c> if this instance is primary file group; otherwise, <c>false</c>.
 		/// </value>
-		public bool IsPrimaryFileGroup => (FileGroupId == Primary || FileGroupId == Master);
+		public bool IsPrimaryFileGroup => (FileGroupId == FileGroupId.Primary || FileGroupId == FileGroupId.Master);
 
 	    #endregion
 

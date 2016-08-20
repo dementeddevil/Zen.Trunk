@@ -292,7 +292,7 @@ namespace Zen.Trunk.Storage.IO
 		{
 			if ((bufferSize % SystemPageSize) != 0)
 			{
-				throw new ArgumentException("bufferSize must be multiple of SystemPageSize.", "bufferSize");
+				throw new ArgumentException("bufferSize must be multiple of SystemPageSize.", nameof(bufferSize));
 			}
 
 			_buffer = buffer;
@@ -370,7 +370,7 @@ namespace Zen.Trunk.Storage.IO
 			CheckDisposed();
 			if (buffer == null)
 			{
-				throw new ArgumentNullException("buffer");
+				throw new ArgumentNullException(nameof(buffer));
 			}
 			if (buffer == this)
 			{
@@ -391,7 +391,7 @@ namespace Zen.Trunk.Storage.IO
 			CheckDisposed();
 			if (destination == null)
 			{
-				throw new ArgumentNullException("destination");
+				throw new ArgumentNullException(nameof(destination));
 			}
 			if (destination == this)
 			{
@@ -423,7 +423,7 @@ namespace Zen.Trunk.Storage.IO
 			CheckDisposed();
 			if (buffer == null)
 			{
-				throw new ArgumentNullException("buffer");
+				throw new ArgumentNullException(nameof(buffer));
 			}
 			if (buffer.Length != BufferSize)
 			{
@@ -453,7 +453,7 @@ namespace Zen.Trunk.Storage.IO
 			CheckDisposed();
 			if (buffer == null)
 			{
-				throw new ArgumentNullException("buffer");
+				throw new ArgumentNullException(nameof(buffer));
 			}
 			if (buffer.Length != BufferSize)
 			{

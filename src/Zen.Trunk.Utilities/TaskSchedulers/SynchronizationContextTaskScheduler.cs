@@ -34,7 +34,7 @@ namespace System.Threading.Tasks.Schedulers
         /// <param name="context">The SynchronizationContext under which to execute tasks.</param>
         public SynchronizationContextTaskScheduler(SynchronizationContext context)
         {
-            if (context == null) throw new ArgumentNullException("context");
+            if (context == null) throw new ArgumentNullException(nameof(context));
             _context = context;
             _tasks = new ConcurrentQueue<Task>();
         }

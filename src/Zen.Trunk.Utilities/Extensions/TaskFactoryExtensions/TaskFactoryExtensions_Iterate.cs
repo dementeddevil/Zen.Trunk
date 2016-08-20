@@ -22,7 +22,7 @@ namespace System.Threading.Tasks
             this TaskFactory factory,
             IEnumerable<object> source)
         {
-            if (factory == null) throw new ArgumentNullException("factory");
+            if (factory == null) throw new ArgumentNullException(nameof(factory));
             return Iterate(factory, source, null, factory.CancellationToken, factory.CreationOptions, factory.GetTargetScheduler());
         }
 
@@ -36,7 +36,7 @@ namespace System.Threading.Tasks
             IEnumerable<object> source, 
             CancellationToken cancellationToken)
         {
-            if (factory == null) throw new ArgumentNullException("factory");
+            if (factory == null) throw new ArgumentNullException(nameof(factory));
             return Iterate(factory, source, null, cancellationToken, factory.CreationOptions, factory.GetTargetScheduler());
         }
 
@@ -50,7 +50,7 @@ namespace System.Threading.Tasks
             IEnumerable<object> source, 
             TaskCreationOptions creationOptions)
         {
-            if (factory == null) throw new ArgumentNullException("factory");
+            if (factory == null) throw new ArgumentNullException(nameof(factory));
             return Iterate(factory, source, null, factory.CancellationToken, creationOptions, factory.GetTargetScheduler());
         }
 
@@ -64,7 +64,7 @@ namespace System.Threading.Tasks
             IEnumerable<object> source, 
             TaskScheduler scheduler)
         {
-            if (factory == null) throw new ArgumentNullException("factory");
+            if (factory == null) throw new ArgumentNullException(nameof(factory));
             return Iterate(factory, source, null, factory.CancellationToken, factory.CreationOptions, scheduler);
         }
 
@@ -94,7 +94,7 @@ namespace System.Threading.Tasks
             this TaskFactory factory,
             IEnumerable<object> source, object state)
         {
-            if (factory == null) throw new ArgumentNullException("factory");
+            if (factory == null) throw new ArgumentNullException(nameof(factory));
             return Iterate(factory, source, state, factory.CancellationToken, factory.CreationOptions, factory.GetTargetScheduler());
         }
 
@@ -109,7 +109,7 @@ namespace System.Threading.Tasks
             IEnumerable<object> source, object state,
             CancellationToken cancellationToken)
         {
-            if (factory == null) throw new ArgumentNullException("factory");
+            if (factory == null) throw new ArgumentNullException(nameof(factory));
             return Iterate(factory, source, state, cancellationToken, factory.CreationOptions, factory.GetTargetScheduler());
         }
 
@@ -124,7 +124,7 @@ namespace System.Threading.Tasks
             IEnumerable<object> source, object state,
             TaskCreationOptions creationOptions)
         {
-            if (factory == null) throw new ArgumentNullException("factory");
+            if (factory == null) throw new ArgumentNullException(nameof(factory));
             return Iterate(factory, source, state, factory.CancellationToken, creationOptions, factory.GetTargetScheduler());
         }
 
@@ -139,7 +139,7 @@ namespace System.Threading.Tasks
             IEnumerable<object> source, object state,
             TaskScheduler scheduler)
         {
-            if (factory == null) throw new ArgumentNullException("factory");
+            if (factory == null) throw new ArgumentNullException(nameof(factory));
             return Iterate(factory, source, state, factory.CancellationToken, factory.CreationOptions, scheduler);
         }
 
@@ -157,9 +157,9 @@ namespace System.Threading.Tasks
             CancellationToken cancellationToken, TaskCreationOptions creationOptions, TaskScheduler scheduler)
         {
             // Validate/update parameters
-            if (factory == null) throw new ArgumentNullException("factory");
+            if (factory == null) throw new ArgumentNullException(nameof(factory));
             if (source == null) throw new ArgumentNullException("asyncIterator");
-            if (scheduler == null) throw new ArgumentNullException("scheduler");
+            if (scheduler == null) throw new ArgumentNullException(nameof(scheduler));
 
             // Get an enumerator from the enumerable
             var enumerator = source.GetEnumerator();

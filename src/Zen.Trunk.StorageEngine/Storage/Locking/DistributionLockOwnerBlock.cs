@@ -18,7 +18,7 @@ namespace Zen.Trunk.Storage.Locking
 	internal class DistributionLockOwnerBlock : LockOwnerBlockBase<uint>
 	{
 		#region Private Fields
-		private readonly ulong _virtualPageId;
+		private readonly VirtualPageId _virtualPageId;
 		#endregion
 
 		#region Public Constructors
@@ -28,7 +28,7 @@ namespace Zen.Trunk.Storage.Locking
 		/// <param name="manager">The manager.</param>
 		/// <param name="virtualPageId">The virtual page unique identifier.</param>
 		/// <param name="maxExtentLocks">The maximum extent locks.</param>
-		public DistributionLockOwnerBlock(IDatabaseLockManager manager, ulong virtualPageId, uint maxExtentLocks = 10)
+		public DistributionLockOwnerBlock(IDatabaseLockManager manager, VirtualPageId virtualPageId, uint maxExtentLocks = 10)
 			: base(manager, maxExtentLocks)
 		{
 			_virtualPageId = virtualPageId;

@@ -30,7 +30,7 @@ namespace System.Threading.Tasks.Schedulers
             /// <param name="scheduler">The scheduler.</param>
             public QueuedTaskSchedulerDebugView(QueuedTaskScheduler scheduler)
             {
-                if (scheduler == null) throw new ArgumentNullException("scheduler");
+                if (scheduler == null) throw new ArgumentNullException(nameof(scheduler));
                 _scheduler = scheduler;
             }
 
@@ -519,7 +519,7 @@ namespace System.Threading.Tasks.Schedulers
                 /// <param name="queue">The queue to be debugged.</param>
                 public QueuedTaskSchedulerQueueDebugView(QueuedTaskSchedulerQueue queue)
                 {
-                    if (queue == null) throw new ArgumentNullException("queue");
+                    if (queue == null) throw new ArgumentNullException(nameof(queue));
                     _queue = queue;
                 }
 

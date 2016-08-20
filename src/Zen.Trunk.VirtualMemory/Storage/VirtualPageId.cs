@@ -87,7 +87,7 @@ namespace Zen.Trunk.Storage
 			{
 				if (value > MaximumPhysicalPageId)
 				{
-					throw new ArgumentOutOfRangeException("value", value, "Physical page ID above maximum.");
+					throw new ArgumentOutOfRangeException(nameof(value), value, "Physical page ID above maximum.");
 				}
 				_physicalPageId = value;
 			}

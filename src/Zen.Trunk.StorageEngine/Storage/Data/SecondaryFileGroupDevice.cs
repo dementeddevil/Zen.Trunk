@@ -9,7 +9,7 @@
 	/// </remarks>
 	public class SecondaryFileGroupDevice : FileGroupDevice
 	{
-		public SecondaryFileGroupDevice(DatabaseDevice owner, byte id, string name)
+		public SecondaryFileGroupDevice(DatabaseDevice owner, FileGroupId id, string name)
 			: base(owner, id, name)
 		{
 		}

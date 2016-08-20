@@ -44,7 +44,7 @@ namespace System.Threading.Algorithms
         public static T[] Scan<T>(IEnumerable<T> source, Func<T, T, T> function, bool loadBalance)
         {
             // Validate arguments
-            if (source == null) throw new ArgumentNullException("source");
+            if (source == null) throw new ArgumentNullException(nameof(source));
 
             // Create output copy
             var output = source.ToArray();
@@ -83,8 +83,8 @@ namespace System.Threading.Algorithms
         public static void ScanInPlace<T>(T [] data, Func<T, T, T> function, bool loadBalance)
         {
             // Validate arguments
-            if (data == null) throw new ArgumentNullException("data");
-            if (function == null) throw new ArgumentNullException("function");
+            if (data == null) throw new ArgumentNullException(nameof(data));
+            if (function == null) throw new ArgumentNullException(nameof(function));
 
             // Do the prefix scan in-place and return the results.  This implementation
             // of parallel prefix scan ends up executing the function twice as many

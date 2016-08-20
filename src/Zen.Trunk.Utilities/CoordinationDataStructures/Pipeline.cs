@@ -37,9 +37,9 @@ namespace System.Threading
 		public static Pipeline<TInput, TOutput> Create<TInput, TOutput>(Func<TInput, TOutput> func, int degreeOfParallelism)
 		{
 			if (func == null)
-				throw new ArgumentNullException("func");
+				throw new ArgumentNullException(nameof(func));
 			if (degreeOfParallelism < 1)
-				throw new ArgumentOutOfRangeException("degreeOfParallelism");
+				throw new ArgumentOutOfRangeException(nameof(degreeOfParallelism));
 			return new Pipeline<TInput, TOutput>(func, degreeOfParallelism);
 		}
 	}
@@ -126,9 +126,9 @@ namespace System.Threading
 		public Pipeline<TInput, TNextOutput> Next<TNextOutput>(Func<TOutput, TNextOutput> func, int degreeOfParallelism)
 		{
 			if (func == null)
-				throw new ArgumentNullException("func");
+				throw new ArgumentNullException(nameof(func));
 			if (degreeOfParallelism < 1)
-				throw new ArgumentOutOfRangeException("degreeOfParallelism");
+				throw new ArgumentOutOfRangeException(nameof(degreeOfParallelism));
 			return new InternalPipeline<TNextOutput>(this, func, degreeOfParallelism);
 		}
 
@@ -148,7 +148,7 @@ namespace System.Threading
 		{
 			// Validate arguments
 			if (source == null)
-				throw new ArgumentNullException("source");
+				throw new ArgumentNullException(nameof(source));
 			return ProcessNoArgValidation(source, cancellationToken);
 		}
 

@@ -26,9 +26,9 @@ namespace Zen.Trunk.Storage.Locking
 		#region Private Fields
 		private readonly IDatabaseLockManager _lockManager;
 		private uint _transactionId;
-		private readonly ConcurrentDictionary<byte, RootLock> _rootLocks;
-		private readonly ConcurrentDictionary<uint, SchemaLock> _schemaLocks;
-		private readonly ConcurrentDictionary<ulong, DistributionLockOwnerBlock> _distributionOwnerBlocks;
+		private readonly ConcurrentDictionary<FileGroupId, RootLock> _rootLocks;
+		private readonly ConcurrentDictionary<ObjectId, SchemaLock> _schemaLocks;
+		private readonly ConcurrentDictionary<VirtualPageId, DistributionLockOwnerBlock> _distributionOwnerBlocks;
 		private readonly ConcurrentDictionary<ObjectId, DataLockOwnerBlock> _dataOwnerBlocks;
 		#endregion
 
@@ -43,9 +43,9 @@ namespace Zen.Trunk.Storage.Locking
 		{
 			_lockManager = lockManager;
 			_transactionId = transactionId;
-			_rootLocks = new ConcurrentDictionary<byte, RootLock>();
-			_schemaLocks = new ConcurrentDictionary<uint, SchemaLock>();
-			_distributionOwnerBlocks = new ConcurrentDictionary<ulong, DistributionLockOwnerBlock>();
+			_rootLocks = new ConcurrentDictionary<FileGroupId, RootLock>();
+			_schemaLocks = new ConcurrentDictionary<ObjectId, SchemaLock>();
+			_distributionOwnerBlocks = new ConcurrentDictionary<VirtualPageId, DistributionLockOwnerBlock>();
 			_dataOwnerBlocks = new ConcurrentDictionary<ObjectId, DataLockOwnerBlock>();
 		}
 		#endregion
@@ -56,7 +56,7 @@ namespace Zen.Trunk.Storage.Locking
 		/// </summary>
 		/// <param name="fileGroupId">The file group unique identifier.</param>
 		/// <returns></returns>
-		public RootLock GetOrCreateRootLock(byte fileGroupId)
+		public RootLock GetOrCreateRootLock(FileGroupId fileGroupId)
 		{
 			return _rootLocks.GetOrAdd(
 				fileGroupId,
@@ -71,7 +71,7 @@ namespace Zen.Trunk.Storage.Locking
 		/// </summary>
 		/// <param name="objectId">The object unique identifier.</param>
 		/// <returns></returns>
-		public SchemaLock GetOrCreateSchemaLock(uint objectId)
+		public SchemaLock GetOrCreateSchemaLock(ObjectId objectId)
 		{
 			return _schemaLocks.GetOrAdd(
 				objectId,
@@ -90,7 +90,7 @@ namespace Zen.Trunk.Storage.Locking
 		/// <returns>
 		/// Lock Owner Block
 		/// </returns>
-		public DistributionLockOwnerBlock GetOrCreateDistributionLockOwnerBlock(ulong virtualId, uint maxExtentLocks = 10)
+		public DistributionLockOwnerBlock GetOrCreateDistributionLockOwnerBlock(VirtualPageId virtualId, uint maxExtentLocks = 10)
 		{
 			return _distributionOwnerBlocks.GetOrAdd(
 				virtualId,

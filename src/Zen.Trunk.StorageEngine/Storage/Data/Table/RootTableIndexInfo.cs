@@ -165,7 +165,7 @@
 			// Sanity checks
 			if (owner == null)
 			{
-				throw new ArgumentNullException("owner");
+				throw new ArgumentNullException(nameof(owner));
 			}
 
 			ushort keySize = 0;

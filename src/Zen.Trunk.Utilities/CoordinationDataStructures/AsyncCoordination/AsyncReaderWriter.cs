@@ -36,7 +36,7 @@ namespace System.Threading.Async
         /// <param name="factory">The TaskFactory to use to create all tasks.</param>
         public AsyncReaderWriter(TaskFactory factory)
         {
-            if (factory == null) throw new ArgumentNullException("factory");
+            if (factory == null) throw new ArgumentNullException(nameof(factory));
             _factory = factory;
         }
 

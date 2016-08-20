@@ -31,7 +31,7 @@ namespace System.Threading.Tasks.Schedulers
         public WorkStealingTaskScheduler(int concurrencyLevel)
         {
             // Store the concurrency level
-            if (concurrencyLevel <= 0) throw new ArgumentOutOfRangeException("concurrencyLevel");
+            if (concurrencyLevel <= 0) throw new ArgumentOutOfRangeException(nameof(concurrencyLevel));
             m_concurrencyLevel = concurrencyLevel;
 
             // Set up threads

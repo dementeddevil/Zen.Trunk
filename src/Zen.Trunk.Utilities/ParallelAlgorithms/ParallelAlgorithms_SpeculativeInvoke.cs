@@ -31,8 +31,8 @@ namespace System.Threading.Algorithms
         public static T SpeculativeInvoke<T>(ParallelOptions options, params Func<T>[] functions)
         {
             // Validate parameters
-            if (options == null) throw new ArgumentNullException("options");
-            if (functions == null) throw new ArgumentNullException("functions");
+            if (options == null) throw new ArgumentNullException(nameof(options));
+            if (functions == null) throw new ArgumentNullException(nameof(functions));
 
             // Speculatively invoke each function
             return ParallelAlgorithms.SpeculativeForEach(functions, options, function => function());

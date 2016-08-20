@@ -66,7 +66,7 @@ namespace Zen.Trunk.Storage.Locking
 			// Sanity check
 			if (string.IsNullOrEmpty(lockKey))
 			{
-				throw new ArgumentNullException("lockKey");
+				throw new ArgumentNullException(nameof(lockKey));
 			}
 
 			// Lookup/create page lock

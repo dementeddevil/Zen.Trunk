@@ -18,7 +18,7 @@ namespace Zen.Trunk.Storage.Locking
 	/// lock object.
 	/// </para>
 	/// </remarks>
-	internal class DataLockOwnerBlock : LockOwnerBlockBase<ulong>
+	internal class DataLockOwnerBlock : LockOwnerBlockBase<LogicalPageId>
 	{
 		#region Private Fields
 		private readonly ObjectId _objectId;
@@ -53,7 +53,7 @@ namespace Zen.Trunk.Storage.Locking
 		/// </summary>
 		/// <param name="key">The key.</param>
 		/// <returns></returns>
-		protected override DataLock GetItemLock(ulong key)
+		protected override DataLock GetItemLock(LogicalPageId key)
 		{
 			return LockManager.GetDataLock(_objectId, key);
 		}

@@ -887,7 +887,7 @@ namespace Zen.Trunk.Storage.Data
 			if (pageId >= PageTrackingCount)
 			{
 				throw new ArgumentOutOfRangeException(
-					"pageId", pageId,
+					nameof(pageId), pageId,
 					"Page ID out of range (0-" +
 					(PageTrackingCount - 1).ToString() + ").");
 			}

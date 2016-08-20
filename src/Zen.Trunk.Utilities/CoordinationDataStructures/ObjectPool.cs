@@ -32,7 +32,7 @@ namespace System.Collections.Concurrent
 			: base(collection)
 		{
 			if (generator == null)
-				throw new ArgumentNullException("generator");
+				throw new ArgumentNullException(nameof(generator));
 			_generator = generator;
 		}
 

@@ -63,11 +63,11 @@ namespace Zen.Trunk.Storage
 
 		private ISite _site;
 
-		private ulong _virtualId;
+		private VirtualPageId _virtualId;
 		private readonly BufferFieldBitVector32 _status;
 		private readonly NewPageInterceptorField _newPageField;
-		private BitVector32.Section pageType;
-		private BitVector32.Section indexType;
+		private BitVector32.Section _pageType;
+		private BitVector32.Section _indexType;
 		private bool _managedData = true;
 		private bool _headerDirty;
 		private bool _dataDirty;
@@ -217,12 +217,12 @@ namespace Zen.Trunk.Storage
 		{
 			get
 			{
-				return (PageType)_status.Value[pageType];
+				return (PageType)_status.Value[_pageType];
 			}
 			set
 			{
 				CheckReadOnly();
-				_status.SetValue(pageType, (int)value);
+				_status.SetValue(_pageType, (int)value);
 				SetHeaderDirty();
 			}
 		}
@@ -239,7 +239,7 @@ namespace Zen.Trunk.Storage
 				{
 					throw new InvalidOperationException("Not valid for non-index pages.");
 				}
-				return (IndexType)_status.Value[indexType];
+				return (IndexType)_status.Value[_indexType];
 			}
 			set
 			{
@@ -248,7 +248,7 @@ namespace Zen.Trunk.Storage
 				{
 					throw new InvalidOperationException("Not valid for non-index pages.");
 				}
-				_status.SetValue(indexType, (int)value);
+				_status.SetValue(_indexType, (int)value);
 				SetHeaderDirty();
 			}
 		}
@@ -390,7 +390,7 @@ namespace Zen.Trunk.Storage
 		/// <summary>
 		/// Gets/sets the virtual page ID.
 		/// </summary>
-		public virtual ulong VirtualId
+		public virtual VirtualPageId VirtualId
 		{
 			get
 			{
@@ -842,8 +842,8 @@ namespace Zen.Trunk.Storage
 		private void CreateStatus(int value)
 		{
 			_status.Value = new BitVector32(value);
-			pageType = BitVector32.CreateSection((short)PageType.Index);
-			indexType = BitVector32.CreateSection((short)IndexType.Leaf, pageType);
+			_pageType = BitVector32.CreateSection((short)PageType.Index);
+			_indexType = BitVector32.CreateSection((short)IndexType.Leaf, _pageType);
 		}
 
 		private void SetDirtyCore(bool headerDirty, bool dataDirty)

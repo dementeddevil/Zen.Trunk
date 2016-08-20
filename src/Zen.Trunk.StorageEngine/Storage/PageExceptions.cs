@@ -67,7 +67,7 @@ namespace Zen.Trunk.Storage
 		{
 			if (info == null)
 			{
-				throw new ArgumentNullException ("info");
+				throw new ArgumentNullException (nameof(info));
 			}
 			base.GetObjectData (info, context);
 			info.AddValue ("Page", _page);

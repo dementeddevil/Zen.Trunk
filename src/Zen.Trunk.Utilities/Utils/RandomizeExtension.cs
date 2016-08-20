@@ -22,12 +22,12 @@ namespace Zen.Trunk.Utils
 			if (fromIndex < 0 || fromIndex >= list.Count)
 			{
 				throw new ArgumentOutOfRangeException(
-					"fromIndex", fromIndex, "Index out of range.");
+					nameof(fromIndex), fromIndex, "Index out of range.");
 			}
 			if (toIndex < 0 || toIndex >= list.Count)
 			{
 				throw new ArgumentOutOfRangeException(
-					"toIndex", toIndex, "Index out of range.");
+					nameof(toIndex), toIndex, "Index out of range.");
 			}
 			if (fromIndex == toIndex)
 			{

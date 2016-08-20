@@ -22,11 +22,11 @@ namespace System
 		{
 			if (multicastDelegate == null)
 			{
-				throw new ArgumentNullException("multicastDelegate");
+				throw new ArgumentNullException(nameof(multicastDelegate));
 			}
 			if (args == null)
 			{
-				throw new ArgumentNullException("args");
+				throw new ArgumentNullException(nameof(args));
 			}
 
 			return multicastDelegate

@@ -65,8 +65,8 @@ namespace System.Threading.Tasks
         private AsyncCall(int maxDegreeOfParallelism = 1, int maxItemsPerTask = Int32.MaxValue, TaskScheduler scheduler = null)
         {
             // Validate arguments
-            if (maxDegreeOfParallelism < 1) throw new ArgumentOutOfRangeException("maxDegreeOfParallelism");
-            if (maxItemsPerTask < 1) throw new ArgumentOutOfRangeException("maxItemsPerTask");
+            if (maxDegreeOfParallelism < 1) throw new ArgumentOutOfRangeException(nameof(maxDegreeOfParallelism));
+            if (maxItemsPerTask < 1) throw new ArgumentOutOfRangeException(nameof(maxItemsPerTask));
             if (scheduler == null) scheduler = TaskScheduler.Default;
 
             // Configure the instance

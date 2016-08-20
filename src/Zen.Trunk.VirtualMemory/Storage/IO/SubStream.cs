@@ -104,7 +104,7 @@ namespace Zen.Trunk.Storage.IO
 			{
 				if (value < 0 || _position >= _subStreamLength)
 				{
-					throw new ArgumentOutOfRangeException ("value");
+					throw new ArgumentOutOfRangeException (nameof(value));
 				}
 				if (!CanSeek)
 				{
@@ -190,7 +190,7 @@ namespace Zen.Trunk.Storage.IO
 		{
 			if (value <= 0)
 			{
-				throw new ArgumentOutOfRangeException ("value");
+				throw new ArgumentOutOfRangeException (nameof(value));
 			}
 			var endOffset = _innerStartPosition + value;
 			if (endOffset > _innerStream.Length)

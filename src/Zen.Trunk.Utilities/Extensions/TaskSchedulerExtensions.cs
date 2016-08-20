@@ -29,7 +29,7 @@ namespace System.Threading.Tasks
             /// <param name="scheduler">The scheduler to target.</param>
             internal TaskSchedulerSynchronizationContext(TaskScheduler scheduler)
             {
-                if (scheduler == null) throw new ArgumentNullException("scheduler");
+                if (scheduler == null) throw new ArgumentNullException(nameof(scheduler));
                 _scheduler = scheduler;
             }
 

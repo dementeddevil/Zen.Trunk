@@ -64,7 +64,7 @@ namespace System.Threading
 		{
 			if (key == null)
 			{
-				throw new ArgumentNullException("key");
+				throw new ArgumentNullException(nameof(key));
 			}
 
 			var value = new Lazy<Task<TValue>>(() => _valueFactory(key));
@@ -86,7 +86,7 @@ namespace System.Threading
 		{
 			if (key == null)
 			{
-				throw new ArgumentNullException("key");
+				throw new ArgumentNullException(nameof(key));
 			}
 
 			_map[key] = LazyExtensions.Create(value);

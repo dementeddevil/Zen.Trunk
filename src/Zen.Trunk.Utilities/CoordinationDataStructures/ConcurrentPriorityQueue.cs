@@ -29,7 +29,7 @@ namespace System.Collections.Concurrent
         /// <param name="collection">The collection whose elements are copied to the new ConcurrentPriorityQueue.</param>
         public ConcurrentPriorityQueue(IEnumerable<KeyValuePair<TKey, TValue>> collection)
         {
-            if (collection == null) throw new ArgumentNullException("collection");
+            if (collection == null) throw new ArgumentNullException(nameof(collection));
             foreach (var item in collection) _minHeap.Insert(item);
         }
 

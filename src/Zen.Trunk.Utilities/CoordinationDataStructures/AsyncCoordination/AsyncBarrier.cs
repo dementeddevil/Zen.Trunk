@@ -26,7 +26,7 @@ namespace System.Threading.Async
         /// <param name="participantCount">The number of participants in the barrier.</param>
         public AsyncBarrier(int participantCount)
         {
-            if (participantCount <= 0) throw new ArgumentOutOfRangeException("participantCount");
+            if (participantCount <= 0) throw new ArgumentOutOfRangeException(nameof(participantCount));
             _participantCount = participantCount;
 
             _remainingParticipants = participantCount;

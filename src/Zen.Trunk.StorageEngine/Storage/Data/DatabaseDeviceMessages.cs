@@ -1,7 +1,7 @@
-﻿namespace Zen.Trunk.Storage.Data
-{
-	using Zen.Trunk.Storage.Data.Table;
+﻿using Zen.Trunk.Storage.Data.Table;
 
+namespace Zen.Trunk.Storage.Data
+{
 	public class AddFileGroupDeviceParameters : AddDataDeviceParameters
 	{
 		#region Public Constructors
@@ -16,7 +16,7 @@
 		/// <param name="deviceId">The device unique identifier.</param>
 		/// <param name="updateRootPage">if set to <c>true</c> [update root page].</param>
 		public AddFileGroupDeviceParameters(
-			byte fileGroupId,
+			FileGroupId fileGroupId,
 			string fileGroupName,
 			string name,
 			string pathName,
@@ -31,19 +31,11 @@
 		#endregion
 
 		#region Public Properties
-		public byte FileGroupId
-		{
-			get;
-			private set;
-		}
+		public FileGroupId FileGroupId { get; }
 
-		public string FileGroupName
-		{
-			get;
-			private set;
-		}
+		public string FileGroupName { get; }
 
-		public bool FileGroupIdValid => FileGroupId != FileGroupDevice.Invalid;
+		public bool FileGroupIdValid => FileGroupId != FileGroupId.Invalid;
 
 	    #endregion
 	}
@@ -77,7 +69,6 @@
 		public string FileGroupName
 		{
 			get;
-			private set;
 		}
 		#endregion
 	}
@@ -95,19 +86,17 @@
 		#endregion
 
 		#region Public Properties
-		public byte FileGroupId
+		public FileGroupId FileGroupId
 		{
 			get;
-			private set;
 		}
 
 		public string FileGroupName
 		{
 			get;
-			private set;
 		}
 
-		public bool FileGroupIdValid => FileGroupId != FileGroupDevice.Invalid;
+		public bool FileGroupIdValid => FileGroupId != FileGroupId.Invalid;
 
 	    #endregion
 	}
@@ -125,19 +114,17 @@
 		#endregion
 
 		#region Public Properties
-		public byte FileGroupId
+		public FileGroupId FileGroupId
 		{
 			get;
-			private set;
 		}
 
 		public string FileGroupName
 		{
 			get;
-			private set;
 		}
 
-		public bool FileGroupIdValid => FileGroupId != FileGroupDevice.Invalid;
+		public bool FileGroupIdValid => FileGroupId != FileGroupId.Invalid;
 
 	    #endregion
 	}
@@ -148,14 +135,14 @@
 		{
 		}
 
-		public AddFileGroupTableParameters(byte fileGroupId, string fileGroupName, string tableName, params TableColumnInfo[] columns)
+		public AddFileGroupTableParameters(FileGroupId fileGroupId, string fileGroupName, string tableName, params TableColumnInfo[] columns)
 			: base(tableName, columns)
 		{
 			FileGroupId = fileGroupId;
 			FileGroupName = fileGroupName;
 		}
 
-		public byte FileGroupId
+		public FileGroupId FileGroupId
 		{
 			get;
 			set;
@@ -167,7 +154,7 @@
 			set;
 		}
 
-		public bool FileGroupIdValid => FileGroupId != FileGroupDevice.Invalid;
+		public bool FileGroupIdValid => FileGroupId != FileGroupId.Invalid;
 	}
 
 	public class AddFileGroupTableIndexParameters : AddTableIndexParameters
@@ -176,14 +163,14 @@
 		{
 		}
 
-		public AddFileGroupTableIndexParameters(byte fileGroupId, string fileGroupName, string name, TableIndexSubType indexSubType, uint ownerObjectId)
+		public AddFileGroupTableIndexParameters(FileGroupId fileGroupId, string fileGroupName, string name, TableIndexSubType indexSubType, ObjectId ownerObjectId)
 			: base(name, indexSubType, ownerObjectId)
 		{
 			FileGroupId = fileGroupId;
 			FileGroupName = fileGroupName;
 		}
 
-		public byte FileGroupId
+		public FileGroupId FileGroupId
 		{
 			get;
 			set;
@@ -195,6 +182,6 @@
 			set;
 		}
 
-		public bool FileGroupIdValid => FileGroupId != FileGroupDevice.Invalid;
+		public bool FileGroupIdValid => FileGroupId != FileGroupId.Invalid;
 	}
 }

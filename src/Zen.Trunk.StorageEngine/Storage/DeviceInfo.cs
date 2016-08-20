@@ -62,7 +62,7 @@ namespace Zen.Trunk.Storage
 			{
 				if (string.IsNullOrEmpty(value))
 				{
-					throw new ArgumentNullException("value");
+					throw new ArgumentNullException(nameof(value));
 				}
 				if (value.Length > 32)
 				{
@@ -82,7 +82,7 @@ namespace Zen.Trunk.Storage
 			{
 				if (string.IsNullOrEmpty(value))
 				{
-					throw new ArgumentNullException("value");
+					throw new ArgumentNullException(nameof(value));
 				}
 				if (value.Length > 128)
 				{

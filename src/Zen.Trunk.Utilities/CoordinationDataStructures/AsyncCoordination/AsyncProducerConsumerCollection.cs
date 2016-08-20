@@ -28,7 +28,7 @@ namespace System.Threading.Async
         /// <param name="collection">The underlying collection to use to store data.</param>
         public AsyncProducerConsumerCollection(IProducerConsumerCollection<T> collection)
         {
-            if (collection == null) throw new ArgumentNullException("collection");
+            if (collection == null) throw new ArgumentNullException(nameof(collection));
             _collection = collection;
         }
 

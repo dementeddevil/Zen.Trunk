@@ -40,7 +40,7 @@ namespace System.Collections.Concurrent
         /// <param name="contained">The collection to be wrapped by this instance.</param>
         protected ProducerConsumerCollectionBase(IProducerConsumerCollection<T> contained)
         {
-            if (contained == null) throw new ArgumentNullException("contained");
+            if (contained == null) throw new ArgumentNullException(nameof(contained));
             _contained = contained;
         }
 

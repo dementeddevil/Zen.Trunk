@@ -37,7 +37,7 @@ namespace System.Threading.Algorithms
             int fromInclusive, int toExclusive, ParallelOptions options, Func<int, TResult> body)
         {
             // Validate parameters; the Parallel.For we delegate to will validate the rest
-            if (body == null) throw new ArgumentNullException("body");
+            if (body == null) throw new ArgumentNullException(nameof(body));
 
             // Store one result.  We box it if it's a value type to avoid torn writes and enable
             // CompareExchange even for value types.

@@ -21,8 +21,8 @@ namespace System.Threading
         public ActionCountdownEvent(int initialCount, Action action)
         {
             // Validate arguments
-            if (initialCount < 0) throw new ArgumentOutOfRangeException("initialCount");
-            if (action == null) throw new ArgumentNullException("action");
+            if (initialCount < 0) throw new ArgumentOutOfRangeException(nameof(initialCount));
+            if (action == null) throw new ArgumentNullException(nameof(action));
 
             // Store the action and create the event from the initial count. If the initial count forces the
             // event to be set, run the action immediately. Otherwise, capture the current execution context

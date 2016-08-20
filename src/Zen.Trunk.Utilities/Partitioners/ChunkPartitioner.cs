@@ -67,8 +67,8 @@ namespace System.Collections.Concurrent.Partitioners
         {
             // Validate and store the enumerable and function (used to determine how big
             // to make the next chunk given the current chunk size)
-            if (source == null) throw new ArgumentNullException("source");
-            if (nextChunkSizeFunc == null) throw new ArgumentNullException("nextChunkSizeFunc");
+            if (source == null) throw new ArgumentNullException(nameof(source));
+            if (nextChunkSizeFunc == null) throw new ArgumentNullException(nameof(nextChunkSizeFunc));
             _source = source;
             _nextChunkSizeFunc = nextChunkSizeFunc;
         }
@@ -76,14 +76,14 @@ namespace System.Collections.Concurrent.Partitioners
         public ChunkPartitioner(IEnumerable<T> source, int chunkSize)
             : this(source, prev => chunkSize) // uses a function that always returns the specified chunk size
         {
-            if (chunkSize <= 0) throw new ArgumentOutOfRangeException("chunkSize");
+            if (chunkSize <= 0) throw new ArgumentOutOfRangeException(nameof(chunkSize));
         }
 
         public ChunkPartitioner(IEnumerable<T> source, int minChunkSize, int maxChunkSize) :
             this(source, CreateFuncFromMinAndMax(minChunkSize, maxChunkSize)) // uses a function that grows from min to max
         {
             if (minChunkSize <= 0 ||
-                minChunkSize > maxChunkSize) throw new ArgumentOutOfRangeException("minChunkSize");
+                minChunkSize > maxChunkSize) throw new ArgumentOutOfRangeException(nameof(minChunkSize));
         }
 
         private static Func<int, int> CreateFuncFromMinAndMax(int minChunkSize, int maxChunkSize)
@@ -107,7 +107,7 @@ namespace System.Collections.Concurrent.Partitioners
         public override IList<IEnumerator<KeyValuePair<long, T>>> GetOrderablePartitions(int partitionCount)
         {
             // Validate parameters
-            if (partitionCount <= 0) throw new ArgumentOutOfRangeException("partitionCount");
+            if (partitionCount <= 0) throw new ArgumentOutOfRangeException(nameof(partitionCount));
 
             // Create an array of dynamic partitions and return them
             var partitions = new IEnumerator<KeyValuePair<long, T>>[partitionCount];
@@ -154,7 +154,7 @@ namespace System.Collections.Concurrent.Partitioners
             public EnumerableOfEnumerators(ChunkPartitioner<T> parentPartitioner, bool referenceCountForDisposal)
             {
                 // Validate parameters
-                if (parentPartitioner == null) throw new ArgumentNullException("parentPartitioner");
+                if (parentPartitioner == null) throw new ArgumentNullException(nameof(parentPartitioner));
 
                 // Store the data, including creating an enumerator from the underlying data source
                 _parentPartitioner = parentPartitioner;
@@ -194,7 +194,7 @@ namespace System.Collections.Concurrent.Partitioners
 
                 public Enumerator(EnumerableOfEnumerators parentEnumerable)
                 {
-                    if (parentEnumerable == null) throw new ArgumentNullException("parentEnumerable");
+                    if (parentEnumerable == null) throw new ArgumentNullException(nameof(parentEnumerable));
                     _parentEnumerable = parentEnumerable;
                 }
 

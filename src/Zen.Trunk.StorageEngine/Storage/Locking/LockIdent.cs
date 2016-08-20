@@ -17,9 +17,9 @@ namespace Zen.Trunk.Storage.Locking
 		/// </summary>
 		/// <param name="dbId">The db id.</param>
 		/// <returns></returns>
-		public static string GetDatabaseKey(ushort dbId)
+		public static string GetDatabaseKey(DatabaseId dbId)
 		{
-			return string.Format("DBK:{0:X}", dbId);
+			return $"DBK:{dbId.Value:X}";
 		}
 
 		/// <summary>
@@ -28,9 +28,9 @@ namespace Zen.Trunk.Storage.Locking
 		/// <param name="dbId">The db id.</param>
 		/// <param name="fileGroupId">The file group id.</param>
 		/// <returns></returns>
-		public static string GetFileGroupRootKey(ushort dbId, byte fileGroupId)
+		public static string GetFileGroupRootKey(DatabaseId dbId, FileGroupId fileGroupId)
 		{
-			return string.Format("FRK:{0:X}${1:X}", dbId, fileGroupId);
+			return $"FRK:{dbId.Value:X}${fileGroupId.Value:X}";
 		}
 
 		/// <summary>
@@ -39,9 +39,9 @@ namespace Zen.Trunk.Storage.Locking
 		/// <param name="dbId">The db id.</param>
 		/// <param name="virtualPageId">The virtual page id.</param>
 		/// <returns></returns>
-		public static string GetDistributionKey(ushort dbId, ulong virtualPageId)
+		public static string GetDistributionKey(DatabaseId dbId, VirtualPageId virtualPageId)
 		{
-			return string.Format("DLK:{0:X}${1:X}", dbId, virtualPageId);
+			return $"DLK:{dbId.Value:X}${virtualPageId.Value:X}";
 		}
 
 		/// <summary>
@@ -51,9 +51,9 @@ namespace Zen.Trunk.Storage.Locking
 		/// <param name="virtualPageId">The virtual page id.</param>
 		/// <param name="extentIndex">Index of the extent.</param>
 		/// <returns></returns>
-		public static string GetExtentLockKey(ushort dbId, ulong virtualPageId, uint extentIndex)
+		public static string GetExtentLockKey(DatabaseId dbId, VirtualPageId virtualPageId, uint extentIndex)
 		{
-			return string.Format("ELK:{0:X}${1:X}${2}", dbId, virtualPageId, extentIndex);
+			return $"ELK:{dbId.Value:X}${virtualPageId.Value:X}${extentIndex}";
 		}
 
 		/// <summary>
@@ -62,9 +62,9 @@ namespace Zen.Trunk.Storage.Locking
 		/// <param name="dbId">The db id.</param>
 		/// <param name="indexId">The index id.</param>
 		/// <returns></returns>
-		public static string GetIndexKey(ushort dbId, uint indexId)
+		public static string GetIndexKey(DatabaseId dbId, IndexId indexId)
 		{
-			return string.Format("IK:{0:X}${1:X}", dbId, indexId);
+			return $"IK:{dbId.Value:X}${indexId.Value:X}";
 		}
 
 		/// <summary>
@@ -73,9 +73,9 @@ namespace Zen.Trunk.Storage.Locking
 		/// <param name="dbId">The db id.</param>
 		/// <param name="indexId">The index id.</param>
 		/// <returns></returns>
-		public static string GetIndexRootKey(ushort dbId, uint indexId)
+		public static string GetIndexRootKey(DatabaseId dbId, IndexId indexId)
 		{
-			return string.Format("IRK:{0:X}${1:X}", dbId, indexId);
+			return $"IRK:{dbId.Value:X}${indexId.Value:X}";
 		}
 
 		/// <summary>
@@ -85,9 +85,9 @@ namespace Zen.Trunk.Storage.Locking
 		/// <param name="indexId">The index id.</param>
 		/// <param name="logicalId">The logical id.</param>
 		/// <returns></returns>
-		public static string GetIndexInternalKey(ushort dbId, uint indexId, ulong logicalId)
+		public static string GetIndexInternalKey(DatabaseId dbId, IndexId indexId, LogicalPageId logicalId)
 		{
-			return string.Format("IIK:{0:X}${1:X}${2:X}", dbId, indexId, logicalId);
+			return $"IIK:{dbId.Value:X}${indexId.Value:X}${logicalId.Value:X}";
 		}
 
 		/// <summary>
@@ -97,9 +97,9 @@ namespace Zen.Trunk.Storage.Locking
 		/// <param name="indexId">The index id.</param>
 		/// <param name="logicalId">The logical id.</param>
 		/// <returns></returns>
-		public static string GetIndexLeafKey(ushort dbId, uint indexId, ulong logicalId)
+		public static string GetIndexLeafKey(DatabaseId dbId, IndexId indexId, LogicalPageId logicalId)
 		{
-			return string.Format("ILK:{0:X}${1:X}${2:X}", dbId, indexId, logicalId);
+			return $"ILK:{dbId.Value:X}${indexId.Value:X}${logicalId.Value:X}";
 		}
 
 		/// <summary>
@@ -108,9 +108,9 @@ namespace Zen.Trunk.Storage.Locking
 		/// <param name="dbId">The db id.</param>
 		/// <param name="objectId">The object id.</param>
 		/// <returns></returns>
-		public static string GetObjectLockKey(ushort dbId, uint objectId)
+		public static string GetObjectLockKey(DatabaseId dbId, ObjectId objectId)
 		{
-			return string.Format("OLK:{0:X}${1:X}", dbId, objectId);
+			return $"OLK:{dbId.Value:X}${objectId.Value:X}";
 		}
 
 		/// <summary>
@@ -119,9 +119,9 @@ namespace Zen.Trunk.Storage.Locking
 		/// <param name="dbId">The db id.</param>
 		/// <param name="objectId">The object id.</param>
 		/// <returns></returns>
-		public static string GetSchemaLockKey(ushort dbId, uint objectId)
+		public static string GetSchemaLockKey(DatabaseId dbId, ObjectId objectId)
 		{
-			return string.Format("OSK:{0:X}${1:X}", dbId, objectId);
+			return $"OSK:{dbId.Value:X}${objectId.Value:X}";
 		}
 
 		/// <summary>
@@ -131,9 +131,9 @@ namespace Zen.Trunk.Storage.Locking
 		/// <param name="objectId">The object id.</param>
 		/// <param name="logicalId">The logical id.</param>
 		/// <returns></returns>
-		public static string GetDataLockKey(ushort dbId, uint objectId, ulong logicalId)
+		public static string GetDataLockKey(DatabaseId dbId, ObjectId objectId, LogicalPageId logicalId)
 		{
-			return string.Format("ODK:{0:X}${1:X}${2:X}", dbId, objectId, logicalId);
+			return $"ODK:{dbId.Value:X}${objectId.Value:X}${logicalId.Value:X}";
 		}
 	}
 }

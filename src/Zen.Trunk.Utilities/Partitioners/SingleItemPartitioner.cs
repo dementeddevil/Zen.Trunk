@@ -22,7 +22,7 @@ namespace System.Collections.Concurrent.Partitioners
         /// <returns>The partitioner.</returns>
         public static OrderablePartitioner<T> Create<T>(IEnumerable<T> source)
         {
-            if (source == null) throw new ArgumentNullException("source");
+            if (source == null) throw new ArgumentNullException(nameof(source));
             else if (source is IList<T>) return new SingleItemIListPartitioner<T>((IList<T>)source);
             else return new SingleItemEnumerablePartitioner<T>(source);
         }
@@ -43,7 +43,7 @@ namespace System.Collections.Concurrent.Partitioners
 
             public override IList<IEnumerator<KeyValuePair<long, T>>> GetOrderablePartitions(int partitionCount)
             {
-                if (partitionCount < 1) throw new ArgumentOutOfRangeException("partitionCount");
+                if (partitionCount < 1) throw new ArgumentOutOfRangeException(nameof(partitionCount));
                 var dynamicPartitioner = new DynamicGenerator(_source.GetEnumerator(), false);
                 return (from i in Enumerable.Range(0, partitionCount) select dynamicPartitioner.GetEnumerator()).ToList();
             }
@@ -143,7 +143,7 @@ namespace System.Collections.Concurrent.Partitioners
             /// <returns>The list of created partitions ready to be iterated.</returns>
             public override IList<IEnumerator<KeyValuePair<long, T>>> GetOrderablePartitions(int partitionCount)
             {
-                if (partitionCount < 1) throw new ArgumentOutOfRangeException("partitionCount");
+                if (partitionCount < 1) throw new ArgumentOutOfRangeException(nameof(partitionCount));
                 var dynamicPartitioner = GetOrderableDynamicPartitions();
                 return (from i in Enumerable.Range(0, partitionCount) select dynamicPartitioner.GetEnumerator()).ToList();
             }

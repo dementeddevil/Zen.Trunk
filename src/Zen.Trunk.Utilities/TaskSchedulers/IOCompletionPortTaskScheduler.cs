@@ -32,8 +32,8 @@ namespace System.Threading.Tasks.Schedulers
         public IOCompletionPortTaskScheduler(int maxConcurrencyLevel, int numAvailableThreads)
         {
             // Validate arguments
-            if (maxConcurrencyLevel < 1) throw new ArgumentNullException("maxConcurrencyLevel");
-            if (numAvailableThreads < 1) throw new ArgumentNullException("numAvailableThreads");
+            if (maxConcurrencyLevel < 1) throw new ArgumentNullException(nameof(maxConcurrencyLevel));
+            if (numAvailableThreads < 1) throw new ArgumentNullException(nameof(numAvailableThreads));
 
             m_tasks = new ConcurrentQueue<Task>();
             m_iocp = new IOCompletionPort(maxConcurrencyLevel);
@@ -121,7 +121,7 @@ namespace System.Threading.Tasks.Schedulers
             public IOCompletionPort(Int32 maxConcurrencyLevel)
             {
                 // Validate the argument and create the port.
-                if (maxConcurrencyLevel < 1) throw new ArgumentOutOfRangeException("maxConcurrencyLevel");
+                if (maxConcurrencyLevel < 1) throw new ArgumentOutOfRangeException(nameof(maxConcurrencyLevel));
                 m_handle = CreateIoCompletionPort(INVALID_FILE_HANDLE, INVALID_IOCP_HANDLE, UIntPtr.Zero, (UInt32)maxConcurrencyLevel);
             }
 

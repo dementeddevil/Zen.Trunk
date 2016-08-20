@@ -111,8 +111,8 @@ namespace System.Threading.Algorithms
             ParallelOptions parallelOptions,
             Action<int, int> body)
         {
-            if (parallelOptions == null) throw new ArgumentNullException("parallelOptions");
-            if (body == null) throw new ArgumentNullException("body");
+            if (parallelOptions == null) throw new ArgumentNullException(nameof(parallelOptions));
+            if (body == null) throw new ArgumentNullException(nameof(body));
 
             return Parallel.ForEach(Partitioner.Create(fromInclusive, toExclusive), parallelOptions, range =>
             {
@@ -131,8 +131,8 @@ namespace System.Threading.Algorithms
             ParallelOptions parallelOptions,
             Action<int, int, ParallelLoopState> body)
         {
-            if (parallelOptions == null) throw new ArgumentNullException("parallelOptions");
-            if (body == null) throw new ArgumentNullException("body");
+            if (parallelOptions == null) throw new ArgumentNullException(nameof(parallelOptions));
+            if (body == null) throw new ArgumentNullException(nameof(body));
 
             return Parallel.ForEach(Partitioner.Create(fromInclusive, toExclusive), parallelOptions, (range, loopState) =>
             {
@@ -154,10 +154,10 @@ namespace System.Threading.Algorithms
             Func<int, int, ParallelLoopState, TLocal, TLocal> body,
             Action<TLocal> localFinally)
         {
-            if (parallelOptions == null) throw new ArgumentNullException("parallelOptions");
-            if (localInit == null) throw new ArgumentNullException("localInit");
-            if (body == null) throw new ArgumentNullException("body");
-            if (localFinally == null) throw new ArgumentNullException("localFinally");
+            if (parallelOptions == null) throw new ArgumentNullException(nameof(parallelOptions));
+            if (localInit == null) throw new ArgumentNullException(nameof(localInit));
+            if (body == null) throw new ArgumentNullException(nameof(body));
+            if (localFinally == null) throw new ArgumentNullException(nameof(localFinally));
 
             return Parallel.ForEach(Partitioner.Create(fromInclusive, toExclusive), parallelOptions, localInit, (range, loopState, x) =>
             {
@@ -178,8 +178,8 @@ namespace System.Threading.Algorithms
             ParallelOptions parallelOptions,
             Action<long, long> body)
         {
-            if (parallelOptions == null) throw new ArgumentNullException("parallelOptions");
-            if (body == null) throw new ArgumentNullException("body");
+            if (parallelOptions == null) throw new ArgumentNullException(nameof(parallelOptions));
+            if (body == null) throw new ArgumentNullException(nameof(body));
 
             return Parallel.ForEach(Partitioner.Create(fromInclusive, toExclusive), parallelOptions, range =>
             {
@@ -198,8 +198,8 @@ namespace System.Threading.Algorithms
             ParallelOptions parallelOptions,
             Action<long, long, ParallelLoopState> body)
         {
-            if (parallelOptions == null) throw new ArgumentNullException("parallelOptions");
-            if (body == null) throw new ArgumentNullException("body");
+            if (parallelOptions == null) throw new ArgumentNullException(nameof(parallelOptions));
+            if (body == null) throw new ArgumentNullException(nameof(body));
 
             return Parallel.ForEach(Partitioner.Create(fromInclusive, toExclusive), parallelOptions, (range, loopState) =>
             {
@@ -221,10 +221,10 @@ namespace System.Threading.Algorithms
             Func<long, long, ParallelLoopState, TLocal, TLocal> body,
             Action<TLocal> localFinally)
         {
-            if (parallelOptions == null) throw new ArgumentNullException("parallelOptions");
-            if (localInit == null) throw new ArgumentNullException("localInit");
-            if (body == null) throw new ArgumentNullException("body");
-            if (localFinally == null) throw new ArgumentNullException("localFinally");
+            if (parallelOptions == null) throw new ArgumentNullException(nameof(parallelOptions));
+            if (localInit == null) throw new ArgumentNullException(nameof(localInit));
+            if (body == null) throw new ArgumentNullException(nameof(body));
+            if (localFinally == null) throw new ArgumentNullException(nameof(localFinally));
 
             return Parallel.ForEach(Partitioner.Create(fromInclusive, toExclusive), parallelOptions, localInit, (range, loopState, x) =>
             {

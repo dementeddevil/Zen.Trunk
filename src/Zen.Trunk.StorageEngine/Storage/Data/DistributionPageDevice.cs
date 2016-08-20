@@ -64,7 +64,7 @@
 
 			// Load or initialise the file-group root page
 			var rootPage = FileGroupDevice.CreateRootPage(IsPrimary);
-			rootPage.VirtualId = new VirtualPageId(DeviceId, 0).Value;
+			rootPage.VirtualId = new VirtualPageId(DeviceId, 0);
 			HookupPageSite(rootPage);
 			if (IsCreate && _firstCallForRootPage)
 			{
@@ -264,7 +264,7 @@
 
 				// Setup the page virtual id
 				var pageId = new VirtualPageId(DeviceId, physicalId);
-				page.VirtualId = pageId.Value;
+				page.VirtualId = pageId;
 				Tracer.WriteVerboseLine("\tPage id {0}", pageId);
 
 				// Issue the sub-ordinate request
@@ -297,7 +297,7 @@
 				// Determine the virtual id for the page
 				var physicalId = ((distributionPageIndex * (DistributionPage.PageTrackingCount + 1)) + DistributionPageOffset);
 				var pageId = new VirtualPageId(DeviceId, physicalId);
-				page.VirtualId = pageId.Value;
+				page.VirtualId = pageId;
 				Tracer.WriteVerboseLine("\tPage id {0}", pageId);
 
 				// Issue the sub-ordinate request

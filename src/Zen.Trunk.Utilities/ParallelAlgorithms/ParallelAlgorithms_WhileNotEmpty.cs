@@ -34,9 +34,9 @@ namespace System.Threading.Algorithms
             Action<T, Action<T>> body)
         {
             // Validate arguments
-            if (parallelOptions == null) throw new ArgumentNullException("parallelOptions");
-            if (initialValues == null) throw new ArgumentNullException("initialValues");
-            if (body == null) throw new ArgumentNullException("body");
+            if (parallelOptions == null) throw new ArgumentNullException(nameof(parallelOptions));
+            if (initialValues == null) throw new ArgumentNullException(nameof(initialValues));
+            if (body == null) throw new ArgumentNullException(nameof(body));
 
             // Create two lists to alternate between as source and destination.
             var lists = new[] { new ConcurrentStack<T>(initialValues), new ConcurrentStack<T>() };
