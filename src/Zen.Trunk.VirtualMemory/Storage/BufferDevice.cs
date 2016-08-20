@@ -105,8 +105,7 @@
 		{
 			Debug.Assert(
 				_deviceState == (int)MountableDeviceState.Closed,
-				string.Format(
-				"{0} should be closed prior to dispose.", GetType().FullName));
+			    $"{GetType().FullName} should be closed prior to dispose.");
 			_disposed = true;
 		}
 

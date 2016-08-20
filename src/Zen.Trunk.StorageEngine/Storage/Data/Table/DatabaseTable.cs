@@ -1193,9 +1193,7 @@
 					// If no default found then column must allow nulls
 					if (defaultValue == null && !column.Nullable)
 					{
-						throw new ArgumentException(string.Format(
-							"No data specified for column {0} which does not allow nulls.",
-							column.Name));
+						throw new ArgumentException($"No data specified for column {column.Name} which does not allow nulls.");
 					}
 
 					// Add default to row data
@@ -1207,9 +1205,7 @@
 				var dataValue = rowData[columnIdList.IndexOf(column.Id)];
 				if (dataValue == null && !column.Nullable)
 				{
-					throw new ArgumentException(string.Format(
-						"No data specified for column {0} which does not allow nulls.",
-						column.Name));
+					throw new ArgumentException($"No data specified for column {column.Name} which does not allow nulls.");
 				}
 
 				// Apply check constraints

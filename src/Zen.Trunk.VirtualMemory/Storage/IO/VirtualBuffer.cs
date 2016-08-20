@@ -309,7 +309,7 @@ namespace Zen.Trunk.Storage.IO
 		/// <value>
 		/// The buffer unique identifier.
 		/// </value>
-		public string BufferId => string.Format("{0}:{1}", _owner.CacheId, _cacheSlot);
+		public string BufferId => $"{_owner.CacheId}:{_cacheSlot}";
 
 	    /// <summary>
 		/// Gets the size of the system page.

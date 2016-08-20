@@ -520,7 +520,7 @@ namespace Zen.Trunk.Storage.Log
 		/// Gets the virtual page id.
 		/// </summary>
 		/// <value>The virtual page id.</value>
-		public ulong VirtualPageId => _virtualPageId.Value;
+		public VirtualPageId VirtualPageId => new VirtualPageId(_virtualPageId.Value);
 
 	    /// <summary>
 		/// Gets the timestamp.
@@ -601,11 +601,14 @@ namespace Zen.Trunk.Storage.Log
 		private async Task<DataPage> LoadPageFromDevice(DatabaseDevice device)
 		{
 			// Create generic page object and load
-			var page = new DataPage();
-			page.VirtualId = VirtualPageId;
-			page.FileGroupId = FileGroupDevice.Invalid;
-			await device.LoadFileGroupPage(
-				new LoadFileGroupPageParameters(null, page, true)).ConfigureAwait(false);
+		    var page = new DataPage
+		    {
+		        VirtualId = VirtualPageId,
+		        FileGroupId = FileGroupId.Invalid
+		    };
+		    await device
+                .LoadFileGroupPage(new LoadFileGroupPageParameters(null, page, true))
+                .ConfigureAwait(false);
 
 			// Return the page
 			return page;

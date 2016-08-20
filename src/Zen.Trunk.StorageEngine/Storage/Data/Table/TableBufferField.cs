@@ -164,8 +164,7 @@
 					if (!_fieldDef.Nullable)
 					{
 						throw new ArgumentException(
-							string.Format("Column {0} does not allow nulls.",
-							_fieldDef.Name), "value");
+						    $"Column {_fieldDef.Name} does not allow nulls.", "value");
 					}
 					e.NewValue = DBNull.Value;
 				}
@@ -173,10 +172,8 @@
 				// If not null then check for matching type information.
 				else if (!_fieldDef.ColumnType.IsAssignableFrom(e.NewValue.GetType()))
 				{
-					throw new ArgumentException(string.Format(
-						"Column {0} expects CLR type {1} and {2} is not a convertable type.",
-						_fieldDef.Name, _fieldDef.ColumnType.FullName,
-						e.NewValue.GetType().FullName), "value");
+					throw new ArgumentException(
+					    $"Column {_fieldDef.Name} expects CLR type {_fieldDef.ColumnType.FullName} and {e.NewValue.GetType().FullName} is not a convertable type.", "value");
 				}
 
 				// Truncate or pad fixed length fields

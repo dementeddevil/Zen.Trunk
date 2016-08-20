@@ -339,8 +339,7 @@ namespace Zen.Trunk.Storage.Data
 		public ulong AllocatePage(AllocateDataPageParameters allocParams)
 		{
 			System.Diagnostics.Debug.WriteLine(
-				string.Format("Allocate page via DistributionPage {0}",
-				new VirtualPageId(VirtualId)));
+			    $"Allocate page via DistributionPage {VirtualId}");
 			var lm = (IDatabaseLockManager)GetService(typeof(IDatabaseLockManager));
 
 			// Ensure we have some kind of lock on the page...

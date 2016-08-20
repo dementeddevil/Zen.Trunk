@@ -22,7 +22,7 @@
 #if TRACE
 		protected virtual string GetTracePrefix()
 		{
-			return string.Format("{0} {1:X8}", GetType().Name, transactionLockId);
+			return $"{GetType().Name} {transactionLockId:X8}";
 		}
 #endif
 

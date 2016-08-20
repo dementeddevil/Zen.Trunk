@@ -382,7 +382,7 @@ namespace Zen.Trunk.Storage.Locking
 						//	committed to ensure we only commit each page once
 						// This may mean some page objects are prepared but not
 						//	necessarily committed...
-						var tracker = new HashSet<ulong>();
+						var tracker = new HashSet<VirtualPageId>();
 						foreach (var sub in commitList)
 						{
 							// We only track pages (they should all be pages!)

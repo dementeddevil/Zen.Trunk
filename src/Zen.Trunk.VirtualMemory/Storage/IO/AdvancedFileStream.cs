@@ -1585,9 +1585,8 @@ namespace Zen.Trunk.Storage.IO
 			}
 			if ((enableScatterGatherIO) && ((bufferSize % AdvancedFileStream.SystemPageSize) != 0))
 			{
-				throw new ArgumentException(string.Format(
-					"Buffer size must be multiple of system page size ({0}) bytes).",
-					AdvancedFileStream.SystemPageSize), nameof(bufferSize));
+				throw new ArgumentException(
+				    $"Buffer size must be multiple of system page size ({AdvancedFileStream.SystemPageSize}) bytes).", nameof(bufferSize));
 			}
 
 			// Ensure we have absolute path

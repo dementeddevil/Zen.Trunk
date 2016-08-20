@@ -470,8 +470,7 @@
 #if TRACE
 		protected override string GetTracePrefix()
 		{
-			return string.Format("{0} ID: {1} Rc: {2} Txn:{3}",
-				base.GetTracePrefix(), _id, _referenceCount, GetThreadTransactionId(false));
+			return $"{base.GetTracePrefix()} ID: {_id} Rc: {_referenceCount} Txn:{GetThreadTransactionId(false)}";
 		}
 #endif
 

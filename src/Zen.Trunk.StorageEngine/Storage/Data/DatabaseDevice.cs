@@ -644,8 +644,9 @@ namespace Zen.Trunk.Storage.Data
 				request.Message.Page.PreLoadInternal();
 
 				// Load the buffer from the underlying cache
-				var pageId = new VirtualPageId(request.Message.Page.VirtualId);
-				request.Message.Page.DataBuffer = await _dataBufferDevice.LoadPageAsync(pageId).ConfigureAwait(false);
+				request.Message.Page.DataBuffer = await _dataBufferDevice
+                    .LoadPageAsync(request.Message.Page.VirtualId)
+                    .ConfigureAwait(false);
 				request.Message.Page.PostLoadInternal();
 			}
 			else
