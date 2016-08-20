@@ -1,0 +1,193 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{2F2A3E61-960A-4DA0-A087-D45C89B33099}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Zen.Trunk</RootNamespace>
+    <AssemblyName>Zen.Trunk.StorageEngine</AssemblyName>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x64\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
+    <OutputPath>bin\x64\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x86\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
+    <OutputPath>bin\x86\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Autofac, Version=4.0.0.0, Culture=neutral, PublicKeyToken=17863af14b0044da, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Autofac.4.0.0\lib\net451\Autofac.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Threading" />
+    <Reference Include="System.Threading.Tasks" />
+    <Reference Include="System.Threading.Tasks.Dataflow, Version=4.5.24.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Microsoft.Tpl.Dataflow.4.5.24\lib\portable-net45+win8+wpa81\System.Threading.Tasks.Dataflow.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Transactions" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Storage\BufferField.cs" />
+    <Compile Include="Storage\Data\CachingPageBufferDevice.cs" />
+    <Compile Include="CoreException.cs" />
+    <Compile Include="Storage\Data\DatabaseDevice.cs" />
+    <Compile Include="Storage\Data\DatabaseDeviceMessages.cs" />
+    <Compile Include="Storage\Data\FileGroupDeviceMessages.cs" />
+    <Compile Include="Storage\Data\Index\IndexInfo.cs" />
+    <Compile Include="Storage\Data\Index\IndexManager.cs" />
+    <Compile Include="Storage\Data\Index\IndexPage.cs" />
+    <Compile Include="Storage\Data\Index\IndexPageImpl.cs" />
+    <Compile Include="Storage\Data\Index\RootIndexInfo.cs" />
+    <Compile Include="Storage\Data\LogicalVirtualManager.cs" />
+    <Compile Include="Storage\Data\MasterDatabaseDevice.cs" />
+    <Compile Include="Storage\Data\MasterDatabasePrimaryFileGroupDevice.cs" />
+    <Compile Include="Storage\Data\MasterDatabasePrimaryFileGroupRootPage.cs" />
+    <Compile Include="Storage\Data\ObjectDataPage.cs" />
+    <Compile Include="Storage\Data\ObjectPage.cs" />
+    <Compile Include="Storage\Data\ObjectRefInfo.cs" />
+    <Compile Include="Storage\Data\ObjectSchemaPage.cs" />
+    <Compile Include="Storage\Data\PrimaryFileGroupDevice.cs" />
+    <Compile Include="Storage\Data\SecondaryFileGroupDevice.cs" />
+    <Compile Include="Storage\Data\SecondaryFileGroupRootPage.cs" />
+    <Compile Include="Storage\Data\PrimaryFileGroupRootPage.cs" />
+    <Compile Include="Storage\Data\RootPage.cs" />
+    <Compile Include="Storage\Data\DataPage.cs" />
+    <Compile Include="Storage\Data\DistributionPage.cs" />
+    <Compile Include="Storage\Data\DistributionPageDevice.cs" />
+    <Compile Include="Storage\Data\FileGroupDevice.cs" />
+    <Compile Include="Storage\Data\Table\DatabaseTable.cs" />
+    <Compile Include="Storage\Data\Table\RootTableIndexInfo.cs" />
+    <Compile Include="Storage\Data\Table\RowReaderWriter.cs" />
+    <Compile Include="Storage\Data\Table\TableBufferField.cs" />
+    <Compile Include="Storage\Data\Table\TableColumnInfo.cs" />
+    <Compile Include="Storage\Data\Table\TableDataPage.cs" />
+    <Compile Include="Storage\Data\Table\TableIndexInfo.cs" />
+    <Compile Include="Storage\Data\Table\TableIndexLeafInfo.cs" />
+    <Compile Include="Storage\Data\Table\TableIndexManager.cs" />
+    <Compile Include="Storage\Data\Table\TableIndexPage.cs" />
+    <Compile Include="Storage\Data\Table\TableSchemaPage.cs" />
+    <Compile Include="Storage\IMountableDevice.cs" />
+    <Compile Include="Storage\Locking\GlobalLockManager.cs" />
+    <Compile Include="Storage\Locking\DistributionLockOwnerBlock.cs" />
+    <Compile Include="Storage\Locking\IDatabaseLockManager.cs" />
+    <Compile Include="Storage\Locking\ITrunkTransaction.cs" />
+    <Compile Include="Storage\Locking\LockIdent.cs" />
+    <Compile Include="Storage\Locking\LockOwnerBlockBase.cs" />
+    <Compile Include="Storage\Locking\TrunkTransaction.cs" />
+    <Compile Include="Storage\Locking\TrunkTransactionContext.cs" />
+    <Compile Include="Storage\Log\ActiveTransaction.cs" />
+    <Compile Include="Storage\Log\CheckPointInfo.cs" />
+    <Compile Include="Storage\Log\LogBuffer.cs" />
+    <Compile Include="Storage\Log\LogDeviceMessages.cs" />
+    <Compile Include="Storage\Log\LogEntry.cs" />
+    <Compile Include="Storage\Log\LogFileId.cs" />
+    <Compile Include="Storage\Log\LogPage.cs" />
+    <Compile Include="Storage\Log\LogPageDevice.cs" />
+    <Compile Include="Storage\Log\LogRootPage.cs" />
+    <Compile Include="Storage\Log\MasterLogRootPage.cs" />
+    <Compile Include="Storage\Log\MasterLogPageDevice.cs" />
+    <Compile Include="Storage\Log\VirtualLogFileInfo.cs" />
+    <Compile Include="Storage\Log\VirtualLogFileStream.cs" />
+    <Compile Include="Storage\MountableDevice.cs" />
+    <Compile Include="Storage\PageDevice.cs" />
+    <Compile Include="Storage\Range.cs" />
+    <Compile Include="Storage\StatefulBufferScope.cs" />
+    <Compile Include="Storage\StorageEngineException.cs" />
+    <Compile Include="Storage\DeviceExceptions.cs" />
+    <Compile Include="Storage\DeviceInfo.cs" />
+    <Compile Include="Storage\Data\LogicalPage.cs" />
+    <Compile Include="Storage\Locking\ChildTransactionLock.cs" />
+    <Compile Include="Storage\Locking\DatabaseLock.cs" />
+    <Compile Include="Storage\Locking\DataLock.cs" />
+    <Compile Include="Storage\Locking\ILockHandler.cs" />
+    <Compile Include="Storage\Locking\IPageEnlistmentNotification.cs" />
+    <Compile Include="Storage\Locking\IReferenceLock.cs" />
+    <Compile Include="Storage\Locking\LockException.cs" />
+    <Compile Include="Storage\Locking\LockHandler.cs" />
+    <Compile Include="Storage\Locking\DatabaseLockManager.cs" />
+    <Compile Include="Storage\Locking\DataLockOwnerBlock.cs" />
+    <Compile Include="Storage\Locking\ObjectLock.cs" />
+    <Compile Include="Storage\Locking\PageEnlistment.cs" />
+    <Compile Include="Storage\Locking\PreparingPageEnlistment.cs" />
+    <Compile Include="Storage\Locking\RLock.cs" />
+    <Compile Include="Storage\Locking\RLockHandler.cs" />
+    <Compile Include="Storage\Locking\RootPageLock.cs" />
+    <Compile Include="Storage\Locking\SchemaLock.cs" />
+    <Compile Include="Storage\Locking\TransactionLock.cs" />
+    <Compile Include="Storage\Locking\TransactionLockBase.cs" />
+    <Compile Include="Storage\Locking\TransactionLockOwnerBlock.cs" />
+    <Compile Include="Storage\Page.cs" />
+    <Compile Include="Storage\Data\PageBuffer.cs" />
+    <Compile Include="Storage\PageEnums.cs" />
+    <Compile Include="Storage\PageExceptions.cs" />
+    <Compile Include="Storage\StatefulBuffer.cs" />
+    <Compile Include="Storage\Data\TransactionContextTaskRequest.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Zen.Trunk.Utilities\Zen.Trunk.Utilities.csproj">
+      <Project>{f7ed3f65-bfe8-4949-8bde-494f12cc30c6}</Project>
+      <Name>Zen.Trunk.Utilities</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Zen.Trunk.VirtualMemory\Zen.Trunk.VirtualMemory.csproj">
+      <Project>{837f9dbd-7e29-4237-add9-1bd32fef964a}</Project>
+      <Name>Zen.Trunk.VirtualMemory</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="app.config" />
+    <None Include="packages.config" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

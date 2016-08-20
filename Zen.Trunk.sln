@@ -1,0 +1,56 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.25420.1
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Zen.Trunk.Utilities", "src\Zen.Trunk.Utilities\Zen.Trunk.Utilities.csproj", "{F7ED3F65-BFE8-4949-8BDE-494F12CC30C6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Zen.Trunk.VirtualMemory", "src\Zen.Trunk.VirtualMemory\Zen.Trunk.VirtualMemory.csproj", "{837F9DBD-7E29-4237-ADD9-1BD32FEF964A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Zen.Trunk.StorageEngine", "src\Zen.Trunk.StorageEngine\Zen.Trunk.StorageEngine.csproj", "{2F2A3E61-960A-4DA0-A087-D45C89B33099}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		Release|Any CPU = Release|Any CPU
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F7ED3F65-BFE8-4949-8BDE-494F12CC30C6}.Debug|Any CPU.ActiveCfg = Debug|x86
+		{F7ED3F65-BFE8-4949-8BDE-494F12CC30C6}.Debug|x64.ActiveCfg = Debug|x64
+		{F7ED3F65-BFE8-4949-8BDE-494F12CC30C6}.Debug|x64.Build.0 = Debug|x64
+		{F7ED3F65-BFE8-4949-8BDE-494F12CC30C6}.Debug|x86.ActiveCfg = Debug|x86
+		{F7ED3F65-BFE8-4949-8BDE-494F12CC30C6}.Debug|x86.Build.0 = Debug|x86
+		{F7ED3F65-BFE8-4949-8BDE-494F12CC30C6}.Release|Any CPU.ActiveCfg = Release|x86
+		{F7ED3F65-BFE8-4949-8BDE-494F12CC30C6}.Release|x64.ActiveCfg = Release|x64
+		{F7ED3F65-BFE8-4949-8BDE-494F12CC30C6}.Release|x64.Build.0 = Release|x64
+		{F7ED3F65-BFE8-4949-8BDE-494F12CC30C6}.Release|x86.ActiveCfg = Release|x86
+		{F7ED3F65-BFE8-4949-8BDE-494F12CC30C6}.Release|x86.Build.0 = Release|x86
+		{837F9DBD-7E29-4237-ADD9-1BD32FEF964A}.Debug|Any CPU.ActiveCfg = Debug|x86
+		{837F9DBD-7E29-4237-ADD9-1BD32FEF964A}.Debug|x64.ActiveCfg = Debug|x64
+		{837F9DBD-7E29-4237-ADD9-1BD32FEF964A}.Debug|x64.Build.0 = Debug|x64
+		{837F9DBD-7E29-4237-ADD9-1BD32FEF964A}.Debug|x86.ActiveCfg = Debug|x86
+		{837F9DBD-7E29-4237-ADD9-1BD32FEF964A}.Debug|x86.Build.0 = Debug|x86
+		{837F9DBD-7E29-4237-ADD9-1BD32FEF964A}.Release|Any CPU.ActiveCfg = Release|x86
+		{837F9DBD-7E29-4237-ADD9-1BD32FEF964A}.Release|x64.ActiveCfg = Release|x64
+		{837F9DBD-7E29-4237-ADD9-1BD32FEF964A}.Release|x64.Build.0 = Release|x64
+		{837F9DBD-7E29-4237-ADD9-1BD32FEF964A}.Release|x86.ActiveCfg = Release|x86
+		{837F9DBD-7E29-4237-ADD9-1BD32FEF964A}.Release|x86.Build.0 = Release|x86
+		{2F2A3E61-960A-4DA0-A087-D45C89B33099}.Debug|Any CPU.ActiveCfg = Debug|x86
+		{2F2A3E61-960A-4DA0-A087-D45C89B33099}.Debug|x64.ActiveCfg = Debug|x64
+		{2F2A3E61-960A-4DA0-A087-D45C89B33099}.Debug|x64.Build.0 = Debug|x64
+		{2F2A3E61-960A-4DA0-A087-D45C89B33099}.Debug|x86.ActiveCfg = Debug|x86
+		{2F2A3E61-960A-4DA0-A087-D45C89B33099}.Debug|x86.Build.0 = Debug|x86
+		{2F2A3E61-960A-4DA0-A087-D45C89B33099}.Release|Any CPU.ActiveCfg = Release|x86
+		{2F2A3E61-960A-4DA0-A087-D45C89B33099}.Release|x64.ActiveCfg = Release|x64
+		{2F2A3E61-960A-4DA0-A087-D45C89B33099}.Release|x64.Build.0 = Release|x64
+		{2F2A3E61-960A-4DA0-A087-D45C89B33099}.Release|x86.ActiveCfg = Release|x86
+		{2F2A3E61-960A-4DA0-A087-D45C89B33099}.Release|x86.Build.0 = Release|x86
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

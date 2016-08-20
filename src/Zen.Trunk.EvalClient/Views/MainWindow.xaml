@@ -1,0 +1,176 @@
+﻿<fxui:ChildView x:Class="Zen.Trunk.EvalClient.MainWindow"
+				xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+				xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+				xmlns:fxui="clr-namespace:Zen.Composite.Presentation.UserInterface;assembly=Zen.Composite.Presentation"
+				xmlns:fxconv="clr-namespace:Zen.Composite.Presentation.Data;assembly=Zen.Composite.Presentation"
+				Title="Zen Trunk Torrent (Eval Edition)"
+				Height="350"
+				Width="525">
+	<Grid Name="LayoutRoot">
+		<Grid.RowDefinitions>
+			<RowDefinition Height="Auto" />
+			<RowDefinition Height="*" />
+			<RowDefinition Height="Auto" />
+		</Grid.RowDefinitions>
+		<Menu Height="23"
+			  HorizontalAlignment="Stretch"
+			  Name="mainMenu"
+			  VerticalAlignment="Top"
+			  Grid.Row="0">
+			<MenuItem Header="_File">
+				<MenuItem Header="Add Torrent File..."
+						  Click="OnAddTorrentFile" />
+				<MenuItem Header="Add Torrent Url..."
+						  Click="OnAddTorrentUrl" />
+				<Separator />
+				<MenuItem Header="E_xit"
+						  Click="OnExit" />
+			</MenuItem>
+		</Menu>
+		<Grid Name="ContentRoot"
+			  Grid.Row="1">
+			<Grid.RowDefinitions>
+				<RowDefinition />
+				<RowDefinition />
+			</Grid.RowDefinitions>
+			<DataGrid Name="torrentGrid"
+					  IsReadOnly="True"
+					  SelectionMode="Single"
+					  ItemsSource="{Binding Torrents}"
+					  AutoGenerateColumns="False"
+					  AllowDrop="False"
+					  AlternatingRowBackground="LightGoldenrodYellow"
+					  AlternationCount="1"
+					  Background="White"
+					  CanUserResizeRows="False"
+					  IsTabStop="True"
+					  RowHeight="20"
+					  VerticalContentAlignment="Center">
+				<DataGrid.Columns>
+					<DataGridTextColumn Header="Name"
+										Binding="{Binding Name, Mode=OneTime}" />
+					<DataGridTextColumn Header="Size"
+										Binding="{Binding SizeText, Mode=OneTime}" />
+					<DataGridTemplateColumn Header="Done"
+											Width="60">
+						<DataGridTemplateColumn.CellTemplate>
+							<DataTemplate>
+								<Grid>
+									<ProgressBar Minimum="0"
+												 Maximum="100"
+												 Value="{Binding PercentComplete, Mode=OneWay}"
+												 IsTabStop="False"
+												 IsHitTestVisible="False"
+												 ToolTip="{Binding}"
+												 Foreground="LightGreen" />
+									<Label HorizontalContentAlignment="Center"
+										   VerticalContentAlignment="Center"
+										   Content="{Binding PercentComplete, Mode=OneWay, StringFormat=F1}"
+										   Padding="0" />
+								</Grid>
+							</DataTemplate>
+						</DataGridTemplateColumn.CellTemplate>
+					</DataGridTemplateColumn>
+					<DataGridTextColumn Header="Status"
+										Binding="{Binding StatusText, Mode=OneWay}" />
+					<DataGridTextColumn Header="Source"
+										Binding="{Binding Source, Mode=OneTime}" />
+					<DataGridTextColumn Header="Seeds"
+										Binding="{Binding Seeders, Mode=OneWay}" />
+					<DataGridTextColumn Header="Peers"
+										Binding="{Binding Leechers, Mode=OneWay}" />
+					<DataGridTextColumn Header="Down Speed"
+										Binding="{Binding DownloadSpeed, Mode=OneWay}" />
+					<DataGridTextColumn Header="Up Speed"
+										Binding="{Binding UploadSpeed, Mode=OneWay}" />
+					<DataGridTextColumn Header="ETA"
+										Binding="{Binding ETA, Mode=OneWay}" />
+					<DataGridTextColumn Header="Uploaded"
+										Binding="{Binding UploadedText, Mode=OneWay}" />
+					<DataGridTextColumn Header="Ratio"
+										Binding="{Binding Ratio, Mode=OneWay, TargetNullValue=-}" />
+					<DataGridTextColumn Header="Available"
+										Binding="{Binding Available, Mode=OneWay}" />
+					<DataGridTextColumn Header="Label"
+										Binding="{Binding Label, Mode=OneTime}" />
+					<DataGridTextColumn Header="Added On"
+										Binding="{Binding AddedOn, Mode=OneTime}" />
+					<DataGridTextColumn Header="Completed On"
+										Binding="{Binding CompletedOn, Mode=OneWay}" />
+					<DataGridTextColumn Header="Elapsed Time"
+										Binding="{Binding TotalElapsedTimeText, Mode=OneWay}" />
+				</DataGrid.Columns>
+			</DataGrid>
+			<GridSplitter Grid.Row="1"
+						  Height="5"
+						  ResizeDirection="Rows"
+						  VerticalAlignment="Top"
+						  HorizontalAlignment="Stretch" />
+			<TabControl Grid.Row="1"
+						Margin="0 5 0 0"
+						DataContext="{Binding ElementName=torrentGrid, Path=SelectedItem}">
+				<TabItem Header="General">
+					<Grid Background="White">
+
+					</Grid>
+				</TabItem>
+				<TabItem Header="Trackers">
+					<Grid Background="White">
+
+					</Grid>
+				</TabItem>
+				<TabItem Header="Peers">
+					<Grid Background="White">
+
+					</Grid>
+				</TabItem>
+				<TabItem Header="Pieces">
+					<Grid Background="White">
+
+					</Grid>
+				</TabItem>
+				<TabItem Header="Files">
+					<Grid Background="White">
+
+					</Grid>
+				</TabItem>
+				<TabItem Header="Performance">
+					<Grid Background="White">
+
+					</Grid>
+				</TabItem>
+				<TabItem Header="Log">
+					<Grid Background="White">
+
+					</Grid>
+				</TabItem>
+			</TabControl>
+		</Grid>
+		<StatusBar Height="23"
+				   HorizontalAlignment="Stretch"
+				   Name="statusBar"
+				   VerticalAlignment="Top"
+				   Grid.Row="2">
+			<StatusBarItem Name="statusItem">
+
+			</StatusBarItem>
+			<StatusBarItem>
+
+			</StatusBarItem>
+			<StatusBarItem Name="dhtStatItem"
+						   Content="{Binding DhtStatus, Mode=OneWay}" />
+			<StatusBarItem Name="totalDownloadStatItem">
+
+			</StatusBarItem>
+			<StatusBarItem Name="totalUploadStatItem">
+
+			</StatusBarItem>
+			<StatusBarItem Name="networkStatusItem">
+
+			</StatusBarItem>
+			<StatusBarItem>
+
+			</StatusBarItem>
+		</StatusBar>
+	</Grid>
+</fxui:ChildView>

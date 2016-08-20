@@ -1,0 +1,265 @@
+namespace Zen.Trunk.Storage.IO
+{
+	using System;
+	using System.Collections.Generic;
+	using System.Threading.Tasks;
+
+	public class StreamScatterGatherHelper
+	{
+		#region Private Fields
+		private AdvancedFileStream _stream;
+		private bool _isReader;
+
+		private TimeSpan _maximumWriteAge = TimeSpan.FromMilliseconds(500);
+		private TimeSpan _coalesceRequestsPeriod = TimeSpan.FromMilliseconds(100);
+		private int _maximumArraySize = 16;
+		private int _maximumNumberOfArrays = 5;
+
+		private DateTime _lastCoalescedAt;
+		private DateTime _lastScavengeAt;
+
+		private List<ScatterGatherRequestArray> _requests =
+			new List<ScatterGatherRequestArray>();
+		private object _syncCallback = new object();
+		#endregion
+
+		#region Public Constructors
+		/// <summary>
+		/// Initializes a new instance of the <see cref="StreamGatherWriter"/> class.
+		/// </summary>
+		/// <param name="stream">The stream.</param>
+		public StreamScatterGatherHelper(AdvancedFileStream stream, bool isReader)
+		{
+			_stream = stream;
+			_isReader = isReader;
+		}
+		#endregion
+
+		#region Public Methods
+		/// <summary>
+		/// Adds the specified buffer to the list of pending operations.
+		/// </summary>
+		/// <param name="physicalPageId">The physical page id.</param>
+		/// <param name="buffer">The buffer.</param>
+		/// <returns></returns>
+		/// <remarks>
+		/// Internally buffers are placed into groups such that a given group
+		///	will be composed of buffers of adjecent storage areas.
+		///	If a suitable group does not exist for the specified buffer then a
+		///	new one will be created without flushing any existing groups.
+		/// </remarks>
+		[CLSCompliant(false)]
+		public Task ProcessBufferAsync(uint physicalPageId, VirtualBuffer buffer)
+		{
+			ScatterGatherRequest request =
+				new ScatterGatherRequest(physicalPageId, buffer);
+
+			// Attempt to add to existing array or create a new one
+			bool added = false;
+			lock (_syncCallback)
+			{
+				foreach (var array in _requests)
+				{
+					added = array.AddRequest(request);
+					if (added)
+					{
+						break;
+					}
+				}
+				if (!added)
+				{
+					_requests.Add(new ScatterGatherRequestArray(request));
+					added = true;
+				}
+			}
+
+			return request.Task;
+		}
+
+		/// <summary>
+		/// Flushes the buffers stored in this instance to the underlying
+		/// </summary>
+		public async Task Flush()
+		{
+			// Obtain the completion objects to be flushed
+			List<ScatterGatherRequestArray> arrayList = null;
+			if (_requests.Count > 0)
+			{
+				lock (_syncCallback)
+				{
+					if (_requests.Count > 0)
+					{
+						// Get array of buffers to be persisted.
+						arrayList = new List<ScatterGatherRequestArray>();
+						arrayList.AddRange(_requests);
+						_requests.Clear();
+					}
+				}
+			}
+
+			// If we have work to do...
+			if (arrayList != null)
+			{
+				// Build list of async tasks from the flush action for each array
+				List<Task> flushList = new List<Task>();
+				foreach (ScatterGatherRequestArray array in arrayList)
+				{
+					flushList.Add(FlushArray(array));
+				}
+
+				// Use a single await operation to wait for the flush to finish
+				await Task.WhenAll(flushList.ToArray()).ConfigureAwait(false);
+			}
+		}
+
+		/// <summary>
+		/// Flushes only the data necessary.
+		/// </summary>
+		/// <returns></returns>
+		/// <remarks>
+		/// The helper stores all received requests in arrays and will try to
+		/// create longer block chains before issueing the scatter/gather call
+		/// to transfer data.
+		/// This method should be called periodically to ensure timely handling
+		/// of requests
+		/// </remarks>
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly",
+			MessageId = "Optimised", Justification = "English spelling")]
+		public async Task OptimisedFlush()
+		{
+			CoalesceIfNeeded();
+			await FlushIfNeeded();
+			await ScavengeIfNeeded();
+		}
+		#endregion
+
+		#region Private Methods
+		private void CoalesceIfNeeded()
+		{
+			if ((DateTime.UtcNow - _lastCoalescedAt) > _coalesceRequestsPeriod)
+			{
+				CoalesceRequests();
+			}
+		}
+
+		private async Task FlushIfNeeded()
+		{
+			List<ScatterGatherRequestArray> candidates = null;
+			while (_requests.Count > _maximumNumberOfArrays)
+			{
+				lock (_syncCallback)
+				{
+					if (_requests.Count > _maximumNumberOfArrays)
+					{
+						if (candidates == null)
+						{
+							candidates = new List<ScatterGatherRequestArray>();
+						}
+						candidates.Add(_requests[0]);
+						_requests.RemoveAt(0);
+					}
+				}
+			}
+
+			if (candidates != null)
+			{
+				List<Task> flushList = new List<Task>();
+				foreach (ScatterGatherRequestArray array in candidates)
+				{
+					flushList.Add(FlushArray(array));
+				}
+				await Task.WhenAll(flushList.ToArray()).ConfigureAwait(false);
+			}
+		}
+
+		private Task ScavengeIfNeeded()
+		{
+			if ((DateTime.UtcNow - _lastScavengeAt) > _maximumWriteAge)
+			{
+				return ScavengeRequests();
+			}
+			else
+			{
+				return CompletedTask.Default;
+			}
+		}
+
+		private void CoalesceRequests()
+		{
+			if (_requests.Count > 1)
+			{
+				lock (_syncCallback)
+				{
+					if (_requests.Count > 1)
+					{
+						int primaryRequest = 0;
+						int candidateRequest = 1;
+						while (primaryRequest < _requests.Count - 1)
+						{
+							if (_requests[primaryRequest].Consume(_requests[candidateRequest]))
+							{
+								_requests.RemoveAt(candidateRequest);
+							}
+							else
+							{
+								++candidateRequest;
+							}
+							if (candidateRequest >= _requests.Count)
+							{
+								++primaryRequest;
+								candidateRequest = primaryRequest + 1;
+							}
+						}
+					}
+				}
+			}
+			_lastCoalescedAt = DateTime.UtcNow;
+		}
+
+		private async Task ScavengeRequests()
+		{
+			List<ScatterGatherRequestArray> candidates = null;
+			lock (_syncCallback)
+			{
+				while (_requests.Count > 0 && _requests[0].RequiresFlush(_maximumWriteAge, _maximumArraySize))
+				{
+					if (candidates == null)
+					{
+						candidates = new List<ScatterGatherRequestArray>();
+					}
+					candidates.Add(_requests[0]);
+					_requests.RemoveAt(0);
+				}
+			}
+
+			if (candidates != null)
+			{
+				List<Task> flushList = new List<Task>();
+				foreach (ScatterGatherRequestArray array in candidates)
+				{
+					flushList.Add(FlushArray(array));
+				}
+				await Task.WhenAll(flushList.ToArray()).ConfigureAwait(false);
+			}
+
+			_lastScavengeAt = DateTime.UtcNow;
+		}
+
+		private Task FlushArray(ScatterGatherRequestArray array)
+		{
+			if (array != null)
+			{
+				if (_isReader)
+				{
+					return array.FlushAsRead(_stream);
+				}
+				else
+				{
+					return array.FlushAsWrite(_stream);
+				}
+			}
+			return CompletedTask.Default;
+		}
+		#endregion
+	}
+}

@@ -1,0 +1,314 @@
+grammar TrunkSQL;
+
+options
+{
+	language=CSharp3;
+	output=AST;
+	TokenLabelType=CommonToken;
+	ASTLabelType=CommonTree;
+	backtrack=true;
+	memoize=true;
+}
+
+tokens
+{
+	USEDATABASESTMT;
+	CREATEDATABASESTMT;
+	CREATETABLESTMT;
+	CREATETEMPTABLESTMT;
+	TABLECOLUMNDEFINITION;
+	COLUMNDEFINITION;
+	PRIMARYFILEGROUP;			// used for CREATE DATABASE
+	SECONDARYFILEGROUP;			// used for CREATE DATABASE
+	LOGFILEGROUP;				// used for CREATE DATABASE
+	FORATTACHOF;
+	FILESPEC;
+	LOGICALNAME;
+	FILENAME;
+	FILESIZE;
+	MAXFILESIZE;
+	FIXEDFILEGROWTH;
+	PERCENTFILEGROWTH;
+	FILEGROUP;					// used with CREATE TABLE/VIEW/PROC etc
+	NULLABLE;
+	IDENTITY;
+	DATATYPE;
+}
+
+@lexer::namespace { Zen.Trunk.Storage.Query }
+@parser::namespace { Zen.Trunk.Storage.Query }
+
+// Parser - Root
+public
+compileUnit
+	:	statementBatch+
+	;
+
+statementBatch
+	:	statement+ batchSeperator
+	;
+
+batchSeperator
+	:	'go'
+	;
+
+statement
+	:	(/*dmlStatement | */ddlStatement)
+	;
+
+// Parser - DML
+/*dmlStatement
+	:
+	;*/
+
+// Parser - DDL
+ddlStatement
+	:	createDatabaseStmt
+	|	createTableStmt
+	|	useDatabaseStmt
+	;
+
+useDatabaseStmt
+	:	'use' ID
+		-> ^(USEDATABASESTMT ID)
+	;
+		
+createDatabaseStmt
+	:	'create' 'database' ID 'on' fileGroupSpec logFileSpec? attachOption?
+		-> ^(CREATEDATABASESTMT ID fileGroupSpec logFileSpec? attachOption?)
+	;
+
+fileGroupSpec
+	:	primaryFileGroupSpec secondaryFileGroupSpec*
+	;
+
+primaryFileGroupSpec
+	:	('primary')? fileSpec (',' fileSpec)*
+		-> ^(PRIMARYFILEGROUP fileSpec+)
+	;
+
+secondaryFileGroupSpec
+	:	ID fileSpec (',' fileSpec)*
+		-> ^(SECONDARYFILEGROUP ID fileSpec+)
+	;
+
+logFileSpec
+	:	'log' 'on' fileSpec+
+		-> ^(LOGFILEGROUP fileSpec+)
+	;
+
+attachOption
+	:	lc='for' 'attach' 'of'
+		-> ^(FORATTACHOF[$lc])
+	;
+
+fileSpec
+	:	'(' fileSpecLogicalNamePart ',' fileSpecFilenamePart
+		(',' fileSpecSizePart)?
+		(',' fileSpecMaxSizePart)?
+		(',' fileSpecGrowthPart)? ')'
+		-> ^(FILESPEC fileSpecLogicalNamePart fileSpecFilenamePart fileSpecSizePart? fileSpecMaxSizePart? fileSpecGrowthPart?)
+	;
+
+fileSpecLogicalNamePart
+	:	'name' '=' ID
+		-> ^(LOGICALNAME ID)
+	;
+
+fileSpecFilenamePart
+	:	'filename' '=' NonEscapedStringLiteral
+		-> ^(FILENAME NonEscapedStringLiteral)
+	;
+
+fileSpecSizePart
+	:	'size' '=' integerLiteral fixedSizeDesignator
+		-> ^(FILESIZE integerLiteral fixedSizeDesignator)
+	;
+
+fileSpecMaxSizePart
+	:	'maxsize' '=' integerLiteral fixedSizeDesignator
+		-> ^(MAXFILESIZE integerLiteral fixedSizeDesignator)
+	|	'maxsize' '=' 'unlimited'
+		-> ^(MAXFILESIZE)
+	;
+
+fileSpecGrowthPart
+	:	'filegrowth' '=' integerLiteral fixedSizeDesignator
+		-> ^(FIXEDFILEGROWTH integerLiteral fixedSizeDesignator)
+	|	'filegrowth' '=' floatingPointLiteral '%'
+		-> ^(PERCENTFILEGROWTH floatingPointLiteral)
+	;
+
+fixedSizeDesignator
+	:	('kb' | 'mb' | 'gb' | 'tb')
+	|	-> 'mb'
+	;
+
+createTableStmt
+	:	'create' 'table' TEMPID '(' tableColumnDefinitionList ')'
+		-> ^(CREATETEMPTABLESTMT TEMPID tableColumnDefinitionList)
+	|	'create' 'table' ID '(' tableColumnDefinitionList ')' onFileGroup
+		-> ^(CREATETABLESTMT ID tableColumnDefinitionList onFileGroup)
+	;
+
+onFileGroup
+	:	'on' 'default'
+		-> ^(FILEGROUP)
+	|	'on' StringLiteral
+		-> ^(FILEGROUP StringLiteral)
+	|
+		-> ^(FILEGROUP)
+	;
+
+tableColumnDefinitionList
+	:	tableColumnDefinition ( ',' tableColumnDefinition )*
+		-> ^(TABLECOLUMNDEFINITION tableColumnDefinition+)
+	;
+
+tableColumnDefinition
+	:	columnDefinition nullableSpec identitySpec?
+		-> ^(COLUMNDEFINITION columnDefinition nullableSpec identitySpec?)
+	;
+
+columnDefinition
+	:	columnName=ID typeName=ID '(' integerLiteral ')'
+		{
+			if(!IsValidDatatype($typeName.Text, true))
+			{
+				throw new RecognitionException("Invalid variable sized data-type specified.");
+			}
+		}
+		-> ^(DATATYPE $columnName $typeName integerLiteral)
+	|	columnName=ID typeName=ID
+		{
+			if(!IsValidDatatype($typeName.Text, false))
+			{
+				throw new RecognitionException("Invalid variable sized data-type specified.");
+			}
+		}
+		-> ^(DATATYPE $columnName $typeName)
+	;
+
+nullableSpec
+	:	NOT NULL
+		-> ^(NULLABLE 'false')
+	|	NULL
+		-> ^(NULLABLE 'true')
+	;
+
+identitySpec
+	:	'identity' '(' seed=integerLiteral ',' incr=integerLiteral ')'
+		-> ^(IDENTITY $seed $incr)
+	|	'identity'
+		-> ^(IDENTITY)
+	;
+
+literal 
+	:   integerLiteral
+	|   floatingPointLiteral
+	|   StringLiteral
+	|   booleanLiteral
+	|   NULL
+	;
+
+integerLiteral
+	:   HexLiteral
+	|   DecimalLiteral
+	;
+
+floatingPointLiteral
+	:	FloatingPointLiteral
+	;
+
+booleanLiteral
+	:   'true'
+	|   'false'
+	;
+
+// Lexer
+NOT
+	:	'not'
+	;
+
+NULL
+	:	'null'
+	;
+
+TEMPID
+	:	'#' ('a'..'z'|'A'..'Z') ('a'..'z'|'A'..'Z'|'0'..'9'|'_')*
+	;
+
+ID
+	:	('a'..'z'|'A'..'Z') ('a'..'z'|'A'..'Z'|'0'..'9'|'_')*
+	;
+
+WS
+	:  (' '|'\t'|'\u000C'|'\r'|'\n') {$channel=Hidden;}
+	;
+
+COMMENT
+	:   '/*' ( options {greedy=false;} : . )* '*/' {$channel=Hidden;}
+	;
+
+LINE_COMMENT
+	:	'--' ~('\n'|'\r')* '\r'? '\n' {$channel=Hidden;}
+	;
+
+fragment
+ESC
+	:	'\\' ('"'|'\''|'\\')
+	;
+
+HexLiteral
+	:	'0' ('x'|'X') HexDigit+ IntegerTypeSuffix?
+	;
+
+DecimalLiteral
+	:	('0'..'9')+ IntegerTypeSuffix?
+	;
+
+fragment
+IntegerTypeSuffix
+	:	('l'|'L')
+	;
+
+FloatingPointLiteral
+	:   ('0'..'9')+ '.' ('0'..'9')* Exponent? FloatTypeSuffix?
+	|   '.' ('0'..'9')+ Exponent? FloatTypeSuffix?
+	|   ('0'..'9')+ Exponent FloatTypeSuffix?
+	|   ('0'..'9')+ FloatTypeSuffix
+	;
+
+fragment
+Exponent
+	:	('e'|'E') ('+'|'-')? ('0'..'9')+
+	;
+
+fragment
+FloatTypeSuffix
+	:	('f'|'F'|'d'|'D')
+	;
+
+NonEscapedStringLiteral
+	:	'\'' (~('\''))* '\''
+	;
+
+StringLiteral
+	:	'\'' ( EscapeSequence | ~('\''|'\\') )* '\''
+	;
+
+fragment
+EscapeSequence
+	:   '\\' ('b'|'t'|'n'|'f'|'r'|'\"'|'\''|'\\')
+	|   UnicodeEscape
+	;
+
+fragment
+UnicodeEscape
+	:   '\\' 'u' HexDigit HexDigit HexDigit HexDigit
+	;
+
+fragment
+HexDigit
+	:	('0'..'9'|'a'..'f'|'A'..'F')
+	;

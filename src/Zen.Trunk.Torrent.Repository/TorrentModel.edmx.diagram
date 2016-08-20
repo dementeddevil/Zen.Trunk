@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+ <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <edmx:Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <!-- Diagram content (shape and connector positions) -->
+    <edmx:Diagrams>
+      <Diagram DiagramId="dbf26fd92d364dd595e807d7e09783fe" Name="Diagram1" >
+        <EntityTypeShape EntityType="TorrentModel.TorrentAccount" Width="2.5" PointX="3.75" PointY="3.625" />
+        <EntityTypeShape EntityType="TorrentModel.TorrentRemoteControl" Width="2.5" PointX="6.875" PointY="3.625" IsExpanded="true" />
+        <EntityTypeShape EntityType="TorrentModel.TorrentAccountAuthorization" Width="2.375" PointX="5.375" PointY="0.5" />
+        <EntityTypeShape EntityType="TorrentModel.TorrentAccountMessage" Width="2.5" PointX="3.75" PointY="6.875" />
+        <EntityTypeShape EntityType="TorrentModel.TorrentRemoteControlMessage" Width="2.5" PointX="6.875" PointY="6.875" />
+        <AssociationConnector Association="TorrentModel.TorrentAccountToTorrentAccountAuthorization" />
+        <AssociationConnector Association="TorrentModel.TorrentAccountAuthorizationTorrentRemoteControl" />
+        <AssociationConnector Association="TorrentModel.TorrentAccountToTorrentAccountMessage" />
+        <AssociationConnector Association="TorrentModel.TorrentRemoteControlToTorrentRemoteControlMessage" />
+        <EntityTypeShape EntityType="TorrentModel.TorrentAccountCertificate" Width="2.375" PointX="0.5" PointY="0.5" />
+        <EntityTypeShape EntityType="TorrentModel.SecurityNonce" Width="2.375" PointX="0.5" PointY="2.875" />
+      </Diagram>
+    </edmx:Diagrams>
+  </edmx:Designer>
+</edmx:Edmx>

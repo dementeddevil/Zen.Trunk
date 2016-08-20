@@ -1,0 +1,180 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+  <!-- EF Runtime content -->
+  <edmx:Runtime>
+    <!-- SSDL content -->
+    <edmx:StorageModels>
+      <Schema xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl" Namespace="TorrentModel.Store" Alias="Self" Provider="System.Data.SqlClient" ProviderManifestToken="2005">
+        <EntityContainer Name="TorrentModelTargetContainer" >
+        </EntityContainer>
+      </Schema>
+    </edmx:StorageModels>
+    <!-- CSDL content -->
+    <edmx:ConceptualModels>
+      <Schema xmlns="http://schemas.microsoft.com/ado/2009/11/edm" xmlns:cg="http://schemas.microsoft.com/ado/2006/04/codegeneration" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" Namespace="TorrentModel" Alias="Self" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" annotation:UseStrongSpatialTypes="false">
+        <EntityContainer Name="TorrentModelContainer" annotation:LazyLoadingEnabled="true">
+          <EntitySet Name="TorrentAccounts" EntityType="TorrentModel.TorrentAccount" />
+          <EntitySet Name="TorrentRemoteControls" EntityType="TorrentModel.TorrentRemoteControl" />
+          <EntitySet Name="TorrentAccountAuthorizations" EntityType="TorrentModel.TorrentAccountAuthorization" />
+          <EntitySet Name="TorrentAccountMessages" EntityType="TorrentModel.TorrentAccountMessage" />
+          <EntitySet Name="TorrentRemoteControlMessages" EntityType="TorrentModel.TorrentRemoteControlMessage" />
+          <AssociationSet Name="TorrentAccountToTorrentAccountAuthorization" Association="TorrentModel.TorrentAccountToTorrentAccountAuthorization">
+            <End Role="TorrentAccount" EntitySet="TorrentAccounts" />
+            <End Role="TorrentAccountAuthorization" EntitySet="TorrentAccountAuthorizations" />
+          </AssociationSet>
+          <AssociationSet Name="TorrentAccountToAuthorizationTorrentRemoteControl" Association="TorrentModel.TorrentAccountAuthorizationTorrentRemoteControl">
+            <End Role="TorrentAccountAuthorization" EntitySet="TorrentAccountAuthorizations" />
+            <End Role="TorrentRemoteControl" EntitySet="TorrentRemoteControls" />
+          </AssociationSet>
+          <AssociationSet Name="TorrentAccountToTorrentAccountMessage" Association="TorrentModel.TorrentAccountToTorrentAccountMessage">
+            <End Role="TorrentAccount" EntitySet="TorrentAccounts" />
+            <End Role="TorrentAccountMessage" EntitySet="TorrentAccountMessages" />
+          </AssociationSet>
+          <AssociationSet Name="TorrentRemoteControlToTorrentRemoteControlMessage" Association="TorrentModel.TorrentRemoteControlToTorrentRemoteControlMessage">
+            <End Role="TorrentRemoteControl" EntitySet="TorrentRemoteControls" />
+            <End Role="TorrentRemoteControlMessage" EntitySet="TorrentRemoteControlMessages" />
+          </AssociationSet>
+          <EntitySet Name="TorrentAccountCertificates" EntityType="TorrentModel.TorrentAccountCertificate" />
+          <EntitySet Name="SecurityNonces" EntityType="TorrentModel.SecurityNonce" />
+        </EntityContainer>
+        <EntityType Name="TorrentAccount">
+          <Key>
+            <PropertyRef Name="TorrentAccountId" />
+          </Key>
+          <Property Type="Guid" Name="TorrentAccountId" Nullable="false" annotation:StoreGeneratedPattern="None" />
+          <Property Type="String" Name="ClientAddress" Nullable="false" />
+          <Property Type="String" Name="ClientAddressUpdateDate" Nullable="false" />
+          <Property Type="String" Name="ClientThumbprint" Nullable="false" />
+          <NavigationProperty Name="Authorizations" Relationship="TorrentModel.TorrentAccountToTorrentAccountAuthorization" FromRole="TorrentAccount" ToRole="TorrentAccountAuthorization" />
+          <NavigationProperty Name="Messages" Relationship="TorrentModel.TorrentAccountToTorrentAccountMessage" FromRole="TorrentAccount" ToRole="TorrentAccountMessage" />
+        </EntityType>
+        <EntityType Name="TorrentRemoteControl">
+          <Key>
+            <PropertyRef Name="TorrentRemoteControlId" />
+          </Key>
+          <Property Type="Guid" Name="TorrentRemoteControlId" Nullable="false" annotation:StoreGeneratedPattern="None" />
+          <Property Type="String" Name="FriendlyName" Nullable="false" />
+          <Property Type="String" Name="ClientAddress" Nullable="false" />
+          <Property Type="String" Name="ClientAddressUpdateDate" Nullable="false" />
+          <NavigationProperty Name="Authorizations" Relationship="TorrentModel.TorrentAccountAuthorizationTorrentRemoteControl" FromRole="TorrentRemoteControl" ToRole="TorrentAccountAuthorization" />
+          <NavigationProperty Name="Messages" Relationship="TorrentModel.TorrentRemoteControlToTorrentRemoteControlMessage" FromRole="TorrentRemoteControl" ToRole="TorrentRemoteControlMessage" />
+          <Property Type="TorrentModel.RemoteControlDeviceType" Name="DeviceType" Nullable="false" />
+          <Property Type="String" Name="SubscriberId" MaxLength="100" />
+        </EntityType>
+        <EntityType Name="TorrentAccountAuthorization">
+          <Key>
+            <PropertyRef Name="TorrentAccountAuthorizationId" />
+          </Key>
+          <Property Type="Guid" Name="TorrentAccountAuthorizationId" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Type="Guid" Name="TorrentAccountId" Nullable="false" />
+          <Property Type="Guid" Name="TorrentRemoteControlId" Nullable="false" />
+          <Property Type="DateTime" Name="CreatedDate" Nullable="false" />
+          <Property Type="Int32" Name="AuthorizationState" Nullable="false" />
+          <NavigationProperty Name="Account" Relationship="TorrentModel.TorrentAccountToTorrentAccountAuthorization" FromRole="TorrentAccountAuthorization" ToRole="TorrentAccount" />
+          <NavigationProperty Name="RemoteControl" Relationship="TorrentModel.TorrentAccountAuthorizationTorrentRemoteControl" FromRole="TorrentAccountAuthorization" ToRole="TorrentRemoteControl" />
+        </EntityType>
+        <EntityType Name="TorrentAccountMessage">
+          <Key>
+            <PropertyRef Name="TorrentAccountMessageId" />
+          </Key>
+          <Property Type="Guid" Name="TorrentAccountMessageId" Nullable="false" annotation:StoreGeneratedPattern="None" />
+          <Property Type="Guid" Name="TorrentAccountId" Nullable="false" />
+          <Property Type="Binary" Name="Payload" Nullable="false" MaxLength="Max" />
+          <NavigationProperty Name="Account" Relationship="TorrentModel.TorrentAccountToTorrentAccountMessage" FromRole="TorrentAccountMessage" ToRole="TorrentAccount" />
+        </EntityType>
+        <EntityType Name="TorrentRemoteControlMessage">
+          <Key>
+            <PropertyRef Name="TorrentRemoteControlMessageId" />
+          </Key>
+          <Property Type="Guid" Name="TorrentRemoteControlMessageId" Nullable="false" annotation:StoreGeneratedPattern="None" />
+          <Property Type="Guid" Name="TorrentRemoteControlId" Nullable="false" />
+          <Property Type="Binary" Name="Payload" Nullable="false" MaxLength="Max" />
+          <NavigationProperty Name="RemoteControl" Relationship="TorrentModel.TorrentRemoteControlToTorrentRemoteControlMessage" FromRole="TorrentRemoteControlMessage" ToRole="TorrentRemoteControl" />
+        </EntityType>
+        <Association Name="TorrentAccountToTorrentAccountAuthorization">
+          <End Type="TorrentModel.TorrentAccount" Role="TorrentAccount" Multiplicity="1" />
+          <End Type="TorrentModel.TorrentAccountAuthorization" Role="TorrentAccountAuthorization" Multiplicity="*" />
+        </Association>
+        <Association Name="TorrentAccountAuthorizationTorrentRemoteControl">
+          <End Type="TorrentModel.TorrentAccountAuthorization" Role="TorrentAccountAuthorization" Multiplicity="*" />
+          <End Type="TorrentModel.TorrentRemoteControl" Role="TorrentRemoteControl" Multiplicity="1" />
+        </Association>
+        <Association Name="TorrentAccountToTorrentAccountMessage">
+          <End Type="TorrentModel.TorrentAccount" Role="TorrentAccount" Multiplicity="1" />
+          <End Type="TorrentModel.TorrentAccountMessage" Role="TorrentAccountMessage" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="TorrentAccount">
+              <PropertyRef Name="TorrentAccountId" />
+            </Principal>
+            <Dependent Role="TorrentAccountMessage">
+              <PropertyRef Name="TorrentAccountId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="TorrentRemoteControlToTorrentRemoteControlMessage">
+          <End Type="TorrentModel.TorrentRemoteControl" Role="TorrentRemoteControl" Multiplicity="1" />
+          <End Type="TorrentModel.TorrentRemoteControlMessage" Role="TorrentRemoteControlMessage" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="TorrentRemoteControl">
+              <PropertyRef Name="TorrentRemoteControlId" />
+            </Principal>
+            <Dependent Role="TorrentRemoteControlMessage">
+              <PropertyRef Name="TorrentRemoteControlId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EnumType Name="RemoteControlDeviceType" UnderlyingType="Int16">
+          <Member Name="DesktopBrowser" Value="0" />
+          <Member Name="MobileBrowser" Value="1" />
+          <Member Name="AndroidPhone" Value="2" />
+          <Member Name="BlackBerryPhone" Value="3" />
+          <Member Name="WindowsPhone" Value="4" />
+          <Member Name="ApplePhone" Value="5" />
+        </EnumType>
+        <EntityType Name="TorrentAccountCertificate">
+          <Key>
+            <PropertyRef Name="TorrentAccountId" />
+          </Key>
+          <Property Type="Guid" Name="TorrentAccountId" Nullable="false" annotation:StoreGeneratedPattern="None" />
+          <Property Type="String" Name="OneTimePassword" Nullable="false" MaxLength="80" />
+          <Property Type="Int16" Name="PasswordAttempts" Nullable="false" />
+          <Property Type="Binary" Name="CertificatePayload" Nullable="false" MaxLength="Max" />
+        </EntityType>
+        <EntityType Name="SecurityNonce">
+          <Key>
+            <PropertyRef Name="SecurityNonceId" />
+          </Key>
+          <Property Type="Guid" Name="SecurityNonceId" Nullable="false" annotation:StoreGeneratedPattern="None" />
+          <Property Type="DateTime" Name="CreatedDate" Nullable="false" />
+        </EntityType>
+      </Schema>
+    </edmx:ConceptualModels>
+    <!-- C-S mapping content -->
+    <edmx:Mappings>
+      <Mapping xmlns="http://schemas.microsoft.com/ado/2009/11/mapping/cs" Space="C-S">
+        <Alias Key="Model" Value="TorrentModel" />
+        <Alias Key="Target" Value="TorrentModel.Store" />
+        <EntityContainerMapping CdmEntityContainer="TorrentModelContainer" StorageEntityContainer="TorrentModelTargetContainer">
+        </EntityContainerMapping>
+      </Mapping>
+    </edmx:Mappings>
+  </edmx:Runtime>
+  <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <edmx:Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <edmx:Connection>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="MetadataArtifactProcessing" Value="EmbedInOutputAssembly" />
+      </DesignerInfoPropertySet>
+    </edmx:Connection>
+    <edmx:Options>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="ValidateOnBuild" Value="true" />
+        <DesignerProperty Name="EnablePluralization" Value="True" />
+        <DesignerProperty Name="CodeGenerationStrategy" Value="None" />
+      </DesignerInfoPropertySet>
+    </edmx:Options>
+    <!-- Diagram content (shape and connector positions) -->
+    <edmx:Diagrams>
+    </edmx:Diagrams>
+  </edmx:Designer>
+</edmx:Edmx>
