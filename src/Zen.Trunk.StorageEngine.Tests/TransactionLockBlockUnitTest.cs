@@ -1,4 +1,6 @@
-﻿namespace Zen.Trunk.StorageEngine.Tests
+﻿using Zen.Trunk.Storage;
+
+namespace Zen.Trunk.StorageEngine.Tests
 {
 	using System;
 	using System.ComponentModel.Design;
@@ -45,23 +47,23 @@
 			// Lock for shared read on txn 1
 			using (var disp = TrunkTransactionContext.SwitchTransactionContext(firstTransaction))
 			{
-				var dlob = firstTransactionLOB.GetOrCreateDataLockOwnerBlock(1, 5);
-				dlob.LockItem(1, DataLockType.Shared, TimeSpan.FromSeconds(5));
+				var dlob = firstTransactionLOB.GetOrCreateDataLockOwnerBlock(new ObjectId(1), 5);
+				dlob.LockItem(new LogicalPageId(1), DataLockType.Shared, TimeSpan.FromSeconds(5));
 			}
 
 			// Lock for shared read on txn 2
 			using (var disp = TrunkTransactionContext.SwitchTransactionContext(secondTransaction))
 			{
-				var dlob = secondTransactionLOB.GetOrCreateDataLockOwnerBlock(1, 5);
-				dlob.LockItem(1, DataLockType.Shared, TimeSpan.FromSeconds(5));
+				var dlob = secondTransactionLOB.GetOrCreateDataLockOwnerBlock(new ObjectId(1), 5);
+				dlob.LockItem(new LogicalPageId(1), DataLockType.Shared, TimeSpan.FromSeconds(5));
 			}
 
 			// Attempt to get exclusive lock on txn 2 (update succeeds but exclusive fails)
 			using (var disp = TrunkTransactionContext.SwitchTransactionContext(secondTransaction))
 			{
-				var dlob = secondTransactionLOB.GetOrCreateDataLockOwnerBlock(1, 5);
-				dlob.LockItem(1, DataLockType.Update, TimeSpan.FromSeconds(5));
-				dlob.LockItem(1, DataLockType.Exclusive, TimeSpan.FromSeconds(5));
+				var dlob = secondTransactionLOB.GetOrCreateDataLockOwnerBlock(new ObjectId(1), 5);
+				dlob.LockItem(new LogicalPageId(1), DataLockType.Update, TimeSpan.FromSeconds(5));
+				dlob.LockItem(new LogicalPageId(1), DataLockType.Exclusive, TimeSpan.FromSeconds(5));
 			}
 		}
 
@@ -91,23 +93,23 @@
 			// Lock for shared read on txn 1
 			using (var disp = TrunkTransactionContext.SwitchTransactionContext(firstTransaction))
 			{
-				var dlob = firstTransactionLOB.GetOrCreateDataLockOwnerBlock(1, 5);
+				var dlob = firstTransactionLOB.GetOrCreateDataLockOwnerBlock(new ObjectId(1), 5);
 				for (ulong logicalId = 0; logicalId < 5; ++logicalId)
 				{
-					dlob.LockItem(logicalId, DataLockType.Shared, TimeSpan.FromSeconds(5));
-					Assert.IsTrue(dlob.HasItemLock(logicalId, DataLockType.Shared), string.Format("First transaction should have shared lock on logical page {0}", logicalId));
+					dlob.LockItem(new LogicalPageId(logicalId), DataLockType.Shared, TimeSpan.FromSeconds(5));
+					Assert.IsTrue(dlob.HasItemLock(new LogicalPageId(logicalId), DataLockType.Shared), string.Format("First transaction should have shared lock on logical page {0}", logicalId));
 				}
 
-				dlob.LockItem(5, DataLockType.Shared, TimeSpan.FromSeconds(5));
-				Assert.IsTrue(dlob.HasItemLock(1, DataLockType.Shared), "First transaction should have shared lock on logical page 1");
+				dlob.LockItem(new LogicalPageId(5), DataLockType.Shared, TimeSpan.FromSeconds(5));
+				Assert.IsTrue(dlob.HasItemLock(new LogicalPageId(1), DataLockType.Shared), "First transaction should have shared lock on logical page 1");
 			}
 
 			// Lock for shared read on txn 2
 			using (var disp = TrunkTransactionContext.SwitchTransactionContext(secondTransaction))
 			{
-				var dlob = secondTransactionLOB.GetOrCreateDataLockOwnerBlock(1, 5);
-				dlob.LockItem(1, DataLockType.Shared, TimeSpan.FromSeconds(5));
-				Assert.IsTrue(dlob.HasItemLock(1, DataLockType.Shared), "Second transaction should have shared lock on logical page 1");
+				var dlob = secondTransactionLOB.GetOrCreateDataLockOwnerBlock(new ObjectId(1), 5);
+				dlob.LockItem(new LogicalPageId(1), DataLockType.Shared, TimeSpan.FromSeconds(5));
+				Assert.IsTrue(dlob.HasItemLock(new LogicalPageId(1), DataLockType.Shared), "Second transaction should have shared lock on logical page 1");
 			}
 
 			// Attempt to get exclusive lock on txn 2 (both update and exclusive fails)
@@ -116,18 +118,18 @@
 			//	an object-level escalation.
 			using (var disp = TrunkTransactionContext.SwitchTransactionContext(secondTransaction))
 			{
-				var dlob = secondTransactionLOB.GetOrCreateDataLockOwnerBlock(1, 5);
-				dlob.LockItem(1, DataLockType.Update, TimeSpan.FromSeconds(5));
-				Assert.IsTrue(dlob.HasItemLock(1, DataLockType.Update), "Second transaction should have update lock on logical page 1");
+				var dlob = secondTransactionLOB.GetOrCreateDataLockOwnerBlock(new ObjectId(1), 5);
+				dlob.LockItem(new LogicalPageId(1), DataLockType.Update, TimeSpan.FromSeconds(5));
+				Assert.IsTrue(dlob.HasItemLock(new LogicalPageId(1), DataLockType.Update), "Second transaction should have update lock on logical page 1");
 
-				dlob.LockItem(1, DataLockType.Exclusive, TimeSpan.FromSeconds(5));
-				Assert.IsTrue(dlob.HasItemLock(1, DataLockType.Exclusive), "Second transaction should not have exclusive lock on logical page 1");
+				dlob.LockItem(new LogicalPageId(1), DataLockType.Exclusive, TimeSpan.FromSeconds(5));
+				Assert.IsTrue(dlob.HasItemLock(new LogicalPageId(1), DataLockType.Exclusive), "Second transaction should not have exclusive lock on logical page 1");
 			}
 		}
 
 		private void VerifyDataLockHeld(IDatabaseLockManager dlm, uint objectId, ulong logicalId, DataLockType lockType, string message)
 		{
-			var lockObject = dlm.GetDataLock(objectId, logicalId);
+			var lockObject = dlm.GetDataLock(new ObjectId(objectId), new LogicalPageId(logicalId));
 			try
 			{
 				Assert.IsTrue(lockObject.HasLock(lockType), message);
@@ -140,7 +142,7 @@
 
 		private void VerifyDataLockNotHeld(IDatabaseLockManager dlm, uint objectId, ulong logicalId, DataLockType lockType, string message)
 		{
-			var lockObject = dlm.GetDataLock(objectId, logicalId);
+			var lockObject = dlm.GetDataLock(new ObjectId(objectId), new LogicalPageId(logicalId));
 			try
 			{
 				Assert.IsFalse(lockObject.HasLock(lockType), message);
@@ -167,7 +169,7 @@
 			container.AddService(typeof(GlobalLockManager), glm);
 
 			// ** Database lock manager is the database-instance-specific shim to the GLM.
-			IDatabaseLockManager dlm = new DatabaseLockManager(glm, 1);
+			IDatabaseLockManager dlm = new DatabaseLockManager(glm, new DatabaseId(1));
 			container.AddService(typeof(IDatabaseLockManager), dlm);
 
 			return container;

@@ -40,21 +40,29 @@ namespace Zen.Trunk.StorageEngine.Tests
 
 		private class TestIndexInfo : IndexInfo
 		{
+		    private BufferFieldUInt64 _logicalId;
 			private BufferFieldInt64 _firstKey;
 			private BufferFieldInt32 _secondKey;
 
 			public TestIndexInfo()
 			{
-				_firstKey = new BufferFieldInt64(base.LastField);
+                _logicalId = new BufferFieldUInt64(base.LastField);
+				_firstKey = new BufferFieldInt64(_logicalId);
 				_secondKey = new BufferFieldInt32(_firstKey);
 			}
 
 			public TestIndexInfo(DateTime createdDate, int sequenceIndex, ulong logicalId)
-				: base(logicalId)
 			{
+			    LogicalId = logicalId;
 				CreatedDate = createdDate;
 				SequenceIndex = sequenceIndex;
 			}
+
+		    public ulong LogicalId
+		    {
+		        get { return _logicalId.Value; }
+                set { _logicalId.Value = value; }
+		    }
 
 			public DateTime CreatedDate
 			{
@@ -162,7 +170,7 @@ namespace Zen.Trunk.StorageEngine.Tests
 			{
 				var createdDate = page.IndexEntries[0].CreatedDate;
 				var sequenceIndex = page.IndexEntries[0].SequenceIndex;
-				return new TestIndexInfo(createdDate, sequenceIndex, page.LogicalId);
+				return new TestIndexInfo(createdDate, sequenceIndex, page.LogicalId.Value);
 			}
 
 			protected override TestIndexInfo CreateIndexEntry()
@@ -178,9 +186,6 @@ namespace Zen.Trunk.StorageEngine.Tests
 		public static void TestInitialize(TestContext context)
 		{
 			_testContext = context;
-
-			StorageEngineBootstrapper bootstrapper = new StorageEngineBootstrapper();
-			bootstrapper.Run();
 		}
 
 		[TestMethod]
@@ -197,12 +202,12 @@ namespace Zen.Trunk.StorageEngine.Tests
 
 			var addFgDevice =
 				new AddFileGroupDeviceParameters(
-					FileGroupDevice.Primary,
+					FileGroupId.Primary,
 					"PRIMARY",
 					"master",
 					masterDataPathName,
+                    DeviceId.Zero,
 					128,
-					0,
 					true);
 			await dbDevice.AddFileGroupDevice(addFgDevice);
 
@@ -210,10 +215,11 @@ namespace Zen.Trunk.StorageEngine.Tests
 				new AddLogDeviceParameters(
 					"MASTER_LOG",
 					masterLogPathName,
+                    DeviceId.Zero,
 					2);
 			await dbDevice.AddLogDevice(addLogDevice);
 
-			await dbDevice.Open(true);
+			await dbDevice.OpenAsync(true);
 
 			await TrunkTransactionContext.Commit();
 
@@ -223,7 +229,7 @@ namespace Zen.Trunk.StorageEngine.Tests
 			var indexInfo = new RootIndexInfo
 				{
 					Name = "PK_Test",
-					OwnerObjectId = 100,
+					OwnerObjectId = new ObjectId(100),
 					RootIndexDepth = 0,
 					IndexFileGroupId = addFgDevice.FileGroupId,
 				};
@@ -240,7 +246,7 @@ namespace Zen.Trunk.StorageEngine.Tests
 			_parentServices = new ServiceContainer();
 			_parentServices.AddService(typeof(IVirtualBufferFactory), new VirtualBufferFactory(32, 8192));
 			_parentServices.AddService(typeof(GlobalLockManager), new GlobalLockManager());
-			return new DatabaseDevice(0, _parentServices);
+			return new DatabaseDevice(DatabaseId.Zero, _parentServices);
 		}
 	}
 }

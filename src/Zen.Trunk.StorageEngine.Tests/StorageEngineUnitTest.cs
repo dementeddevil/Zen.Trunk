@@ -22,9 +22,6 @@
 		public static void TestInitialize(TestContext context)
 		{
 			_testContext = context;
-
-			StorageEngineBootstrapper bootstrapper = new StorageEngineBootstrapper();
-			bootstrapper.Run();
 		}
 
 		[TestMethod]
@@ -42,12 +39,12 @@
 
 			var addFgDevice =
 				new AddFileGroupDeviceParameters(
-					FileGroupDevice.Primary,
+					FileGroupId.Primary,
 					"PRIMARY",
 					"master",
 					masterDataPathName,
+                    DeviceId.Zero,
 					128,
-					0,
 					true);
 			await dbDevice.AddFileGroupDevice(addFgDevice);
 
@@ -55,16 +52,17 @@
 				new AddLogDeviceParameters(
 					"MASTER_LOG",
 					masterLogPathName,
+                    DeviceId.Zero,
 					2);
 			await dbDevice.AddLogDevice(addLogDevice);
 
-			await dbDevice.Open(true);
+			await dbDevice.OpenAsync(true);
 			Trace.WriteLine("DatabaseDevice.Open succeeded");
 
 			await TrunkTransactionContext.Commit();
 			Trace.WriteLine("Transaction commit succeeded");
 
-			await dbDevice.Close();
+			await dbDevice.CloseAsync();
 			Trace.WriteLine("DatabaseDevice.Close succeeded");
 		}
 
@@ -83,12 +81,12 @@
 
 			var addFgDevice =
 				new AddFileGroupDeviceParameters(
-					FileGroupDevice.Primary,
+					FileGroupId.Primary,
 					"PRIMARY",
 					"master",
 					masterDataPathName,
+                    DeviceId.Zero,
 					128,
-					0,
 					true);
 			await dbDevice.AddFileGroupDevice(addFgDevice);
 
@@ -96,10 +94,11 @@
 				new AddLogDeviceParameters(
 					"MASTER_LOG",
 					masterLogPathName,
+                    DeviceId.Zero,
 					2);
 			await dbDevice.AddLogDevice(addLogDevice);
 
-			await dbDevice.Open(true);
+			await dbDevice.OpenAsync(true);
 
 			await TrunkTransactionContext.Commit();
 
@@ -131,10 +130,10 @@
 					var objectPage = new ObjectDataPage();
 					objectPage.IsManagedData = false;
 					objectPage.ReadOnly = false;
-					objectPage.ObjectId = 1;
+					objectPage.ObjectId = new ObjectId(1);
 					objectPage.ObjectLock = ObjectLockType.IntentExclusive;
 					objectPage.PageLock = DataLockType.Exclusive;
-					objectPage.FileGroupId = FileGroupDevice.Primary;
+					objectPage.FileGroupId = FileGroupId.Primary;
 
 					// Create storage in database for new page
 					var initPageParams =
@@ -176,7 +175,7 @@
 
 			await TrunkTransactionContext.Commit();
 
-			await dbDevice.Close();
+			await dbDevice.CloseAsync();
 		}
 
 		[TestMethod]
@@ -194,12 +193,12 @@
 
 			var addFgDevice =
 				new AddFileGroupDeviceParameters(
-					FileGroupDevice.Primary,
+					FileGroupId.Primary,
 					"PRIMARY",
 					"master",
 					masterDataPathName,
+                    DeviceId.Zero,
 					128,
-					0,
 					true);
 			await dbDevice.AddFileGroupDevice(addFgDevice);
 
@@ -207,10 +206,11 @@
 				new AddLogDeviceParameters(
 					"MASTER_LOG",
 					masterLogPathName,
+                    DeviceId.Zero,
 					2);
 			await dbDevice.AddLogDevice(addLogDevice);
 
-			await dbDevice.Open(true);
+			await dbDevice.OpenAsync(true);
 
 			await TrunkTransactionContext.Commit();
 
@@ -264,7 +264,7 @@
 
 			TrunkTransactionContext.Commit();*/
 
-			await dbDevice.Close();
+			await dbDevice.CloseAsync();
 		}
 
 		private DatabaseDevice CreateDatabaseDevice()
@@ -274,7 +274,7 @@
 			var parentServices = new ServiceContainer();
 			parentServices.AddService(typeof(IVirtualBufferFactory), new VirtualBufferFactory(32, 8192));
 			parentServices.AddService(typeof(GlobalLockManager), new GlobalLockManager());
-			return new DatabaseDevice(0, parentServices);
+			return new DatabaseDevice(DatabaseId.Zero, parentServices);
 		}
 	}
 }
