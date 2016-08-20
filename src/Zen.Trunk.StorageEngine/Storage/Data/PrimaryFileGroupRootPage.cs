@@ -110,7 +110,7 @@ namespace Zen.Trunk.Storage.Data
 		private readonly BufferFieldInt32 _indexCount;
 		private readonly BufferFieldInt32 _objectCount;
 
-		private readonly Dictionary<ushort, DeviceInfo> _devices = new Dictionary<ushort, DeviceInfo>();
+		private readonly Dictionary<DeviceId, DeviceInfo> _devices = new Dictionary<DeviceId, DeviceInfo>();
 		//private Dictionary<uint, IndexRefInfo> _indices = new Dictionary<uint,IndexRefInfo> ();
 		private readonly Dictionary<ObjectId, ObjectRefInfo> _objects = new Dictionary<ObjectId, ObjectRefInfo>();
 		#endregion
@@ -162,7 +162,7 @@ namespace Zen.Trunk.Storage.Data
 			foreach (var di in _devices.Values)
 			{
 				addTaskList.Add(pageDevice.AddDataDevice(
-					new AddDataDeviceParameters(di.Name, di.PathName, 0, di.Id)));
+					new AddDataDeviceParameters(di.Name, di.PathName, di.Id)));
 			}
 			return TaskExtra.WhenAllOrEmpty(addTaskList.ToArray());
 		}
@@ -208,7 +208,7 @@ namespace Zen.Trunk.Storage.Data
 		/// Removes the device.
 		/// </summary>
 		/// <param name="id">The id.</param>
-		public void RemoveDevice(ushort id)
+		public void RemoveDevice(DeviceId id)
 		{
 			CheckReadOnly();
 			if (_devices.ContainsKey(id))
@@ -220,7 +220,7 @@ namespace Zen.Trunk.Storage.Data
 			}
 		}
 
-		public DeviceInfo GetDevice(ushort id)
+		public DeviceInfo GetDevice(DeviceId id)
 		{
 			// Return clone of the data held in the root page.
 			return new DeviceInfo(_devices[id]);

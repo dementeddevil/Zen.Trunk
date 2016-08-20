@@ -12,30 +12,26 @@
 		#region Private Types
 		private class BufferDeviceInfo : IBufferDeviceInfo
 		{
-			private readonly ushort _deviceId;
-			private readonly string _name;
-			private readonly uint _pageCount;
-
-			public BufferDeviceInfo(ushort deviceId, ISingleBufferDevice device)
+			public BufferDeviceInfo(DeviceId deviceId, ISingleBufferDevice device)
 			{
-				_deviceId = deviceId;
-				_name = device.Name;
-				_pageCount = device.PageCount;
+				DeviceId = deviceId;
+				Name = device.Name;
+				PageCount = device.PageCount;
 			}
 
-			public ushort DeviceId => _deviceId;
+			public DeviceId DeviceId { get; }
 
-		    public string Name => _name;
+		    public string Name { get; }
 
-		    public uint PageCount => _pageCount;
-		}
+            public uint PageCount { get; }
+        }
 		#endregion
 
 		#region Private Fields
 		private readonly IVirtualBufferFactory _bufferFactory;
 		private readonly bool _scatterGatherIoEnabled;
-		private readonly ConcurrentDictionary<ushort, ISingleBufferDevice> _devices =
-			new ConcurrentDictionary<ushort, ISingleBufferDevice>();
+		private readonly ConcurrentDictionary<DeviceId, ISingleBufferDevice> _devices =
+			new ConcurrentDictionary<DeviceId, ISingleBufferDevice>();
 		#endregion
 
 		#region Public Constructors
@@ -58,20 +54,27 @@
 		/// </value>
 		public override IVirtualBufferFactory BufferFactory => _bufferFactory;
 
-	    #endregion
+        #endregion
 
-		#region Public Methods
-		public async Task<ushort> AddDeviceAsync(string name, string pathName, ushort deviceId = 0, uint createPageCount = 0)
+        #region Public Methods
+
+	    public Task<DeviceId> AddDeviceAsync(string name, string pathName)
+	    {
+	        return AddDeviceAsync(name, pathName, DeviceId.Zero);
+	    }
+
+        public async Task<DeviceId> AddDeviceAsync(string name, string pathName, DeviceId deviceId, uint createPageCount = 0)
 		{
 			// Determine whether this is a primary device add
-			var isPrimary = false;
-			if (_devices.Count == 0)
-			{
-				isPrimary = true;
-			}
+			var isPrimary = _devices.Count == 0;
+            if (isPrimary && deviceId != DeviceId.Zero && deviceId != DeviceId.Primary)
+            {
+                throw new ArgumentException(
+                    "Primary device has invalid identifier.", nameof(deviceId));
+            }
 
 			// Create device
-			ISingleBufferDevice childDevice = null;
+			ISingleBufferDevice childDevice;
 			if (createPageCount > 0)
 			{
 				childDevice = new SingleBufferDevice(
@@ -93,18 +96,17 @@
 			}
 
 			// Add child device with suitable device id
-			if (deviceId == 0)
+			if (deviceId == DeviceId.Zero)
 			{
 				// Attempt to add primary device
-				if (isPrimary && _devices.TryAdd(1, childDevice))
+				if (isPrimary && _devices.TryAdd(DeviceId.Primary, childDevice))
 				{
-					deviceId = 1;
+					deviceId = DeviceId.Primary;
 				}
-
-				if (deviceId == 0)
+                else
 				{
 					// Non-primary device with zero id means we look for a suitable id
-					for (deviceId = 2; ; ++deviceId)
+					for (deviceId = DeviceId.FirstSecondary; ; deviceId = deviceId.Next)
 					{
 						if (!_devices.ContainsKey(deviceId) &&
 							_devices.TryAdd(deviceId, childDevice))
@@ -114,15 +116,10 @@
 					}
 				}
 			}
-			else if (isPrimary && deviceId != 1)
-			{
-				throw new ArgumentException(
-					"Primary device must have a device id of one.");
-			}
 			else if (!_devices.TryAdd(deviceId, childDevice))
 			{
 				throw new ArgumentException(
-					"Device with same id already added.");
+					"Device with same id already added.", nameof(deviceId));
 			}
 
 			// If we are mounted then we need to open this device
@@ -134,7 +131,7 @@
 			return deviceId;
 		}
 
-		public async Task RemoveDeviceAsync(ushort deviceId)
+		public async Task RemoveDeviceAsync(DeviceId deviceId)
 		{
 			ISingleBufferDevice childDevice;
 			if (_devices.TryRemove(deviceId, out childDevice))
@@ -148,7 +145,7 @@
 			}
 		}
 
-		public uint ExpandDevice(ushort deviceId, int pageCount)
+		public uint ExpandDevice(DeviceId deviceId, int pageCount)
 		{
 			var device = GetDevice(deviceId);
 			return device.ExpandDevice(pageCount);
@@ -166,7 +163,7 @@
 			return device.SaveBufferAsync(pageId.PhysicalPageId, buffer);
 		}
 
-		public async Task FlushBuffersAsync(bool flushReads, bool flushWrites, params ushort[] deviceIds)
+		public async Task FlushBuffersAsync(bool flushReads, bool flushWrites, params DeviceId[] deviceIds)
 		{
 			var subTasks = new List<Task>();
 
@@ -202,7 +199,7 @@
 			return result;
 		}
 
-		public IBufferDeviceInfo GetDeviceInfo(ushort deviceId)
+		public IBufferDeviceInfo GetDeviceInfo(DeviceId deviceId)
 		{
 			var device = GetDevice(deviceId);
 			return new BufferDeviceInfo(deviceId, device);
@@ -212,8 +209,7 @@
 		#region Protected Methods
 		protected override Task OnOpen()
 		{
-			var subTasks = new List<Task>();
-			var result = Parallel.ForEach(
+			Parallel.ForEach(
 				_devices.Values,
 				new ParallelOptions
 				{
@@ -252,8 +248,7 @@
 
 		protected override Task OnClose()
 		{
-			var subTasks = new List<Task>();
-			var result = Parallel.ForEach(
+			Parallel.ForEach(
 				_devices.Values,
 				new ParallelOptions
 				{
@@ -268,15 +263,17 @@
 		#endregion
 
 		#region Private Methods
-		private ISingleBufferDevice GetDevice(ushort deviceId)
+		private ISingleBufferDevice GetDevice(DeviceId deviceId)
 		{
 			CheckDisposed();
-			ISingleBufferDevice device = null;
+
+			ISingleBufferDevice device;
 			if (!_devices.TryGetValue(deviceId, out device))
 			{
-				throw new ArgumentException("Device not found");
+				throw new ArgumentException("Device not found", nameof(deviceId));
 			}
-			return device;
+
+            return device;
 		}
 		#endregion
 	}

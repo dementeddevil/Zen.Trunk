@@ -29,7 +29,7 @@ namespace Zen.Trunk.Storage.Log
 		/// <summary>
 		/// Gets/sets device Id.
 		/// </summary>
-		public ushort DeviceId
+		public DeviceId DeviceId
 		{
 			get
 			{
@@ -37,14 +37,17 @@ namespace Zen.Trunk.Storage.Log
 			}
 			set
 			{
-				_id.Value.DeviceId = value;
+			    if (_id.Value.DeviceId != value)
+			    {
+			        _id.Value = new LogFileId(value, _id.Value.Index);
+			    }
 			}
 		}
 
 		/// <summary>
 		/// Gets/sets the virtual log index into the device.
 		/// </summary>
-		public ushort ObjectId
+		public ushort Index
 		{
 			get
 			{
@@ -52,7 +55,10 @@ namespace Zen.Trunk.Storage.Log
 			}
 			set
 			{
-				_id.Value.Index = value;
+			    if (_id.Value.Index != value)
+			    {
+			        _id.Value = new LogFileId(_id.Value.DeviceId, value);
+			    }
 			}
 		}
 
@@ -87,17 +93,13 @@ namespace Zen.Trunk.Storage.Log
 		}
 
 		/// <summary>
-		/// Gets/sets the log file Id.
+		/// Gets the log file Id.
 		/// </summary>
 		public uint FileId
 		{
 			get
 			{
 				return _id.Value.FileId;
-			}
-			set
-			{
-				_id.Value.FileId = value;
 			}
 		}
 

@@ -24,31 +24,31 @@ namespace Zen.Trunk.Storage
 			_pathName = new BufferFieldStringFixed(_name, 128);
 		}
 
-		public DeviceInfo(ushort id, string name, string pathName)
+		public DeviceInfo(DeviceId id, string name, string pathName)
 		{
-			_id = new BufferFieldUInt16(id);
+			_id = new BufferFieldUInt16(id.Value);
 			_name = new BufferFieldStringFixed(_id, 32, name);
 			_pathName = new BufferFieldStringFixed(_name, 128, pathName);
 		}
 
 		public DeviceInfo(DeviceInfo clone)
 		{
-			_id = new BufferFieldUInt16(clone.Id);
+			_id = new BufferFieldUInt16(clone.Id.Value);
 			_name = new BufferFieldStringFixed(_id, 32, clone.Name);
 			_pathName = new BufferFieldStringFixed(_name, 128, clone.PathName);
 		}
 		#endregion
 
 		#region Public Properties
-		public ushort Id
+		public DeviceId Id
 		{
 			get
 			{
-				return _id.Value;
+				return new DeviceId(_id.Value);
 			}
 			set
 			{
-				_id.Value = value;
+				_id.Value = value.Value;
 			}
 		}
 

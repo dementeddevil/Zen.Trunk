@@ -12,18 +12,18 @@ namespace Zen.Trunk.Storage.Data
 		/// <param name="fileGroupName">Name of the file group.</param>
 		/// <param name="name">The name.</param>
 		/// <param name="pathName">Name of the path.</param>
-		/// <param name="createPageCount">The create page count.</param>
 		/// <param name="deviceId">The device unique identifier.</param>
+		/// <param name="createPageCount">The create page count.</param>
 		/// <param name="updateRootPage">if set to <c>true</c> [update root page].</param>
 		public AddFileGroupDeviceParameters(
 			FileGroupId fileGroupId,
 			string fileGroupName,
 			string name,
 			string pathName,
+            DeviceId deviceId,
 			uint createPageCount = 0,
-			ushort deviceId = 0,
 			bool updateRootPage = false)
-			: base(name, pathName, createPageCount, deviceId, updateRootPage)
+			: base(name, pathName, deviceId, createPageCount, updateRootPage)
 		{
 			FileGroupId = fileGroupId;
 			FileGroupName = fileGroupName;

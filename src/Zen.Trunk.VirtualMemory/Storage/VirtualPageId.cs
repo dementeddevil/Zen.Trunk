@@ -9,18 +9,6 @@ namespace Zen.Trunk.Storage
 	[Serializable]
 	public struct VirtualPageId : IComparable, ICloneable
 	{
-		#region Private Fields
-		/// <summary>
-		/// The device identifier.
-		/// </summary>
-		private ushort _deviceId;
-
-		/// <summary>
-		/// The physical page identifier within the associated device.
-		/// </summary>
-		private uint _physicalPageId;
-		#endregion
-
 		#region Public Constructors
 		/// <summary>
 		/// Initializes a new instance of the <see cref="VirtualPageId"/> struct.
@@ -28,8 +16,8 @@ namespace Zen.Trunk.Storage
 		/// <param name="virtualPageId">The virtual page id.</param>
 		public VirtualPageId(long virtualPageId)
 		{
-			_deviceId = (ushort)((virtualPageId >> 32) & 0xffff);
-			_physicalPageId = (uint)(virtualPageId & 0xffffffff);
+			DeviceId = new DeviceId((ushort)((virtualPageId >> 32) & 0xffff));
+			PhysicalPageId = (uint)(virtualPageId & 0xffffffff);
 		}
 
 		/// <summary>
@@ -39,8 +27,8 @@ namespace Zen.Trunk.Storage
 		[CLSCompliant(false)]
 		public VirtualPageId(ulong virtualPageId)
 		{
-			_deviceId = (ushort)((virtualPageId >> 32) & 0xffff);
-			_physicalPageId = (uint)(virtualPageId & 0xffffffff);
+			DeviceId = new DeviceId((ushort)((virtualPageId >> 32) & 0xffff));
+			PhysicalPageId = (uint)(virtualPageId & 0xffffffff);
 		}
 
 		/// <summary>
@@ -51,70 +39,47 @@ namespace Zen.Trunk.Storage
 		[CLSCompliant(false)]
 		public VirtualPageId(ushort deviceId, uint physicalPageId)
 		{
-			_deviceId = deviceId;
-			_physicalPageId = physicalPageId;
-		}
-		#endregion
-
-		#region Public Properties
-		/// <summary>
-		/// Gets/sets the device ID.
-		/// </summary>
-		[CLSCompliant(false)]
-		public ushort DeviceId
-		{
-			get
-			{
-				return _deviceId;
-			}
-			set
-			{
-				_deviceId = value;
-			}
+			DeviceId = new DeviceId(deviceId);
+			PhysicalPageId = physicalPageId;
 		}
 
-		/// <summary>
-		/// Gets/sets the physical page ID.
-		/// </summary>
-		[CLSCompliant(false)]
-		public uint PhysicalPageId
-		{
-			get
-			{
-				return _physicalPageId;
-			}
-			set
-			{
-				if (value > MaximumPhysicalPageId)
-				{
-					throw new ArgumentOutOfRangeException(nameof(value), value, "Physical page ID above maximum.");
-				}
-				_physicalPageId = value;
-			}
-		}
+        /// <summary>
+        /// Initializes a new instance of the <see cref="VirtualPageId"/> struct.
+        /// </summary>
+        /// <param name="deviceId">The device id.</param>
+        /// <param name="physicalPageId">The physical page id.</param>
+        [CLSCompliant(false)]
+        public VirtualPageId(DeviceId deviceId, uint physicalPageId)
+        {
+            DeviceId = deviceId;
+            PhysicalPageId = physicalPageId;
+        }
+        #endregion
 
-		/// <summary>
-		/// Gets/sets the virtual page ID.
-		/// </summary>
-		[CLSCompliant(false)]
-		public ulong Value
-		{
-			get
-			{
-				return (((ulong)_deviceId) << 32) | (ulong)_physicalPageId;
-			}
-			set
-			{
-				_deviceId = (ushort)((value >> 32) & 0xffff);
-				_physicalPageId = (uint)(value & 0xffffffff);
-			}
-		}
-
-		/// <summary>
+        #region Public Properties
+	    /// <summary>
 		/// Gets the maximum allowable value for the physical page ID.
 		/// </summary>
 		[CLSCompliant(false)]
 		public static uint MaximumPhysicalPageId => uint.MaxValue;
+
+        /// <summary>
+        /// Gets/sets the device ID.
+        /// </summary>
+        [CLSCompliant(false)]
+		public DeviceId DeviceId { get; }
+
+	    /// <summary>
+		/// Gets/sets the physical page ID.
+		/// </summary>
+		[CLSCompliant(false)]
+		public uint PhysicalPageId { get; }
+
+	    /// <summary>
+		/// Gets/sets the virtual page ID.
+		/// </summary>
+		[CLSCompliant(false)]
+		public ulong Value => (((ulong)DeviceId.Value) << 32) | (ulong)PhysicalPageId;
 
 	    /// <summary>
 		/// Gets a <see cref="T:VirtualPageId"/> representing the previous page.
@@ -124,12 +89,12 @@ namespace Zen.Trunk.Storage
 		{
 			get
 			{
-				if (_physicalPageId == 0)
+				if (PhysicalPageId == 0)
 				{
 					throw new InvalidOperationException("At first device page.");
 				}
 
-				return new VirtualPageId(_deviceId, _physicalPageId - 1);
+				return new VirtualPageId(DeviceId, PhysicalPageId - 1);
 			}
 		}
 
@@ -141,12 +106,12 @@ namespace Zen.Trunk.Storage
 		{
 			get
 			{
-				if (_physicalPageId == MaximumPhysicalPageId)
+				if (PhysicalPageId == MaximumPhysicalPageId)
 				{
 					throw new InvalidOperationException("At last device page.");
 				}
 
-				return new VirtualPageId(_deviceId, _physicalPageId + 1);
+				return new VirtualPageId(DeviceId, PhysicalPageId + 1);
 			}
 		}
 		#endregion
@@ -158,11 +123,7 @@ namespace Zen.Trunk.Storage
 		/// <returns></returns>
 		public override string ToString()
 		{
-			return string.Format(
-				CultureInfo.InvariantCulture,
-				"VirtualPageId{{{0}:{1}}}",
-				_deviceId.ToString("X4"),
-				_physicalPageId.ToString("X8"));
+			return $"VirtualPageId{DeviceId.Value:X4}:{PhysicalPageId:X8}";
 		}
 
 		/// <summary>
@@ -176,8 +137,8 @@ namespace Zen.Trunk.Storage
 			if (obj is VirtualPageId)
 			{
 				var rhs = (VirtualPageId)obj;
-				if (_deviceId == rhs._deviceId &&
-					_physicalPageId == rhs._physicalPageId)
+				if (DeviceId == rhs.DeviceId &&
+					PhysicalPageId == rhs.PhysicalPageId)
 				{
 					equal = true;
 				}
@@ -207,45 +168,45 @@ namespace Zen.Trunk.Storage
 		/// </returns>
 		public int CompareTo(VirtualPageId obj)
 		{
-			var order = _deviceId.CompareTo(obj._deviceId);
+			var order = DeviceId.CompareTo(obj.DeviceId);
 			if (order == 0)
 			{
-				order = _physicalPageId.CompareTo(obj._physicalPageId);
+				order = PhysicalPageId.CompareTo(obj.PhysicalPageId);
 			}
 			return order;
 		}
 
 		public static bool operator <(VirtualPageId left, VirtualPageId right)
 		{
-			if (left._deviceId < right._deviceId)
+			if (left.DeviceId < right.DeviceId)
 			{
 				return true;
 			}
-			else if (left._deviceId > right._deviceId)
+			else if (left.DeviceId > right.DeviceId)
 			{
 				return false;
 			}
-			return left._physicalPageId < right._physicalPageId;
+			return left.PhysicalPageId < right.PhysicalPageId;
 		}
 
 		public static bool operator >(VirtualPageId left, VirtualPageId right)
 		{
-			if (left._deviceId > right._deviceId)
+			if (left.DeviceId > right.DeviceId)
 			{
 				return true;
 			}
-			else if (left._deviceId < right._deviceId)
+			else if (left.DeviceId < right.DeviceId)
 			{
 				return false;
 			}
-			return left._physicalPageId > right._physicalPageId;
+			return left.PhysicalPageId > right.PhysicalPageId;
 		}
 
 		public static bool operator ==(VirtualPageId left, VirtualPageId right)
 		{
 			var equal = false;
-			if (left._deviceId == right._deviceId &&
-				left._physicalPageId == right._physicalPageId)
+			if (left.DeviceId == right.DeviceId &&
+				left.PhysicalPageId == right.PhysicalPageId)
 			{
 				equal = true;
 			}
@@ -254,8 +215,8 @@ namespace Zen.Trunk.Storage
 		public static bool operator !=(VirtualPageId left, VirtualPageId right)
 		{
 			var notEqual = false;
-			if (left._deviceId != right._deviceId ||
-				left._physicalPageId != right._physicalPageId)
+			if (left.DeviceId != right.DeviceId ||
+				left.PhysicalPageId != right.PhysicalPageId)
 			{
 				notEqual = true;
 			}

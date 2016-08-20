@@ -115,7 +115,7 @@ namespace Zen.Trunk.Storage.Data
 			var needToCreateMasterFilegroup = mountingMaster;
 			foreach (var fileGroup in request.FileGroups)
 			{
-				ushort deviceId = 1;
+				DeviceId deviceId = DeviceId.Primary;
 				foreach (var file in fileGroup.Item2)
 				{
 					// Determine number of pages to use if we are creating devices
@@ -129,13 +129,29 @@ namespace Zen.Trunk.Storage.Data
 					{
 						if (needToCreateMasterFilegroup)
 						{
-							await device.AddFileGroupDevice(new AddFileGroupDeviceParameters(
-								FileGroupId.Master, fileGroup.Item1, file.Name, file.FileName, createPageCount, deviceId++)).ConfigureAwait(false);
+							await device
+                                .AddFileGroupDevice(
+                                    new AddFileGroupDeviceParameters(
+								        FileGroupId.Master,
+                                        fileGroup.Item1,
+                                        file.Name,
+                                        file.FileName,
+                                        deviceId,
+                                        createPageCount))
+                                .ConfigureAwait(false);
 						}
 						else
 						{
-							await device.AddFileGroupDevice(new AddFileGroupDeviceParameters(
-								FileGroupId.Primary, fileGroup.Item1, file.Name, file.FileName, createPageCount, deviceId++)).ConfigureAwait(false);
+							await device
+                                .AddFileGroupDevice(
+                                    new AddFileGroupDeviceParameters(
+								        FileGroupId.Primary,
+                                        fileGroup.Item1,
+                                        file.Name,
+                                        file.FileName,
+                                        deviceId,
+                                        createPageCount))
+                                .ConfigureAwait(false);
 						}
 
 						primaryName = file.Name;
@@ -143,10 +159,20 @@ namespace Zen.Trunk.Storage.Data
 					}
 					else
 					{
-						await device.AddFileGroupDevice(new AddFileGroupDeviceParameters(
-							FileGroupId.Invalid, fileGroup.Item1, file.Name, file.FileName, createPageCount, deviceId++)).ConfigureAwait(false);
+						await device
+                            .AddFileGroupDevice(
+                                new AddFileGroupDeviceParameters(
+							        FileGroupId.Invalid,
+                                    fileGroup.Item1,
+                                    file.Name,
+                                    file.FileName,
+                                    deviceId,
+                                    createPageCount))
+                            .ConfigureAwait(false);
 					}
 
+                    // Advance to next device
+					deviceId = deviceId.Next;
 					mountingPrimary = needToCreateMasterFilegroup = false;
 				}
 			}
@@ -156,8 +182,8 @@ namespace Zen.Trunk.Storage.Data
 			{
 				var pageCount = (uint)(file.Size / pageSize);
 
-				var deviceParams =
-					new AddLogDeviceParameters(file.Name, file.FileName, pageCount);
+				var deviceParams = new AddLogDeviceParameters(
+                    file.Name, file.FileName, DeviceId.Zero, pageCount);
 				await device.AddLogDevice(deviceParams).ConfigureAwait(false);
 			}
 
@@ -460,9 +486,7 @@ namespace Zen.Trunk.Storage.Data
 
 		public string Name
 		{
-			get;
-			private set;
-		}
+			get; }
 
 		public bool IsOnline
 		{

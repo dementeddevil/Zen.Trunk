@@ -34,9 +34,7 @@
 			}
 			internal uint TransactionId
 			{
-				get;
-				private set;
-			}
+				get; }
 			#endregion
 		}
 		#endregion

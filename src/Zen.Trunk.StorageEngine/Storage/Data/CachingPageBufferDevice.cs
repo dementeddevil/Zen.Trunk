@@ -18,11 +18,7 @@
 				PageId = pageId;
 			}
 
-			public VirtualPageId PageId
-			{
-				get;
-				private set;
-			}
+			public VirtualPageId PageId { get; }
 		}
 
 		private class FlushCachingDeviceRequest : TaskRequest<FlushCachingDeviceParameters, bool>
@@ -41,9 +37,9 @@
 		private class BufferCacheInfo : IDisposable
 		{
 			#region Private Fields
-			private PageBuffer _buffer;
 			private readonly DateTime _createdWhen = DateTime.UtcNow;
 			private DateTime _lastAccess = DateTime.UtcNow;
+			private PageBuffer _buffer;
 			#endregion
 
 			#region Internal Constructors
@@ -106,8 +102,8 @@
 
 		private class FlushPageBufferState
 		{
-			private readonly Dictionary<ushort, byte> _devicesAccessed =
-				new Dictionary<ushort, byte>();
+			private readonly Dictionary<DeviceId, byte> _devicesAccessed =
+				new Dictionary<DeviceId, byte>();
 			private readonly List<Task> _saveTasks = new List<Task>();
 			private readonly List<Task> _loadTasks = new List<Task>();
 
@@ -116,29 +112,24 @@
 				Params = flushParams;
 			}
 
-			public FlushCachingDeviceParameters Params
-			{
-				get;
-				private set;
-			}
+			public FlushCachingDeviceParameters Params { get; }
 
 			public IList<Task> SaveTasks => _saveTasks;
 
 		    public IList<Task> LoadTasks => _loadTasks;
 
-		    public void MarkDeviceAsAccessedForLoad(ushort deviceId)
+		    public void MarkDeviceAsAccessedForLoad(DeviceId deviceId)
 			{
 				MarkDeviceAsAccessed(deviceId, 1);
 			}
 
-			public void MarkDeviceAsAccessedForSave(ushort deviceId)
+			public void MarkDeviceAsAccessedForSave(DeviceId deviceId)
 			{
 				MarkDeviceAsAccessed(deviceId, 2);
 			}
 
 			public async Task FlushAccessedDevices(IMultipleBufferDevice bufferDevice)
 			{
-				var flushTasks = new List<Task>();
 				foreach (var entry in _devicesAccessed)
 				{
 					var flushReads = false;
@@ -155,7 +146,7 @@
 				}
 			}
 
-			private void MarkDeviceAsAccessed(ushort deviceId, byte value)
+			private void MarkDeviceAsAccessed(DeviceId deviceId, byte value)
 			{
 				if (!_devicesAccessed.ContainsKey(deviceId))
 				{
@@ -276,13 +267,13 @@
 			}
 		}
 
-		public Task<ushort> AddDeviceAsync(string name, string pathName, ushort deviceId = 0, uint createPageCount = 0)
+		public Task<DeviceId> AddDeviceAsync(string name, string pathName, DeviceId deviceId, uint createPageCount)
 		{
 			CheckDisposed();
 			return _bufferDevice.AddDeviceAsync(name, pathName, deviceId, createPageCount);
 		}
 
-		public Task RemoveDeviceAsync(ushort deviceId)
+		public Task RemoveDeviceAsync(DeviceId deviceId)
 		{
 			CheckDisposed();
 			return _bufferDevice.RemoveDeviceAsync(deviceId);
@@ -371,10 +362,7 @@
 
 			// Initialisation and load handlers make use of common handler
 			_initBufferPort = new TransactionContextActionBlock<PreparePageBufferRequest, PageBuffer>(
-				(request) =>
-				{
-					return HandleLoadOrInit(request, false);
-				},
+				(request) => HandleLoadOrInit(request, false),
 				new ExecutionDataflowBlockOptions
 				{
 					TaskScheduler = TaskScheduler.Default,
@@ -383,10 +371,7 @@
 					CancellationToken = _shutdownToken.Token
 				});
 			_loadBufferPort = new TransactionContextActionBlock<PreparePageBufferRequest, PageBuffer>(
-				(request) =>
-				{
-					return HandleLoadOrInit(request, true);
-				},
+				(request) => HandleLoadOrInit(request, true),
 				new ExecutionDataflowBlockOptions
 				{
 					TaskScheduler = TaskScheduler.Default,
@@ -397,14 +382,11 @@
 
 			// Explicit flush handler
 			_flushBuffersPort = new TaskRequestActionBlock<FlushCachingDeviceRequest, bool>(
-				(request) =>
-				{
-					return HandleFlushPageBuffers(request);
-				});
+				(request) => HandleFlushPageBuffers(request));
 
 			// Initialise caching support
 			_cacheManagerTask = Task.Factory.StartNew(
-				() => CacheManagerThread(),
+				CacheManagerThread,
 				CancellationToken.None,
 				TaskCreationOptions.LongRunning,
 				TaskScheduler.Default);
@@ -527,7 +509,7 @@
 
 		private async Task CacheManagerThread()
 		{
-			var flushParams = new FlushCachingDeviceParameters(true, true);
+			var flushParams = new FlushCachingDeviceParameters(true, true, DeviceId.Zero);
 			DateTime? lastFlush = null;
 			while (!_shutdownToken.IsCancellationRequested)
 			{
@@ -629,10 +611,7 @@
 				{
 					// Discard the partitioner if it implements IDisposable
 					var dispose = cacheKeyPartitioner as IDisposable;
-					if (dispose != null)
-					{
-						dispose.Dispose();
-					}
+				    dispose?.Dispose();
 				}
 			}
 			finally

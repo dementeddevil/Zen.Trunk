@@ -28,7 +28,7 @@
 			public TPage CreatePage<TPage>(VirtualPageId pageId)
 				where TPage : DataPage, new()
 			{
-				bool treatAsInit = false;
+				var treatAsInit = false;
 				PageBuffer pageBuffer;
 				if (!_pages.TryGetValue(pageId, out pageBuffer))
 				{
@@ -38,7 +38,7 @@
 					treatAsInit = true;
 				}
 
-				TPage page = new TPage();
+				var page = new TPage();
 				HookupPageSite(page);
 
 				page.VirtualId = pageId;
@@ -94,17 +94,22 @@
 				throw new NotImplementedException();
 			}
 
-			public Task<ushort> AddDeviceAsync(string name, string pathName, ushort deviceId = 0, uint createPageCount = 0)
+            public Task<DeviceId> AddDeviceAsync(string name, string pathName)
+            {
+                throw new NotImplementedException();
+            }
+
+            public Task<DeviceId> AddDeviceAsync(string name, string pathName, DeviceId deviceId, uint createPageCount = 0)
 			{
 				throw new NotImplementedException();
 			}
 
-			public Task RemoveDeviceAsync(ushort deviceId)
+			public Task RemoveDeviceAsync(DeviceId deviceId)
 			{
 				throw new NotImplementedException();
 			}
 
-			public uint ExpandDevice(ushort deviceId, int pageCount)
+			public uint ExpandDevice(DeviceId deviceId, int pageCount)
 			{
 				throw new NotImplementedException();
 			}
@@ -119,7 +124,7 @@
 				throw new NotImplementedException();
 			}
 
-			public Task FlushBuffersAsync(bool flushReads, bool flushWrites, params ushort[] deviceIds)
+			public Task FlushBuffersAsync(bool flushReads, bool flushWrites, params DeviceId[] deviceIds)
 			{
 				throw new NotImplementedException();
 			}
@@ -129,7 +134,7 @@
 				throw new NotImplementedException();
 			}
 
-			public IBufferDeviceInfo GetDeviceInfo(ushort deviceId)
+			public IBufferDeviceInfo GetDeviceInfo(DeviceId deviceId)
 			{
 				throw new NotImplementedException();
 			}
@@ -139,11 +144,11 @@
 		[TestCategory("Storage Engine: PageDevice")]
 		public Task DistributionValidExtentNonMixedTest()
 		{
-			MockPageDevice pageDevice = new MockPageDevice();
+			var pageDevice = new MockPageDevice();
 
 			TrunkTransactionContext.BeginTransaction(pageDevice);
 
-			DistributionPage page = pageDevice.CreatePage<DistributionPage>(
+			var page = pageDevice.CreatePage<DistributionPage>(
 				new VirtualPageId(0));
 			page.InitialiseValidExtents(129);
 

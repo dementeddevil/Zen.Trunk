@@ -41,20 +41,20 @@
 			// Create multiple device and add our child devices
 			IMultipleBufferDevice device = new MultipleBufferDevice(
 				_bufferFactory, true);
-			List<ushort> deviceIds = new List<ushort>();
+			var deviceIds = new List<DeviceId>();
 			foreach (var filename in GetChildDeviceList())
 			{
-				string pathName = Path.Combine(_testContext.TestDir, filename);
-				deviceIds.Add(await device.AddDeviceAsync(filename, pathName, 0, 128));
+				var pathName = Path.Combine(_testContext.TestDir, filename);
+				deviceIds.Add(await device.AddDeviceAsync(filename, pathName, DeviceId.Zero, 128));
 			}
 			await device.OpenAsync();
 
 			// Write a load of buffers across the group of devices
-			List<Task> bufferTasks = new List<Task>();
-			List<VirtualBuffer> buffers = new List<VirtualBuffer>();
-			foreach (ushort deviceId in deviceIds)
+			var bufferTasks = new List<Task>();
+			var buffers = new List<VirtualBuffer>();
+			foreach (var deviceId in deviceIds)
 			{
-				for (int index = 0; index < 7; ++index)
+				for (var index = 0; index < 7; ++index)
 				{
 					var buffer = AllocateAndFill((byte)index);
 					buffers.Add(buffer);
@@ -90,7 +90,7 @@
 
 		private VirtualBuffer AllocateAndFill(byte value)
 		{
-			VirtualBuffer buffer = _bufferFactory.AllocateBuffer();
+			var buffer = _bufferFactory.AllocateBuffer();
 			FillBuffer(buffer, value);
 			return buffer;
 		}
@@ -99,7 +99,7 @@
 		{
 			using (var stream = buffer.GetBufferStream(0, _bufferFactory.BufferSize, true))
 			{
-				for (int index = 0; index < _bufferFactory.BufferSize; ++index)
+				for (var index = 0; index < _bufferFactory.BufferSize; ++index)
 				{
 					stream.WriteByte(value);
 				}

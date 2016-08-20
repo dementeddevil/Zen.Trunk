@@ -9,7 +9,7 @@
 	{
 		#region Private Fields
 		private readonly FileGroupDevice _fileGroupDevice;
-		private readonly ushort _deviceId;
+		private readonly DeviceId _deviceId;
 		private bool _firstCallForRootPage = true;
 		#endregion
 
@@ -19,7 +19,7 @@
 		/// </summary>
 		/// <param name="fileGroupDevice">The file group device.</param>
 		/// <param name="deviceId">The device id.</param>
-		protected DistributionPageDevice(FileGroupDevice fileGroupDevice, ushort deviceId)
+		protected DistributionPageDevice(FileGroupDevice fileGroupDevice, DeviceId deviceId)
 			: base(fileGroupDevice)
 		{
 			_fileGroupDevice = fileGroupDevice;
@@ -28,9 +28,9 @@
 		#endregion
 
 		#region Public Properties
-		public ushort DeviceId => _deviceId;
+		public DeviceId DeviceId => _deviceId;
 
-	    public bool IsPrimary => DeviceId == 1;
+	    public bool IsPrimary => DeviceId == DeviceId.Primary;
 
 	    public FileGroupDevice FileGroupDevice => _fileGroupDevice;
 
@@ -56,7 +56,6 @@
 		/// <summary>
 		/// Loads or create the device root page.
 		/// </summary>
-		/// <param name="fileGroupDeviceState">State of the file group device.</param>
 		/// <returns></returns>
 		public virtual async Task<RootPage> LoadOrCreateRootPage()
 		{
@@ -151,7 +150,7 @@
 				// NOTE: We first release the root page to be sure the
 				//	expand will succeed (although since it would be using
 				//	the same transaction id it would have the same lock)
-				await FileGroupDevice.ExpandDataDevice(0, DeviceId).ConfigureAwait(false);
+				await FileGroupDevice.ExpandDataDevice(DeviceId, 0).ConfigureAwait(false);
 
 				// Signal we have expanded the device
 				isExpand = true;
@@ -324,7 +323,7 @@
 
 	public class PrimaryDistributionPageDevice : DistributionPageDevice
 	{
-		public PrimaryDistributionPageDevice(FileGroupDevice provider, ushort deviceId)
+		public PrimaryDistributionPageDevice(FileGroupDevice provider, DeviceId deviceId)
 			: base(provider, deviceId)
 		{
 		}
@@ -334,10 +333,11 @@
 
 	public class SecondaryDistributionPageDevice : DistributionPageDevice
 	{
-		public SecondaryDistributionPageDevice(FileGroupDevice provider, ushort deviceId)
+		public SecondaryDistributionPageDevice(FileGroupDevice provider, DeviceId deviceId)
 			: base(provider, deviceId)
 		{
-			if (deviceId < 2)
+			if (deviceId == DeviceId.Zero ||
+                deviceId == DeviceId.Primary)
 			{
 				throw new ArgumentException("deviceId");
 			}

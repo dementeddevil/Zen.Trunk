@@ -31,11 +31,11 @@
 		[TestCategory("Storage Engine: Database Device")]
 		public async Task DatabaseCreateTxnTest()
 		{
-			DatabaseDevice dbDevice = CreateDatabaseDevice();
+			var dbDevice = CreateDatabaseDevice();
 
-			string masterDataPathName =
+			var masterDataPathName =
 				Path.Combine(_testContext.TestDir, "master.mddf");
-			string masterLogPathName =
+			var masterLogPathName =
 				Path.Combine(_testContext.TestDir, "master.mlf");
 
 			TrunkTransactionContext.BeginTransaction(dbDevice, TimeSpan.FromMinutes(1));
@@ -72,11 +72,11 @@
 		[TestCategory("Storage Engine: Database Device")]
 		public async Task DatabaseCreateStreamTxnTest()
 		{
-			DatabaseDevice dbDevice = CreateDatabaseDevice();
+			var dbDevice = CreateDatabaseDevice();
 
-			string masterDataPathName =
+			var masterDataPathName =
 				Path.Combine(_testContext.TestDir, "master.mddf");
-			string masterLogPathName =
+			var masterLogPathName =
 				Path.Combine(_testContext.TestDir, "master.mlf");
 
 			TrunkTransactionContext.BeginTransaction(dbDevice, TimeSpan.FromMinutes(1));
@@ -106,29 +106,29 @@
 			TrunkTransactionContext.BeginTransaction(dbDevice, TimeSpan.FromMinutes(5));
 
 			// Open a file
-			using (FileStream stream = new FileStream(
+			using (var stream = new FileStream(
 				Path.Combine(_testContext.TestDir,
 				@"..\..\Zen.Trunk.VirtualMemory\Storage\IO\AdvancedFileStream.cs"),	// 83kb plain text
 				FileMode.Open, FileAccess.Read, FileShare.Read))
 			{
-				uint byteSize = new ObjectDataPage().DataSize;
-				int pageCount = (int)(stream.Length / byteSize);
+				var byteSize = new ObjectDataPage().DataSize;
+				var pageCount = (int)(stream.Length / byteSize);
 				if ((stream.Length % byteSize) != 0)
 				{
 					++pageCount;
 				}
 
-				byte[] buffer = new byte[byteSize];
+				var buffer = new byte[byteSize];
 				Debug.WriteLine("Preparing to write {0} pages", pageCount);
 				ObjectDataPage lastPage = null;
 
-				bool complete = false;
-				for (int pageIndex = 0; !complete; ++pageIndex)
+				var complete = false;
+				for (var pageIndex = 0; !complete; ++pageIndex)
 				{
 					Debug.WriteLine("Writing object page {0}", pageIndex);
 
 					// Create object data page
-					ObjectDataPage objectPage = new ObjectDataPage();
+					var objectPage = new ObjectDataPage();
 					objectPage.IsManagedData = false;
 					objectPage.ReadOnly = false;
 					objectPage.ObjectId = 1;
@@ -151,9 +151,9 @@
 					lastPage = objectPage;
 
 					// Determine size of the data page and write blob
-					using (Stream pageStream = objectPage.CreateDataStream(false))
+					using (var pageStream = objectPage.CreateDataStream(false))
 					{
-						int bytesRead = stream.Read(buffer, 0, (int)byteSize);
+						var bytesRead = stream.Read(buffer, 0, (int)byteSize);
 						if (bytesRead > 0)
 						{
 							pageStream.Write(buffer, 0, bytesRead);
@@ -183,11 +183,11 @@
 		[TestCategory("Storage Engine: Database Device")]
 		public async Task DatabaseCreateTableTxnTest()
 		{
-			DatabaseDevice dbDevice = CreateDatabaseDevice();
+			var dbDevice = CreateDatabaseDevice();
 
-			string masterDataPathName =
+			var masterDataPathName =
 				Path.Combine(_testContext.TestDir, "master.mddf");
-			string masterLogPathName =
+			var masterLogPathName =
 				Path.Combine(_testContext.TestDir, "master.mlf");
 
 			TrunkTransactionContext.BeginTransaction(dbDevice, TimeSpan.FromMinutes(1));
@@ -216,7 +216,7 @@
 
 			TrunkTransactionContext.BeginTransaction(dbDevice, TimeSpan.FromMinutes(5));
 
-			AddFileGroupTableParameters param =
+			var param =
 				new AddFileGroupTableParameters(
 					addFgDevice.FileGroupId,
 					addFgDevice.FileGroupName,
@@ -271,7 +271,7 @@
 		{
 			// We need a service provider to pass to the database device
 			//	otherwise it will fail to initialise
-			ServiceContainer parentServices = new ServiceContainer();
+			var parentServices = new ServiceContainer();
 			parentServices.AddService(typeof(IVirtualBufferFactory), new VirtualBufferFactory(32, 8192));
 			parentServices.AddService(typeof(GlobalLockManager), new GlobalLockManager());
 			return new DatabaseDevice(0, parentServices);

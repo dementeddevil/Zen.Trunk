@@ -21,7 +21,7 @@ namespace Zen.Trunk.Storage.Log
 	public class MasterLogPageDevice : LogPageDevice
 	{
 		#region Private Types
-		private class AddLogDeviceRequest : TaskRequest<AddLogDeviceParameters, ushort>
+		private class AddLogDeviceRequest : TaskRequest<AddLogDeviceParameters, DeviceId>
 		{
 			public AddLogDeviceRequest(AddLogDeviceParameters param)
 				: base(param)
@@ -57,14 +57,14 @@ namespace Zen.Trunk.Storage.Log
 		private ITargetBlock<WriteLogEntryRequest> _writeLogEntryPort;
 		private ITargetBlock<PerformRecoveryRequest> _performRecoveryPort;
 
-		private readonly Dictionary<ushort, LogPageDevice> _secondaryDevices =
-			new Dictionary<ushort, LogPageDevice>();
+		private readonly Dictionary<DeviceId, LogPageDevice> _secondaryDevices =
+			new Dictionary<DeviceId, LogPageDevice>();
 
 		private VirtualLogFileStream _currentStream;
 		private object syncWriters = new object();
 		private Dictionary<ActiveTransaction, List<TransactionLogEntry>> _activeTransactions;
 		private int _nextTransactionId = 1;
-		private ushort _nextLogDeviceId;
+		private DeviceId _nextLogDeviceId;
 
 		private readonly bool _trucateLog = false;
 		private bool _isInRecovery = false;
@@ -75,17 +75,18 @@ namespace Zen.Trunk.Storage.Log
 		/// Initializes a new instance of the <see cref="LogPageDevice"/> class.
 		/// </summary>
 		public MasterLogPageDevice(string pathName)
-			: base(0, pathName)
+			: base(DeviceId.Zero, pathName)
 		{
 			Initialise();
 		}
 
-		/// <summary>
-		/// Initializes a new instance of the <see cref="LogPageDevice"/> class.
-		/// </summary>
-		/// <param name="parentServiceProvider">The parent service provider.</param>
-		public MasterLogPageDevice(string pathName, IServiceProvider parentServiceProvider)
-			: base(0, pathName, parentServiceProvider)
+	    /// <summary>
+	    /// Initializes a new instance of the <see cref="LogPageDevice"/> class.
+	    /// </summary>
+	    /// <param name="pathName">Pathname to log file</param>
+	    /// <param name="parentServiceProvider">The parent service provider.</param>
+	    public MasterLogPageDevice(string pathName, IServiceProvider parentServiceProvider)
+			: base(DeviceId.Zero, pathName, parentServiceProvider)
 		{
 			Initialise();
 		}
@@ -154,7 +155,7 @@ namespace Zen.Trunk.Storage.Log
 	    #endregion
 
 		#region Public Methods
-		public Task<ushort> AddDevice(AddLogDeviceParameters deviceParams)
+		public Task<DeviceId> AddDevice(AddLogDeviceParameters deviceParams)
 		{
 			var request = new AddLogDeviceRequest(deviceParams);
 			if (!AddLogDevicePort.Post(request))
@@ -404,7 +405,7 @@ namespace Zen.Trunk.Storage.Log
 		private void Initialise()
 		{
 			_taskInterleave = new ConcurrentExclusiveSchedulerPair(TaskScheduler.Default);
-			_addLogDevicePort = new TaskRequestActionBlock<AddLogDeviceRequest, ushort>(
+			_addLogDevicePort = new TaskRequestActionBlock<AddLogDeviceRequest, DeviceId>(
 				(request) => AddLogDeviceHandler(request),
 				new ExecutionDataflowBlockOptions
 				{
@@ -430,12 +431,12 @@ namespace Zen.Trunk.Storage.Log
 				});
 		}
 
-		private async Task<ushort> AddLogDeviceHandler(AddLogDeviceRequest request)
+		private async Task<DeviceId> AddLogDeviceHandler(AddLogDeviceRequest request)
 		{
 			var masterRootPage = GetRootPage<MasterLogRootPage>();
 
-			// Determine file-extension for LOG
-			ushort proposedDeviceId = 0;
+            // Determine file-extension for LOG
+            DeviceId proposedDeviceId = DeviceId.Zero;
 			var proposedDeviceIdValid = false;
 
 			var primaryLog = false;
@@ -446,7 +447,6 @@ namespace Zen.Trunk.Storage.Log
 			{
 				extn = ".mlf";
 				primaryLog = true;
-				proposedDeviceId = 0;
 				proposedDeviceIdValid = true;
 			}
 
@@ -465,11 +465,11 @@ namespace Zen.Trunk.Storage.Log
 			{
 				if (!request.Message.IsDeviceIdValid)
 				{
-					proposedDeviceId = _nextLogDeviceId++;
+					proposedDeviceId = _nextLogDeviceId = _nextLogDeviceId.Next;
 				}
 				else
 				{
-					if (request.Message.DeviceId == 0 ||
+					if (request.Message.DeviceId == Storage.DeviceId.Zero ||
 						_secondaryDevices.ContainsKey(request.Message.DeviceId))
 					{
 						throw new ArgumentException("Log device id already allocated.");
@@ -615,7 +615,7 @@ namespace Zen.Trunk.Storage.Log
 			// Sanity check
 			if (DeviceState != MountableDeviceState.Open)
 			{
-				throw new DeviceException(0, "Not mounted!");
+				throw new DeviceException(DeviceId.Zero, "Not mounted!");
 			}
 
 			var entry = request.Message;

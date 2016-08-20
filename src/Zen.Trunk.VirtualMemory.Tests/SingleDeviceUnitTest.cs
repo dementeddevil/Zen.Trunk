@@ -38,13 +38,13 @@
 		[TestCategory("Virtual Memory: Single Device")]
 		public async Task CreateSingleDeviceTest()
 		{
-			string testFile = Path.Combine(_testContext.TestDir, "sdt.bin");
+			var testFile = Path.Combine(_testContext.TestDir, "sdt.bin");
 			var device = new SingleBufferDevice(_bufferFactory, true, "test", testFile, true, 8);
 			await device.OpenAsync();
 
-			List<VirtualBuffer> initBuffers = new List<VirtualBuffer>();
-			List<Task> subTasks = new List<Task>();
-			for (int index = 0; index < 7; ++index)
+			var initBuffers = new List<VirtualBuffer>();
+			var subTasks = new List<Task>();
+			for (var index = 0; index < 7; ++index)
 			{
 				var buffer = AllocateAndFill((byte)index);
 				initBuffers.Add(buffer);
@@ -54,8 +54,8 @@
 			await Task.WhenAll(subTasks.ToArray());
 
 			subTasks.Clear();
-			List<VirtualBuffer> loadBuffers = new List<VirtualBuffer>();
-			for (int index = 0; index < 7; ++index)
+			var loadBuffers = new List<VirtualBuffer>();
+			for (var index = 0; index < 7; ++index)
 			{
 				var buffer = _bufferFactory.AllocateBuffer();
 				loadBuffers.Add(buffer);
@@ -67,26 +67,26 @@
 			await device.CloseAsync();
 
 			// Walk buffers and check contents are the same
-			for (int index = 0; index < 7; ++index)
+			for (var index = 0; index < 7; ++index)
 			{
-				VirtualBuffer lhs = initBuffers[index];
-				VirtualBuffer rhs = loadBuffers[index];
+				var lhs = initBuffers[index];
+				var rhs = loadBuffers[index];
 				Assert.IsTrue(lhs.Compare(rhs) == 0, "Buffer mismatch");
 			}
 		}
 
 		private VirtualBuffer AllocateAndFill(byte value)
 		{
-			VirtualBuffer buffer = _bufferFactory.AllocateBuffer();
+			var buffer = _bufferFactory.AllocateBuffer();
 			FillBuffer(buffer, value);
 			return buffer;
 		}
 
 		private void FillBuffer(VirtualBuffer buffer, byte value)
 		{
-			using (Stream stream = buffer.GetBufferStream(0, 8192, true))
+			using (var stream = buffer.GetBufferStream(0, 8192, true))
 			{
-				for (int index = 0; index < 8192; ++index)
+				for (var index = 0; index < 8192; ++index)
 				{
 					stream.WriteByte(value);
 				}

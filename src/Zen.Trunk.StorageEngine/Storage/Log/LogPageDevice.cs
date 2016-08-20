@@ -41,34 +41,30 @@ namespace Zen.Trunk.Storage.Log
 		/// <summary>
 		/// Initializes a new instance of the <see cref="LogPageDevice"/> class.
 		/// </summary>
-		public LogPageDevice(ushort deviceId, string pathName)
+		public LogPageDevice(DeviceId deviceId, string pathName)
 		{
 			DeviceId = deviceId;
 			PathName = pathName;
 		}
 
-		/// <summary>
-		/// Initializes a new instance of the <see cref="LogPageDevice"/> class.
-		/// </summary>
-		/// <param name="parentServiceProvider">The parent service provider.</param>
-		public LogPageDevice(ushort deviceId, string pathName, IServiceProvider parentServiceProvider)
+	    /// <summary>
+	    /// Initializes a new instance of the <see cref="LogPageDevice"/> class.
+	    /// </summary>
+	    /// <param name="deviceId">The device identifier.</param>
+	    /// <param name="pathName">The log file pathname.</param>
+	    /// <param name="parentServiceProvider">The parent service provider.</param>
+	    public LogPageDevice(DeviceId deviceId, string pathName, IServiceProvider parentServiceProvider)
 			: base(parentServiceProvider)
 		{
-		}
-		#endregion
+            DeviceId = deviceId;
+            PathName = pathName;
+        }
+        #endregion
 
-		#region Public Properties
-		public ushort DeviceId
-		{
-			get;
-			private set;
-		}
+        #region Public Properties
+        public DeviceId DeviceId { get; }
 
-		public string PathName
-		{
-			get;
-			protected set;
-		}
+		public string PathName { get; protected set; }
 
 		public bool IsReadOnly
 		{
@@ -122,7 +118,7 @@ namespace Zen.Trunk.Storage.Log
 		/// <summary>
 		/// Initialises the virtual file table for a log device.
 		/// </summary>
-		/// <param name="devInfo"></param>
+		/// <param name="masterRootPage"></param>
 		/// <param name="lastFileInfo"></param>
 		/// <returns></returns>
 		internal VirtualLogFileInfo InitVirtualFileForDevice(

@@ -1548,15 +1548,11 @@
 		#region Public Properties
 		public TableColumnInfo[] OldColumns
 		{
-			get;
-			private set;
-		}
+			get; }
 
 		public TableColumnInfo[] NewColumns
 		{
-			get;
-			private set;
-		}
+			get; }
 
 		public RowConstraint[] NewConstraints
 		{

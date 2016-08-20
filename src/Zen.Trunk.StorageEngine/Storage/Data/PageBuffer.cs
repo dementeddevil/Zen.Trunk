@@ -447,9 +447,7 @@
 
 			public Guid Id
 			{
-				get;
-				private set;
-			}
+				get; }
 
 			public Task Task => _task.Task;
 

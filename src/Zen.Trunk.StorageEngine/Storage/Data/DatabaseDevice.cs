@@ -12,7 +12,7 @@ namespace Zen.Trunk.Storage.Data
 	public class DatabaseDevice : PageDevice
 	{
 		#region Private Types
-		private class AddFileGroupDeviceRequest : TransactionContextTaskRequest<AddFileGroupDeviceParameters, ushort>
+		private class AddFileGroupDeviceRequest : TransactionContextTaskRequest<AddFileGroupDeviceParameters, DeviceId>
 		{
 			public AddFileGroupDeviceRequest(AddFileGroupDeviceParameters deviceParams)
 				: base(deviceParams)
@@ -289,7 +289,7 @@ namespace Zen.Trunk.Storage.Data
 			return request.Task;
 		}
 
-		public Task<ushort> AddLogDevice(AddLogDeviceParameters deviceParams)
+		public Task<DeviceId> AddLogDevice(AddLogDeviceParameters deviceParams)
 		{
 			return _logDevice.AddDevice(deviceParams);
 		}
@@ -475,7 +475,7 @@ namespace Zen.Trunk.Storage.Data
 						TaskScheduler = _taskInterleave.ConcurrentScheduler
 					});
 			_addFileGroupDevicePort =
-				new TransactionContextActionBlock<AddFileGroupDeviceRequest, ushort>(
+				new TransactionContextActionBlock<AddFileGroupDeviceRequest, DeviceId>(
 					(request) => AddFileGroupDataDeviceHandler(request),
 					new ExecutionDataflowBlockOptions
 					{
@@ -515,7 +515,7 @@ namespace Zen.Trunk.Storage.Data
 					});
 		}
 
-		private async Task<ushort> AddFileGroupDataDeviceHandler(AddFileGroupDeviceRequest request)
+		private async Task<DeviceId> AddFileGroupDataDeviceHandler(AddFileGroupDeviceRequest request)
 		{
 			// Create valid file group ID as needed
 			FileGroupDevice fileGroupDevice = null;
@@ -766,7 +766,7 @@ namespace Zen.Trunk.Storage.Data
 				return fileGroupDevice;
 			}
 
-			throw new FileGroupInvalidException(0, fileGroupId, fileGroupName);
+			throw new FileGroupInvalidException(DeviceId.Zero, fileGroupId, fileGroupName);
 		}
 		#endregion
 	}

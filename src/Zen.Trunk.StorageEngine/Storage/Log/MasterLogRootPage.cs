@@ -18,7 +18,7 @@ namespace Zen.Trunk.Storage.Log
 	public class MasterLogRootPage : LogRootPage
 	{
 		#region Private Fields
-		private readonly Dictionary<ushort, DeviceInfo> _deviceById;
+		private readonly Dictionary<DeviceId, DeviceInfo> _deviceById;
 		private readonly List<DeviceInfo> _devicesByIndex;
 
 		private readonly BufferFieldUInt16 _deviceCount;
@@ -71,7 +71,7 @@ namespace Zen.Trunk.Storage.Log
 		/// </summary>
 		public MasterLogRootPage()
 		{
-			_deviceById = new Dictionary<ushort, DeviceInfo>();
+			_deviceById = new Dictionary<DeviceId, DeviceInfo>();
 			_devicesByIndex = new List<DeviceInfo>();
 
 			_deviceCount = new BufferFieldUInt16(base.LastHeaderField);
@@ -230,7 +230,7 @@ namespace Zen.Trunk.Storage.Log
 			SetDataDirty();
 		}
 
-		internal DeviceInfo GetDeviceById(byte deviceId)
+		internal DeviceInfo GetDeviceById(DeviceId deviceId)
 		{
 			return _deviceById[deviceId];
 		}

@@ -1183,7 +1183,7 @@ namespace Zen.Trunk.Storage
 		{
 		}
 
-		public BufferFieldLogFileId(BufferField prev, ushort value)
+		public BufferFieldLogFileId(BufferField prev, uint value)
 			: base(prev, new LogFileId(value))
 		{
 		}
@@ -1195,7 +1195,7 @@ namespace Zen.Trunk.Storage
 
 		protected override void OnRead(BufferReaderWriter streamManager)
 		{
-			Value.FileId = streamManager.ReadUInt32();
+			Value = new LogFileId(streamManager.ReadUInt32());
 		}
 
 		protected override void OnWrite(BufferReaderWriter streamManager)

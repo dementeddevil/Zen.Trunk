@@ -3,13 +3,15 @@
 namespace Zen.Trunk.Storage
 {
     /// <summary>
-    /// Simple value type which represents an Object Identifier.
+    /// Simple value type which represents a Device Identifier.
     /// </summary>
     [Serializable]
-    public struct ObjectId : IComparable, ICloneable
+    public struct DeviceId : IComparable, ICloneable
     {
         #region Public Fields
-        public static readonly ObjectId Zero = new ObjectId(0);
+        public static readonly DeviceId Zero = new DeviceId(0);
+        public static readonly DeviceId Primary = new DeviceId(1);
+        public static readonly DeviceId FirstSecondary = new DeviceId(2);
         #endregion
 
         #region Private Fields
@@ -17,22 +19,38 @@ namespace Zen.Trunk.Storage
 
         #region Public Constructors
         /// <summary>
-        /// Initializes a new instance of the <see cref="ObjectId"/> struct.
+        /// Initializes a new instance of the <see cref="DeviceId"/> struct.
         /// </summary>
-        /// <param name="objectId">The object id.</param>
+        /// <param name="deviceId">The device id.</param>
         [CLSCompliant(false)]
-        public ObjectId(uint objectId)
+        public DeviceId(ushort deviceId)
         {
-            Value = objectId;
+            Value = deviceId;
         }
         #endregion
 
         #region Public Properties
         /// <summary>
-        /// Gets/sets the logical page ID.
+        /// Gets/sets the device ID.
         /// </summary>
         [CLSCompliant(false)]
-        public uint Value { get; }
+        public ushort Value { get; }
+
+        /// <summary>
+        /// Gets the next device id.
+        /// </summary>
+        public DeviceId Next
+        {
+            get
+            {
+                if (Value == ushort.MaxValue)
+                {
+                    throw new InvalidOperationException("At last device.");
+                }
+
+                return new DeviceId((ushort)(Value + 1));
+            }
+        }
         #endregion
 
         #region Public Methods
@@ -42,7 +60,7 @@ namespace Zen.Trunk.Storage
         /// <returns></returns>
         public override string ToString()
         {
-            return $"ObjectId{Value:X8}";
+            return $"DeviceId{Value:X4}";
         }
 
         /// <summary>
@@ -53,9 +71,9 @@ namespace Zen.Trunk.Storage
         public override bool Equals(object obj)
         {
             var equal = false;
-            if (obj is ObjectId)
+            if (obj is DeviceId)
             {
-                var rhs = (ObjectId)obj;
+                var rhs = (DeviceId)obj;
                 if (Value == rhs.Value)
                 {
                     equal = true;
@@ -84,27 +102,27 @@ namespace Zen.Trunk.Storage
         /// <b>=0</b> this object sorts the same as obj.
         /// <b>&gt;0</b> this object sorts higher than obj.
         /// </returns>
-        public int CompareTo(ObjectId obj)
+        public int CompareTo(DeviceId obj)
         {
             var order = Value.CompareTo(obj.Value);
             return order;
         }
 
-        public static bool operator <(ObjectId left, ObjectId right)
+        public static bool operator <(DeviceId left, DeviceId right)
         {
             return (left.Value < right.Value);
         }
 
-        public static bool operator >(ObjectId left, ObjectId right)
+        public static bool operator >(DeviceId left, DeviceId right)
         {
             return (left.Value > right.Value);
         }
 
-        public static bool operator ==(ObjectId left, ObjectId right)
+        public static bool operator ==(DeviceId left, DeviceId right)
         {
             return (left.Value == right.Value);
         }
-        public static bool operator !=(ObjectId left, ObjectId right)
+        public static bool operator !=(DeviceId left, DeviceId right)
         {
             return (left.Value != right.Value);
         }
@@ -114,22 +132,22 @@ namespace Zen.Trunk.Storage
         int IComparable.CompareTo(object obj)
         {
             var order = -1;
-            if (obj is ObjectId)
+            if (obj is DeviceId)
             {
-                order = ((ObjectId)this).CompareTo((ObjectId)obj);
+                order = ((DeviceId)this).CompareTo((DeviceId)obj);
             }
             return order;
         }
         #endregion
 
         #region ICloneable Members
-        public ObjectId Clone()
+        public DeviceId Clone()
         {
-            return (ObjectId)MemberwiseClone();
+            return (DeviceId)MemberwiseClone();
         }
         object ICloneable.Clone()
         {
-            return ((ObjectId)this).Clone();
+            return ((DeviceId)this).Clone();
         }
         #endregion
     }

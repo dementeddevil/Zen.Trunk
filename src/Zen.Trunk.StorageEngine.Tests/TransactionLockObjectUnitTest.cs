@@ -24,16 +24,16 @@
 		public void TransactionDataLockTest()
 		{
 			// Setup lock hierarchy
-			DatabaseLock databaseLock = new DatabaseLock();
+			var databaseLock = new DatabaseLock();
 			databaseLock.Id = "DBL:01";
 			databaseLock.Initialise();
 
-			ObjectLock objectLock = new ObjectLock();
+			var objectLock = new ObjectLock();
 			objectLock.Id = "OBL:01";
 			objectLock.Parent = databaseLock;
 			objectLock.Initialise();
 
-			DataLock dataLock = new DataLock();
+			var dataLock = new DataLock();
 			dataLock.Id = "DL:01";
 			dataLock.Parent = objectLock;
 			dataLock.Initialise();
@@ -99,16 +99,16 @@
 		public void TransactionObjectLockTest()
 		{
 			// Setup lock hierarchy
-			DatabaseLock databaseLock = new DatabaseLock();
+			var databaseLock = new DatabaseLock();
 			databaseLock.Id = "DBL:01";
 			databaseLock.Initialise();
 
-			ObjectLock objectLock = new ObjectLock();
+			var objectLock = new ObjectLock();
 			objectLock.Id = "OBL:01";
 			objectLock.Parent = databaseLock;
 			objectLock.Initialise();
 
-			DataLock dataLock = new DataLock();
+			var dataLock = new DataLock();
 			dataLock.Id = "DL:01";
 			dataLock.Parent = objectLock;
 			dataLock.Initialise();

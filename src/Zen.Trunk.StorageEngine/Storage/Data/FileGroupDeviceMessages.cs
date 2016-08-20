@@ -18,10 +18,10 @@
 		public AddDataDeviceParameters(
 			string name,
 			string pathName,
+            DeviceId deviceId,
 			uint createPageCount = 0,
-			ushort deviceId = 0,
 			bool updateRootPage = false)
-			: base(name, pathName, createPageCount, deviceId)
+			: base(name, pathName, deviceId, createPageCount)
 		{
 			UpdateRootPage = updateRootPage;
 		}
@@ -48,7 +48,7 @@
 		/// </summary>
 		/// <param name="deviceId">The device unique identifier.</param>
 		/// <param name="updateRootPage">if set to <c>true</c> [update root page].</param>
-		public RemoveDataDeviceParameters(ushort deviceId, bool updateRootPage = false)
+		public RemoveDataDeviceParameters(DeviceId deviceId, bool updateRootPage = false)
 			: base(deviceId)
 		{
 			UpdateRootPage = updateRootPage;

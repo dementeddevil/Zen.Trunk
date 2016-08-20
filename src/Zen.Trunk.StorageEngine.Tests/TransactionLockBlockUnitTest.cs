@@ -154,16 +154,16 @@
 		private ServiceContainer CreateLockingServiceProvider()
 		{
 			// Setup minimal service container we need to get trunk transactions to work
-			ServiceContainer container = new ServiceContainer();
+			var container = new ServiceContainer();
 
 			// ** Master log page device is needed to getting the atomic transaction id
 			// TODO: Change MasterLogPageDevice to use interface so we can mock
 			//	and implement the single method call we need...
-			string pathName = Path.Combine(_testContext.TestDir, "LogDevice.mlb");
+			var pathName = Path.Combine(_testContext.TestDir, "LogDevice.mlb");
 			container.AddService(typeof(MasterLogPageDevice), new MasterLogPageDevice(pathName, container));
 
 			// ** Global lock manager (GLM) holds the global lock object pool.
-			GlobalLockManager glm = new GlobalLockManager();
+			var glm = new GlobalLockManager();
 			container.AddService(typeof(GlobalLockManager), glm);
 
 			// ** Database lock manager is the database-instance-specific shim to the GLM.

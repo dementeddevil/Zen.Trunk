@@ -204,7 +204,7 @@ namespace Zen.Trunk.Storage.Log
 
 		#region Public Methods
 		public VirtualLogFileInfo AddLogFile(
-			ushort deviceId, uint length, uint lastLogFile)
+            DeviceId deviceId, uint length, uint lastLogFile)
 		{
 			// Check whether we can fit another log file on this device.
 			if (LogFileCount == ushort.MaxValue)
@@ -215,7 +215,7 @@ namespace Zen.Trunk.Storage.Log
 			// Create log file and assign Id
 			var info = new VirtualLogFileInfo();
 			info.DeviceId = deviceId;
-			info.ObjectId = LogFileCount;
+			info.Index = LogFileCount;
 
 			// Chain the log file if we can
 			var lastLogFileId = new LogFileId(lastLogFile);

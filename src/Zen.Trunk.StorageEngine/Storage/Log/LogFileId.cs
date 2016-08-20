@@ -11,13 +11,16 @@ namespace Zen.Trunk.Storage.Log
 		#region Public Constructors
 		public LogFileId (uint fileId)
 		{
+		    DeviceId = new DeviceId((ushort) ((fileId >> 16) & 0xffff));
+			Index = (ushort)(fileId & 0xffff);
 			FileId = fileId;
 		}
 
-		public LogFileId (ushort deviceId, ushort index)
+		public LogFileId (DeviceId deviceId, ushort index)
 		{
 			DeviceId = deviceId;
 			Index = index;
+			FileId = (uint)((((uint) DeviceId.Value) << 16) | (((uint)Index) & 0xffff));
 		}
 		#endregion
 
@@ -25,36 +28,17 @@ namespace Zen.Trunk.Storage.Log
 		/// <summary>
 		/// Gets/sets the device ID.
 		/// </summary>
-		public ushort DeviceId
-		{
-			get;
-			set;
-		}
+		public DeviceId DeviceId { get; }
 
 		/// <summary>
 		/// Gets/sets the log file index position.
 		/// </summary>
-		public ushort Index
-		{
-			get;
-			set;
-		}
+		public ushort Index { get; }
 
 		/// <summary>
 		/// Gets/sets the file ID.
 		/// </summary>
-		public uint FileId
-		{
-			get
-			{
-				return (uint)((((uint) DeviceId) << 16) | (((uint)Index) & 0xffff));
-			}
-			set
-			{
-				DeviceId = (ushort)((value >> 16) & 0xffff);
-				Index = (ushort)(value & 0xffff);
-			}
-		}
+		public uint FileId { get; }
 		#endregion
 
 		#region Public Methods
@@ -64,9 +48,7 @@ namespace Zen.Trunk.Storage.Log
 		/// <returns></returns>
 		public override string ToString ()
 		{
-			return "LogFileId{" +
-				DeviceId.ToString ("X") + ":" +
-				Index.ToString ("X") + "}";
+			return $"LogFileId{{{DeviceId.Value:X}:{Index:X}}}";
 		}
 
 		/// <summary>

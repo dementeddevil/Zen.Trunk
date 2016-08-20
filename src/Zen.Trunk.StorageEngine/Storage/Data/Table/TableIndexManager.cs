@@ -862,15 +862,11 @@
 
 		public TableIndexPage Page
 		{
-			get;
-			private set;
-		}
+			get; }
 
 		public TableIndexLeafInfo Entry
 		{
-			get;
-			private set;
-		}
+			get; }
 	}
 
 	public class EnumerateIndexEntriesParameters
@@ -889,26 +885,18 @@
 
 		public RootTableIndexInfo Index
 		{
-			get;
-			private set;
-		}
+			get; }
 
 		public object[] FromKeys
 		{
-			get;
-			private set;
-		}
+			get; }
 
 		public object[] ToKeys
 		{
-			get;
-			private set;
-		}
+			get; }
 
 		public Func<TableIndexPage, TableIndexLeafInfo, int, bool> OnIteration
 		{
-			get;
-			private set;
-		}
+			get; }
 	}
 }

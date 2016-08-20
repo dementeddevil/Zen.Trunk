@@ -96,8 +96,8 @@ namespace Zen.Trunk.StorageEngine.Tests
 
 			public override int CompareTo(IndexInfo rhs)
 			{
-				TestIndexInfo tiRhs = (TestIndexInfo)rhs;
-				int result = CreatedDate.CompareTo(tiRhs.CreatedDate);
+				var tiRhs = (TestIndexInfo)rhs;
+				var result = CreatedDate.CompareTo(tiRhs.CreatedDate);
 				if (result != 0)
 				{
 					result = SequenceIndex.CompareTo(tiRhs.SequenceIndex);
@@ -128,8 +128,8 @@ namespace Zen.Trunk.StorageEngine.Tests
 
 			public int CompareIndex(int index, DateTime key1, int key2)
 			{
-				TestIndexInfo lhs = IndexEntries[index];
-				TestIndexInfo rhs = new TestIndexInfo(key1, key2, 0);
+				var lhs = IndexEntries[index];
+				var rhs = new TestIndexInfo(key1, key2, 0);
 				return lhs.CompareTo(rhs);
 			}
 
@@ -160,8 +160,8 @@ namespace Zen.Trunk.StorageEngine.Tests
 			protected override TestIndexInfo CreateLinkToPage(
 				IndexPage<TestIndexInfo, RootIndexInfo> page)
 			{
-				DateTime createdDate = page.IndexEntries[0].CreatedDate;
-				int sequenceIndex = page.IndexEntries[0].SequenceIndex;
+				var createdDate = page.IndexEntries[0].CreatedDate;
+				var sequenceIndex = page.IndexEntries[0].SequenceIndex;
 				return new TestIndexInfo(createdDate, sequenceIndex, page.LogicalId);
 			}
 
@@ -186,11 +186,11 @@ namespace Zen.Trunk.StorageEngine.Tests
 		[TestMethod]
 		public async Task IndexTestAddPages()
 		{
-			DatabaseDevice dbDevice = CreateDatabaseDevice();
+			var dbDevice = CreateDatabaseDevice();
 
-			string masterDataPathName =
+			var masterDataPathName =
 				Path.Combine(_testContext.TestDir, "master.mddf");
-			string masterLogPathName =
+			var masterLogPathName =
 				Path.Combine(_testContext.TestDir, "master.mlf");
 
 			TrunkTransactionContext.BeginTransaction(dbDevice, TimeSpan.FromMinutes(1));
@@ -219,7 +219,7 @@ namespace Zen.Trunk.StorageEngine.Tests
 
 			TrunkTransactionContext.BeginTransaction(dbDevice, TimeSpan.FromMinutes(5));
 
-			TestIndexManager manager = new TestIndexManager(_parentServices);
+			var manager = new TestIndexManager(_parentServices);
 			var indexInfo = new RootIndexInfo
 				{
 					Name = "PK_Test",

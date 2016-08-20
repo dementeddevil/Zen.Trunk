@@ -13,8 +13,6 @@
 		/// </summary>
 		/// <param name="name">The device name.</param>
 		/// <param name="pathName">The pathname for the device storage.</param>
-		/// <param name="deviceId">The device unique identifier.</param>
-		/// <param name="createPageCount">The create page count.</param>
 		/// <returns>The device id.</returns>
 		/// <remarks>
 		/// <para>
@@ -25,16 +23,35 @@
 		/// the call is treated as a request to open the underlying storage.
 		/// </para>
 		/// </remarks>
-		Task<ushort> AddDeviceAsync(string name, string pathName, ushort deviceId = 0, uint createPageCount = 0);
+		Task<DeviceId> AddDeviceAsync(string name, string pathName);
 
-		/// <summary>
-		/// Removes a child single-buffer device from this instance.
-		/// </summary>
-		/// <param name="deviceId">The device unique identifier.</param>
-		/// <returns></returns>
-		Task RemoveDeviceAsync(ushort deviceId);
+        /// <summary>
+        /// Adds a new child single buffer device to this instance.
+        /// </summary>
+        /// <param name="name">The device name.</param>
+        /// <param name="pathName">The pathname for the device storage.</param>
+        /// <param name="deviceId">The device unique identifier.</param>
+        /// <param name="createPageCount">The create page count.</param>
+        /// <returns>The device id.</returns>
+        /// <remarks>
+        /// <para>
+        /// If the device id is zero (it must be zero for the first device)
+        /// then the next available device id is used and the value returned.
+        /// If the createPageCount is non-zero then the add device call is
+        /// treated as a request to create the underlying storage otherwise
+        /// the call is treated as a request to open the underlying storage.
+        /// </para>
+        /// </remarks>
+        Task<DeviceId> AddDeviceAsync(string name, string pathName, DeviceId deviceId, uint createPageCount = 0);
 
-		uint ExpandDevice(ushort deviceId, int pageCount);
+        /// <summary>
+        /// Removes a child single-buffer device from this instance.
+        /// </summary>
+        /// <param name="deviceId">The device unique identifier.</param>
+        /// <returns></returns>
+        Task RemoveDeviceAsync(DeviceId deviceId);
+
+		uint ExpandDevice(DeviceId deviceId, int pageCount);
 
 		/// <summary>
 		/// Asynchronously loads a buffer from the device and page associated
@@ -54,7 +71,7 @@
 		/// <returns></returns>
 		Task SaveBufferAsync(VirtualPageId pageId, VirtualBuffer buffer);
 
-		Task FlushBuffersAsync(bool flushReads, bool flushWrites, params ushort[] deviceIds);
+		Task FlushBuffersAsync(bool flushReads, bool flushWrites, params DeviceId[] deviceIds);
 
 		/// <summary>
 		/// Gets the device information for all child devices.
@@ -67,13 +84,13 @@
 		/// </summary>
 		/// <param name="deviceId">The device unique identifier.</param>
 		/// <returns></returns>
-		IBufferDeviceInfo GetDeviceInfo(ushort deviceId);
+		IBufferDeviceInfo GetDeviceInfo(DeviceId deviceId);
 	}
 
 	[CLSCompliant(false)]
 	public interface IBufferDeviceInfo
 	{
-		ushort DeviceId
+		DeviceId DeviceId
 		{
 			get;
 		}

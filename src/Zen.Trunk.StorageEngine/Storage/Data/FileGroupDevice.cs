@@ -21,7 +21,7 @@ namespace Zen.Trunk.Storage.Data
 	public abstract class FileGroupDevice : PageDevice
 	{
 		#region Private Types
-		private class AddDataDeviceRequest : TransactionContextTaskRequest<AddDataDeviceParameters, ushort>
+		private class AddDataDeviceRequest : TransactionContextTaskRequest<AddDataDeviceParameters, DeviceId>
 		{
 			#region Public Constructors
 			/// <summary>
@@ -71,30 +71,18 @@ namespace Zen.Trunk.Storage.Data
 		private class CreateDistributionPagesRequest : TransactionContextTaskRequest<bool>
 		{
 			public CreateDistributionPagesRequest(
-				ushort deviceId, uint startPhysicalId, uint endPhysicalId)
+                DeviceId deviceId, uint startPhysicalId, uint endPhysicalId)
 			{
 				DeviceId = deviceId;
 				StartPhysicalId = startPhysicalId;
 				EndPhysicalId = endPhysicalId;
 			}
 
-			public ushort DeviceId
-			{
-				get;
-				private set;
-			}
+			public DeviceId DeviceId { get; }
 
-			public uint StartPhysicalId
-			{
-				get;
-				private set;
-			}
+			public uint StartPhysicalId { get; }
 
-			public uint EndPhysicalId
-			{
-				get;
-				private set;
-			}
+			public uint EndPhysicalId { get; }
 		}
 
 		private class AllocateDataPageRequest : TransactionContextTaskRequest<AllocateDataPageParameters, VirtualPageId>
@@ -112,21 +100,17 @@ namespace Zen.Trunk.Storage.Data
 				Page = page;
 			}
 
-			public DistributionPage Page
-			{
-				get;
-				private set;
-			}
+			public DistributionPage Page { get; }
 		}
 
 		private class ExpandDataDeviceRequest : TransactionContextTaskRequest<bool>
 		{
-			/// <summary>
-			/// Initializes a new instance of the <see cref="ExpandDeviceRequest" /> class.
-			/// </summary>
-			/// <param name="pageCount">The page count.</param>
-			/// <param name="deviceId">The device id.</param>
-			public ExpandDataDeviceRequest(uint pageCount, ushort deviceId = 0)
+            /// <summary>
+            /// Initializes a new instance of the <see cref="ExpandDataDeviceRequest" /> class.
+            /// </summary>
+            /// <param name="deviceId">The device id.</param>
+            /// <param name="pageCount">The page count.</param>
+            public ExpandDataDeviceRequest(DeviceId deviceId, uint pageCount)
 			{
 				DeviceId = deviceId;
 				PageCount = pageCount;
@@ -136,11 +120,7 @@ namespace Zen.Trunk.Storage.Data
 			/// Gets or sets the device id.
 			/// </summary>
 			/// <value>The device id.</value>
-			public ushort DeviceId
-			{
-				get;
-				private set;
-			}
+			public DeviceId DeviceId { get; }
 
 			/// <summary>
 			/// Gets or sets a value indicating whether the device id is valid.
@@ -148,18 +128,14 @@ namespace Zen.Trunk.Storage.Data
 			/// <value>
 			/// 	<c>true</c> if the device id is valid; otherwise, <c>false</c>.
 			/// </value>
-			public bool IsDeviceIdValid => (DeviceId != 0);
+			public bool IsDeviceIdValid => (DeviceId != DeviceId.Zero);
 
 		    /// <summary>
 			/// Gets or sets an integer that will be added to the existing page 
 			/// count of the target device to determine the new page capacity.
 			/// </summary>
 			/// <value>The page count.</value>
-			public uint PageCount
-			{
-				get;
-				private set;
-			}
+			public uint PageCount { get; }
 		}
 
 		private class AddTableRequest : TransactionContextTaskRequest<AddTableParameters, ObjectId>
@@ -172,7 +148,7 @@ namespace Zen.Trunk.Storage.Data
 			#endregion
 		}
 
-		private class AddTableIndexRequest : TransactionContextTaskRequest<AddTableIndexParameters, uint>
+		private class AddTableIndexRequest : TransactionContextTaskRequest<AddTableIndexParameters, ObjectId>
 		{
 			#region Public Constructors
 			public AddTableIndexRequest(AddTableIndexParameters indexParams)
@@ -198,10 +174,10 @@ namespace Zen.Trunk.Storage.Data
 		private ITargetBlock<AddTableIndexRequest> _addTableIndexPort;
 		private ConcurrentExclusiveSchedulerPair _taskInterleave;
 
-		private ushort? _primaryDeviceId;
+		private DeviceId? _primaryDeviceId;
 		private PrimaryDistributionPageDevice _primaryDevice;
-		private readonly Dictionary<ushort, SecondaryDistributionPageDevice> _devices =
-			new Dictionary<ushort, SecondaryDistributionPageDevice>();
+		private readonly Dictionary<DeviceId, SecondaryDistributionPageDevice> _devices =
+			new Dictionary<DeviceId, SecondaryDistributionPageDevice>();
 		private readonly HashSet<uint> _assignedObjectIds = new HashSet<uint>();
 
 		// Logical id mapping
@@ -230,7 +206,7 @@ namespace Zen.Trunk.Storage.Data
 		/// Gets the primary device id.
 		/// </summary>
 		/// <value>The primary device id.</value>
-		public ushort PrimaryDeviceId
+		public DeviceId PrimaryDeviceId
 		{
 			get
 			{
@@ -246,21 +222,13 @@ namespace Zen.Trunk.Storage.Data
 		/// Gets the file group id.
 		/// </summary>
 		/// <value>The file group id.</value>
-		public FileGroupId FileGroupId
-		{
-			get;
-			private set;
-		}
+		public FileGroupId FileGroupId { get; }
 
 		/// <summary>
 		/// Gets or sets the name of the file group.
 		/// </summary>
 		/// <value>The name of the file group.</value>
-		public string FileGroupName
-		{
-			get;
-			private set;
-		}
+		public string FileGroupName { get; }
 
 		/// <summary>
 		/// Gets a value indicating whether this instance is primary file group.
@@ -374,7 +342,7 @@ namespace Zen.Trunk.Storage.Data
 			return rootPage;
 		}
 
-		public Task<ushort> AddDataDevice(AddDataDeviceParameters deviceParams)
+		public Task<DeviceId> AddDataDevice(AddDataDeviceParameters deviceParams)
 		{
 			var request = new AddDataDeviceRequest(deviceParams);
 			if (!AddDataDevicePort.Post(request))
@@ -414,7 +382,7 @@ namespace Zen.Trunk.Storage.Data
 			return request.Task;
 		}
 
-		public Task CreateDistributionPages(ushort deviceId, uint startPhysicalId, uint endPhysicalId)
+		public Task CreateDistributionPages(DeviceId deviceId, uint startPhysicalId, uint endPhysicalId)
 		{
 			var request = new CreateDistributionPagesRequest(deviceId, startPhysicalId, endPhysicalId);
 			if (!CreateDistributionPagesPort.Post(request))
@@ -444,9 +412,9 @@ namespace Zen.Trunk.Storage.Data
 			return request.Task;
 		}
 
-		public Task ExpandDataDevice(uint pageCount, ushort deviceId = 0)
+		public Task ExpandDataDevice(DeviceId deviceId, uint pageCount)
 		{
-			var request = new ExpandDataDeviceRequest(pageCount, deviceId);
+			var request = new ExpandDataDeviceRequest(deviceId, pageCount);
 			if (!ExpandDataDevicePort.Post(request))
 			{
 				throw new BufferDeviceShuttingDownException();
@@ -464,7 +432,7 @@ namespace Zen.Trunk.Storage.Data
 			return request.Task;
 		}
 
-		public Task<uint> AddIndex(AddTableIndexParameters indexParams)
+		public Task<ObjectId> AddIndex(AddTableIndexParameters indexParams)
 		{
 			var request = new AddTableIndexRequest(indexParams);
 			if (!AddTableIndexPort.Post(request))
@@ -527,7 +495,7 @@ namespace Zen.Trunk.Storage.Data
 					// Walk the list of devices recorded in the root page
 					foreach (var deviceInfo in rootPage.Devices)
 					{
-						await AddDataDevice(new AddDataDeviceParameters(deviceInfo.Name, deviceInfo.PathName));
+						await AddDataDevice(new AddDataDeviceParameters(deviceInfo.Name, deviceInfo.PathName, deviceInfo.Id));
 					}
 				}
 			}
@@ -542,7 +510,7 @@ namespace Zen.Trunk.Storage.Data
 		protected override async Task OnClose()
 		{
 			// Close secondary distribution page devices
-			foreach (DistributionPageDevice device in _devices.Values)
+			foreach (var device in _devices.Values)
 			{
 				await device.CloseAsync().ConfigureAwait(false);
 			}
@@ -595,7 +563,7 @@ namespace Zen.Trunk.Storage.Data
 
 			// Setup ports
 			_taskInterleave = new ConcurrentExclusiveSchedulerPair();
-			_addDataDevicePort = new TransactionContextActionBlock<AddDataDeviceRequest, ushort>(
+			_addDataDevicePort = new TransactionContextActionBlock<AddDataDeviceRequest, DeviceId>(
 				(request) => AddDataDeviceHandler(request),
 				new ExecutionDataflowBlockOptions
 				{
@@ -649,7 +617,7 @@ namespace Zen.Trunk.Storage.Data
 				{
 					TaskScheduler = _taskInterleave.ExclusiveScheduler
 				});
-			_addTableIndexPort = new TransactionContextActionBlock<AddTableIndexRequest, uint>(
+			_addTableIndexPort = new TransactionContextActionBlock<AddTableIndexRequest, ObjectId>(
 				(request) => AddTableIndexHandler(request),
 				new ExecutionDataflowBlockOptions
 				{
@@ -657,7 +625,7 @@ namespace Zen.Trunk.Storage.Data
 				});
 		}
 
-		private DistributionPageDevice GetDistributionPageDevice(ushort deviceId)
+		private DistributionPageDevice GetDistributionPageDevice(DeviceId deviceId)
 		{
 			DistributionPageDevice pageDevice = null;
 			if (deviceId == _primaryDevice.DeviceId)
@@ -671,15 +639,15 @@ namespace Zen.Trunk.Storage.Data
 			return pageDevice;
 		}
 
-		private List<ushort> GetDistributionPageDeviceKeys()
+		private List<DeviceId> GetDistributionPageDeviceKeys()
 		{
-			var deviceIds = new List<ushort>();
+			var deviceIds = new List<DeviceId>();
 			deviceIds.Add(_primaryDevice.DeviceId);
 			deviceIds.AddRange(_devices.Keys);
 			return deviceIds;
 		}
 
-		private async Task<ushort> AddDataDeviceHandler(AddDataDeviceRequest request)
+		private async Task<DeviceId> AddDataDeviceHandler(AddDataDeviceRequest request)
 		{
 			Tracer.WriteVerboseLine("AddDataDevice");
 
@@ -688,11 +656,7 @@ namespace Zen.Trunk.Storage.Data
 			// When the dist device is opened
 
 			// Determine whether this is the first device in a file-group
-			var priFileGroupDevice = false;
-			if (_devices.Count == 0)
-			{
-				priFileGroupDevice = true;
-			}
+			bool priFileGroupDevice = _devices.Count == 0;
 
 			// Determine file-extension for DBF
 			var extn = ".sdf";
@@ -732,10 +696,10 @@ namespace Zen.Trunk.Storage.Data
 			var pageBufferDevice = GetService<CachingPageBufferDevice>();
 
 			// Add buffer device
-			ushort deviceId;
+			DeviceId deviceId;
 			if (priFileGroupDevice && IsPrimaryFileGroup)
 			{
-				deviceId = await pageBufferDevice.AddDeviceAsync("MASTER", fullPathName, 1, allocationPages).ConfigureAwait(false);
+				deviceId = await pageBufferDevice.AddDeviceAsync("MASTER", fullPathName, DeviceId.Primary, allocationPages).ConfigureAwait(false);
 			}
 			else
 			{
@@ -959,7 +923,7 @@ namespace Zen.Trunk.Storage.Data
 			return true;
 		}
 
-		private async Task ExpandDevice(ushort deviceId, RootPage rootPage, uint growthPages)
+		private async Task ExpandDevice(DeviceId deviceId, RootPage rootPage, uint growthPages)
 		{
 			// Check device can be expanded
 			if (!rootPage.IsExpandable)
@@ -1060,7 +1024,7 @@ namespace Zen.Trunk.Storage.Data
 				//	excluding all non-expandable devices
 				var deviceIds = GetDistributionPageDeviceKeys();
 				var rootPages =
-					new Dictionary<ushort, RootPage>();
+					new Dictionary<DeviceId, RootPage>();
 				foreach (var deviceId in deviceIds)
 				{
 					// Get distribution page device
@@ -1116,7 +1080,7 @@ namespace Zen.Trunk.Storage.Data
 					}
 					else if (failedDueToFull)
 					{
-						throw new FileGroupFullException(0, FileGroupId, FileGroupName, "Failed to expand file-group device; device is full.");
+						throw new FileGroupFullException(DeviceId.Zero, FileGroupId, FileGroupName, "Failed to expand file-group device; device is full.");
 					}
 					else
 					{
@@ -1138,8 +1102,7 @@ namespace Zen.Trunk.Storage.Data
 			foreach (var deviceId in deviceIds)
 			{
 				// Get distribution page device
-				var pageDevice =
-					GetDistributionPageDevice(deviceId);
+				var pageDevice = GetDistributionPageDevice(deviceId);
 
 				try
 				{
@@ -1155,7 +1118,7 @@ namespace Zen.Trunk.Storage.Data
 			}
 
 			// File group must be full if we reach this point!
-			throw new FileGroupFullException(0, FileGroupId, null);
+			throw new FileGroupFullException(DeviceId.Zero, FileGroupId, null);
 		}
 
 		private async Task<ObjectId> AddTableHandler(AddTableRequest request)
@@ -1216,9 +1179,9 @@ namespace Zen.Trunk.Storage.Data
 			return objectId;
 		}
 
-		private async Task<uint> AddTableIndexHandler(AddTableIndexRequest request)
+		private async Task<ObjectId> AddTableIndexHandler(AddTableIndexRequest request)
 		{
-			uint ObjectId = 0;
+			var objectId = ObjectId.Zero;
 
 		    var table = new DatabaseTable(this)
 		    {
@@ -1228,7 +1191,7 @@ namespace Zen.Trunk.Storage.Data
 		    };
 		    //table.AddIndex
 
-			return ObjectId;
+			return objectId;
 		}
 		#endregion
 	}
