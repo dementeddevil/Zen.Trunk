@@ -11,7 +11,7 @@
 	public abstract class MountableDevice : TraceableObject, IMountableDevice, IServiceProvider, IDisposable
 	{
 		#region Private Fields
-		private IServiceProvider _parentServiceProvider;
+		private readonly IServiceProvider _parentServiceProvider;
 		private int _deviceState = (int)MountableDeviceState.Closed;
 		private bool _disposed;
 		#endregion
@@ -49,14 +49,9 @@
 		/// Gets the state of the device.
 		/// </summary>
 		/// <value>The state of the device.</value>
-		public MountableDeviceState DeviceState
-		{
-			get
-			{
-				return (MountableDeviceState)_deviceState;
-			}
-		}
-		#endregion
+		public MountableDeviceState DeviceState => (MountableDeviceState)_deviceState;
+
+	    #endregion
 
 		#region Public Methods
 		/// <summary>

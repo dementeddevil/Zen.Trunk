@@ -21,15 +21,9 @@ namespace Zen.Trunk.Storage
 			_buffer = buffer;
 		}
 
-		public TBufferType Buffer
-		{
-			get
-			{
-				return _buffer;
-			}
-		}
+		public TBufferType Buffer => _buffer;
 
-		public void Dispose()
+	    public void Dispose()
 		{
 			DisposeManagedObjects();
 		}

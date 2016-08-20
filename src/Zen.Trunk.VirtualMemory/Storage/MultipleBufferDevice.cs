@@ -12,9 +12,9 @@
 		#region Private Types
 		private class BufferDeviceInfo : IBufferDeviceInfo
 		{
-			private ushort _deviceId;
-			private string _name;
-			private uint _pageCount;
+			private readonly ushort _deviceId;
+			private readonly string _name;
+			private readonly uint _pageCount;
 
 			public BufferDeviceInfo(ushort deviceId, ISingleBufferDevice device)
 			{
@@ -23,36 +23,18 @@
 				_pageCount = device.PageCount;
 			}
 
-			public ushort DeviceId
-			{
-				get
-				{
-					return _deviceId;
-				}
-			}
+			public ushort DeviceId => _deviceId;
 
-			public string Name
-			{
-				get
-				{
-					return _name;
-				}
-			}
+		    public string Name => _name;
 
-			public uint PageCount
-			{
-				get
-				{
-					return _pageCount;
-				}
-			}
+		    public uint PageCount => _pageCount;
 		}
 		#endregion
 
 		#region Private Fields
-		private IVirtualBufferFactory _bufferFactory;
-		private bool _scatterGatherIoEnabled;
-		private ConcurrentDictionary<ushort, ISingleBufferDevice> _devices =
+		private readonly IVirtualBufferFactory _bufferFactory;
+		private readonly bool _scatterGatherIoEnabled;
+		private readonly ConcurrentDictionary<ushort, ISingleBufferDevice> _devices =
 			new ConcurrentDictionary<ushort, ISingleBufferDevice>();
 		#endregion
 
@@ -74,20 +56,15 @@
 		/// <value>
 		/// The buffer factory.
 		/// </value>
-		public override IVirtualBufferFactory BufferFactory
-		{
-			get
-			{
-				return _bufferFactory;
-			}
-		}
-		#endregion
+		public override IVirtualBufferFactory BufferFactory => _bufferFactory;
+
+	    #endregion
 
 		#region Public Methods
 		public async Task<ushort> AddDeviceAsync(string name, string pathName, ushort deviceId = 0, uint createPageCount = 0)
 		{
 			// Determine whether this is a primary device add
-			bool isPrimary = false;
+			var isPrimary = false;
 			if (_devices.Count == 0)
 			{
 				isPrimary = true;
@@ -177,13 +154,13 @@
 			return device.ExpandDevice(pageCount);
 		}
 
-		public Task LoadBufferAsync(DevicePageId pageId, VirtualBuffer buffer)
+		public Task LoadBufferAsync(VirtualPageId pageId, VirtualBuffer buffer)
 		{
 			var device = GetDevice(pageId.DeviceId);
 			return device.LoadBufferAsync(pageId.PhysicalPageId, buffer);
 		}
 
-		public Task SaveBufferAsync(DevicePageId pageId, VirtualBuffer buffer)
+		public Task SaveBufferAsync(VirtualPageId pageId, VirtualBuffer buffer)
 		{
 			var device = GetDevice(pageId.DeviceId);
 			return device.SaveBufferAsync(pageId.PhysicalPageId, buffer);
@@ -191,18 +168,18 @@
 
 		public async Task FlushBuffersAsync(bool flushReads, bool flushWrites, params ushort[] deviceIds)
 		{
-			List<Task> subTasks = new List<Task>();
+			var subTasks = new List<Task>();
 
 			if (deviceIds == null || deviceIds.Length == 0)
 			{
-				foreach (ISingleBufferDevice device in _devices.Values)
+				foreach (var device in _devices.Values)
 				{
 					subTasks.Add(device.FlushBuffersAsync(flushReads, flushWrites));
 				}
 			}
 			else
 			{
-				foreach (ushort deviceId in deviceIds)
+				foreach (var deviceId in deviceIds)
 				{
 					var device = GetDevice(deviceId);
 					subTasks.Add(device.FlushBuffersAsync(flushReads, flushWrites));
@@ -217,7 +194,7 @@
 
 		public IEnumerable<IBufferDeviceInfo> GetDeviceInfo()
 		{
-			List<IBufferDeviceInfo> result = new List<IBufferDeviceInfo>();
+			var result = new List<IBufferDeviceInfo>();
 			foreach (var entry in _devices.ToArray())
 			{
 				result.Add(new BufferDeviceInfo(entry.Key, entry.Value));
@@ -235,7 +212,7 @@
 		#region Protected Methods
 		protected override Task OnOpen()
 		{
-			List<Task> subTasks = new List<Task>();
+			var subTasks = new List<Task>();
 			var result = Parallel.ForEach(
 				_devices.Values,
 				new ParallelOptions
@@ -275,7 +252,7 @@
 
 		protected override Task OnClose()
 		{
-			List<Task> subTasks = new List<Task>();
+			var subTasks = new List<Task>();
 			var result = Parallel.ForEach(
 				_devices.Values,
 				new ParallelOptions

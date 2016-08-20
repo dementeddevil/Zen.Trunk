@@ -141,13 +141,13 @@
 
 		private static class PageBufferStateFactory
 		{
-			private static Lazy<State> _freeState = new Lazy<State>(() => new FreeState(), true);
-			private static Lazy<State> _loadState = new Lazy<State>(() => new LoadState(), true);
-			private static Lazy<State> _pendingLoadState = new Lazy<State>(() => new PendingLoadState(), true);
-			private static Lazy<State> _allocatedState = new Lazy<State>(() => new AllocatedState(), true);
-			private static Lazy<State> _dirtyState = new Lazy<State>(() => new DirtyState(), true);
-			private static Lazy<State> _logState = new Lazy<State>(() => new LogState(), true);
-			private static Lazy<State> _allocatedWritableState = new Lazy<State>(() => new AllocatedWritableState(), true);
+			private static readonly Lazy<State> _freeState = new Lazy<State>(() => new FreeState(), true);
+			private static readonly Lazy<State> _loadState = new Lazy<State>(() => new LoadState(), true);
+			private static readonly Lazy<State> _pendingLoadState = new Lazy<State>(() => new PendingLoadState(), true);
+			private static readonly Lazy<State> _allocatedState = new Lazy<State>(() => new AllocatedState(), true);
+			private static readonly Lazy<State> _dirtyState = new Lazy<State>(() => new DirtyState(), true);
+			private static readonly Lazy<State> _logState = new Lazy<State>(() => new LogState(), true);
+			private static readonly Lazy<State> _allocatedWritableState = new Lazy<State>(() => new AllocatedWritableState(), true);
 
 			public static State GetState(PageBufferStateType state)
 			{
@@ -181,14 +181,14 @@
 			}
 
 			public virtual Task Init(
-				PageBuffer instance, DevicePageId pageId, LogicalPageId logicalId)
+				PageBuffer instance, VirtualPageId pageId, LogicalPageId logicalId)
 			{
 				InvalidState();
 				return CompletedTask.Default;
 			}
 
 			public virtual Task RequestLoad(
-				PageBuffer instance, DevicePageId pageId, LogicalPageId logicalId)
+				PageBuffer instance, VirtualPageId pageId, LogicalPageId logicalId)
 			{
 				InvalidState();
 				return CompletedTask.Default;
@@ -230,21 +230,15 @@
 
 		private class FreeState : PageBufferState
 		{
-			public override PageBufferStateType StateType
-			{
-				get
-				{
-					return PageBufferStateType.Free;
-				}
-			}
+			public override PageBufferStateType StateType => PageBufferStateType.Free;
 
-			public override Task SetFree(StatefulBuffer instance)
+		    public override Task SetFree(StatefulBuffer instance)
 			{
 				return CompletedTask.Default;
 			}
 
 			public override Task Init(
-				PageBuffer instance, DevicePageId pageId, LogicalPageId logicalId)
+				PageBuffer instance, VirtualPageId pageId, LogicalPageId logicalId)
 			{
 				instance.PageId = pageId;
 				instance.LogicalId = logicalId;
@@ -255,7 +249,7 @@
 				return instance.SwitchState(PageBufferStateType.Allocated);
 			}
 
-			public override Task RequestLoad(PageBuffer instance, DevicePageId pageId, LogicalPageId logicalId)
+			public override Task RequestLoad(PageBuffer instance, VirtualPageId pageId, LogicalPageId logicalId)
 			{
 				instance.PageId = pageId;
 				instance.LogicalId = logicalId;
@@ -267,15 +261,9 @@
 
 		private class PendingLoadState : PageBufferState
 		{
-			public override PageBufferStateType StateType
-			{
-				get
-				{
-					return PageBufferStateType.PendingLoad;
-				}
-			}
+			public override PageBufferStateType StateType => PageBufferStateType.PendingLoad;
 
-			public override Task Load(PageBuffer instance)
+		    public override Task Load(PageBuffer instance)
 			{
 				// Allocate the buffer if required and switch state
 				instance.EnsureNewBufferAllocated();
@@ -285,17 +273,11 @@
 
 		private class LoadState : PageBufferState
 		{
-			public override PageBufferStateType StateType
-			{
-				get
-				{
-					return PageBufferStateType.Load;
-				}
-			}
+			public override PageBufferStateType StateType => PageBufferStateType.Load;
 
-			public override async Task OnEnterState(StatefulBuffer instance, State lastState, object userState)
+		    public override async Task OnEnterState(StatefulBuffer instance, State lastState, object userState)
 			{
-				PageBuffer pageBuffer = (PageBuffer)instance;
+				var pageBuffer = (PageBuffer)instance;
 				await pageBuffer
 					.DoLoad()
 					.ConfigureAwait(false);
@@ -308,15 +290,9 @@
 
 		private class AllocatedState : PageBufferState
 		{
-			public override PageBufferStateType StateType
-			{
-				get
-				{
-					return PageBufferStateType.Allocated;
-				}
-			}
+			public override PageBufferStateType StateType => PageBufferStateType.Allocated;
 
-			public override Task SetFree(StatefulBuffer instance)
+		    public override Task SetFree(StatefulBuffer instance)
 			{
 				return ((PageBuffer)instance).SwitchState(PageBufferStateType.Free);
 			}
@@ -330,15 +306,9 @@
 
 		private class DirtyState : PageBufferState
 		{
-			public override PageBufferStateType StateType
-			{
-				get
-				{
-					return PageBufferStateType.Dirty;
-				}
-			}
+			public override PageBufferStateType StateType => PageBufferStateType.Dirty;
 
-			public override Task SetDirty(StatefulBuffer instance)
+		    public override Task SetDirty(StatefulBuffer instance)
 			{
 				return CompletedTask.Default;
 			}
@@ -372,15 +342,9 @@
 
 		private class LogState : PageBufferState
 		{
-			public override PageBufferStateType StateType
-			{
-				get
-				{
-					return PageBufferStateType.Log;
-				}
-			}
+			public override PageBufferStateType StateType => PageBufferStateType.Log;
 
-			public override async Task OnEnterState(StatefulBuffer instance, State lastState, object userState)
+		    public override async Task OnEnterState(StatefulBuffer instance, State lastState, object userState)
 			{
 				// Must have transaction context
 				if (TrunkTransactionContext.Current == null)
@@ -388,8 +352,8 @@
 					throw new InvalidOperationException("No internal transaction context.");
 				}
 
-				PageBuffer pageBufferInstance = (PageBuffer)instance;
-				long timestamp = (long)userState;
+				var pageBufferInstance = (PageBuffer)instance;
+				var timestamp = (long)userState;
 
 				// Create transaction log entry
 				TransactionLogEntry entry;
@@ -397,14 +361,14 @@
 				{
 					entry = new PageImageCreateLogEntry(
 						pageBufferInstance._newBuffer,
-						instance.PageId.VirtualPageId,
+						instance.PageId.Value,
 						timestamp);
 				}
 				else if (pageBufferInstance.IsDeleted)
 				{
 					entry = new PageImageDeleteLogEntry(
 						pageBufferInstance._oldBuffer,
-						instance.PageId.VirtualPageId,
+						instance.PageId.Value,
 						timestamp);
 				}
 				else
@@ -412,7 +376,7 @@
 					entry = new PageImageUpdateLogEntry(
 						pageBufferInstance._oldBuffer,
 						pageBufferInstance._newBuffer,
-						instance.PageId.VirtualPageId,
+						instance.PageId.Value,
 						timestamp);
 				}
 
@@ -447,18 +411,12 @@
 
 		private class AllocatedWritableState : PageBufferState
 		{
-			public override PageBufferStateType StateType
-			{
-				get
-				{
-					return PageBufferStateType.AllocatedWritable;
-				}
-			}
+			public override PageBufferStateType StateType => PageBufferStateType.AllocatedWritable;
 
-			public override Task Save(PageBuffer instance)
+		    public override Task Save(PageBuffer instance)
 			{
 				// Alias the buffer to save and invalidate
-				VirtualBuffer buffer = instance._oldBuffer;
+				var buffer = instance._oldBuffer;
 				instance._oldBuffer = null;
 
 				// Issue save on aliased buffer - do not wait
@@ -477,8 +435,8 @@
 
 		private class StateChangeTrigger
 		{
-			private PageBufferStateType[] _triggers;
-			private TaskCompletionSource<object> _task;
+			private readonly PageBufferStateType[] _triggers;
+			private readonly TaskCompletionSource<object> _task;
 
 			public StateChangeTrigger(PageBufferStateType[] triggers, object state)
 			{
@@ -493,17 +451,11 @@
 				private set;
 			}
 
-			public Task Task
-			{
-				get
-				{
-					return _task.Task;
-				}
-			}
+			public Task Task => _task.Task;
 
-			public bool CompleteTrigger(PageBufferStateType state)
+		    public bool CompleteTrigger(PageBufferStateType state)
 			{
-				bool result = false;
+				var result = false;
 				if (_triggers.Any((item) => item == state))
 				{
 					_task.TrySetResult(null);
@@ -515,12 +467,12 @@
 		#endregion
 
 		#region Private Fields
-		private IBufferDevice _bufferDevice;
+		private readonly IBufferDevice _bufferDevice;
 		private VirtualBuffer _oldBuffer;
 		private VirtualBuffer _newBuffer;
 		private uint _currentTransactionId;
 		private long _timestamp;
-		private ConcurrentDictionary<Guid, StateChangeTrigger> _triggers =
+		private readonly ConcurrentDictionary<Guid, StateChangeTrigger> _triggers =
 			new ConcurrentDictionary<Guid, StateChangeTrigger>();
 		#endregion
 
@@ -568,52 +520,28 @@
 		/// <value>
 		/// <c>true</c> if this buffer has a write pending; otherwise, <c>false</c>.
 		/// </value>
-		public bool IsWritePending
-		{
-			get
-			{
-				return CurrentStateType == PageBufferStateType.AllocatedWritable;
-			}
-		}
+		public bool IsWritePending => CurrentStateType == PageBufferStateType.AllocatedWritable;
 
-		/// <summary>
+	    /// <summary>
 		/// Gets a boolean value indicating whether this buffer has a read
 		/// pending.
 		/// </summary>
 		/// <value>
 		/// <c>true</c> if this buffer has a read pending; otherwise, <c>false</c>.
 		/// </value>
-		public bool IsReadPending
-		{
-			get
-			{
-				return CurrentStateType == PageBufferStateType.PendingLoad;
-			}
-		}
+		public bool IsReadPending => CurrentStateType == PageBufferStateType.PendingLoad;
 
-		public LogicalPageId LogicalId
+	    public LogicalPageId LogicalId
 		{
 			get;
 			internal set;
 		}
 
-		public override int BufferSize
-		{
-			get
-			{
-				return _bufferDevice.BufferFactory.BufferSize;
-			}
-		}
+		public override int BufferSize => _bufferDevice.BufferFactory.BufferSize;
 
-		public override bool CanFree
-		{
-			get
-			{
-				return CurrentStateType == PageBufferStateType.Allocated;
-			}
-		}
+	    public override bool CanFree => CurrentStateType == PageBufferStateType.Allocated;
 
-		public long Timestamp
+	    public long Timestamp
 		{
 			get
 			{
@@ -627,22 +555,11 @@
 		#endregion
 
 		#region Private Properties
-		private PageBufferStateType CurrentStateType
-		{
-			get
-			{
-				return CurrentPageBufferState.StateType;
-			}
-		}
+		private PageBufferStateType CurrentStateType => CurrentPageBufferState.StateType;
 
-		private PageBufferState CurrentPageBufferState
-		{
-			get
-			{
-				return (PageBufferState)CurrentState;
-			}
-		}
-		#endregion
+	    private PageBufferState CurrentPageBufferState => (PageBufferState)CurrentState;
+
+	    #endregion
 
 		#region Public Methods
 		public void EnlistInTransaction()
@@ -654,19 +571,19 @@
 					"Page buffer modification must occur within a transaction.");
 			}
 
-			ITrunkTransactionPrivate priv = TrunkTransactionContext.Current as ITrunkTransactionPrivate;
+			var priv = TrunkTransactionContext.Current as ITrunkTransactionPrivate;
 			if (priv != null)
 			{
 				priv.Enlist(this);
 			}
 		}
 
-		public Task InitAsync(DevicePageId pageId, LogicalPageId logicalId)
+		public Task InitAsync(VirtualPageId pageId, LogicalPageId logicalId)
 		{
 			return CurrentPageBufferState.Init(this, pageId, logicalId);
 		}
 
-		public Task RequestLoadAsync(DevicePageId pageId, LogicalPageId logicalId)
+		public Task RequestLoadAsync(VirtualPageId pageId, LogicalPageId logicalId)
 		{
 			return CurrentPageBufferState.RequestLoad(this, pageId, logicalId);
 		}
@@ -698,7 +615,7 @@
 
 			// Get transaction ID
 			uint transactionId = 0;
-			bool isReadUncommittedTxn = false;
+			var isReadUncommittedTxn = false;
 			if (TrunkTransactionContext.Current != null)
 			{
 				transactionId = TrunkTransactionContext.Current.TransactionId;
@@ -837,14 +754,14 @@
 				return CompletedTask.Default;
 			}
 
-			StateChangeTrigger trigger = new StateChangeTrigger(states, null);
+			var trigger = new StateChangeTrigger(states, null);
 			_triggers.TryAdd(trigger.Id, trigger);
 			return trigger.Task;
 		}
 
 		private void RaiseStateTriggers(PageBufferStateType state)
 		{
-			foreach (StateChangeTrigger trigger in _triggers.Values.ToArray())
+			foreach (var trigger in _triggers.Values.ToArray())
 			{
 				if (trigger.CompleteTrigger(state))
 				{

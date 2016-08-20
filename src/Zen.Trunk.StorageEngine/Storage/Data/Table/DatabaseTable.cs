@@ -18,7 +18,7 @@
 		public class ColumnCollection : Collection<TableColumnInfo>
 		{
 			#region Private Fields
-			private DatabaseTable _owner;
+			private readonly DatabaseTable _owner;
 			private bool _skipInsertChecks;
 			#endregion
 
@@ -64,7 +64,7 @@
 					{
 						throw new ArgumentException("Table can only have a single identity column.");
 					}
-					foreach (TableColumnInfo tableColumn in this)
+					foreach (var tableColumn in this)
 					{
 						// Check column name
 						if (string.Compare(tableColumn.Name, item.Name, true) == 0)
@@ -78,8 +78,8 @@
 					}
 
 					// Check column space requirement
-					InclusiveRange columnSize = item.DataSize;
-					InclusiveRange newRowSize = _owner._rowSize + columnSize;
+					var columnSize = item.DataSize;
+					var newRowSize = _owner._rowSize + columnSize;
 					if (newRowSize.Min > 7900)
 					{
 						throw new ArgumentException("Table row size is above maximum allowed.");
@@ -91,14 +91,14 @@
 					// Add constraint
 					if (item.DataType == TableColumnDataType.Timestamp)
 					{
-						RowConstraint constraint = new RowConstraint();
+						var constraint = new RowConstraint();
 						constraint.ColumnId = item.Id;
 						constraint.ConstraintType = RowConstraintType.Timestamp;
 						_owner.AddConstraint(constraint);
 					}
 					if (item.AutoIncrement)
 					{
-						RowConstraint constraint = new RowConstraint();
+						var constraint = new RowConstraint();
 						constraint.ColumnId = item.Id;
 						constraint.ConstraintType = RowConstraintType.Identity;
 						_owner.AddConstraint(constraint);
@@ -146,8 +146,8 @@
 		private class ConstraintCollection : Collection<RowConstraint>
 		{
 			#region Private Fields
-			private DatabaseTable _owner;
-			private Dictionary<ushort, List<RowConstraint>> _constraints;
+			private readonly DatabaseTable _owner;
+			private readonly Dictionary<ushort, List<RowConstraint>> _constraints;
 			private RowConstraint _identityConstraint;
 			private RowConstraint _timestampConstraint;
 			#endregion
@@ -161,32 +161,21 @@
 			#endregion
 
 			#region Public Properties
-			public bool HasIdentity
-			{
-				get
-				{
-					return (_identityConstraint != null);
-				}
-			}
+			public bool HasIdentity => (_identityConstraint != null);
 
-			public bool HasTimestamp
-			{
-				get
-				{
-					return (_timestampConstraint != null);
-				}
-			}
-			#endregion
+		    public bool HasTimestamp => (_timestampConstraint != null);
+
+		    #endregion
 
 			#region Public Methods
 			public void ProcessConstraints(object[] rowData, bool forInsert)
 			{
-				for (int index = 0; index < _owner.Columns.Count; ++index)
+				for (var index = 0; index < _owner.Columns.Count; ++index)
 				{
-					TableColumnInfo column = _owner.Columns[index];
+					var column = _owner.Columns[index];
 					if (_constraints.ContainsKey(column.Id))
 					{
-						foreach (RowConstraint constraint in _constraints[(byte)index])
+						foreach (var constraint in _constraints[(byte)index])
 						{
 							rowData[index] = ExecuteConstraint(rowData[index],
 								column, constraint, forInsert);
@@ -199,7 +188,7 @@
 				TableColumnInfo column, RowConstraint constraint,
 				bool forInsert)
 			{
-				object result = data;
+				var result = data;
 				switch (constraint.ConstraintType)
 				{
 					case RowConstraintType.Identity:
@@ -223,7 +212,7 @@
 			{
 				if (_constraints.ContainsKey(columnId))
 				{
-					foreach (RowConstraint constraint in _constraints[columnId])
+					foreach (var constraint in _constraints[columnId])
 					{
 						// Cleanup identity and timestamp if among the
 						//	deleted constraints
@@ -237,7 +226,7 @@
 						}
 
 						// Remove from linear collection
-						int index = base.IndexOf(constraint);
+						var index = base.IndexOf(constraint);
 						base.RemoveItem(index);
 					}
 					_constraints.Remove(columnId);
@@ -274,7 +263,7 @@
 					case RowConstraintType.Default:
 						if (_constraints.ContainsKey(item.ColumnId))
 						{
-							foreach (RowConstraint test in _constraints[item.ColumnId])
+							foreach (var test in _constraints[item.ColumnId])
 							{
 								if (test.ConstraintType == RowConstraintType.Default)
 								{
@@ -287,7 +276,7 @@
 					case RowConstraintType.Check:
 						if (_constraints.ContainsKey(item.ColumnId))
 						{
-							foreach (RowConstraint test in _constraints[item.ColumnId])
+							foreach (var test in _constraints[item.ColumnId])
 							{
 								if (test.ConstraintType == RowConstraintType.Check)
 								{
@@ -317,7 +306,7 @@
 				VerifyColumnsUpdatable();
 
 				// Remove from constraint lookup zone
-				RowConstraint constraint = base[index];
+				var constraint = base[index];
 				if (_constraints.ContainsKey(constraint.ColumnId))
 				{
 					if (_identityConstraint == constraint)
@@ -358,7 +347,7 @@
 		#endregion
 
 		#region Private Fields
-		private FileGroupDevice _owner;
+		private readonly FileGroupDevice _owner;
 		private byte _nextColumnId = 1;
 
 		private bool _canUpdateSchema;
@@ -367,13 +356,13 @@
 		private ConstraintCollection _updatedConstraints;
 		private ReadOnlyCollection<RowConstraint> _constraints;
 
-		private uint _objectId;
+		private ObjectId _objectId;
 		private TimeSpan _lockTimeout;
 		private InclusiveRange _rowSize;
 		private ushort _rowsPerPage;
-		private TableIndexManager _indexManager;
+		private readonly TableIndexManager _indexManager;
 
-		private List<TableSchemaPage> _tableDef;
+		private readonly List<TableSchemaPage> _tableDef;
 		#endregion
 
 		#region Public Constructors
@@ -420,7 +409,7 @@
 		/// <summary>
 		/// Gets the table object ID.
 		/// </summary>
-		public uint ObjectId
+		public ObjectId ObjectId
 		{
 			get
 			{
@@ -474,7 +463,7 @@
 		/// <value>
 		/// The schema first logical identifier.
 		/// </value>
-		public ulong SchemaFirstLogicalId
+		public LogicalPageId SchemaFirstLogicalId
 		{
 			get;
 			internal set;
@@ -486,7 +475,7 @@
 		/// <value>
 		/// The schema last logical identifier.
 		/// </value>
-		public ulong SchemaLastLogicalId
+		public LogicalPageId SchemaLastLogicalId
 		{
 			get;
 			internal set;
@@ -504,7 +493,7 @@
 		/// <exception cref="LockTimeoutException">
 		/// Thrown if locking the table schema for modification fails due to timeout.
 		/// </exception>
-		public ulong DataFirstLogicalId
+		public LogicalPageId DataFirstLogicalId
 		{
 			get
 			{
@@ -533,7 +522,7 @@
 		/// <exception cref="LockTimeoutException">
 		/// Thrown if locking the table schema for modification fails due to timeout.
 		/// </exception>
-		public ulong DataLastLogicalId
+		public LogicalPageId DataLastLogicalId
 		{
 			get
 			{
@@ -593,15 +582,9 @@
 		/// <value>
 		///   <c>true</c> if [has data]; otherwise, <c>false</c>.
 		/// </value>
-		public bool HasData
-		{
-			get
-			{
-				return DataFirstLogicalId != 0;
-			}
-		}
+		public bool HasData => DataFirstLogicalId.Value != 0;
 
-		/// <summary>
+	    /// <summary>
 		/// Gets the table minimum row size.
 		/// </summary>
 		public ushort MinRowSize
@@ -683,24 +666,14 @@
 		/// Gets the owner filegroup.
 		/// </summary>
 		/// <value>The database.</value>
-		public FileGroupDevice Owner
-		{
-			get
-			{
-				return _owner;
-			}
-		}
-		#endregion
+		public FileGroupDevice Owner => _owner;
+
+	    #endregion
 
 		#region Internal Properties
-		internal IDatabaseLockManager LockingManager
-		{
-			get
-			{
-				return (IDatabaseLockManager)((IServiceProvider)_owner).GetService(typeof(IDatabaseLockManager));
-			}
-		}
-		#endregion
+		internal IDatabaseLockManager LockingManager => (IDatabaseLockManager)((IServiceProvider)_owner).GetService(typeof(IDatabaseLockManager));
+
+	    #endregion
 
 		#region Public Methods
 		/// <summary>
@@ -708,7 +681,7 @@
 		/// </summary>
 		/// <param name="firstLogicalId">The first logical id.</param>
 		/// <returns></returns>
-		public async Task Load(uint firstLogicalId)
+		public async Task Load(LogicalPageId firstLogicalId)
 		{
 			SchemaFirstLogicalId = firstLogicalId;
 			IsLoading = true;
@@ -718,9 +691,9 @@
 				IsHeap = true;
 
 				// Keep loading schema pages (these are linked)
-				ulong logicalId = firstLogicalId;
-				bool firstPage = true;
-				while (logicalId != 0)
+				var logicalId = firstLogicalId;
+				var firstPage = true;
+				while (logicalId != LogicalPageId.Zero)
 				{
 					// Prepare page object and load
 					TableSchemaPage page;
@@ -773,7 +746,7 @@
 			}
 
 			// Get exclusive schema lock
-			IDatabaseLockManager lm = LockingManager;
+			var lm = LockingManager;
 			lm.LockSchema(ObjectId, SchemaLockType.SchemaModification,
 				LockTimeout);
 
@@ -785,14 +758,14 @@
 			{
 				if (_columns != null)
 				{
-					foreach (TableColumnInfo column in _columns)
+					foreach (var column in _columns)
 					{
 						_updatedColumns.Add(column);
 					}
 				}
 				if (_constraints != null)
 				{
-					foreach (RowConstraint constraint in _constraints)
+					foreach (var constraint in _constraints)
 					{
 						_updatedConstraints.Add(constraint);
 					}
@@ -854,7 +827,7 @@
 				throw new InvalidOperationException();
 			}
 
-			TableColumnInfo tableColumn = _updatedColumns[index];
+			var tableColumn = _updatedColumns[index];
 			_updatedColumns.RemoveAt(index);
 			UpdateRowSize();
 			_updatedConstraints.RemoveAllConstraints(tableColumn.Id);
@@ -878,7 +851,7 @@
 				throw new InvalidOperationException();
 			}
 
-			for (int index = 0; index < _updatedColumns.Count; ++index)
+			for (var index = 0; index < _updatedColumns.Count; ++index)
 			{
 				if (string.Compare(_updatedColumns[index].Name, name, true) == 0)
 				{
@@ -948,7 +921,7 @@
 			}
 
 			_canUpdateSchema = false;
-			IDatabaseLockManager lm = LockingManager;
+			var lm = LockingManager;
 			if (IsNewTable)
 			{
 				await CreateTableDefinition();
@@ -957,7 +930,7 @@
 			{
 				if (_columns != null)
 				{
-					bool needToRewriteTableData = false;
+					var needToRewriteTableData = false;
 
 					// Check whether columns or constraints have changed (probably)
 					// Check whether we need to rewrite table data pages (probably)
@@ -981,7 +954,7 @@
 						_tableDef[0].ObjectLock = ObjectLockType.Exclusive;
 
 						// Rewrite table data based on new column layout
-						RewriteTableRequest request =
+						var request =
 							new RewriteTableRequest(_columns, _updatedColumns, _updatedConstraints);
 						await RewriteTableHandler(request);
 					}
@@ -991,10 +964,10 @@
 					// This is a new table so we need to create the table 
 					//	definition pages now
 					TableSchemaPage initialPage = null, rootPage = null, prevRootPage = null;
-					bool firstPage = true;
-					foreach (TableColumnInfo column in _updatedColumns)
+					var firstPage = true;
+					foreach (var column in _updatedColumns)
 					{
-						bool needRetry = false;
+						var needRetry = false;
 						while (true)
 						{
 							if (rootPage == null)
@@ -1027,9 +1000,9 @@
 							}
 						}
 					}
-					foreach (RowConstraint constraint in _updatedConstraints)
+					foreach (var constraint in _updatedConstraints)
 					{
-						bool needRetry = false;
+						var needRetry = false;
 						while (true)
 						{
 							if (rootPage == null)
@@ -1082,7 +1055,7 @@
 		{
 			_rowSize.Min = 0;
 			_rowSize.Max = 0;
-			foreach (TableColumnInfo column in Columns)
+			foreach (var column in Columns)
 			{
 				_rowSize.Min += column.MinDataSize;
 				_rowSize.Max += column.MaxDataSize;
@@ -1106,7 +1079,7 @@
 		/// <returns></returns>
 		public TableColumnInfo FindColumn(ushort columnId)
 		{
-			foreach (TableColumnInfo column in _columns)
+			foreach (var column in _columns)
 			{
 				if (column.Id == columnId)
 				{
@@ -1155,10 +1128,10 @@
 			var readerWriter = new RowReaderWriter(stream, _columns);
 
 			// We need to build a full row
-			List<uint> columnIdList = columnIDs.ToList();
-			for (int columnIndex = 0; columnIndex < _columns.Count; ++columnIndex)
+			var columnIdList = columnIDs.ToList();
+			for (var columnIndex = 0; columnIndex < _columns.Count; ++columnIndex)
 			{
-				TableColumnInfo column = _columns[columnIndex];
+				var column = _columns[columnIndex];
 
 				// If this column is an auto-increment field
 				if (column.AutoIncrement)
@@ -1174,7 +1147,7 @@
 						}
 
 						// Get value from inputs
-						int index = columnIdList.IndexOf(column.Id);
+						var index = columnIdList.IndexOf(column.Id);
 						incrValue = rowData[index];
 					}
 					else
@@ -1207,7 +1180,7 @@
 				{
 					// This column has not been specified, look for default
 					object defaultValue = null;
-					RowConstraint constraint = _constraints.FirstOrDefault(
+					var constraint = _constraints.FirstOrDefault(
 						(item) => item.ColumnId == column.Id &&
 						item.ConstraintType == RowConstraintType.Default);
 					if (constraint != null)
@@ -1231,7 +1204,7 @@
 				}
 
 				// Get specified value for this column
-				object dataValue = rowData[columnIdList.IndexOf(column.Id)];
+				var dataValue = rowData[columnIdList.IndexOf(column.Id)];
 				if (dataValue == null && !column.Nullable)
 				{
 					throw new ArgumentException(string.Format(
@@ -1240,7 +1213,7 @@
 				}
 
 				// Apply check constraints
-				RowConstraint checkConstraint = _constraints.FirstOrDefault(
+				var checkConstraint = _constraints.FirstOrDefault(
 					(item) => item.ColumnId == column.Id &&
 						item.ConstraintType == RowConstraintType.Check);
 				if (checkConstraint != null)
@@ -1253,15 +1226,16 @@
 			}
 
 			// Determine row size and write row to underlying stream
-			ushort rowSize = readerWriter.RowSize;
+			var rowSize = readerWriter.RowSize;
 			readerWriter.Write();
-			byte[] rowBuffer = stream.GetBuffer();
+			var rowBuffer = stream.GetBuffer();
 
 			// If we get this far we have the full row data and all constraints
 			//	have been executed.
 
 			// If the table has no logical ids then create first data page
-			if (DataFirstLogicalId == 0 && DataLastLogicalId == 0)
+			if (DataFirstLogicalId == LogicalPageId.Zero &&
+                DataLastLogicalId == LogicalPageId.Zero)
 			{
 				// Create first data page
 				var newPage = new TableDataPage();
@@ -1309,7 +1283,7 @@
 				_updatedColumns.SkipInsertChecks = true;
 				try
 				{
-					foreach (TableColumnInfo column in page.Columns)
+					foreach (var column in page.Columns)
 					{
 						_updatedColumns.Add(column);
 						if (column.Id >= _nextColumnId)
@@ -1349,14 +1323,14 @@
 				throw new InvalidOperationException("CreateTableDefinition can only be called for new tables.");
 			}
 
-			int columnIndex = 0;
-			int constraintIndex = 0;
+			var columnIndex = 0;
+			var constraintIndex = 0;
 			//int indexIndex = 0;
 			TableSchemaPage currentPage = null;
 			TableSchemaRootPage initialPage = null;
-			bool needNewPage = true;
-			bool firstPage = true;
-			bool complete = false;
+			var needNewPage = true;
+			var firstPage = true;
+			var complete = false;
 			while (!complete)
 			{
 				// Create new page if we need to
@@ -1447,7 +1421,7 @@
 
 		private async Task<TableSchemaPage> CreateRootPageAndLink(TableSchemaPage prevRootPage, bool firstPage)
 		{
-			TableSchemaPage rootPage = await CreateRootPage(firstPage);
+			var rootPage = await CreateRootPage(firstPage);
 
 			// Setup pointer to previous table definition
 			//	page (if any)
@@ -1477,7 +1451,7 @@
 			try
 			{
 				TableDataPage currentReadPage = null, currentWritePage = null;
-				ulong readLogicalId = DataFirstLogicalId;
+				var readLogicalId = DataFirstLogicalId;
 				uint readRowIndex = 0;
 				uint writeRowIndex = 0;
 				while (true)
@@ -1500,19 +1474,19 @@
 					}
 
 					// Create row reader and row writer objects
-					RowReaderWriter rowReader = currentReadPage.GetRowReaderWriter(
+					var rowReader = currentReadPage.GetRowReaderWriter(
 						readRowIndex, request.OldColumns, false);
-					RowReaderWriter rowWriter = currentWritePage.GetRowReaderWriter(
+					var rowWriter = currentWritePage.GetRowReaderWriter(
 						writeRowIndex, request.NewColumns, true);
 
 					// Read next row...
-					bool hasWorkToDo = true;
+					var hasWorkToDo = true;
 					while (hasWorkToDo)
 					{
 						rowReader.Read();
 
 						// Copy data
-						for (int index = 0; index < request.NewColumns.Length; ++index)
+						for (var index = 0; index < request.NewColumns.Length; ++index)
 						{
 							// Locate old column
 						}
@@ -1525,7 +1499,7 @@
 
 					// The next table page is held in the page pointers
 					readLogicalId = currentReadPage.NextLogicalId;
-					if (readLogicalId == 0)
+					if (readLogicalId == LogicalPageId.Zero)
 					{
 						// Finished copy
 						break;

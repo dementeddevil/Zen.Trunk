@@ -23,13 +23,13 @@ namespace Zen.Trunk.Storage.IO
 	public class VirtualBufferFactory : IVirtualBufferFactory, IDisposable
 	{
 		private SafeMemoryHandle _reservationBaseAddress;
-		private int _reservationPages;
+		private readonly int _reservationPages;
 
-		private object _syncBufferChain = new object();
+		private readonly object _syncBufferChain = new object();
 		private LinkedList<VirtualBufferCache> _bufferChain;
-		private int _bufferSize;
-		private int _cacheBlockSize;
-		private int _maxCacheElements;
+		private readonly int _bufferSize;
+		private readonly int _cacheBlockSize;
+		private readonly int _maxCacheElements;
 
 		public VirtualBufferFactory(int reservationMB, int bufferSize)
 		{
@@ -45,7 +45,7 @@ namespace Zen.Trunk.Storage.IO
 			_bufferSize = bufferSize;
 
 			// Determine maximum number of pages
-			int totalPages = _reservationPages * VirtualBuffer.SystemPageSize / bufferSize;
+			var totalPages = _reservationPages * VirtualBuffer.SystemPageSize / bufferSize;
 			_cacheBlockSize = Math.Max(8, totalPages / 16);
 
 			// Determine maximum number of caches
@@ -62,7 +62,7 @@ namespace Zen.Trunk.Storage.IO
 				}
 				else
 				{
-					foreach (VirtualBufferCache cache in _bufferChain)
+					foreach (var cache in _bufferChain)
 					{
 						if (!cache.IsNearlyFull)
 						{
@@ -74,15 +74,9 @@ namespace Zen.Trunk.Storage.IO
 			}
 		}
 
-		public int BufferSize
-		{
-			get
-			{
-				return _bufferSize;
-			}
-		}
+		public int BufferSize => _bufferSize;
 
-		[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2201:DoNotRaiseReservedExceptionTypes",
+	    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2201:DoNotRaiseReservedExceptionTypes",
 			Justification = "Throwing an out of memory exception is an acceptable usage scenario for this method.")]
 		public unsafe VirtualBuffer AllocateBuffer()
 		{
@@ -105,7 +99,7 @@ namespace Zen.Trunk.Storage.IO
 				{
 					if (_bufferChain == null)
 					{
-						LinkedList<VirtualBufferCache> newChain = new LinkedList<VirtualBufferCache>();
+						var newChain = new LinkedList<VirtualBufferCache>();
 						newChain.AddFirst(new VirtualBufferCache(
 							SafeNativeMethods.GetCommitableMemoryHandle(_reservationBaseAddress, _bufferSize),
 							_bufferSize, _cacheBlockSize));
@@ -115,10 +109,10 @@ namespace Zen.Trunk.Storage.IO
 			}
 
 			// Walk buffer cache
-			LinkedListNode<VirtualBufferCache> current = _bufferChain.First;
+			var current = _bufferChain.First;
 			while (true)
 			{
-				VirtualBuffer buffer = current.Value.AllocateBuffer();
+				var buffer = current.Value.AllocateBuffer();
 				if (buffer != null)
 				{
 					return buffer;
@@ -156,7 +150,7 @@ namespace Zen.Trunk.Storage.IO
 		private void ReservePages()
 		{
 			// Determine total bytes to reserve
-			ulong totalBytes = ((ulong)VirtualBuffer.SystemPageSize) *
+			var totalBytes = ((ulong)VirtualBuffer.SystemPageSize) *
 				((ulong)_reservationPages);
 			Trace.TraceInformation("Reserve {0} pages {1} total bytes",
 				_reservationPages, totalBytes);
@@ -174,7 +168,7 @@ namespace Zen.Trunk.Storage.IO
 		{
 			if (_reservationBaseAddress != null)
 			{
-				ulong totalBytes = ((ulong)VirtualBuffer.SystemPageSize) *
+				var totalBytes = ((ulong)VirtualBuffer.SystemPageSize) *
 					((ulong)_reservationPages);
 				Trace.TraceInformation("Release {0} pages {1} total bytes",
 					_reservationPages, totalBytes);

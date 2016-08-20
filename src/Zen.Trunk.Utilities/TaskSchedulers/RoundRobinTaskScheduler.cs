@@ -37,7 +37,7 @@ namespace System.Threading.Tasks.Schedulers
         /// <param name="queue">The scheduler to be removed.</param>
         private void RemoveQueue_NeedsLock(RoundRobinTaskSchedulerQueue queue)
         {
-            int index = _queues.IndexOf(queue);
+            var index = _queues.IndexOf(queue);
             if (_nextQueue >= index) _nextQueue--;
             _queues.RemoveAt(index);
         }
@@ -56,7 +56,7 @@ namespace System.Threading.Tasks.Schedulers
                     var searchOrder = Enumerable.Range(_nextQueue, _queues.Count - _nextQueue).Concat(Enumerable.Range(0, _nextQueue));
 
                     // Look for the next item to process
-                    foreach (int i in searchOrder)
+                    foreach (var i in searchOrder)
                     {
                         queueForTargetTask = _queues[i];
                         var items = queueForTargetTask._workItems;
@@ -84,14 +84,14 @@ namespace System.Threading.Tasks.Schedulers
         {
             internal RoundRobinTaskSchedulerQueue(RoundRobinSchedulerGroup pool) { _pool = pool; }
 
-            private RoundRobinSchedulerGroup _pool;
-            internal Queue<Task> _workItems = new Queue<Task>();
+            private readonly RoundRobinSchedulerGroup _pool;
+            internal readonly Queue<Task> _workItems = new Queue<Task>();
             internal bool _disposed;
 
             protected override IEnumerable<Task> GetScheduledTasks() 
             { 
                 object obj = _pool._queues;
-                bool lockTaken = false;
+                var lockTaken = false;
                 try
                 {
                     Monitor.TryEnter(obj, ref lockTaken);

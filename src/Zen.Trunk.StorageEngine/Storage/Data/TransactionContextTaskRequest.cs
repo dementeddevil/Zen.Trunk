@@ -98,7 +98,7 @@
 
 		private void EnsureTransactionContext(TRequest value)
 		{
-			ITrunkTransaction context = TrunkTransactionContext.Current;
+			var context = TrunkTransactionContext.Current;
 			if (value.TransactionContext == null && context != null)
 			{
 				value.TransactionContext = context;
@@ -115,7 +115,7 @@
 
 		private static async Task<TResult> ExecuteActionWithContextAsync(Func<TRequest, Task<TResult>> action, TRequest request)
 		{
-			IDisposable scope = TrunkTransactionContext.SwitchTransactionContext(request.TransactionContext);
+			var scope = TrunkTransactionContext.SwitchTransactionContext(request.TransactionContext);
 			try
 			{
 				return await action(request);
@@ -164,7 +164,7 @@
 
 		private void EnsureTransactionContext(TRequest value)
 		{
-			ITrunkTransaction context = TrunkTransactionContext.Current;
+			var context = TrunkTransactionContext.Current;
 			if (value.TransactionContext == null && context != null)
 			{
 				value.TransactionContext = context;
@@ -181,7 +181,7 @@
 
 		private static async Task<TResult> ExecuteActionWithContextAsync(Func<TRequest, Task<TResult>> action, TRequest request)
 		{
-			IDisposable scope = TrunkTransactionContext.SwitchTransactionContext(request.TransactionContext);
+			var scope = TrunkTransactionContext.SwitchTransactionContext(request.TransactionContext);
 			try
 			{
 				return await action(request);

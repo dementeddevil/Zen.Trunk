@@ -49,8 +49,8 @@
 	public class TableIndexNormalOrClusteredLeafInfo : TableIndexLeafInfo
 	{
 		#region Private Fields
-		private BufferFieldUInt64 _logicalId;
-		private BufferFieldUInt16 _rowId;
+		private readonly BufferFieldUInt64 _logicalId;
+		private readonly BufferFieldUInt16 _rowId;
 		#endregion
 
 		#region Public Constructors
@@ -134,20 +134,15 @@
 		/// <value>
 		/// A <see cref="T:BufferField" /> object.
 		/// </value>
-		protected override BufferField LastField
-		{
-			get
-			{
-				return _rowId;
-			}
-		}
-		#endregion
+		protected override BufferField LastField => _rowId;
+
+	    #endregion
 	}
 
 	public class TableIndexNormalOverClusteredLeafInfo : TableIndexLeafInfo
 	{
 		#region Private Fields
-		private BufferFieldTableRow _clusteredKey;
+		private readonly BufferFieldTableRow _clusteredKey;
 		#endregion
 
 		#region Public Constructors
@@ -181,8 +176,8 @@
 		{
 			base.SetContext(def, rootInfo);
 
-			TableColumnInfo[] columns = new TableColumnInfo[_clusteredKey.KeyLength];
-			for (int keyIndex = 0;
+			var columns = new TableColumnInfo[_clusteredKey.KeyLength];
+			for (var keyIndex = 0;
 			keyIndex < columns.Length;
 			++keyIndex)
 			{
@@ -195,8 +190,8 @@
 				}
 				else
 				{
-					bool found = false;
-					foreach (TableColumnInfo colInfo in def.Columns)
+					var found = false;
+					foreach (var colInfo in def.Columns)
 					{
 						if (colInfo.Id == def.ClusteredIndex.ColumnIDs[keyIndex])
 						{

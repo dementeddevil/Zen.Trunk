@@ -8,8 +8,8 @@
 	public abstract class DistributionPageDevice : PageDevice
 	{
 		#region Private Fields
-		private FileGroupDevice _fileGroupDevice;
-		private ushort _deviceId;
+		private readonly FileGroupDevice _fileGroupDevice;
+		private readonly ushort _deviceId;
 		private bool _firstCallForRootPage = true;
 		#endregion
 
@@ -28,31 +28,13 @@
 		#endregion
 
 		#region Public Properties
-		public ushort DeviceId
-		{
-			get
-			{
-				return _deviceId;
-			}
-		}
+		public ushort DeviceId => _deviceId;
 
-		public bool IsPrimary
-		{
-			get
-			{
-				return DeviceId == 1;
-			}
-		}
+	    public bool IsPrimary => DeviceId == 1;
 
-		public FileGroupDevice FileGroupDevice
-		{
-			get
-			{
-				return _fileGroupDevice;
-			}
-		}
+	    public FileGroupDevice FileGroupDevice => _fileGroupDevice;
 
-		public abstract uint DistributionPageOffset
+	    public abstract uint DistributionPageOffset
 		{
 			get;
 		}
@@ -81,8 +63,8 @@
 			Tracer.WriteVerboseLine("Load/create root page");
 
 			// Load or initialise the file-group root page
-			RootPage rootPage = FileGroupDevice.CreateRootPage(IsPrimary);
-			rootPage.VirtualId = new DevicePageId(DeviceId, 0).VirtualPageId;
+			var rootPage = FileGroupDevice.CreateRootPage(IsPrimary);
+			rootPage.VirtualId = new VirtualPageId(DeviceId, 0).Value;
 			HookupPageSite(rootPage);
 			if (IsCreate && _firstCallForRootPage)
 			{
@@ -109,19 +91,19 @@
 		/// <param name="allocParams">The alloc parameters.</param>
 		/// <returns></returns>
 		/// <exception cref="DeviceFullException"></exception>
-		public async Task<DevicePageId> AllocateDataPage(AllocateDataPageParameters allocParams)
+		public async Task<VirtualPageId> AllocateDataPage(AllocateDataPageParameters allocParams)
 		{
 			// Keep looping until we allocate
-			bool isExpand = false;
+			var isExpand = false;
 			while (true)
 			{
 				// Load device root page
-				using (RootPage rootPage = await LoadOrCreateRootPage())
+				using (var rootPage = await LoadOrCreateRootPage())
 				{
 					rootPage.RootLock = RootLockType.Shared;
 
 					// On this device loop through all distribution pages
-					uint maxDistPage =
+					var maxDistPage =
 						(
 						(rootPage.AllocatedPages - DistributionPageOffset) /
 						DistributionPage.PageTrackingCount
@@ -129,7 +111,7 @@
 					for (uint distPageIndex = 0; distPageIndex < maxDistPage; ++distPageIndex)
 					{
 						// Walk the distribution pages on this device
-						using (DistributionPage distPage = new DistributionPage())
+						using (var distPage = new DistributionPage())
 						{
 							try
 							{
@@ -142,10 +124,10 @@
 								await LoadDistributionPage(distPage, distPageIndex).ConfigureAwait(false);
 
 								// Ask distribution page to allocate for object
-								ulong virtualId = distPage.AllocatePage(allocParams);
+								var virtualId = distPage.AllocatePage(allocParams);
 								if (virtualId > 0)
 								{
-									return new DevicePageId(virtualId);
+									return new VirtualPageId(virtualId);
 								}
 							}
 							catch (Exception)
@@ -184,7 +166,7 @@
 		/// <returns></returns>
 		protected override async Task OnOpen()
 		{
-			using (PrimaryFileGroupRootPage rootPage = (PrimaryFileGroupRootPage)
+			using (var rootPage = (PrimaryFileGroupRootPage)
 				await LoadOrCreateRootPage().ConfigureAwait(false))
 			{
 				if (IsCreate)
@@ -198,11 +180,11 @@
 				var pageCount = rootPage.AllocatedPages;
 				Tracer.WriteVerboseLine("Preparing to process distribution pages to cover device {0} of {1} pages", _deviceId, pageCount);
 
-				List<Task> subTasks = new List<Task>();
+				var subTasks = new List<Task>();
 
 				// Calculate number of distribution pages to deal with
-				uint strideLength = DistributionPage.PageTrackingCount + 1;
-				uint distPageCount = ((pageCount - DistributionPageOffset) / strideLength) + 1;
+				var strideLength = DistributionPage.PageTrackingCount + 1;
+				var distPageCount = ((pageCount - DistributionPageOffset) / strideLength) + 1;
 
 				var pages = new List<DistributionPage>();
 				try
@@ -276,13 +258,13 @@
 				HookupPageSite(page);
 
 				// Determine the virtual id for the page
-				uint physicalId = ((distributionPageIndex * (DistributionPage.PageTrackingCount + 1)) + DistributionPageOffset);
+				var physicalId = ((distributionPageIndex * (DistributionPage.PageTrackingCount + 1)) + DistributionPageOffset);
 
 				// TODO: Sanity check physical page fits the confines of the underlying device
 
 				// Setup the page virtual id
-				DevicePageId pageId = new DevicePageId(DeviceId, physicalId);
-				page.VirtualId = pageId.VirtualPageId;
+				var pageId = new VirtualPageId(DeviceId, physicalId);
+				page.VirtualId = pageId.Value;
 				Tracer.WriteVerboseLine("\tPage id {0}", pageId);
 
 				// Issue the sub-ordinate request
@@ -313,9 +295,9 @@
 				HookupPageSite(page);
 
 				// Determine the virtual id for the page
-				uint physicalId = ((distributionPageIndex * (DistributionPage.PageTrackingCount + 1)) + DistributionPageOffset);
-				DevicePageId pageId = new DevicePageId(DeviceId, physicalId);
-				page.VirtualId = pageId.VirtualPageId;
+				var physicalId = ((distributionPageIndex * (DistributionPage.PageTrackingCount + 1)) + DistributionPageOffset);
+				var pageId = new VirtualPageId(DeviceId, physicalId);
+				page.VirtualId = pageId.Value;
 				Tracer.WriteVerboseLine("\tPage id {0}", pageId);
 
 				// Issue the sub-ordinate request
@@ -347,13 +329,7 @@
 		{
 		}
 
-		public override uint DistributionPageOffset
-		{
-			get
-			{
-				return 1;
-			}
-		}
+		public override uint DistributionPageOffset => 1;
 	}
 
 	public class SecondaryDistributionPageDevice : DistributionPageDevice
@@ -367,12 +343,6 @@
 			}
 		}
 
-		public override uint DistributionPageOffset
-		{
-			get
-			{
-				return 1;
-			}
-		}
+		public override uint DistributionPageOffset => 1;
 	}
 }

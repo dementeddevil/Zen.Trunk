@@ -1,16 +1,15 @@
 ﻿using System;
-using System.Globalization;
 
 namespace Zen.Trunk.Storage
 {
     /// <summary>
-    /// Simple value type which represents a Logical Page Identifier.
+    /// Simple value type which represents an Object Identifier.
     /// </summary>
     [Serializable]
-    public struct LogicalPageId : IComparable, ICloneable
+    public struct ObjectId : IComparable, ICloneable
     {
         #region Public Fields
-        public static readonly LogicalPageId Zero = new LogicalPageId(0);
+        public static readonly ObjectId Zero = new ObjectId(0);
         #endregion
 
         #region Private Fields
@@ -18,13 +17,13 @@ namespace Zen.Trunk.Storage
 
         #region Public Constructors
         /// <summary>
-        /// Initializes a new instance of the <see cref="LogicalPageId"/> struct.
+        /// Initializes a new instance of the <see cref="ObjectId"/> struct.
         /// </summary>
-        /// <param name="logicalPageId">The logical page id.</param>
+        /// <param name="objectId">The object id.</param>
         [CLSCompliant(false)]
-        public LogicalPageId(ulong logicalPageId)
+        public ObjectId(uint objectId)
         {
-            Value = logicalPageId;
+            Value = objectId;
         }
         #endregion
 
@@ -33,7 +32,7 @@ namespace Zen.Trunk.Storage
         /// Gets/sets the logical page ID.
         /// </summary>
         [CLSCompliant(false)]
-        public ulong Value { get; }
+        public uint Value { get; }
         #endregion
 
         #region Public Methods
@@ -43,7 +42,7 @@ namespace Zen.Trunk.Storage
         /// <returns></returns>
         public override string ToString()
         {
-            return $"LogicalPageId{Value:X8}";
+            return $"ObjectId{Value:X8}";
         }
 
         /// <summary>
@@ -54,9 +53,9 @@ namespace Zen.Trunk.Storage
         public override bool Equals(object obj)
         {
             var equal = false;
-            if (obj is LogicalPageId)
+            if (obj is ObjectId)
             {
-                var rhs = (LogicalPageId)obj;
+                var rhs = (ObjectId)obj;
                 if (Value == rhs.Value)
                 {
                     equal = true;
@@ -85,27 +84,27 @@ namespace Zen.Trunk.Storage
         /// <b>=0</b> this object sorts the same as obj.
         /// <b>&gt;0</b> this object sorts higher than obj.
         /// </returns>
-        public int CompareTo(LogicalPageId obj)
+        public int CompareTo(ObjectId obj)
         {
             var order = Value.CompareTo(obj.Value);
             return order;
         }
 
-        public static bool operator <(LogicalPageId left, LogicalPageId right)
+        public static bool operator <(ObjectId left, ObjectId right)
         {
             return (left.Value < right.Value);
         }
 
-        public static bool operator >(LogicalPageId left, LogicalPageId right)
+        public static bool operator >(ObjectId left, ObjectId right)
         {
             return (left.Value > right.Value);
         }
 
-        public static bool operator ==(LogicalPageId left, LogicalPageId right)
+        public static bool operator ==(ObjectId left, ObjectId right)
         {
             return (left.Value == right.Value);
         }
-        public static bool operator !=(LogicalPageId left, LogicalPageId right)
+        public static bool operator !=(ObjectId left, ObjectId right)
         {
             return (left.Value != right.Value);
         }
@@ -115,22 +114,22 @@ namespace Zen.Trunk.Storage
         int IComparable.CompareTo(object obj)
         {
             var order = -1;
-            if (obj is LogicalPageId)
+            if (obj is ObjectId)
             {
-                order = ((LogicalPageId)this).CompareTo((LogicalPageId)obj);
+                order = ((ObjectId)this).CompareTo((ObjectId)obj);
             }
             return order;
         }
         #endregion
 
         #region ICloneable Members
-        public LogicalPageId Clone()
+        public ObjectId Clone()
         {
-            return (LogicalPageId)MemberwiseClone();
+            return (ObjectId)MemberwiseClone();
         }
         object ICloneable.Clone()
         {
-            return ((LogicalPageId)this).Clone();
+            return ((ObjectId)this).Clone();
         }
         #endregion
     }

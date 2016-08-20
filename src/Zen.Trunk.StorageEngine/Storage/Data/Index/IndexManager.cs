@@ -9,7 +9,7 @@
 	public abstract class IndexManager : IServiceProvider
 	{
 		#region Private Fields
-		private IServiceProvider _parentProvider;
+		private readonly IServiceProvider _parentProvider;
 		private DatabaseDevice _database;
 		#endregion
 
@@ -103,7 +103,7 @@
 		where IndexRootClass : RootIndexInfo
 	{
 		#region Private Fields
-		private Dictionary<uint, IndexRootClass> _indices =
+		private readonly Dictionary<uint, IndexRootClass> _indices =
 			new Dictionary<uint, IndexRootClass>();
 		#endregion
 
@@ -119,14 +119,9 @@
 		#endregion
 
 		#region Internal Properties
-		internal IEnumerable<IndexRootClass> Indices
-		{
-			get
-			{
-				return _indices.Values;
-			}
-		}
-		#endregion
+		internal IEnumerable<IndexRootClass> Indices => _indices.Values;
+
+	    #endregion
 
 		#region Internal Methods
 		internal IndexRootClass GetIndexInfo(uint indexId)

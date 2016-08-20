@@ -118,7 +118,7 @@ namespace System.Threading.Tasks
         {
             // Yield the next elements to be processed until either there are no more elements
             // or we've reached the maximum number of elements that an individual task should process.
-            int processedCount = 0;
+            var processedCount = 0;
             T nextItem;
             while (processedCount < _maxItemsPerTask && _queue.TryDequeue(out nextItem))
             {
@@ -133,7 +133,7 @@ namespace System.Threading.Tasks
             try
             {
                 // Get the handler
-                Action<T> handler = (Action<T>)_handler;
+                var handler = (Action<T>)_handler;
 
                 // Process up to _maxItemsPerTask items, either serially or in parallel
                 // based on the provided maxDegreeOfParallelism (which determines
@@ -158,11 +158,11 @@ namespace System.Threading.Tasks
         /// <summary>Used as the body of a function task to process items in the queue.</summary>
         private void ProcessItemFunctionTaskBody(object ignored)
         {
-            bool anotherTaskQueued = false;
+            var anotherTaskQueued = false;
             try
             {
                 // Get the handler
-                Func<T, Task> handler = (Func<T, Task>)_handler;
+                var handler = (Func<T, Task>)_handler;
 
                 // Get the next item from the queue to process
                 T nextItem;

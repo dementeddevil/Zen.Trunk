@@ -21,7 +21,7 @@ namespace Zen.Trunk.Storage.Locking
 	internal class DataLockOwnerBlock : LockOwnerBlockBase<ulong>
 	{
 		#region Private Fields
-		private uint _objectId;
+		private readonly ObjectId _objectId;
 		#endregion
 
 		#region Public Constructors
@@ -31,7 +31,7 @@ namespace Zen.Trunk.Storage.Locking
 		/// <param name="manager">The manager.</param>
 		/// <param name="objectId">The object unique identifier.</param>
 		/// <param name="maxPageLocks">The maximum page locks.</param>
-		public DataLockOwnerBlock(IDatabaseLockManager manager, uint objectId, uint maxPageLocks = 100)
+		public DataLockOwnerBlock(IDatabaseLockManager manager, ObjectId objectId, uint maxPageLocks = 100)
 			: base(manager, maxPageLocks)
 		{
 			_objectId = objectId;

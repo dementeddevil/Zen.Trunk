@@ -42,10 +42,10 @@ namespace System.Threading.Algorithms
             var lists = new[] { new ConcurrentStack<T>(initialValues), new ConcurrentStack<T>() };
 
             // Iterate until no more items to be processed
-            for (int i = 0; ; i++)
+            for (var i = 0; ; i++)
             {
                 // Determine which list is the source and which is the destination
-                int fromIndex = i % 2;
+                var fromIndex = i % 2;
                 var from = lists[fromIndex];
                 var to = lists[fromIndex ^ 1];
 

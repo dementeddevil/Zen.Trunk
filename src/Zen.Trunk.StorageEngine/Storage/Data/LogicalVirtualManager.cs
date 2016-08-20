@@ -18,13 +18,13 @@
 
 		private class AddLookupRequest : TaskRequest<LogicalPageId>
 		{
-			public AddLookupRequest(DevicePageId pageId, LogicalPageId logicalId)
+			public AddLookupRequest(VirtualPageId pageId, LogicalPageId logicalId)
 			{
 				PageId = pageId;
 				LogicalId = logicalId;
 			}
 
-			public DevicePageId PageId
+			public VirtualPageId PageId
 			{
 				get;
 			}
@@ -37,15 +37,15 @@
 
 		private class GetLogicalRequest : TaskRequest<LogicalPageId>
 		{
-			public GetLogicalRequest(DevicePageId pageId)
+			public GetLogicalRequest(VirtualPageId pageId)
 			{
 				PageId = pageId;
 			}
 
-			public DevicePageId PageId { get; }
+			public VirtualPageId PageId { get; }
 		}
 
-		private class GetVirtualRequest : TaskRequest<DevicePageId>
+		private class GetVirtualRequest : TaskRequest<VirtualPageId>
 		{
 			public GetVirtualRequest(LogicalPageId logicalId)
 			{
@@ -57,17 +57,17 @@
 		#endregion
 
 		#region Private Fields
-		private CancellationTokenSource _shutdownToken;
-		private ConcurrentExclusiveSchedulerPair _taskInterleave;
-		private ITargetBlock<GetNewLogicalRequest> _getNewLogicalPort;
-		private ITargetBlock<AddLookupRequest> _addLookupPort;
-		private ITargetBlock<GetLogicalRequest> _getLogicalPort;
-		private ITargetBlock<GetVirtualRequest> _getVirtualPort;
+		private readonly CancellationTokenSource _shutdownToken;
+		private readonly ConcurrentExclusiveSchedulerPair _taskInterleave;
+		private readonly ITargetBlock<GetNewLogicalRequest> _getNewLogicalPort;
+		private readonly ITargetBlock<AddLookupRequest> _addLookupPort;
+		private readonly ITargetBlock<GetLogicalRequest> _getLogicalPort;
+		private readonly ITargetBlock<GetVirtualRequest> _getVirtualPort;
 
-		private Dictionary<LogicalPageId, DevicePageId> _logicalToVirtual =
-			new Dictionary<LogicalPageId, DevicePageId>(1024);
-		private Dictionary<DevicePageId, LogicalPageId> _virtualToLogical =
-			new Dictionary<DevicePageId, LogicalPageId>(1024);
+		private readonly Dictionary<LogicalPageId, VirtualPageId> _logicalToVirtual =
+			new Dictionary<LogicalPageId, VirtualPageId>(1024);
+		private readonly Dictionary<VirtualPageId, LogicalPageId> _virtualToLogical =
+			new Dictionary<VirtualPageId, LogicalPageId>(1024);
 		private ulong _nextLogicalId = 1;
 		#endregion
 
@@ -84,7 +84,7 @@
 				{
 					try
 					{
-						ulong nextLogicalId = _nextLogicalId;
+						var nextLogicalId = _nextLogicalId;
 						_nextLogicalId++;
 						request.TrySetResult(new LogicalPageId(nextLogicalId));
 					}
@@ -158,7 +158,7 @@
 				{
 					try
 					{
-						DevicePageId pageId;
+						VirtualPageId pageId;
 						if (!_logicalToVirtual.TryGetValue(request.LogicalId, out pageId))
 						{
 							throw new ArgumentException("Logical id not found.");
@@ -198,7 +198,7 @@
 			return request.Task;
 		}
 
-		public Task<LogicalPageId> AddLookupAsync(DevicePageId pageId, LogicalPageId logicalId)
+		public Task<LogicalPageId> AddLookupAsync(VirtualPageId pageId, LogicalPageId logicalId)
 		{
 			var request = new AddLookupRequest(pageId, logicalId);
 			if (!_addLookupPort.Post(request))
@@ -208,7 +208,7 @@
 			return request.Task;
 		}
 
-		public Task<LogicalPageId> GetLogicalAsync(DevicePageId pageId)
+		public Task<LogicalPageId> GetLogicalAsync(VirtualPageId pageId)
 		{
 			var request = new GetLogicalRequest(pageId);
 			if (!_getLogicalPort.Post(request))
@@ -218,7 +218,7 @@
 			return request.Task;
 		}
 
-		public Task<DevicePageId> GetVirtualAsync(LogicalPageId logicalId)
+		public Task<VirtualPageId> GetVirtualAsync(LogicalPageId logicalId)
 		{
 			var request = new GetVirtualRequest(logicalId);
 			if (!_getVirtualPort.Post(request))

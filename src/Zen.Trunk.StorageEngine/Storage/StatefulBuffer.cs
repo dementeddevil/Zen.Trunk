@@ -102,7 +102,7 @@
 		#endregion
 
 		#region Private Fields
-		private object _syncState = new object();
+		private readonly object _syncState = new object();
 		private State _currentState;
 		private int _refCount;
 		private bool _isDisposed; 
@@ -122,10 +122,10 @@
 		/// Gets/sets the page ID associated with this buffer.
 		/// </summary>
 		/// <value>
-		/// <see cref="DevicePageId"/> representing the associated device and 
+		/// <see cref="VirtualPageId"/> representing the associated device and 
 		/// physical page.
 		/// </value>
-		public DevicePageId PageId
+		public VirtualPageId PageId
 		{
 			get;
 			set;
@@ -167,14 +167,9 @@
 		/// Gets the current state object.
 		/// </summary>
 		/// <value>The state of the current.</value>
-		protected State CurrentState
-		{
-			get
-			{
-				return _currentState;
-			}
-		} 
-		#endregion
+		protected State CurrentState => _currentState;
+
+	    #endregion
 
 		#region Public Methods
 		/// <summary>
@@ -283,7 +278,7 @@
 		{
 			if (_currentState != newState)
 			{
-				bool lockTaken = false;
+				var lockTaken = false;
 				//Monitor.TryEnter(_syncState, ref lockTaken);
 				//if (lockTaken)
 				{
@@ -291,7 +286,7 @@
 					{
 						if (_currentState != newState)
 						{
-							State oldState = _currentState;
+							var oldState = _currentState;
 							try
 							{
 								// Notify old buffer state

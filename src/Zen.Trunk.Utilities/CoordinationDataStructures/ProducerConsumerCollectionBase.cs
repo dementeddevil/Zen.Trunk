@@ -15,7 +15,7 @@ namespace System.Collections.Concurrent
     /// <typeparam name="T">Specifies the type of the data being aggregated.</typeparam>
     internal sealed class IProducerConsumerCollection_DebugView<T>
     {
-        private IProducerConsumerCollection<T> _collection;
+        private readonly IProducerConsumerCollection<T> _collection;
 
         public IProducerConsumerCollection_DebugView(IProducerConsumerCollection<T> collection)
         {
@@ -23,7 +23,7 @@ namespace System.Collections.Concurrent
         }
 
         [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
-        public T[] Values { get { return _collection.ToArray(); } }
+        public T[] Values => _collection.ToArray();
     }
 
     /// <summary>
@@ -45,7 +45,7 @@ namespace System.Collections.Concurrent
         }
 
         /// <summary>Gets the contained collection.</summary>
-        protected IProducerConsumerCollection<T> ContainedCollection { get { return _contained; } }
+        protected IProducerConsumerCollection<T> ContainedCollection => _contained;
 
         /// <summary>Attempts to add the specified value to the end of the deque.</summary>
         /// <param name="item">The item to add.</param>
@@ -78,8 +78,8 @@ namespace System.Collections.Concurrent
         bool IProducerConsumerCollection<T>.TryTake(out T item) { return TryTake(out item); }
 
         /// <summary>Gets the number of elements contained in the collection.</summary>
-        public int Count { get { return _contained.Count; } }
-        
+        public int Count => _contained.Count;
+
         /// <summary>Creates an array containing the contents of the collection.</summary>
         /// <returns>The array.</returns>
         public T[] ToArray() { return _contained.ToArray(); }
@@ -103,9 +103,9 @@ namespace System.Collections.Concurrent
         IEnumerator IEnumerable.GetEnumerator() { return GetEnumerator(); }
 
         /// <summary>Gets whether the collection is synchronized.</summary>
-        bool ICollection.IsSynchronized { get { return _contained.IsSynchronized; } }
+        bool ICollection.IsSynchronized => _contained.IsSynchronized;
 
         /// <summary>Gets the synchronization root object for the collection.</summary>
-        object ICollection.SyncRoot { get { return _contained.SyncRoot; } }
+        object ICollection.SyncRoot => _contained.SyncRoot;
     }
 }

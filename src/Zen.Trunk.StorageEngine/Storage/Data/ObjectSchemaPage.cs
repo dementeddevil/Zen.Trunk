@@ -40,7 +40,7 @@ namespace Zen.Trunk.Storage.Data
 			{
 				if (_schemaLock != value)
 				{
-					SchemaLockType oldLock = _schemaLock;
+					var oldLock = _schemaLock;
 					try
 					{
 						_schemaLock = value;

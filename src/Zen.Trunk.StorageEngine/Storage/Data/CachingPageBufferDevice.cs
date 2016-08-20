@@ -13,12 +13,12 @@
 		#region Private Types
 		private class PreparePageBufferRequest : TransactionContextTaskRequest<PageBuffer>
 		{
-			public PreparePageBufferRequest(DevicePageId pageId)
+			public PreparePageBufferRequest(VirtualPageId pageId)
 			{
 				PageId = pageId;
 			}
 
-			public DevicePageId PageId
+			public VirtualPageId PageId
 			{
 				get;
 				private set;
@@ -42,7 +42,7 @@
 		{
 			#region Private Fields
 			private PageBuffer _buffer;
-			private DateTime _createdWhen = DateTime.UtcNow;
+			private readonly DateTime _createdWhen = DateTime.UtcNow;
 			private DateTime _lastAccess = DateTime.UtcNow;
 			#endregion
 
@@ -55,39 +55,15 @@
 			#endregion
 
 			#region Internal Properties
-			internal DateTime Created
-			{
-				get
-				{
-					return _createdWhen;
-				}
-			}
+			internal DateTime Created => _createdWhen;
 
-			internal DateTime LastAccess
-			{
-				get
-				{
-					return _lastAccess;
-				}
-			}
+		    internal DateTime LastAccess => _lastAccess;
 
-			internal TimeSpan Age
-			{
-				get
-				{
-					return DateTime.UtcNow - Created;
-				}
-			}
+		    internal TimeSpan Age => DateTime.UtcNow - Created;
 
-			internal DevicePageId PageId
-			{
-				get
-				{
-					return _buffer.PageId;
-				}
-			}
+		    internal VirtualPageId PageId => _buffer.PageId;
 
-			internal PageBuffer PageBuffer
+		    internal PageBuffer PageBuffer
 			{
 				get
 				{
@@ -97,43 +73,20 @@
 				}
 			}
 
-			internal PageBuffer BufferInternal
-			{
-				get
-				{
-					return _buffer;
-				}
-			}
+			internal PageBuffer BufferInternal => _buffer;
 
-			internal bool IsReadPending
-			{
-				get
-				{
-					return _buffer.IsReadPending;
-				}
-			}
+		    internal bool IsReadPending => _buffer.IsReadPending;
 
-			internal bool IsWritePending
-			{
-				get
-				{
-					return _buffer.IsWritePending;
-				}
-			}
+		    internal bool IsWritePending => _buffer.IsWritePending;
 
-			internal bool CanFree
-			{
-				get
-				{
-					return _buffer.CanFree;
-				}
-			}
-			#endregion
+		    internal bool CanFree => _buffer.CanFree;
+
+		    #endregion
 
 			#region Internal Methods
 			internal PageBuffer RemoveBufferInternal()
 			{
-				PageBuffer returnBuffer = _buffer;
+				var returnBuffer = _buffer;
 				_buffer = null;
 				return returnBuffer;
 			}
@@ -153,10 +106,10 @@
 
 		private class FlushPageBufferState
 		{
-			private Dictionary<ushort, byte> _devicesAccessed =
+			private readonly Dictionary<ushort, byte> _devicesAccessed =
 				new Dictionary<ushort, byte>();
-			private List<Task> _saveTasks = new List<Task>();
-			private List<Task> _loadTasks = new List<Task>();
+			private readonly List<Task> _saveTasks = new List<Task>();
+			private readonly List<Task> _loadTasks = new List<Task>();
 
 			public FlushPageBufferState(FlushCachingDeviceParameters flushParams)
 			{
@@ -169,23 +122,11 @@
 				private set;
 			}
 
-			public IList<Task> SaveTasks
-			{
-				get
-				{
-					return _saveTasks;
-				}
-			}
+			public IList<Task> SaveTasks => _saveTasks;
 
-			public IList<Task> LoadTasks
-			{
-				get
-				{
-					return _loadTasks;
-				}
-			}
+		    public IList<Task> LoadTasks => _loadTasks;
 
-			public void MarkDeviceAsAccessedForLoad(ushort deviceId)
+		    public void MarkDeviceAsAccessedForLoad(ushort deviceId)
 			{
 				MarkDeviceAsAccessed(deviceId, 1);
 			}
@@ -197,11 +138,11 @@
 
 			public async Task FlushAccessedDevices(IMultipleBufferDevice bufferDevice)
 			{
-				List<Task> flushTasks = new List<Task>();
+				var flushTasks = new List<Task>();
 				foreach (var entry in _devicesAccessed)
 				{
-					bool flushReads = false;
-					bool flushWrites = false;
+					var flushReads = false;
+					var flushWrites = false;
 					if ((entry.Value & 1) != 0)
 					{
 						flushReads = true;
@@ -241,25 +182,25 @@
 		private IMultipleBufferDevice _bufferDevice;
 
 		// Buffer load/initialisation
-		private ConcurrentDictionary<DevicePageId, TaskCompletionSource<PageBuffer>> _pendingLoadOrInit =
-			new ConcurrentDictionary<DevicePageId, TaskCompletionSource<PageBuffer>>();
+		private readonly ConcurrentDictionary<VirtualPageId, TaskCompletionSource<PageBuffer>> _pendingLoadOrInit =
+			new ConcurrentDictionary<VirtualPageId, TaskCompletionSource<PageBuffer>>();
 
 		// Buffer cache
-		private SpinLockClass _bufferLookupLock = new SpinLockClass();
-		private SortedList<DevicePageId, BufferCacheInfo> _bufferLookup =
-			new SortedList<DevicePageId, BufferCacheInfo>();
+		private readonly SpinLockClass _bufferLookupLock = new SpinLockClass();
+		private readonly SortedList<VirtualPageId, BufferCacheInfo> _bufferLookup =
+			new SortedList<VirtualPageId, BufferCacheInfo>();
 		private int _cacheSize;
-		private int _maxCacheSize = 2048;
-		private int _cacheScavengeOffThreshold = 1500;
-		private int _cacheScavengeOnThreshold = 1800;
-		private TimeSpan _cacheFlushInterval = TimeSpan.FromMilliseconds(500);
+		private readonly int _maxCacheSize = 2048;
+		private readonly int _cacheScavengeOffThreshold = 1500;
+		private readonly int _cacheScavengeOnThreshold = 1800;
+		private readonly TimeSpan _cacheFlushInterval = TimeSpan.FromMilliseconds(500);
 		private CacheFlushState _flushState = CacheFlushState.Idle;
 		private Task _cacheManagerTask;
 
 		// Free pool
 		private ObjectPool<PageBuffer> _freePagePool;
-		private int _freePoolMin = 50;
-		private int _freePoolMax = 100;
+		private readonly int _freePoolMin = 50;
+		private readonly int _freePoolMax = 100;
 		private Task _freePoolFillerTask;
 
 		// Ports
@@ -347,7 +288,7 @@
 			return _bufferDevice.RemoveDeviceAsync(deviceId);
 		}
 
-		public Task<PageBuffer> InitPageAsync(DevicePageId pageId)
+		public Task<PageBuffer> InitPageAsync(VirtualPageId pageId)
 		{
 			var request = new PreparePageBufferRequest(pageId);
 			if (!_initBufferPort.Post(request))
@@ -357,7 +298,7 @@
 			return request.Task;
 		}
 
-		public Task<PageBuffer> LoadPageAsync(DevicePageId pageId)
+		public Task<PageBuffer> LoadPageAsync(VirtualPageId pageId)
 		{
 			var request = new PreparePageBufferRequest(pageId);
 			if (!_loadBufferPort.Post(request))
@@ -413,7 +354,7 @@
 					// Drain free page pool when we are asked to shutdown
 					while (_freePagePool.Count > 0)
 					{
-						PageBuffer buffer = _freePagePool.GetObject();
+						var buffer = _freePagePool.GetObject();
 						if (buffer == null)
 						{
 							// The only way we will ever have nulls in the pool
@@ -486,7 +427,7 @@
 			}
 
 			// If page is already being inited/loaded then reuse same completion task
-			bool isAlreadyPending = false;
+			var isAlreadyPending = false;
 			var pbtcs = _pendingLoadOrInit.AddOrUpdate(
 				request.PageId,
 				new TaskCompletionSource<PageBuffer>(),
@@ -501,7 +442,7 @@
 				// Check whether the buffer is already in our cache or create and
 				//	and add a fresh buffer if not
 				PageBuffer buffer = null;
-				bool isNewBuffer = false;
+				var isNewBuffer = false;
 				_bufferLookupLock.Execute(
 					() =>
 					{
@@ -541,11 +482,11 @@
 					Task requestTask;
 					if (isLoad)
 					{
-						requestTask = buffer.RequestLoadAsync(request.PageId, 0);
+						requestTask = buffer.RequestLoadAsync(request.PageId, LogicalPageId.Zero);
 					}
 					else
 					{
-						requestTask = buffer.InitAsync(request.PageId, 0);
+						requestTask = buffer.InitAsync(request.PageId, LogicalPageId.Zero);
 					}
 
 					// Attach the continuations that will clean up the task
@@ -557,7 +498,7 @@
 			return pbtcs.Task;
 		}
 
-		private void LoadOrInitComplete(DevicePageId pageId, PageBuffer buffer)
+		private void LoadOrInitComplete(VirtualPageId pageId, PageBuffer buffer)
 		{
 			TaskCompletionSource<PageBuffer> task;
 			if (_pendingLoadOrInit.TryRemove(pageId, out task))
@@ -566,7 +507,7 @@
 			}
 		}
 
-		private void LoadOrInitFailed(DevicePageId pageId, Exception error)
+		private void LoadOrInitFailed(VirtualPageId pageId, Exception error)
 		{
 			TaskCompletionSource<PageBuffer> task;
 			if (_pendingLoadOrInit.TryRemove(pageId, out task))
@@ -575,7 +516,7 @@
 			}
 		}
 
-		private void LoadOrInitCancelled(DevicePageId pageId)
+		private void LoadOrInitCancelled(VirtualPageId pageId)
 		{
 			TaskCompletionSource<PageBuffer> task;
 			if (_pendingLoadOrInit.TryRemove(pageId, out task))
@@ -618,7 +559,7 @@
 
 			// Wait for flush to finish if it is still running
 			// NOTE: We will wait for a maximum of 30 seconds
-			DateTime start = DateTime.UtcNow;
+			var start = DateTime.UtcNow;
 			while (_flushState != CacheFlushState.Idle &&
 				(DateTime.UtcNow - start) < TimeSpan.FromSeconds(30))
 			{
@@ -626,7 +567,7 @@
 			}
 
 			// Discard buffer cache
-			foreach (BufferCacheInfo info in _bufferLookup.Values)
+			foreach (var info in _bufferLookup.Values)
 			{
 				// Dispose of every entry in the cache
 				info.Dispose();
@@ -637,7 +578,7 @@
 		private bool HandleFlushPageBuffers(FlushCachingDeviceRequest request)
 		{
 			// Determine new flush state
-			CacheFlushState newState = CacheFlushState.FlushNormal;
+			var newState = CacheFlushState.FlushNormal;
 			if (request.Message.IsForCheckPoint)
 			{
 				newState = CacheFlushState.FlushCheckPoint;
@@ -651,20 +592,20 @@
 			try
 			{
 				// Make copy of cache keys
-				DevicePageId[] keys = null;
+				VirtualPageId[] keys = null;
 				_bufferLookupLock.Execute(
 					() =>
 					{
-						keys = new DevicePageId[_bufferLookup.Count];
+						keys = new VirtualPageId[_bufferLookup.Count];
 						_bufferLookup.Keys.CopyTo(keys, 0);
 					});
 
 				// Create cache partitioner 
-				OrderablePartitioner<DevicePageId> cacheKeyPartitioner =
-					ChunkPartitioner.Create<DevicePageId>(keys, 10, 100);
+				var cacheKeyPartitioner =
+					ChunkPartitioner.Create<VirtualPageId>(keys, 10, 100);
 				try
 				{
-					Parallel.ForEach<DevicePageId, FlushPageBufferState>(
+					Parallel.ForEach<VirtualPageId, FlushPageBufferState>(
 						cacheKeyPartitioner,
 						new ParallelOptions
 						{
@@ -675,8 +616,8 @@
 						(blockState) =>
 						{
 							// Issue flush to each device accessed
-							bool flushReads = (blockState.LoadTasks.Count > 0);
-							bool flushWrites = (blockState.SaveTasks.Count > 0);
+							var flushReads = (blockState.LoadTasks.Count > 0);
+							var flushWrites = (blockState.SaveTasks.Count > 0);
 							if (flushReads || flushWrites)
 							{
 								blockState.FlushAccessedDevices(_bufferDevice)
@@ -687,7 +628,7 @@
 				finally
 				{
 					// Discard the partitioner if it implements IDisposable
-					IDisposable dispose = cacheKeyPartitioner as IDisposable;
+					var dispose = cacheKeyPartitioner as IDisposable;
 					if (dispose != null)
 					{
 						dispose.Dispose();
@@ -708,7 +649,7 @@
 		}
 
 		private FlushPageBufferState ProcessCacheBufferEntry(
-			DevicePageId pageId, ParallelLoopState loopState, long index, FlushPageBufferState blockState)
+			VirtualPageId pageId, ParallelLoopState loopState, long index, FlushPageBufferState blockState)
 		{
 			// Retrieve entry from cache - skip if no longer present
 			BufferCacheInfo cacheInfo;
@@ -719,7 +660,7 @@
 				{
 					// Create a task that tackles the load operation and notifies
 					//	all waiting callers when complete - whatever the outcome
-					Task loadTask = cacheInfo.BufferInternal.LoadAsync();
+					var loadTask = cacheInfo.BufferInternal.LoadAsync();
 					loadTask.ContinueWith(
 						(task) =>
 						{

@@ -43,7 +43,7 @@
 		/// <param name="pageId"></param>
 		/// <param name="buffer"></param>
 		/// <returns></returns>
-		Task LoadBufferAsync(DevicePageId pageId, VirtualBuffer buffer);
+		Task LoadBufferAsync(VirtualPageId pageId, VirtualBuffer buffer);
 
 		/// <summary>
 		/// Asynchronously saves a buffer to the device and page associated
@@ -52,7 +52,7 @@
 		/// <param name="pageId">The page unique identifier.</param>
 		/// <param name="buffer">The buffer.</param>
 		/// <returns></returns>
-		Task SaveBufferAsync(DevicePageId pageId, VirtualBuffer buffer);
+		Task SaveBufferAsync(VirtualPageId pageId, VirtualBuffer buffer);
 
 		Task FlushBuffersAsync(bool flushReads, bool flushWrites, params ushort[] deviceIds);
 

@@ -9,7 +9,7 @@
 		private class ServiceProviderPageSite : ISite
 		{
 			#region Private Fields
-			private IServiceProvider _parent;
+			private readonly IServiceProvider _parent;
 			#endregion
 
 			#region Public Constructors

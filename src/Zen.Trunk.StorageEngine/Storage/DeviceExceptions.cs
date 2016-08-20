@@ -8,7 +8,7 @@ namespace Zen.Trunk.Storage
 	public class DeviceException : StorageEngineException, ISerializable
 	{
 		#region Private Fields
-		private ushort _deviceId;
+		private readonly ushort _deviceId;
 		#endregion
 
 		#region Public Constructors
@@ -63,14 +63,9 @@ namespace Zen.Trunk.Storage
 		/// <summary>
 		/// Gets a value indicating the device ID that threw the exception.
 		/// </summary>
-		public ushort DeviceId
-		{
-			get
-			{
-				return _deviceId;
-			}
-		}
-		#endregion
+		public ushort DeviceId => _deviceId;
+
+	    #endregion
 
 		#region Public Methods
 		/// <summary>

@@ -24,7 +24,7 @@ namespace System.Threading.Tasks.Schedulers
         private class QueuedTaskSchedulerDebugView
         {
             /// <summary>The scheduler.</summary>
-            private QueuedTaskScheduler _scheduler;
+            private readonly QueuedTaskScheduler _scheduler;
 
             /// <summary>Initializes the debug view.</summary>
             /// <param name="scheduler">The scheduler.</param>
@@ -51,7 +51,7 @@ namespace System.Threading.Tasks.Schedulers
             {
                 get
                 {
-                    List<TaskScheduler> queues = new List<TaskScheduler>();
+                    var queues = new List<TaskScheduler>();
                     foreach (var group in _scheduler._queueGroups) queues.AddRange(group.Value);
                     return queues;
                 }
@@ -71,7 +71,7 @@ namespace System.Threading.Tasks.Schedulers
         /// </summary>
         private readonly int _concurrencyLevel;
         /// <summary>Whether we're processing tasks on the current thread.</summary>
-        private static ThreadLocal<bool> _taskProcessingThread = new ThreadLocal<bool>();
+        private static readonly ThreadLocal<bool> _taskProcessingThread = new ThreadLocal<bool>();
 
         // ***
         // *** For when using a target scheduler
@@ -162,7 +162,7 @@ namespace System.Threading.Tasks.Schedulers
 
             // Create all of the threads
             _threads = new Thread[threadCount];
-            for (int i = 0; i < threadCount; i++)
+            for (var i = 0; i < threadCount; i++)
             {
                 _threads[i] = new Thread(() => ThreadBasedDispatchLoop(threadInit, threadFinally), threadMaxStackSize)
                 {
@@ -246,7 +246,7 @@ namespace System.Threading.Tasks.Schedulers
         {
             get
             {
-                int count = 0;
+                var count = 0;
                 foreach (var group in _queueGroups) count += group.Value.Count;
                 return count;
             }
@@ -283,7 +283,7 @@ namespace System.Threading.Tasks.Schedulers
                 // Within each group, iterate through the queues in a round-robin
                 // fashion.  Every time we iterate again and successfully find a task, 
                 // we'll start in the next location in the group.
-                foreach (int i in queues.CreateSearchOrder())
+                foreach (var i in queues.CreateSearchOrder())
                 {
                     queueForTargetTask = queues[i];
                     var items = queueForTargetTask._workItems;
@@ -322,7 +322,7 @@ namespace System.Threading.Tasks.Schedulers
                 // Queue the task and check whether we should launch a processing
                 // task (noting it if we do, so that other threads don't result
                 // in queueing up too many).
-                bool launchTask = false;
+                var launchTask = false;
                 lock (_nonthreadsafeTaskQueue)
                 {
                     _nonthreadsafeTaskQueue.Enqueue(task);
@@ -349,7 +349,7 @@ namespace System.Threading.Tasks.Schedulers
         /// </summary>
         private void ProcessPrioritizedAndBatchedTasks()
         {
-            bool continueProcessing = true;
+            var continueProcessing = true;
             while (!_disposeCancellation.IsCancellationRequested && continueProcessing)
             {
                 try
@@ -437,7 +437,7 @@ namespace System.Threading.Tasks.Schedulers
         }
 
         /// <summary>Gets the maximum concurrency level to use when processing tasks.</summary>
-        public override int MaximumConcurrencyLevel { get { return _concurrencyLevel; } }
+        public override int MaximumConcurrencyLevel => _concurrencyLevel;
 
         /// <summary>Initiates shutdown of the scheduler.</summary>
         public void Dispose()
@@ -479,7 +479,7 @@ namespace System.Threading.Tasks.Schedulers
         {
             // Find the group that contains the queue and the queue's index within the group
             var queueGroup = _queueGroups[queue._priority];
-            int index = queueGroup.IndexOf(queue);
+            var index = queueGroup.IndexOf(queue);
 
             // We're about to remove the queue, so adjust the index of the next
             // round-robin starting location if it'll be affected by the removal
@@ -499,8 +499,8 @@ namespace System.Threading.Tasks.Schedulers
             /// <returns>An enumerable of indices for this group.</returns>
             public IEnumerable<int> CreateSearchOrder()
             {
-                for (int i = NextQueueIndex; i < Count; i++) yield return i;
-                for (int i = 0; i < NextQueueIndex; i++) yield return i;
+                for (var i = NextQueueIndex; i < Count; i++) yield return i;
+                for (var i = 0; i < NextQueueIndex; i++) yield return i;
             }
         }
 
@@ -524,13 +524,16 @@ namespace System.Threading.Tasks.Schedulers
                 }
 
                 /// <summary>Gets the priority of this queue in its associated scheduler.</summary>
-                public int Priority { get { return _queue._priority; } }
+                public int Priority => _queue._priority;
+
                 /// <summary>Gets the ID of this scheduler.</summary>
-                public int Id { get { return _queue.Id; } }
+                public int Id => _queue.Id;
+
                 /// <summary>Gets all of the tasks scheduled to this queue.</summary>
-                public IEnumerable<Task> ScheduledTasks { get { return _queue.GetScheduledTasks(); } }
+                public IEnumerable<Task> ScheduledTasks => _queue.GetScheduledTasks();
+
                 /// <summary>Gets the QueuedTaskScheduler with which this queue is associated.</summary>
-                public QueuedTaskScheduler AssociatedScheduler { get { return _queue._pool; } }
+                public QueuedTaskScheduler AssociatedScheduler => _queue._pool;
             }
 
             /// <summary>The scheduler with which this pool is associated.</summary>
@@ -540,7 +543,7 @@ namespace System.Threading.Tasks.Schedulers
             /// <summary>Whether this queue has been disposed.</summary>
             internal bool _disposed;
             /// <summary>Gets the priority for this queue.</summary>
-            internal int _priority;
+            internal readonly int _priority;
 
             /// <summary>Initializes the queue.</summary>
             /// <param name="priority">The priority associated with this queue.</param>
@@ -553,7 +556,7 @@ namespace System.Threading.Tasks.Schedulers
             }
 
             /// <summary>Gets the number of tasks waiting in this scheduler.</summary>
-            internal int WaitingTasks { get { return _workItems.Count; } }
+            internal int WaitingTasks => _workItems.Count;
 
             /// <summary>Gets the tasks scheduled to this scheduler.</summary>
             /// <returns>An enumerable of all tasks queued to this scheduler.</returns>
@@ -587,7 +590,7 @@ namespace System.Threading.Tasks.Schedulers
             internal void ExecuteTask(Task task) { TryExecuteTask(task); }
 
             /// <summary>Gets the maximum concurrency level to use when processing tasks.</summary>
-            public override int MaximumConcurrencyLevel { get { return _pool.MaximumConcurrencyLevel; } }
+            public override int MaximumConcurrencyLevel => _pool.MaximumConcurrencyLevel;
 
             /// <summary>Signals that the queue should be removed from the scheduler as soon as the queue is empty.</summary>
             public void Dispose()

@@ -12,11 +12,14 @@ namespace System.IO
     public abstract class AbstractStreamBase : Stream
     {
         /// <summary>Determines whether data can be read from the stream.</summary>
-        public override bool CanRead { get { return false; } }
+        public override bool CanRead => false;
+
         /// <summary>Determines whether data can be written to the stream.</summary>
-        public override bool CanWrite { get { return false; } }
+        public override bool CanWrite => false;
+
         /// <summary>Determines whether the stream can be seeked.</summary>
-        public override bool CanSeek { get { return false; } }
+        public override bool CanSeek => false;
+
         /// <summary>Flushes the contents of the stream to the underlying storage.</summary>
         public override void Flush() { }
 

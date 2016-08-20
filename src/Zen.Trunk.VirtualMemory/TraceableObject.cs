@@ -25,14 +25,9 @@
 		/// Gets the name of the tracer.
 		/// </summary>
 		/// <value>The name of the tracer.</value>
-		protected virtual string TracerName
-		{
-			get
-			{
-				return GetType().Name;
-			}
-		}
-		#endregion
+		protected virtual string TracerName => GetType().Name;
+
+	    #endregion
 
 		#region Protected Methods
 		protected virtual ITracer CreateTracer(string tracerName)

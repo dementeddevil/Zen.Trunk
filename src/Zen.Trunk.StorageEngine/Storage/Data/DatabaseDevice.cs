@@ -82,7 +82,7 @@ namespace Zen.Trunk.Storage.Data
 		#endregion
 
 		#region Private Fields
-		private ushort _dbId;
+		private readonly ushort _dbId;
 		private ITargetBlock<AddFileGroupDeviceRequest> _addFileGroupDevicePort;
 		private ITargetBlock<RemoveFileGroupDeviceRequest> _removeFileGroupDevicePort;
 		private ITargetBlock<InitFileGroupPageRequest> _initFileGroupPagePort;
@@ -100,9 +100,9 @@ namespace Zen.Trunk.Storage.Data
 		private IDatabaseLockManager _lockManager;
 
 		// File-group mapping
-		private Dictionary<byte, FileGroupDevice> _fileGroupById =
+		private readonly Dictionary<byte, FileGroupDevice> _fileGroupById =
 			new Dictionary<byte, FileGroupDevice>();
-		private Dictionary<string, FileGroupDevice> _fileGroupByName =
+		private readonly Dictionary<string, FileGroupDevice> _fileGroupByName =
 			new Dictionary<string, FileGroupDevice>();
 		private byte _nextFileGroupId = FileGroupDevice.Primary + 1;
 
@@ -141,112 +141,60 @@ namespace Zen.Trunk.Storage.Data
 		/// Gets the name of the tracer.
 		/// </summary>
 		/// <value>The name of the tracer.</value>
-		protected override string TracerName
-		{
-			get
-			{
-				return base.TracerName;
-			}
-		}
+		protected override string TracerName => base.TracerName;
 
-		/// <summary>
+	    /// <summary>
 		/// Gets the primary file group id.
 		/// </summary>
 		/// <value>The primary file group id.</value>
-		protected virtual byte PrimaryFileGroupId
-		{
-			get
-			{
-				return FileGroupDevice.Primary;
-			}
-		}
-		#endregion
+		protected virtual byte PrimaryFileGroupId => FileGroupDevice.Primary;
+
+	    #endregion
 
 		#region Private Properties
 		/// <summary>
 		/// Gets the add file group data device port.
 		/// </summary>
 		/// <value>The add file group data device port.</value>
-		private ITargetBlock<AddFileGroupDeviceRequest> AddFileGroupDevicePort
-		{
-			get
-			{
-				return _addFileGroupDevicePort;
-			}
-		}
+		private ITargetBlock<AddFileGroupDeviceRequest> AddFileGroupDevicePort => _addFileGroupDevicePort;
 
-		/// <summary>
+	    /// <summary>
 		/// Gets the remove file group device port.
 		/// </summary>
 		/// <value>The remove file group device port.</value>
-		private ITargetBlock<RemoveFileGroupDeviceRequest> RemoveFileGroupDevicePort
-		{
-			get
-			{
-				return _removeFileGroupDevicePort;
-			}
-		}
+		private ITargetBlock<RemoveFileGroupDeviceRequest> RemoveFileGroupDevicePort => _removeFileGroupDevicePort;
 
-		/// <summary>
+	    /// <summary>
 		/// Gets the init file group page port.
 		/// </summary>
 		/// <value>The init file group page port.</value>
-		private ITargetBlock<InitFileGroupPageRequest> InitFileGroupPagePort
-		{
-			get
-			{
-				return _initFileGroupPagePort;
-			}
-		}
+		private ITargetBlock<InitFileGroupPageRequest> InitFileGroupPagePort => _initFileGroupPagePort;
 
-		/// <summary>
+	    /// <summary>
 		/// Gets the load file group page port.
 		/// </summary>
 		/// <value>The load file group page port.</value>
-		private ITargetBlock<LoadFileGroupPageRequest> LoadFileGroupPagePort
-		{
-			get
-			{
-				return _loadFileGroupPagePort;
-			}
-		}
+		private ITargetBlock<LoadFileGroupPageRequest> LoadFileGroupPagePort => _loadFileGroupPagePort;
 
-		/// <summary>
+	    /// <summary>
 		/// Gets the flush device buffers port.
 		/// </summary>
 		/// <value>The flush device buffers port.</value>
-		private ITargetBlock<FlushFileGroupRequest> FlushPageBuffersPort
-		{
-			get
-			{
-				return _flushPageBuffersPort;
-			}
-		}
+		private ITargetBlock<FlushFileGroupRequest> FlushPageBuffersPort => _flushPageBuffersPort;
 
-		/// <summary>
+	    /// <summary>
 		/// Gets the add file group table port.
 		/// </summary>
 		/// <value>The add file group table port.</value>
-		private ITargetBlock<AddFileGroupTableRequest> AddFileGroupTablePort
-		{
-			get
-			{
-				return _addFileGroupTablePort;
-			}
-		}
+		private ITargetBlock<AddFileGroupTableRequest> AddFileGroupTablePort => _addFileGroupTablePort;
 
-		/// <summary>
+	    /// <summary>
 		/// Gets the issue check point port.
 		/// </summary>
 		/// <value>The issue check point port.</value>
-		private ITargetBlock<IssueCheckPointRequest> IssueCheckPointPort
-		{
-			get
-			{
-				return _issueCheckPointPort;
-			}
-		}
-		#endregion
+		private ITargetBlock<IssueCheckPointRequest> IssueCheckPointPort => _issueCheckPointPort;
+
+	    #endregion
 
 		#region Public Methods
 		/// <summary>
@@ -444,11 +392,11 @@ namespace Zen.Trunk.Storage.Data
 		protected override async Task OnClose()
 		{
 			TrunkTransactionContext.BeginTransaction(this);
-			bool committed = false;
+			var committed = false;
 			try
 			{
 				// Issue a checkpoint so we close the database in a known state
-				IssueCheckPointRequest request = new IssueCheckPointRequest();
+				var request = new IssueCheckPointRequest();
 				if (!IssueCheckPointPort.Post(request))
 				{
 					throw new BufferDeviceShuttingDownException();
@@ -467,7 +415,7 @@ namespace Zen.Trunk.Storage.Data
 			}
 
 			// Close all secondary file-groups in parallel
-			Task[] secondaryDeviceTasks = _fileGroupByName.Values
+			var secondaryDeviceTasks = _fileGroupByName.Values
 				.Where((item) => !item.IsPrimaryFileGroup)
 				.Select((item) => Task.Run(() => item.CloseAsync()))
 				.ToArray();
@@ -476,7 +424,7 @@ namespace Zen.Trunk.Storage.Data
 				.ConfigureAwait(false);
 
 			// Close the primary file-group last
-			FileGroupDevice primaryDevice = _fileGroupByName.Values
+			var primaryDevice = _fileGroupByName.Values
 				.FirstOrDefault((item) => item.IsPrimaryFileGroup);
 			if (primaryDevice != null)
 			{
@@ -503,7 +451,7 @@ namespace Zen.Trunk.Storage.Data
 		private void Initialise()
 		{
 			// Initialise devices
-			IVirtualBufferFactory bufferFactory = GetService<IVirtualBufferFactory>();
+			var bufferFactory = GetService<IVirtualBufferFactory>();
 			_bufferDevice = new MultipleBufferDevice(bufferFactory, true);
 			_dataBufferDevice = new CachingPageBufferDevice(_bufferDevice);
 			_logDevice = new MasterLogPageDevice(string.Empty, this);
@@ -569,14 +517,14 @@ namespace Zen.Trunk.Storage.Data
 		{
 			// Create valid file group ID as needed
 			FileGroupDevice fileGroupDevice = null;
-			bool isFileGroupCreate = false;
-			bool isFileGroupOpenNeeded = false;
+			var isFileGroupCreate = false;
+			var isFileGroupOpenNeeded = false;
 			if ((request.Message.FileGroupIdValid && !_fileGroupById.TryGetValue(request.Message.FileGroupId, out fileGroupDevice)) ||
 				(!request.Message.FileGroupIdValid && !_fileGroupByName.TryGetValue(request.Message.FileGroupName, out fileGroupDevice)))
 			{
 				// Since we are going to create a file-group device we must
 				//	have a valid name...
-				string fileGroupName = request.Message.FileGroupName;
+				var fileGroupName = request.Message.FileGroupName;
 				if (!string.IsNullOrEmpty(fileGroupName))
 				{
 					fileGroupName = fileGroupName.Trim().ToUpper();
@@ -587,7 +535,7 @@ namespace Zen.Trunk.Storage.Data
 				}
 
 				// Determine new file-group id
-				byte fileGroupId = request.Message.FileGroupId;
+				var fileGroupId = request.Message.FileGroupId;
 
 				// We only use the supplied file-group id if it is
 				//	master or primary
@@ -624,7 +572,7 @@ namespace Zen.Trunk.Storage.Data
 			}
 
 			// Add child device to file-group
-			ushort deviceId = await fileGroupDevice.AddDataDevice(request.Message);
+			var deviceId = await fileGroupDevice.AddDataDevice(request.Message);
 
 			// If this is the first call for a file-group AND database is open or opening
 			//	then open the new file-group device too
@@ -649,7 +597,7 @@ namespace Zen.Trunk.Storage.Data
 
 		private async Task<bool> InitFileGroupPageHandler(InitFileGroupPageRequest request)
 		{
-			FileGroupDevice fileGroupDevice = GetFileGroupDevice(
+			var fileGroupDevice = GetFileGroupDevice(
 				request.Message.FileGroupId, request.Message.FileGroupName);
 
 			// Setup page site
@@ -695,7 +643,7 @@ namespace Zen.Trunk.Storage.Data
 				request.Message.Page.PreLoadInternal();
 
 				// Load the buffer from the underlying cache
-				DevicePageId pageId = new DevicePageId(request.Message.Page.VirtualId);
+				var pageId = new VirtualPageId(request.Message.Page.VirtualId);
 				request.Message.Page.DataBuffer = await _dataBufferDevice.LoadPageAsync(pageId).ConfigureAwait(false);
 				request.Message.Page.PostLoadInternal();
 			}
@@ -703,7 +651,7 @@ namespace Zen.Trunk.Storage.Data
 			{
 				Tracer.WriteVerboseLine("LoadFileGroupPage - By File-Group [{0},{1}]",
 					request.Message.FileGroupId, request.Message.FileGroupName);
-				FileGroupDevice fileGroupDevice = GetFileGroupDevice(
+				var fileGroupDevice = GetFileGroupDevice(
 					request.Message.FileGroupId, request.Message.FileGroupName);
 
 				// Setup page site
@@ -742,7 +690,7 @@ namespace Zen.Trunk.Storage.Data
 		{
 			var tcs = new TaskCompletionSource<bool>();
 
-			Task current = _currentCheckPointTask;
+			var current = _currentCheckPointTask;
 			if (current == null)
 			{
 				// Setup the completion task object then start the operation
@@ -808,7 +756,7 @@ namespace Zen.Trunk.Storage.Data
 				fileGroupName = fileGroupName.Trim().ToUpper();
 			}
 
-			bool idValid = (fileGroupId != FileGroupDevice.Invalid);
+			var idValid = (fileGroupId != FileGroupDevice.Invalid);
 			FileGroupDevice fileGroupDevice = null;
 			if ((idValid && _fileGroupById.TryGetValue(fileGroupId, out fileGroupDevice)) ||
 				(!string.IsNullOrEmpty(fileGroupName) && _fileGroupByName.TryGetValue(fileGroupName, out fileGroupDevice)))

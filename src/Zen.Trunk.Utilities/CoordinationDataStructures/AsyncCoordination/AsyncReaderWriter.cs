@@ -27,7 +27,7 @@ namespace System.Threading.Async
         /// <summary>The number of exclusive writers currently executing.</summary>
         private bool _currentlyExclusive = false;
         /// <summary>The non-generic factory to use for task creation.</summary>
-        private TaskFactory _factory;
+        private readonly TaskFactory _factory;
 
         /// <summary>Initializes the ReaderWriterAsync.</summary>
         public AsyncReaderWriter() { _factory = Task.Factory; }
@@ -115,7 +115,7 @@ namespace System.Threading.Async
             // Create the task.  This Task will be started by the coordination primitive
             // when it's safe to do so, e.g. when there are no exclusive tasks running
             // or waiting to run.
-            Task task = _factory.Create(state =>
+            var task = _factory.Create(state =>
             {
                 // Run the user-provided action
                 try { ((Action)state)(); }

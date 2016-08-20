@@ -13,8 +13,8 @@ namespace Zen.Trunk.Utils
 	/// </summary>
 	public class TimeoutHelper
 	{
-		private DateTime _startTime = DateTime.UtcNow;
-		private TimeSpan _timeout;
+		private readonly DateTime _startTime = DateTime.UtcNow;
+		private readonly TimeSpan _timeout;
 
 		public TimeoutHelper(TimeSpan timeout)
 		{
@@ -26,31 +26,13 @@ namespace Zen.Trunk.Utils
 			_timeout = timeout;
 		}
 
-		public DateTime EndTime
-		{
-			get
-			{
-				return _startTime + _timeout;
-			}
-		}
+		public DateTime EndTime => _startTime + _timeout;
 
-		public TimeSpan RemainingTime
-		{
-			get
-			{
-				return EndTime - DateTime.UtcNow;
-			}
-		}
+	    public TimeSpan RemainingTime => EndTime - DateTime.UtcNow;
 
-		public bool IsExpired
-		{
-			get
-			{
-				return RemainingTime < TimeSpan.Zero;
-			}
-		}
+	    public bool IsExpired => RemainingTime < TimeSpan.Zero;
 
-		/// <summary>
+	    /// <summary>
 		/// Gets the remaining time or throws a <see cref="TimeoutException"/>
 		/// if timeout has elapsed.
 		/// </summary>
@@ -67,7 +49,7 @@ namespace Zen.Trunk.Utils
 		/// <returns></returns>
 		public TimeSpan GetRemainingTimeOrThrowIfTimeout(string errorMessage)
 		{
-			TimeSpan remainingTime = RemainingTime;
+			var remainingTime = RemainingTime;
 			if (remainingTime < TimeSpan.Zero)
 			{
 				if (string.IsNullOrEmpty(errorMessage))

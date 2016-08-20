@@ -11,8 +11,8 @@
 
 	public class TargetBlockSet<T0, T1> : ITargetBlockSet
 	{
-		private ITargetBlock<T0> _t0;
-		private ITargetBlock<T1> _t1;
+		private readonly ITargetBlock<T0> _t0;
+		private readonly ITargetBlock<T1> _t1;
 
 		public TargetBlockSet(
 			ITargetBlock<T0> t0,
@@ -36,17 +36,11 @@
 		/// prematurely due to receiving a cancellation request.  If the task completes in the Faulted state, its Exception property will return
 		/// an <see cref="T:System.AggregateException"/> containing the one or more exceptions that caused the block to fail.
 		/// </remarks>
-		public Task Completion
-		{
-			get
-			{
-				return Task.WhenAll(
-					_t0.Completion, 
-					_t1.Completion);
-			}
-		}
+		public Task Completion => Task.WhenAll(
+		    _t0.Completion, 
+		    _t1.Completion);
 
-		public void Fault(Exception exception)
+	    public void Fault(Exception exception)
 		{
 			_t0.Fault(exception);
 			_t1.Fault(exception);
@@ -82,9 +76,9 @@
 
 	public class TargetBlockSet<T0, T1, T2> : ITargetBlockSet
 	{
-		private ITargetBlock<T0> _t0;
-		private ITargetBlock<T1> _t1;
-		private ITargetBlock<T2> _t2;
+		private readonly ITargetBlock<T0> _t0;
+		private readonly ITargetBlock<T1> _t1;
+		private readonly ITargetBlock<T2> _t2;
 
 		public TargetBlockSet(
 			ITargetBlock<T0> t0,
@@ -110,18 +104,12 @@
 		/// prematurely due to receiving a cancellation request.  If the task completes in the Faulted state, its Exception property will return
 		/// an <see cref="T:System.AggregateException"/> containing the one or more exceptions that caused the block to fail.
 		/// </remarks>
-		public Task Completion
-		{
-			get
-			{
-				return Task.WhenAll(
-					_t0.Completion,
-					_t1.Completion,
-					_t2.Completion);
-			}
-		}
+		public Task Completion => Task.WhenAll(
+		    _t0.Completion,
+		    _t1.Completion,
+		    _t2.Completion);
 
-		public void Fault(Exception exception)
+	    public void Fault(Exception exception)
 		{
 			_t0.Fault(exception);
 			_t1.Fault(exception);
@@ -167,10 +155,10 @@
 
 	public class TargetBlockSet<T0, T1, T2, T3> : ITargetBlockSet
 	{
-		private ITargetBlock<T0> _t0;
-		private ITargetBlock<T1> _t1;
-		private ITargetBlock<T2> _t2;
-		private ITargetBlock<T3> _t3;
+		private readonly ITargetBlock<T0> _t0;
+		private readonly ITargetBlock<T1> _t1;
+		private readonly ITargetBlock<T2> _t2;
+		private readonly ITargetBlock<T3> _t3;
 
 		public TargetBlockSet(
 			ITargetBlock<T0> t0,
@@ -198,19 +186,13 @@
 		/// prematurely due to receiving a cancellation request.  If the task completes in the Faulted state, its Exception property will return
 		/// an <see cref="T:System.AggregateException"/> containing the one or more exceptions that caused the block to fail.
 		/// </remarks>
-		public Task Completion
-		{
-			get
-			{
-				return Task.WhenAll(
-					_t0.Completion,
-					_t1.Completion,
-					_t2.Completion,
-					_t3.Completion);
-			}
-		}
+		public Task Completion => Task.WhenAll(
+		    _t0.Completion,
+		    _t1.Completion,
+		    _t2.Completion,
+		    _t3.Completion);
 
-		public void Fault(Exception exception)
+	    public void Fault(Exception exception)
 		{
 			_t0.Fault(exception);
 			_t1.Fault(exception);
@@ -266,11 +248,11 @@
 
 	public class TargetBlockSet<T0, T1, T2, T3, T4> : ITargetBlockSet
 	{
-		private ITargetBlock<T0> _t0;
-		private ITargetBlock<T1> _t1;
-		private ITargetBlock<T2> _t2;
-		private ITargetBlock<T3> _t3;
-		private ITargetBlock<T4> _t4;
+		private readonly ITargetBlock<T0> _t0;
+		private readonly ITargetBlock<T1> _t1;
+		private readonly ITargetBlock<T2> _t2;
+		private readonly ITargetBlock<T3> _t3;
+		private readonly ITargetBlock<T4> _t4;
 
 		public TargetBlockSet(
 			ITargetBlock<T0> t0,
@@ -300,20 +282,14 @@
 		/// prematurely due to receiving a cancellation request.  If the task completes in the Faulted state, its Exception property will return
 		/// an <see cref="T:System.AggregateException"/> containing the one or more exceptions that caused the block to fail.
 		/// </remarks>
-		public Task Completion
-		{
-			get
-			{
-				return Task.WhenAll(
-					_t0.Completion,
-					_t1.Completion,
-					_t2.Completion,
-					_t3.Completion,
-					_t4.Completion);
-			}
-		}
+		public Task Completion => Task.WhenAll(
+		    _t0.Completion,
+		    _t1.Completion,
+		    _t2.Completion,
+		    _t3.Completion,
+		    _t4.Completion);
 
-		public void Fault(Exception exception)
+	    public void Fault(Exception exception)
 		{
 			_t0.Fault(exception);
 			_t1.Fault(exception);
@@ -379,12 +355,12 @@
 
 	public class TargetBlockSet<T0, T1, T2, T3, T4, T5> : ITargetBlockSet
 	{
-		private ITargetBlock<T0> _t0;
-		private ITargetBlock<T1> _t1;
-		private ITargetBlock<T2> _t2;
-		private ITargetBlock<T3> _t3;
-		private ITargetBlock<T4> _t4;
-		private ITargetBlock<T5> _t5;
+		private readonly ITargetBlock<T0> _t0;
+		private readonly ITargetBlock<T1> _t1;
+		private readonly ITargetBlock<T2> _t2;
+		private readonly ITargetBlock<T3> _t3;
+		private readonly ITargetBlock<T4> _t4;
+		private readonly ITargetBlock<T5> _t5;
 
 		public TargetBlockSet(
 			ITargetBlock<T0> t0,
@@ -416,21 +392,15 @@
 		/// prematurely due to receiving a cancellation request.  If the task completes in the Faulted state, its Exception property will return
 		/// an <see cref="T:System.AggregateException"/> containing the one or more exceptions that caused the block to fail.
 		/// </remarks>
-		public Task Completion
-		{
-			get
-			{
-				return Task.WhenAll(
-					_t0.Completion,
-					_t1.Completion,
-					_t2.Completion,
-					_t3.Completion,
-					_t4.Completion,
-					_t5.Completion);
-			}
-		}
+		public Task Completion => Task.WhenAll(
+		    _t0.Completion,
+		    _t1.Completion,
+		    _t2.Completion,
+		    _t3.Completion,
+		    _t4.Completion,
+		    _t5.Completion);
 
-		public void Fault(Exception exception)
+	    public void Fault(Exception exception)
 		{
 			_t0.Fault(exception);
 			_t1.Fault(exception);
@@ -506,13 +476,13 @@
 
 	public class TargetBlockSet<T0, T1, T2, T3, T4, T5, T6> : ITargetBlockSet
 	{
-		private ITargetBlock<T0> _t0;
-		private ITargetBlock<T1> _t1;
-		private ITargetBlock<T2> _t2;
-		private ITargetBlock<T3> _t3;
-		private ITargetBlock<T4> _t4;
-		private ITargetBlock<T5> _t5;
-		private ITargetBlock<T6> _t6;
+		private readonly ITargetBlock<T0> _t0;
+		private readonly ITargetBlock<T1> _t1;
+		private readonly ITargetBlock<T2> _t2;
+		private readonly ITargetBlock<T3> _t3;
+		private readonly ITargetBlock<T4> _t4;
+		private readonly ITargetBlock<T5> _t5;
+		private readonly ITargetBlock<T6> _t6;
 
 		public TargetBlockSet(
 			ITargetBlock<T0> t0,
@@ -546,22 +516,16 @@
 		/// prematurely due to receiving a cancellation request.  If the task completes in the Faulted state, its Exception property will return
 		/// an <see cref="T:System.AggregateException"/> containing the one or more exceptions that caused the block to fail.
 		/// </remarks>
-		public Task Completion
-		{
-			get
-			{
-				return Task.WhenAll(
-					_t0.Completion,
-					_t1.Completion,
-					_t2.Completion,
-					_t3.Completion,
-					_t4.Completion,
-					_t5.Completion,
-					_t6.Completion);
-			}
-		}
+		public Task Completion => Task.WhenAll(
+		    _t0.Completion,
+		    _t1.Completion,
+		    _t2.Completion,
+		    _t3.Completion,
+		    _t4.Completion,
+		    _t5.Completion,
+		    _t6.Completion);
 
-		public void Fault(Exception exception)
+	    public void Fault(Exception exception)
 		{
 			_t0.Fault(exception);
 			_t1.Fault(exception);
@@ -647,14 +611,14 @@
 
 	public class TargetBlockSet<T0, T1, T2, T3, T4, T5, T6, T7> : ITargetBlockSet
 	{
-		private ITargetBlock<T0> _t0;
-		private ITargetBlock<T1> _t1;
-		private ITargetBlock<T2> _t2;
-		private ITargetBlock<T3> _t3;
-		private ITargetBlock<T4> _t4;
-		private ITargetBlock<T5> _t5;
-		private ITargetBlock<T6> _t6;
-		private ITargetBlock<T7> _t7;
+		private readonly ITargetBlock<T0> _t0;
+		private readonly ITargetBlock<T1> _t1;
+		private readonly ITargetBlock<T2> _t2;
+		private readonly ITargetBlock<T3> _t3;
+		private readonly ITargetBlock<T4> _t4;
+		private readonly ITargetBlock<T5> _t5;
+		private readonly ITargetBlock<T6> _t6;
+		private readonly ITargetBlock<T7> _t7;
 
 		public TargetBlockSet(
 			ITargetBlock<T0> t0,
@@ -690,23 +654,17 @@
 		/// prematurely due to receiving a cancellation request.  If the task completes in the Faulted state, its Exception property will return
 		/// an <see cref="T:System.AggregateException"/> containing the one or more exceptions that caused the block to fail.
 		/// </remarks>
-		public Task Completion
-		{
-			get
-			{
-				return Task.WhenAll(
-					_t0.Completion,
-					_t1.Completion,
-					_t2.Completion,
-					_t3.Completion,
-					_t4.Completion,
-					_t5.Completion,
-					_t6.Completion,
-					_t7.Completion);
-			}
-		}
+		public Task Completion => Task.WhenAll(
+		    _t0.Completion,
+		    _t1.Completion,
+		    _t2.Completion,
+		    _t3.Completion,
+		    _t4.Completion,
+		    _t5.Completion,
+		    _t6.Completion,
+		    _t7.Completion);
 
-		public void Fault(Exception exception)
+	    public void Fault(Exception exception)
 		{
 			_t0.Fault(exception);
 			_t1.Fault(exception);
@@ -802,15 +760,15 @@
 
 	public class TargetBlockSet<T0, T1, T2, T3, T4, T5, T6, T7, T8> : ITargetBlockSet
 	{
-		private ITargetBlock<T0> _t0;
-		private ITargetBlock<T1> _t1;
-		private ITargetBlock<T2> _t2;
-		private ITargetBlock<T3> _t3;
-		private ITargetBlock<T4> _t4;
-		private ITargetBlock<T5> _t5;
-		private ITargetBlock<T6> _t6;
-		private ITargetBlock<T7> _t7;
-		private ITargetBlock<T8> _t8;
+		private readonly ITargetBlock<T0> _t0;
+		private readonly ITargetBlock<T1> _t1;
+		private readonly ITargetBlock<T2> _t2;
+		private readonly ITargetBlock<T3> _t3;
+		private readonly ITargetBlock<T4> _t4;
+		private readonly ITargetBlock<T5> _t5;
+		private readonly ITargetBlock<T6> _t6;
+		private readonly ITargetBlock<T7> _t7;
+		private readonly ITargetBlock<T8> _t8;
 
 		public TargetBlockSet(
 			ITargetBlock<T0> t0,
@@ -848,24 +806,18 @@
 		/// prematurely due to receiving a cancellation request.  If the task completes in the Faulted state, its Exception property will return
 		/// an <see cref="T:System.AggregateException"/> containing the one or more exceptions that caused the block to fail.
 		/// </remarks>
-		public Task Completion
-		{
-			get
-			{
-				return Task.WhenAll(
-					_t0.Completion,
-					_t1.Completion,
-					_t2.Completion,
-					_t3.Completion,
-					_t4.Completion,
-					_t5.Completion,
-					_t6.Completion,
-					_t7.Completion,
-					_t8.Completion);
-			}
-		}
+		public Task Completion => Task.WhenAll(
+		    _t0.Completion,
+		    _t1.Completion,
+		    _t2.Completion,
+		    _t3.Completion,
+		    _t4.Completion,
+		    _t5.Completion,
+		    _t6.Completion,
+		    _t7.Completion,
+		    _t8.Completion);
 
-		public void Fault(Exception exception)
+	    public void Fault(Exception exception)
 		{
 			_t0.Fault(exception);
 			_t1.Fault(exception);
@@ -971,16 +923,16 @@
 
 	public class TargetBlockSet<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9> : ITargetBlockSet
 	{
-		private ITargetBlock<T0> _t0;
-		private ITargetBlock<T1> _t1;
-		private ITargetBlock<T2> _t2;
-		private ITargetBlock<T3> _t3;
-		private ITargetBlock<T4> _t4;
-		private ITargetBlock<T5> _t5;
-		private ITargetBlock<T6> _t6;
-		private ITargetBlock<T7> _t7;
-		private ITargetBlock<T8> _t8;
-		private ITargetBlock<T9> _t9;
+		private readonly ITargetBlock<T0> _t0;
+		private readonly ITargetBlock<T1> _t1;
+		private readonly ITargetBlock<T2> _t2;
+		private readonly ITargetBlock<T3> _t3;
+		private readonly ITargetBlock<T4> _t4;
+		private readonly ITargetBlock<T5> _t5;
+		private readonly ITargetBlock<T6> _t6;
+		private readonly ITargetBlock<T7> _t7;
+		private readonly ITargetBlock<T8> _t8;
+		private readonly ITargetBlock<T9> _t9;
 
 		public TargetBlockSet(
 			ITargetBlock<T0> t0,
@@ -1020,25 +972,19 @@
 		/// prematurely due to receiving a cancellation request.  If the task completes in the Faulted state, its Exception property will return
 		/// an <see cref="T:System.AggregateException"/> containing the one or more exceptions that caused the block to fail.
 		/// </remarks>
-		public Task Completion
-		{
-			get
-			{
-				return Task.WhenAll(
-					_t0.Completion,
-					_t1.Completion,
-					_t2.Completion,
-					_t3.Completion,
-					_t4.Completion,
-					_t5.Completion,
-					_t6.Completion,
-					_t7.Completion,
-					_t8.Completion,
-					_t9.Completion);
-			}
-		}
+		public Task Completion => Task.WhenAll(
+		    _t0.Completion,
+		    _t1.Completion,
+		    _t2.Completion,
+		    _t3.Completion,
+		    _t4.Completion,
+		    _t5.Completion,
+		    _t6.Completion,
+		    _t7.Completion,
+		    _t8.Completion,
+		    _t9.Completion);
 
-		public void Fault(Exception exception)
+	    public void Fault(Exception exception)
 		{
 			_t0.Fault(exception);
 			_t1.Fault(exception);
@@ -1154,17 +1100,17 @@
 
 	public class TargetBlockSet<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> : ITargetBlockSet
 	{
-		private ITargetBlock<T0> _t0;
-		private ITargetBlock<T1> _t1;
-		private ITargetBlock<T2> _t2;
-		private ITargetBlock<T3> _t3;
-		private ITargetBlock<T4> _t4;
-		private ITargetBlock<T5> _t5;
-		private ITargetBlock<T6> _t6;
-		private ITargetBlock<T7> _t7;
-		private ITargetBlock<T8> _t8;
-		private ITargetBlock<T9> _t9;
-		private ITargetBlock<T10> _t10;
+		private readonly ITargetBlock<T0> _t0;
+		private readonly ITargetBlock<T1> _t1;
+		private readonly ITargetBlock<T2> _t2;
+		private readonly ITargetBlock<T3> _t3;
+		private readonly ITargetBlock<T4> _t4;
+		private readonly ITargetBlock<T5> _t5;
+		private readonly ITargetBlock<T6> _t6;
+		private readonly ITargetBlock<T7> _t7;
+		private readonly ITargetBlock<T8> _t8;
+		private readonly ITargetBlock<T9> _t9;
+		private readonly ITargetBlock<T10> _t10;
 
 		public TargetBlockSet(
 			ITargetBlock<T0> t0,
@@ -1206,26 +1152,20 @@
 		/// prematurely due to receiving a cancellation request.  If the task completes in the Faulted state, its Exception property will return
 		/// an <see cref="T:System.AggregateException"/> containing the one or more exceptions that caused the block to fail.
 		/// </remarks>
-		public Task Completion
-		{
-			get
-			{
-				return Task.WhenAll(
-					_t0.Completion,
-					_t1.Completion,
-					_t2.Completion,
-					_t3.Completion,
-					_t4.Completion,
-					_t5.Completion,
-					_t6.Completion,
-					_t7.Completion,
-					_t8.Completion,
-					_t9.Completion,
-					_t10.Completion);
-			}
-		}
+		public Task Completion => Task.WhenAll(
+		    _t0.Completion,
+		    _t1.Completion,
+		    _t2.Completion,
+		    _t3.Completion,
+		    _t4.Completion,
+		    _t5.Completion,
+		    _t6.Completion,
+		    _t7.Completion,
+		    _t8.Completion,
+		    _t9.Completion,
+		    _t10.Completion);
 
-		public void Fault(Exception exception)
+	    public void Fault(Exception exception)
 		{
 			_t0.Fault(exception);
 			_t1.Fault(exception);
@@ -1351,18 +1291,18 @@
 
 	public class TargetBlockSet<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> : ITargetBlockSet
 	{
-		private ITargetBlock<T0> _t0;
-		private ITargetBlock<T1> _t1;
-		private ITargetBlock<T2> _t2;
-		private ITargetBlock<T3> _t3;
-		private ITargetBlock<T4> _t4;
-		private ITargetBlock<T5> _t5;
-		private ITargetBlock<T6> _t6;
-		private ITargetBlock<T7> _t7;
-		private ITargetBlock<T8> _t8;
-		private ITargetBlock<T9> _t9;
-		private ITargetBlock<T10> _t10;
-		private ITargetBlock<T11> _t11;
+		private readonly ITargetBlock<T0> _t0;
+		private readonly ITargetBlock<T1> _t1;
+		private readonly ITargetBlock<T2> _t2;
+		private readonly ITargetBlock<T3> _t3;
+		private readonly ITargetBlock<T4> _t4;
+		private readonly ITargetBlock<T5> _t5;
+		private readonly ITargetBlock<T6> _t6;
+		private readonly ITargetBlock<T7> _t7;
+		private readonly ITargetBlock<T8> _t8;
+		private readonly ITargetBlock<T9> _t9;
+		private readonly ITargetBlock<T10> _t10;
+		private readonly ITargetBlock<T11> _t11;
 
 		public TargetBlockSet(
 			ITargetBlock<T0> t0,
@@ -1406,27 +1346,21 @@
 		/// prematurely due to receiving a cancellation request.  If the task completes in the Faulted state, its Exception property will return
 		/// an <see cref="T:System.AggregateException"/> containing the one or more exceptions that caused the block to fail.
 		/// </remarks>
-		public Task Completion
-		{
-			get
-			{
-				return Task.WhenAll(
-					_t0.Completion,
-					_t1.Completion,
-					_t2.Completion,
-					_t3.Completion,
-					_t4.Completion,
-					_t5.Completion,
-					_t6.Completion,
-					_t7.Completion,
-					_t8.Completion,
-					_t9.Completion,
-					_t10.Completion,
-					_t11.Completion);
-			}
-		}
+		public Task Completion => Task.WhenAll(
+		    _t0.Completion,
+		    _t1.Completion,
+		    _t2.Completion,
+		    _t3.Completion,
+		    _t4.Completion,
+		    _t5.Completion,
+		    _t6.Completion,
+		    _t7.Completion,
+		    _t8.Completion,
+		    _t9.Completion,
+		    _t10.Completion,
+		    _t11.Completion);
 
-		public void Fault(Exception exception)
+	    public void Fault(Exception exception)
 		{
 			_t0.Fault(exception);
 			_t1.Fault(exception);

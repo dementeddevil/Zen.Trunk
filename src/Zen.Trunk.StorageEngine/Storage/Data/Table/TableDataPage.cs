@@ -37,7 +37,7 @@
 		/// <summary>
 		/// The total number of bytes used by row-data on this page.
 		/// </summary>
-		private BufferFieldUInt16 _totalRowDataSize;
+		private readonly BufferFieldUInt16 _totalRowDataSize;
 		#endregion
 
 		#region Public Constructors
@@ -70,7 +70,7 @@
 		{
 			get
 			{
-				ushort allocated = (ushort)(_totalRowDataSize.Value + (_rowInfo.Count * 2));
+				var allocated = (ushort)(_totalRowDataSize.Value + (_rowInfo.Count * 2));
 
 				// Account for row offset table terminator
 				if (_rowInfo.Count < MaxRows)
@@ -115,14 +115,14 @@
 		/// or
 		/// Split/update failed after creating new page.
 		/// </exception>
-		public async Task<Tuple<ulong, ushort>> UpdateRowAndSplitIfNeeded(
+		public async Task<Tuple<LogicalPageId, ushort>> UpdateRowAndSplitIfNeeded(
 			DatabaseTable table, ushort rowIndex, byte[] newRowData, ushort length)
 		{
 			// Attempt: #1
 			// If we can update inplace then we're done
 			if (UpdateRow(rowIndex, newRowData, length))
 			{
-				return new Tuple<ulong, ushort>(LogicalId, rowIndex);
+				return new Tuple<LogicalPageId, ushort>(LogicalId, rowIndex);
 			}
 			else
 			{
@@ -145,7 +145,7 @@
 		/// or
 		/// Split/update failed after creating new page.
 		/// </exception>
-		public async Task<Tuple<ulong, ushort>> InsertRowAndSplitIfNeeded(
+		public async Task<Tuple<LogicalPageId, ushort>> InsertRowAndSplitIfNeeded(
 			DatabaseTable table, ushort rowIndex, byte[] newRowData, ushort length)
 		{
 			// If this table doesn't have a clustered index then add the new
@@ -162,11 +162,13 @@
 				}
 				else
 				{
-					lastPage = new TableDataPage();
-					lastPage.LogicalId = table.DataLastLogicalId;
-					lastPage.FileGroupId = FileGroupId;
-					lastPage.ObjectLock = ObjectLock;
-					await table.Owner
+				    lastPage = new TableDataPage
+				    {
+				        LogicalId = table.DataLastLogicalId,
+				        FileGroupId = FileGroupId,
+				        ObjectLock = ObjectLock
+				    };
+				    await table.Owner
 						.LoadDataPage(new LoadDataPageParameters(lastPage, false, true))
 						.ConfigureAwait(false);
 				}
@@ -174,14 +176,16 @@
 				// Attempt to add the row to the end of the last page
 				if (lastPage.WriteRowIfSpace(ushort.MaxValue, newRowData, length, out newRowIndex))
 				{
-					return new Tuple<ulong, ushort>(lastPage.LogicalId, newRowIndex);
+					return new Tuple<LogicalPageId, ushort>(lastPage.LogicalId, newRowIndex);
 				}
 
 				// If we get here then we need to add a new page to the end
-				splitPage = new TableDataPage();
-				splitPage.FileGroupId = FileGroupId;
-				splitPage.ObjectLock = ObjectLock;
-				await table.Owner
+			    splitPage = new TableDataPage
+			    {
+			        FileGroupId = FileGroupId,
+			        ObjectLock = ObjectLock
+			    };
+			    await table.Owner
 					.InitDataPage(new InitDataPageParameters(splitPage, true, true, true))
 					.ConfigureAwait(false);
 				splitPage.PrevLogicalId = lastPage.LogicalId;
@@ -192,14 +196,14 @@
 				{
 					throw new InvalidOperationException("Failed to add row to new page.");
 				}
-				return new Tuple<ulong, ushort>(splitPage.LogicalId, newRowIndex);
+				return new Tuple<LogicalPageId, ushort>(splitPage.LogicalId, newRowIndex);
 			}
 
 			// Attempt: #1
 			// If we can insert inplace then we're done
 			if (WriteRowIfSpace(rowIndex, newRowData, length, out newRowIndex))
 			{
-				return new Tuple<ulong, ushort>(LogicalId, newRowIndex);
+				return new Tuple<LogicalPageId, ushort>(LogicalId, newRowIndex);
 			}
 
 			// Counting back from the maximum row on this page - calculate the
@@ -212,13 +216,15 @@
 
 			// Load the next page in preparation for split.
 			TableDataPage nextPage = null;
-			if (NextLogicalId != 0)
+			if (NextLogicalId != LogicalPageId.Zero)
 			{
-				nextPage = new TableDataPage();
-				nextPage.LogicalId = NextLogicalId;
-				nextPage.FileGroupId = FileGroupId;
-				nextPage.ObjectLock = ObjectLock;
-				await table.Owner
+			    nextPage = new TableDataPage
+			    {
+			        LogicalId = NextLogicalId,
+			        FileGroupId = FileGroupId,
+			        ObjectLock = ObjectLock
+			    };
+			    await table.Owner
 					.LoadDataPage(new LoadDataPageParameters(nextPage, false, true))
 					.ConfigureAwait(false);
 			}
@@ -230,14 +236,16 @@
 				SplitPage(nextPage, splitAtRowIndex) &&
 				WriteRowIfSpace(rowIndex, newRowData, length, out newRowIndex))
 			{
-				return new Tuple<ulong, ushort>(LogicalId, newRowIndex);
+				return new Tuple<LogicalPageId, ushort>(LogicalId, newRowIndex);
 			}
 
 			// Create a new page and link to this page
-			splitPage = new TableDataPage();
-			splitPage.FileGroupId = FileGroupId;
-			splitPage.ObjectLock = ObjectLock;
-			await table.Owner
+		    splitPage = new TableDataPage
+		    {
+		        FileGroupId = FileGroupId,
+		        ObjectLock = ObjectLock
+		    };
+		    await table.Owner
 				.InitDataPage(new InitDataPageParameters(splitPage, true, true, true))
 				.ConfigureAwait(false);
 			splitPage.PrevLogicalId = LogicalId;
@@ -263,7 +271,7 @@
 					throw new InvalidOperationException(
 						"Split/insert failed after creating split page.");
 				}
-				return new Tuple<ulong, ushort>(LogicalId, newRowIndex);
+				return new Tuple<LogicalPageId, ushort>(LogicalId, newRowIndex);
 			}
 			else
 			{
@@ -277,18 +285,20 @@
 				// Attempt to write row into this page or next page
 				if (WriteRowIfSpace(rowIndex, newRowData, length, out newRowIndex))
 				{
-					return new Tuple<ulong, ushort>(LogicalId, newRowIndex);
+					return new Tuple<LogicalPageId, ushort>(LogicalId, newRowIndex);
 				}
 				if (splitPage.WriteRowIfSpace(0, newRowData, length, out newRowIndex))
 				{
-					return new Tuple<ulong, ushort>(splitPage.LogicalId, newRowIndex);
+					return new Tuple<LogicalPageId, ushort>(splitPage.LogicalId, newRowIndex);
 				}
 
 				// Insert new row between this row and the split page
-				var extraPage = new TableDataPage();
-				extraPage.FileGroupId = FileGroupId;
-				extraPage.ObjectLock = ObjectLock;
-				await table.Owner
+			    var extraPage = new TableDataPage
+			    {
+			        FileGroupId = FileGroupId,
+			        ObjectLock = ObjectLock
+			    };
+			    await table.Owner
 					.InitDataPage(new InitDataPageParameters(extraPage, true, true, true))
 					.ConfigureAwait(false);
 
@@ -304,7 +314,7 @@
 					throw new InvalidOperationException(
 						"Insert failed after creating extra page.");
 				}
-				return new Tuple<ulong, ushort>(extraPage.LogicalId, newRowIndex);
+				return new Tuple<LogicalPageId, ushort>(extraPage.LogicalId, newRowIndex);
 			}
 		}
 
@@ -323,8 +333,8 @@
 		/// <returns></returns>
 		public bool SplitPage(TableDataPage nextPage, ushort splitRowIndex)
 		{
-			ushort splitSize = (ushort)(_totalRowDataSize.Value - _rowInfo[splitRowIndex].Offset);
-			ushort splitRows = (ushort)(_rowInfo.Count - splitRowIndex);
+			var splitSize = (ushort)(_totalRowDataSize.Value - _rowInfo[splitRowIndex].Offset);
+			var splitRows = (ushort)(_rowInfo.Count - splitRowIndex);
 			if (nextPage._rowInfo.Count == 0)
 			{
 				// Copy page data to other page
@@ -366,7 +376,7 @@
 
 				// Adjust row offsets for other page rows
 				ushort offset = 0;
-				for (int index = 0; index < nextPage._rowInfo.Count; ++index)
+				for (var index = 0; index < nextPage._rowInfo.Count; ++index)
 				{
 					nextPage._rowInfo[index].Offset = offset;
 					offset += nextPage._rowInfo[index].Length;
@@ -400,7 +410,7 @@
 			ushort length)
 		{
 			// Determine reservation space
-			ushort reservationLength = Math.Max(length, (ushort)MinRowBytes);
+			var reservationLength = Math.Max(length, (ushort)MinRowBytes);
 
 			// If current row is longer (or the same length) as the new
 			//	data then perform an in-place update.
@@ -418,11 +428,11 @@
 				//	row is not the last row of the page.
 				if (_rowInfo[rowIndex].Length > reservationLength)
 				{
-					ushort difference = (ushort)(_rowInfo[rowIndex].Length - reservationLength);
+					var difference = (ushort)(_rowInfo[rowIndex].Length - reservationLength);
 					if (rowIndex < (_rowInfo.Count - 1))
 					{
 						// Reclaim unused space
-						ushort reclaim = (ushort)(_rowInfo[rowIndex].Length - reservationLength);
+						var reclaim = (ushort)(_rowInfo[rowIndex].Length - reservationLength);
 						Array.Copy(_pageData, _rowInfo[rowIndex + 1].Offset,
 							_pageData, _rowInfo[rowIndex].Offset + reservationLength,
 							_totalRowDataSize.Value - _rowInfo[rowIndex + 1].Offset);
@@ -431,7 +441,7 @@
 						_rowInfo[rowIndex].Length = reservationLength;
 
 						// Adjust row offsets for following rows
-						for (ushort index = (ushort)(rowIndex + 1); index < _rowInfo.Count; ++index)
+						for (var index = (ushort)(rowIndex + 1); index < _rowInfo.Count; ++index)
 						{
 							_rowInfo[rowIndex].Offset -= difference;
 						}
@@ -455,7 +465,7 @@
 				DeleteRow(rowIndex);
 
 				// Followed by insert
-				bool result = WriteRowIfSpace(rowIndex, newRowData, length,
+				var result = WriteRowIfSpace(rowIndex, newRowData, length,
 					out rowIndex);
 
 				// Sanity check
@@ -490,7 +500,7 @@
 					_pageData, _rowInfo[rowIndex + 1].Offset,
 					_pageData, _rowInfo[rowIndex].Offset,
 					_totalRowDataSize.Value - _rowInfo[rowIndex].Length);
-				for (int index = rowIndex + 1; index < _rowInfo.Count; ++index)
+				for (var index = rowIndex + 1; index < _rowInfo.Count; ++index)
 				{
 					_rowInfo[index].Offset -= _rowInfo[rowIndex].Length;
 				}
@@ -517,7 +527,7 @@
 			}
 
 			// Create row information and determine minimum reservation size
-			RowInfo newInfo = new RowInfo();
+			var newInfo = new RowInfo();
 			newInfo.Length = Math.Max((ushort)MinRowBytes, length);
 
 			if (insertRow >= _rowInfo.Count)
@@ -619,8 +629,8 @@
 			_rowInfo = new List<RowInfo>();
 
 			RowInfo lastRow = null;
-			uint offset = DataSize;
-			for (int index = 0; index < MaxRows; ++index)
+			var offset = DataSize;
+			for (var index = 0; index < MaxRows; ++index)
 			{
 				// Read row data
 				ushort rowDataOffset = _pageData[--offset];
@@ -631,7 +641,7 @@
 				}
 
 				// Build row information block
-				RowInfo newInfo = new RowInfo();
+				var newInfo = new RowInfo();
 				newInfo.Offset = rowDataOffset;
 
 				// Make provisional assumption about length
@@ -653,8 +663,8 @@
 		private void WritePageInfo()
 		{
 			// Build row offset table
-			uint offset = DataSize;
-			for (int index = 0; index < _rowInfo.Count; ++index)
+			var offset = DataSize;
+			for (var index = 0; index < _rowInfo.Count; ++index)
 			{
 				// Write row data
 				_pageData[--offset] = (byte)(_rowInfo[index].Offset & 0xff);

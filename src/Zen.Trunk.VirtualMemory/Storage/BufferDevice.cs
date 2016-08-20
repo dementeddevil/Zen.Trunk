@@ -38,14 +38,9 @@
 		/// Gets the state of the device.
 		/// </summary>
 		/// <value>The state of the device.</value>
-		public MountableDeviceState DeviceState
-		{
-			get
-			{
-				return (MountableDeviceState)_deviceState;
-			}
-		}
-		#endregion
+		public MountableDeviceState DeviceState => (MountableDeviceState)_deviceState;
+
+	    #endregion
 
 		#region Public Methods
 		/// <summary>

@@ -16,7 +16,7 @@ namespace System.Threading.Tasks.Schedulers
         private readonly int m_concurrencyLevel;
         private readonly Queue<Task> m_queue = new Queue<Task>();
         private WorkStealingQueue<Task>[] m_wsQueues = new WorkStealingQueue<Task>[Environment.ProcessorCount];
-        private Lazy<Thread[]> m_threads;
+        private readonly Lazy<Thread[]> m_threads;
         private int m_threadsWaiting;
         private bool m_shutdown;
         [ThreadStatic]
@@ -38,7 +38,7 @@ namespace System.Threading.Tasks.Schedulers
             m_threads = new Lazy<Thread[]>(() =>
             {
                 var threads = new Thread[m_concurrencyLevel];
-                for (int i = 0; i < threads.Length; i++)
+                for (var i = 0; i < threads.Length; i++)
                 {
                     threads[i] = new Thread(DispatchLoop) { IsBackground = true };
                     threads[i].Start();
@@ -65,7 +65,7 @@ namespace System.Threading.Tasks.Schedulers
                 // Otherwise, insert the work item into a queue, possibly waking a thread.
                 // If there's a local queue and the task does not prefer to be in the global queue,
                 // add it to the local queue.
-                WorkStealingQueue<Task> wsq = m_wsq;
+                var wsq = m_wsq;
                 if (wsq != null && ((task.CreationOptions & TaskCreationOptions.PreferFairness) == 0))
                 {
                     // Add to the local queue and notify any waiting threads that work is available.
@@ -107,21 +107,18 @@ namespace System.Threading.Tasks.Schedulers
         }
 
         /// <summary>Gets the maximum concurrency level supported by this scheduler.</summary>
-        public override int MaximumConcurrencyLevel
-        {
-            get { return m_concurrencyLevel; }
-        }
+        public override int MaximumConcurrencyLevel => m_concurrencyLevel;
 
         /// <summary>Gets all of the tasks currently scheduled to this scheduler.</summary>
         /// <returns>An enumerable containing all of the scheduled tasks.</returns>
         protected override IEnumerable<Task> GetScheduledTasks()
         {
             // Keep track of all of the tasks we find
-            List<Task> tasks = new List<Task>();
+            var tasks = new List<Task>();
 
             // Get all of the global tasks.  We use TryEnter so as not to hang
             // a debugger if the lock is held by a frozen thread.
-            bool lockTaken = false;
+            var lockTaken = false;
             try
             {
                 Monitor.TryEnter(m_queue, ref lockTaken);
@@ -134,10 +131,10 @@ namespace System.Threading.Tasks.Schedulers
             }
 
             // Now get all of the tasks from the work-stealing queues
-            WorkStealingQueue<Task>[] queues = m_wsQueues;
-            for (int i = 0; i < queues.Length; i++)
+            var queues = m_wsQueues;
+            for (var i = 0; i < queues.Length; i++)
             {
-                WorkStealingQueue<Task> wsq = queues[i];
+                var wsq = queues[i];
                 if (wsq != null) tasks.AddRange(wsq.ToArray());
             }
 
@@ -166,7 +163,7 @@ namespace System.Threading.Tasks.Schedulers
                 // We couldn't find an open slot, so double the length 
                 // of the array by creating a new one, copying over,
                 // and storing the new one. Here, i == m_wsQueues.Length.
-                WorkStealingQueue<Task>[] queues = new WorkStealingQueue<Task>[i * 2];
+                var queues = new WorkStealingQueue<Task>[i * 2];
                 Array.Copy(m_wsQueues, queues, i);
                 queues[i] = wsq;
                 m_wsQueues = queues;
@@ -180,7 +177,7 @@ namespace System.Threading.Tasks.Schedulers
             lock (m_wsQueues)
             {
                 // Find the queue, and if/when we find it, null out its array slot
-                for (int i = 0; i < m_wsQueues.Length; i++)
+                for (var i = 0; i < m_wsQueues.Length; i++)
                 {
                     if (m_wsQueues[i] == wsq)
                     {
@@ -197,7 +194,7 @@ namespace System.Threading.Tasks.Schedulers
         {
             // Create a new queue for this thread, store it in TLS for later retrieval,
             // and add it to the set of queues for this scheduler.
-            WorkStealingQueue<Task> wsq = new WorkStealingQueue<Task>();
+            var wsq = new WorkStealingQueue<Task>();
             m_wsq = wsq;
             AddWsq(wsq);
 
@@ -212,7 +209,7 @@ namespace System.Threading.Tasks.Schedulers
                     if (!wsq.LocalPop(ref wi))
                     {
                         // We weren't able to get a task from the local WSQ
-                        bool searchedForSteals = false;
+                        var searchedForSteals = false;
                         while (true)
                         {
                             lock (m_queue)
@@ -245,11 +242,11 @@ namespace System.Threading.Tasks.Schedulers
                             }
 
                             // (3) try to steal.
-                            WorkStealingQueue<Task>[] wsQueues = m_wsQueues;
+                            var wsQueues = m_wsQueues;
                             int i;
                             for (i = 0; i < wsQueues.Length; i++)
                             {
-                                WorkStealingQueue<Task> q = wsQueues[i];
+                                var q = wsQueues[i];
                                 if (q != null && q != wsq && q.TrySteal(ref wi)) break;
                             }
 
@@ -277,7 +274,7 @@ namespace System.Threading.Tasks.Schedulers
             {
                 var threads = m_threads.Value;
                 lock (m_queue) Monitor.PulseAll(m_queue);
-                for (int i = 0; i < threads.Length; i++) threads[i].Join();
+                for (var i = 0; i < threads.Length; i++) threads[i].Join();
             }
         }
     }
@@ -292,11 +289,11 @@ namespace System.Threading.Tasks.Schedulers
         private volatile int m_headIndex = 0;
         private volatile int m_tailIndex = 0;
 
-        private object m_foreignLock = new object();
+        private readonly object m_foreignLock = new object();
 
         internal void LocalPush(T obj)
         {
-            int tail = m_tailIndex;
+            var tail = m_tailIndex;
 
             // When there are at least 2 elements' worth of space, we can take the fast path.
             if (tail < m_headIndex + m_mask)
@@ -309,15 +306,15 @@ namespace System.Threading.Tasks.Schedulers
                 // We need to contend with foreign pops, so we lock.
                 lock (m_foreignLock)
                 {
-                    int head = m_headIndex;
-                    int count = m_tailIndex - m_headIndex;
+                    var head = m_headIndex;
+                    var count = m_tailIndex - m_headIndex;
 
                     // If there is still space (one left), just add the element.
                     if (count >= m_mask)
                     {
                         // We're full; expand the queue by doubling its size.
-                        T[] newArray = new T[m_array.Length << 1];
-                        for (int i = 0; i < m_array.Length; i++)
+                        var newArray = new T[m_array.Length << 1];
+                        for (var i = 0; i < m_array.Length; i++)
                             newArray[i] = m_array[(i + head) & m_mask];
 
                         // Reset the field values, incl. the mask.
@@ -338,7 +335,7 @@ namespace System.Threading.Tasks.Schedulers
             while (true)
             {
                 // Decrement the tail using a fence to ensure subsequent read doesn't come before.
-                int tail = m_tailIndex;
+                var tail = m_tailIndex;
                 if (m_headIndex >= tail)
                 {
                     obj = null;
@@ -353,7 +350,7 @@ namespace System.Threading.Tasks.Schedulers
                 // If there is no interaction with a take, we can head down the fast path.
                 if (m_headIndex <= tail)
                 {
-                    int idx = tail & m_mask;
+                    var idx = tail & m_mask;
                     obj = m_array[idx];
 
                     // Check for nulls in the array.
@@ -370,7 +367,7 @@ namespace System.Threading.Tasks.Schedulers
                         if (m_headIndex <= tail)
                         {
                             // Element still available. Take it.
-                            int idx = tail & m_mask;
+                            var idx = tail & m_mask;
                             obj = m_array[idx];
 
                             // Check for nulls in the array.
@@ -403,14 +400,14 @@ namespace System.Threading.Tasks.Schedulers
                 lock (m_foreignLock)
                 {
                     // Increment head, and ensure read of tail doesn't move before it (fence).
-                    int head = m_headIndex;
+                    var head = m_headIndex;
 #pragma warning disable 0420
                     Interlocked.Exchange(ref m_headIndex, head + 1);
 #pragma warning restore 0420
 
                     if (head < m_tailIndex)
                     {
-                        int idx = head & m_mask;
+                        var idx = head & m_mask;
                         obj = m_array[idx];
 
                         // Check for nulls in the array.
@@ -442,7 +439,7 @@ namespace System.Threading.Tasks.Schedulers
             // queues tend to be somewhat shallow in length, and because if we fail to find
             // the work item, we are about to block anyway (which is very expensive).
 
-            for (int i = m_tailIndex - 1; i >= m_headIndex; i--)
+            for (var i = m_tailIndex - 1; i >= m_headIndex; i--)
             {
                 if (m_array[i & m_mask] == obj)
                 {
@@ -476,10 +473,10 @@ namespace System.Threading.Tasks.Schedulers
 
         internal T[] ToArray()
         {
-            List<T> list = new List<T>();
-            for (int i = m_tailIndex - 1; i >= m_headIndex; i--)
+            var list = new List<T>();
+            for (var i = m_tailIndex - 1; i >= m_headIndex; i--)
             {
-                T obj = m_array[i & m_mask];
+                var obj = m_array[i & m_mask];
                 if (obj != null) list.Add(obj);
             }
             return list.ToArray();

@@ -67,8 +67,8 @@ namespace Zen.Trunk.Storage.IO
 					&zeroInfo, sizeof(FILE_ZERO_DATA_INFORMATION), null, 0,
 					out bytesReturned, IntPtr.Zero))
 				{
-					int errorCode = Marshal.GetLastWin32Error();
-					string errorMessage = string.Format(
+					var errorCode = Marshal.GetLastWin32Error();
+					var errorMessage = string.Format(
 						CultureInfo.InvariantCulture,
 						"Failed to set sparse zero region from {0} for {1} bytes.",
 						zeroInfo.FileOffset,
@@ -119,7 +119,7 @@ namespace Zen.Trunk.Storage.IO
 		private string _fileName;
 		private SafeFileHandle _handle;
 		private FileInfo _fileInfo;
-		private object _syncObject = new object();
+		private readonly object _syncObject = new object();
 
 		private long _appendStart;
 		private byte[] _buffer;
@@ -225,7 +225,7 @@ namespace Zen.Trunk.Storage.IO
 		public AdvancedFileStream(string path, FileMode mode, FileAccess access,
 			FileShare share, int bufferSize, FileOptions options, bool enableScatterGather)
 		{
-			SafeNativeMethods.SECURITY_ATTRIBUTES secAttrs = GetSecAttrs(share);
+			var secAttrs = GetSecAttrs(share);
 			Init(path, mode, access, 0, false, share, bufferSize, options,
 				secAttrs, enableScatterGather);
 		}
@@ -246,7 +246,7 @@ namespace Zen.Trunk.Storage.IO
 			bool enableScatterGather, FileSecurity fileSecurity)
 		{
 			object pinningHandle;
-			SafeNativeMethods.SECURITY_ATTRIBUTES secAttrs = GetSecAttrs(
+			var secAttrs = GetSecAttrs(
 				share, fileSecurity, out pinningHandle);
 			try
 			{
@@ -279,78 +279,42 @@ namespace Zen.Trunk.Storage.IO
 		/// Gets the sync root.
 		/// </summary>
 		/// <value>The sync root.</value>
-		public object SyncRoot
-		{
-			get
-			{
-				return _syncObject;
-			}
-		}
+		public object SyncRoot => _syncObject;
 
-		/// <summary>
+	    /// <summary>
 		/// When overridden in a derived class, gets a value indicating whether the current stream supports reading.
 		/// </summary>
 		/// <value></value>
 		/// <returns>true if the stream supports reading; otherwise, false.</returns>
-		public override bool CanRead
-		{
-			get
-			{
-				return _canRead;
-			}
-		}
+		public override bool CanRead => _canRead;
 
-		/// <summary>
+	    /// <summary>
 		/// When overridden in a derived class, gets a value indicating whether the current stream supports seeking.
 		/// </summary>
 		/// <value></value>
 		/// <returns>true if the stream supports seeking; otherwise, false.</returns>
-		public override bool CanSeek
-		{
-			get
-			{
-				return _canSeek;
-			}
-		}
+		public override bool CanSeek => _canSeek;
 
-		/// <summary>
+	    /// <summary>
 		/// When overridden in a derived class, gets a value indicating whether the current stream supports writing.
 		/// </summary>
 		/// <value></value>
 		/// <returns>true if the stream supports writing; otherwise, false.</returns>
-		public override bool CanWrite
-		{
-			get
-			{
-				return _canWrite;
-			}
-		}
+		public override bool CanWrite => _canWrite;
 
-		/// <summary>
+	    /// <summary>
 		/// Gets a value indicating whether this instance is async.
 		/// </summary>
 		/// <value><c>true</c> if this instance is async; otherwise, <c>false</c>.</value>
-		public virtual bool IsAsync
-		{
-			get
-			{
-				return _isAsync;
-			}
-		}
+		public virtual bool IsAsync => _isAsync;
 
-		/// <summary>
+	    /// <summary>
 		/// Gets a value indicating whether this instance is sparse.
 		/// </summary>
 		/// <value><c>true</c> if this instance is sparse; otherwise, <c>false</c>.</value>
-		public bool IsSparse
-		{
-			get
-			{
-				return _isSparse;
-			}
-		}
+		public bool IsSparse => _isSparse;
 
-		/// <summary>
+	    /// <summary>
 		/// When overridden in a derived class, gets the length in bytes of the stream.
 		/// </summary>
 		/// <value></value>
@@ -374,14 +338,14 @@ namespace Zen.Trunk.Storage.IO
 				fileSize = SafeNativeMethods.GetFileSize(_handle, out highSize);
 				if (fileSize == -1)
 				{
-					int errorCode = Marshal.GetLastWin32Error();
+					var errorCode = Marshal.GetLastWin32Error();
 					if (errorCode != 0)
 					{
 						__Error.WinIOError(errorCode, string.Empty);
 					}
 				}
 
-				long totalLength = (((long)highSize) << 0x20) | ((long)(fileSize));
+				var totalLength = (((long)highSize) << 0x20) | ((long)(fileSize));
 				if ((_writePos > 0) && ((_pos + _writePos) > totalLength))
 				{
 					totalLength = _writePos + _pos;
@@ -474,15 +438,9 @@ namespace Zen.Trunk.Storage.IO
 		/// <c>true</c> if this instance supports sparse files; otherwise,
 		/// <c>false</c>.
 		/// </value>
-		public bool IsSparseSupported
-		{
-			get
-			{
-				return true;
-			}
-		}
+		public bool IsSparseSupported => true;
 
-		/// <summary>
+	    /// <summary>
 		/// Gets the size of the system page.
 		/// </summary>
 		/// <value>The size of the page.</value>
@@ -492,7 +450,7 @@ namespace Zen.Trunk.Storage.IO
 			{
 				if (!_gotPageSize)
 				{
-					SafeNativeMethods.SYSTEM_INFO systemInfo = new SafeNativeMethods.SYSTEM_INFO();
+					var systemInfo = new SafeNativeMethods.SYSTEM_INFO();
 					SafeNativeMethods.GetSystemInfo(ref systemInfo);
 					_pageSize = systemInfo.dwPageSize;
 					_gotPageSize = true;
@@ -543,9 +501,9 @@ namespace Zen.Trunk.Storage.IO
 				throw new ArgumentException("Must have absolute path.");
 			}
 
-			string root = Path.GetPathRoot(pathName);
-			StringBuilder volumeName = new StringBuilder(255);
-			StringBuilder fileSystemName = new StringBuilder(255);
+			var root = Path.GetPathRoot(pathName);
+			var volumeName = new StringBuilder(255);
+			var fileSystemName = new StringBuilder(255);
 			int volumeSerialNumber, maxFileNameLength, fileSystemFlags;
 			SafeNativeMethods.GetVolumeInformation(root, volumeName, 255,
 				out volumeSerialNumber, out maxFileNameLength,
@@ -566,7 +524,7 @@ namespace Zen.Trunk.Storage.IO
 			}
 			if (IsSparseSupported && _isSparse)
 			{
-				Win32.FILE_ZERO_DATA_INFORMATION zeroInfo =
+				var zeroInfo =
 					new Win32.FILE_ZERO_DATA_INFORMATION();
 				zeroInfo.FileOffset = offset;
 				zeroInfo.BeyondFinalZero = offset + count;
@@ -596,7 +554,7 @@ namespace Zen.Trunk.Storage.IO
 			var result = SafeNativeMethods.CancelIo(_handle);
 			if (!result)
 			{
-				int errorCode = Marshal.GetLastWin32Error();
+				var errorCode = Marshal.GetLastWin32Error();
 				throw new IOException(
 					"Failed to cancel pending asynchronous I/O.",
 					SafeNativeMethods.MakeHRFromErrorCode(errorCode));
@@ -658,7 +616,7 @@ namespace Zen.Trunk.Storage.IO
 				{
 					return BeginReadCore(buffer, offset, count, callback, state, 0);
 				}
-				int num = _readLen - _readPos;
+				var num = _readLen - _readPos;
 				if (num > count)
 				{
 					num = count;
@@ -684,7 +642,7 @@ namespace Zen.Trunk.Storage.IO
 					}
 					IAsyncResult asyncResult = BeginReadCore(_buffer, 0, _bufferSize, null, null, 0);
 					_readLen = EndRead(asyncResult);
-					int num2 = _readLen;
+					var num2 = _readLen;
 					if (num2 > count)
 					{
 						num2 = count;
@@ -699,7 +657,7 @@ namespace Zen.Trunk.Storage.IO
 				_readLen = 0;
 				return BeginReadCore(buffer, offset, count, callback, state, 0);
 			}
-			int num3 = _readLen - _readPos;
+			var num3 = _readLen - _readPos;
 			if (num3 > count)
 			{
 				num3 = count;
@@ -815,7 +773,7 @@ namespace Zen.Trunk.Storage.IO
 				_readPos = 0;
 				_readLen = 0;
 			}
-			int unusedBufferSize = _bufferSize - _writePos;
+			var unusedBufferSize = _bufferSize - _writePos;
 			if (count <= unusedBufferSize)
 			{
 				if (_writePos == 0)
@@ -824,7 +782,7 @@ namespace Zen.Trunk.Storage.IO
 				}
 				Array.Copy(buffer, offset, _buffer, _writePos, count);
 				_writePos += count;
-				AdvancedStreamAsyncResult result = new AdvancedStreamAsyncResult();
+				var result = new AdvancedStreamAsyncResult();
 				result._userCallback = callback;
 				result._userStateObject = state;
 				result._waitHandle = null;
@@ -894,7 +852,7 @@ namespace Zen.Trunk.Storage.IO
 			{
 				return base.EndRead(asyncResult);
 			}
-			AdvancedStreamAsyncResult result = asyncResult as AdvancedStreamAsyncResult;
+			var result = asyncResult as AdvancedStreamAsyncResult;
 			if ((result == null) || result._isWrite || result._isScatterGather)
 			{
 				__Error.WrongAsyncResult();
@@ -915,7 +873,7 @@ namespace Zen.Trunk.Storage.IO
 					handle.Close();
 				}
 			}
-			NativeOverlapped* nativeOverlappedPtr = result._overlapped;
+			var nativeOverlappedPtr = result._overlapped;
 			if (nativeOverlappedPtr != null)
 			{
 				Overlapped.Free(nativeOverlappedPtr);
@@ -949,7 +907,7 @@ namespace Zen.Trunk.Storage.IO
 			{
 				throw new ArgumentNullException("asyncResult");
 			}
-			AdvancedStreamAsyncResult result = asyncResult as AdvancedStreamAsyncResult;
+			var result = asyncResult as AdvancedStreamAsyncResult;
 			if ((result == null) || result._isWrite || !result._isScatterGather)
 			{
 				__Error.WrongAsyncResult();
@@ -970,7 +928,7 @@ namespace Zen.Trunk.Storage.IO
 					handle.Close();
 				}
 			}
-			NativeOverlapped* nativeOverlappedPtr = result._overlapped;
+			var nativeOverlappedPtr = result._overlapped;
 			if (nativeOverlappedPtr != null)
 			{
 				Overlapped.Free(nativeOverlappedPtr);
@@ -1002,7 +960,7 @@ namespace Zen.Trunk.Storage.IO
 			}
 			else
 			{
-				AdvancedStreamAsyncResult result = asyncResult as AdvancedStreamAsyncResult;
+				var result = asyncResult as AdvancedStreamAsyncResult;
 				if ((result == null) || !result._isWrite || result._isScatterGather)
 				{
 					__Error.WrongAsyncResult();
@@ -1023,7 +981,7 @@ namespace Zen.Trunk.Storage.IO
 						handle.Close();
 					}
 				}
-				NativeOverlapped* nativeOverlappedPtr = result._overlapped;
+				var nativeOverlappedPtr = result._overlapped;
 				if (nativeOverlappedPtr != null)
 				{
 					Overlapped.Free(nativeOverlappedPtr);
@@ -1047,7 +1005,7 @@ namespace Zen.Trunk.Storage.IO
 			{
 				throw new ArgumentNullException("asyncResult");
 			}
-			AdvancedStreamAsyncResult result = asyncResult as AdvancedStreamAsyncResult;
+			var result = asyncResult as AdvancedStreamAsyncResult;
 			if ((result == null) || !result._isWrite || !result._isScatterGather)
 			{
 				__Error.WrongAsyncResult();
@@ -1068,7 +1026,7 @@ namespace Zen.Trunk.Storage.IO
 					handle.Close();
 				}
 			}
-			NativeOverlapped* nativeOverlappedPtr = result._overlapped;
+			var nativeOverlappedPtr = result._overlapped;
 			if (nativeOverlappedPtr != null)
 			{
 				Overlapped.Free(nativeOverlappedPtr);
@@ -1144,10 +1102,10 @@ namespace Zen.Trunk.Storage.IO
 				throw new ArgumentOutOfRangeException((position < 0) ? "position" : "length", "position cannot be negative.");
 			}
 
-			uint offsetLow = (uint)position;
-			uint offsetHigh = (uint)(position >> 0x20);
-			uint countLow = (uint)length;
-			uint countHigh = (uint)(length >> 0x20);
+			var offsetLow = (uint)position;
+			var offsetHigh = (uint)(position >> 0x20);
+			var countLow = (uint)length;
+			var countHigh = (uint)(length >> 0x20);
 			if (!SafeNativeMethods.LockFile(_handle, offsetLow, offsetHigh, countLow, countHigh))
 			{
 				__Error.WinIOError();
@@ -1183,8 +1141,8 @@ namespace Zen.Trunk.Storage.IO
 			{
 				__Error.FileNotOpen();
 			}
-			bool isSubBuffer = false;
-			int bytesRead = _readLen - _readPos;
+			var isSubBuffer = false;
+			var bytesRead = _readLen - _readPos;
 			if (bytesRead == 0)
 			{
 				if (!CanRead)
@@ -1223,7 +1181,7 @@ namespace Zen.Trunk.Storage.IO
 			_readPos += bytesRead;
 			if ((!_isPipe && (bytesRead < count)) && !isSubBuffer)
 			{
-				int num2 = ReadCore(buffer, offset + bytesRead, count - bytesRead);
+				var num2 = ReadCore(buffer, offset + bytesRead, count - bytesRead);
 				bytesRead += num2;
 				_readPos = 0;
 				_readLen = 0;
@@ -1308,8 +1266,8 @@ namespace Zen.Trunk.Storage.IO
 			{
 				VerifyOSHandlePosition();
 			}
-			long num = _pos + (_readPos - _readLen);
-			long num2 = SeekCore(offset, origin);
+			var num = _pos + (_readPos - _readLen);
+			var num2 = SeekCore(offset, origin);
 			if ((_appendStart != -1) && (num2 < _appendStart))
 			{
 				SeekCore(num, SeekOrigin.Begin);
@@ -1333,7 +1291,7 @@ namespace Zen.Trunk.Storage.IO
 				}
 				if (((num - _readPos) < num2) && (num2 < ((num + _readLen) - _readPos)))
 				{
-					int num3 = (int)(num2 - num);
+					var num3 = (int)(num2 - num);
 					Array.Copy(_buffer, _readPos + num3, _buffer, 0, _readLen - (_readPos + num3));
 					_readLen -= _readPos + num3;
 					_readPos = 0;
@@ -1429,10 +1387,10 @@ namespace Zen.Trunk.Storage.IO
 					"position cannot be negative.");
 			}
 
-			uint offsetLow = (uint)position;
-			uint offsetHigh = (uint)(position >> 0x20);
-			uint countLow = (uint)length;
-			uint countHigh = (uint)(length >> 0x20);
+			var offsetLow = (uint)position;
+			var offsetHigh = (uint)(position >> 0x20);
+			var countLow = (uint)length;
+			var countHigh = (uint)(length >> 0x20);
 			if (!SafeNativeMethods.UnlockFile(_handle, offsetLow, offsetHigh, countLow, countHigh))
 			{
 				__Error.WinIOError();
@@ -1489,7 +1447,7 @@ namespace Zen.Trunk.Storage.IO
 			}
 			if (_writePos > 0)
 			{
-				int num = _bufferSize - _writePos;
+				var num = _bufferSize - _writePos;
 				if (num > 0)
 				{
 					if (num > count)
@@ -1643,10 +1601,10 @@ namespace Zen.Trunk.Storage.IO
 			_fileName = path;
 			_exposedHandle = false;
 			_scatterGatherEnabled = enableScatterGatherIO;
-			FileSystemRights fsRights = (FileSystemRights)rights;
+			var fsRights = (FileSystemRights)rights;
 
 			// Determine desired access rights
-			int dwDesiredAccess = 0;
+			var dwDesiredAccess = 0;
 			if (((!useRights && ((access & FileAccess.Write) == 0)) ||
 				(useRights && ((fsRights & FileSystemRights.Write) == 0))) &&
 				((mode == FileMode.Truncate) || (mode == FileMode.CreateNew) ||
@@ -1695,7 +1653,7 @@ namespace Zen.Trunk.Storage.IO
 			}
 
 			// Demand code-access permission to file
-			FileIOPermissionAccess ioAccess = FileIOPermissionAccess.NoAccess;
+			var ioAccess = FileIOPermissionAccess.NoAccess;
 			if ((!useRights && ((access & FileAccess.Read) != 0)) ||
 				(useRights && ((fsRights & FileSystemRights.ReadAndExecute) != 0)))
 			{
@@ -1720,7 +1678,7 @@ namespace Zen.Trunk.Storage.IO
 					ioAccess |= FileIOPermissionAccess.Write;
 				}
 			}
-			AccessControlActions control = ((secAttrs != null) && (secAttrs.pSecurityDescriptor != null))
+			var control = ((secAttrs != null) && (secAttrs.pSecurityDescriptor != null))
 				? AccessControlActions.Change : AccessControlActions.None;
 			new FileIOPermission(ioAccess, control, new string[] { _fileName }).Demand();
 
@@ -1728,7 +1686,7 @@ namespace Zen.Trunk.Storage.IO
 			share &= ~FileShare.Inheritable;
 
 			// Append is really open/create followed by seek to end
-			bool isAppend = (mode == FileMode.Append);
+			var isAppend = (mode == FileMode.Append);
 			if (mode == FileMode.Append)
 			{
 				mode = FileMode.OpenOrCreate;
@@ -1747,7 +1705,7 @@ namespace Zen.Trunk.Storage.IO
 			}
 
 			// Setup flags and attributes
-			uint dwFlagsAndAttributes = (uint)options;
+			var dwFlagsAndAttributes = (uint)options;
 			dwFlagsAndAttributes |= FILE_FLAG_OPEN_NO_RECALL;
 			if (enableScatterGatherIO)
 			{
@@ -1755,7 +1713,7 @@ namespace Zen.Trunk.Storage.IO
 			}
 
 			// Prepare to create the file
-			int newMode = SafeNativeMethods.SetErrorMode(1);
+			var newMode = SafeNativeMethods.SetErrorMode(1);
 			try
 			{
 				unchecked
@@ -1766,7 +1724,7 @@ namespace Zen.Trunk.Storage.IO
 				}
 				if (_handle.IsInvalid)
 				{
-					int errorCode = Marshal.GetLastWin32Error();
+					var errorCode = Marshal.GetLastWin32Error();
 					if (errorCode == __Error.ERROR_PATH_NOT_FOUND)
 					{
 						string root = null;
@@ -1779,7 +1737,7 @@ namespace Zen.Trunk.Storage.IO
 							errorCode = __Error.ERROR_ACCESS_DENIED;
 						}
 					}
-					bool canReportPath = false;
+					var canReportPath = false;
 					try
 					{
 						new FileIOPermission(
@@ -1812,7 +1770,7 @@ namespace Zen.Trunk.Storage.IO
 
 			if (_isAsync)
 			{
-				bool boundHandle = false;
+				var boundHandle = false;
 				new SecurityPermission(SecurityPermissionFlag.UnmanagedCode).Assert();
 				try
 				{
@@ -1898,7 +1856,7 @@ namespace Zen.Trunk.Storage.IO
 
 		private static unsafe void AsyncAFSCallback(uint errorCode, uint numBytes, NativeOverlapped* pOverlapped)
 		{
-			AdvancedStreamAsyncResult ar = (AdvancedStreamAsyncResult)Overlapped.Unpack(pOverlapped).AsyncResult;
+			var ar = (AdvancedStreamAsyncResult)Overlapped.Unpack(pOverlapped).AsyncResult;
 			ar._numBytes = (int)numBytes;
 			if ((errorCode == ERROR_BROKEN_PIPE) || (errorCode == ERROR_NO_DATA))
 			{
@@ -1908,13 +1866,13 @@ namespace Zen.Trunk.Storage.IO
 			ar._completedSynchronously = false;
 			ar._isComplete = true;
 
-			ManualResetEvent waitHandle = ar._waitHandle;
+			var waitHandle = ar._waitHandle;
 			if ((waitHandle != null) && !waitHandle.Set())
 			{
 				__Error.WinIOError();
 			}
 
-			AsyncCallback callback = ar._userCallback;
+			var callback = ar._userCallback;
 			if (callback != null)
 			{
 				callback(ar);
@@ -1924,14 +1882,14 @@ namespace Zen.Trunk.Storage.IO
 		private unsafe AdvancedStreamAsyncResult BeginReadCore(byte[] bytes, int offset, int numBytes, AsyncCallback userCallback, object stateObject, int numBufferedBytesRead)
 		{
 			NativeOverlapped* overlappedPtr;
-			AdvancedStreamAsyncResult ar = new AdvancedStreamAsyncResult();
+			var ar = new AdvancedStreamAsyncResult();
 			ar._handle = _handle;
 			ar._userCallback = userCallback;
 			ar._userStateObject = stateObject;
 			ar._isWrite = false;
 			ar._numBufferedBytes = numBufferedBytesRead;
 			ar._waitHandle = new ManualResetEvent(false);
-			Overlapped overlapped = new Overlapped(0, 0, IntPtr.Zero, ar);
+			var overlapped = new Overlapped(0, 0, IntPtr.Zero, ar);
 			if (userCallback != null)
 			{
 				overlappedPtr = overlapped.Pack(_ioCallback, bytes);
@@ -1943,7 +1901,7 @@ namespace Zen.Trunk.Storage.IO
 			ar._overlapped = overlappedPtr;
 			if (CanSeek)
 			{
-				long length = Length;
+				var length = Length;
 				if (_exposedHandle)
 				{
 					VerifyOSHandlePosition();
@@ -1963,7 +1921,7 @@ namespace Zen.Trunk.Storage.IO
 				overlappedPtr->OffsetHigh = (int)(_pos >> 0x20);
 				SeekCore((long)numBytes, SeekOrigin.Current);
 			}
-			int hr = 0;
+			var hr = 0;
 			if ((ReadFileNative(_handle, bytes, offset, numBytes, overlappedPtr, out hr) == -1) && (numBytes != -1))
 			{
 				if (hr == ERROR_BROKEN_PIPE)
@@ -1994,18 +1952,18 @@ namespace Zen.Trunk.Storage.IO
 			VirtualBuffer[] buffers, AsyncCallback userCallback, object stateObject)
 		{
 			// Prepare gather array
-			int bufferCount = buffers.Length;
-			int elemCount = buffers[0].BufferSize * bufferCount / VirtualBuffer.SystemPageSize;
-			SafeNativeMethods.FILE_SEGMENT_ELEMENT[] elements =
+			var bufferCount = buffers.Length;
+			var elemCount = buffers[0].BufferSize * bufferCount / VirtualBuffer.SystemPageSize;
+			var elements =
 				new SafeNativeMethods.FILE_SEGMENT_ELEMENT[elemCount + 1];
-			for (int bufferIndex = 0; bufferIndex < bufferCount; ++bufferIndex)
+			for (var bufferIndex = 0; bufferIndex < bufferCount; ++bufferIndex)
 			{
-				VirtualBuffer buffer = buffers[bufferIndex];
+				var buffer = buffers[bufferIndex];
 
 				// Add buffer to list in "SystemPageSize" sized chunks.
-				int elemPerBuffer = buffer.BufferSize / VirtualBuffer.SystemPageSize;
-				int elemOffset = elemPerBuffer * bufferIndex;
-				for (int elemIndex = 0; elemIndex < elemPerBuffer; ++elemIndex)
+				var elemPerBuffer = buffer.BufferSize / VirtualBuffer.SystemPageSize;
+				var elemOffset = elemPerBuffer * bufferIndex;
+				for (var elemIndex = 0; elemIndex < elemPerBuffer; ++elemIndex)
 				{
 					elements[elemOffset + elemIndex] = new SafeNativeMethods.FILE_SEGMENT_ELEMENT(
 						new IntPtr(buffer.Buffer + (VirtualBuffer.SystemPageSize * elemIndex)));
@@ -2013,30 +1971,30 @@ namespace Zen.Trunk.Storage.IO
 			}
 
 			// Calculate total number of pages and bytes to transfer
-			int numBytes = elemCount * SystemPageSize;
+			var numBytes = elemCount * SystemPageSize;
 
 			// Prepare async helper object
-			AdvancedStreamAsyncResult ar = new AdvancedStreamAsyncResult();
+			var ar = new AdvancedStreamAsyncResult();
 			ar._handle = _handle;
 			ar._userCallback = userCallback;
 			ar._userStateObject = stateObject;
 			ar._isWrite = false;
 			ar._isScatterGather = true;
 			ar._numBufferedBytes = numBytes;
-			ManualResetEvent completeEvent = new ManualResetEvent(false);
+			var completeEvent = new ManualResetEvent(false);
 			ar._waitHandle = completeEvent;
 
 			// Ensure we don't get our buffers freed too early
 			ar._pinnedBuffers = new GCHandle[buffers.Length];
-			int index = 0;
-			foreach (VirtualBuffer buffer in buffers)
+			var index = 0;
+			foreach (var buffer in buffers)
 			{
 				ar._pinnedBuffers[index++] = GCHandle.Alloc(buffer);
 			}
 
 			// Prepare overlapped structure
 			NativeOverlapped* overlappedPtr;
-			Overlapped overlapped = new Overlapped(0, 0, IntPtr.Zero, ar);
+			var overlapped = new Overlapped(0, 0, IntPtr.Zero, ar);
 			if (userCallback != null)
 			{
 				overlappedPtr = overlapped.Pack(_ioCallback, elements);
@@ -2047,7 +2005,7 @@ namespace Zen.Trunk.Storage.IO
 			}
 			ar._overlapped = overlappedPtr;
 
-			int hr = 0;
+			var hr = 0;
 			if ((ReadFileScatterNative(elements, numBytes, overlappedPtr, out hr) == -1) && (numBytes != -1))
 			{
 				if (hr == ERROR_BROKEN_PIPE)
@@ -2077,13 +2035,13 @@ namespace Zen.Trunk.Storage.IO
 		private unsafe AdvancedStreamAsyncResult BeginWriteCore(byte[] buffer, int offset, int numBytes, AsyncCallback userCallback, object stateObject)
 		{
 			NativeOverlapped* overlappedPtr;
-			AdvancedStreamAsyncResult ar = new AdvancedStreamAsyncResult();
+			var ar = new AdvancedStreamAsyncResult();
 			ar._handle = _handle;
 			ar._userCallback = userCallback;
 			ar._userStateObject = stateObject;
 			ar._isWrite = true;
 			ar._waitHandle = new ManualResetEvent(false);
-			Overlapped overlapped = new Overlapped(0, 0, IntPtr.Zero, ar);
+			var overlapped = new Overlapped(0, 0, IntPtr.Zero, ar);
 			if (userCallback != null)
 			{
 				overlappedPtr = overlapped.Pack(_ioCallback, buffer);
@@ -2095,7 +2053,7 @@ namespace Zen.Trunk.Storage.IO
 			ar._overlapped = overlappedPtr;
 			if (CanSeek)
 			{
-				long length = Length;
+				var length = Length;
 				if (_exposedHandle)
 				{
 					VerifyOSHandlePosition();
@@ -2108,7 +2066,7 @@ namespace Zen.Trunk.Storage.IO
 				overlappedPtr->OffsetHigh = (int)(_pos >> 0x20);
 				SeekCore((long)numBytes, SeekOrigin.Current);
 			}
-			int hr = 0;
+			var hr = 0;
 			if ((WriteFileNative(_handle, buffer, offset, numBytes, overlappedPtr, out hr) == -1) && (numBytes != -1))
 			{
 				if (hr == ERROR_NO_DATA)
@@ -2138,18 +2096,18 @@ namespace Zen.Trunk.Storage.IO
 			VirtualBuffer[] buffers, AsyncCallback userCallback, object stateObject)
 		{
 			// Prepare gather array
-			int bufferCount = buffers.Length;
-			int elemCount = buffers[0].BufferSize * bufferCount / VirtualBuffer.SystemPageSize;
-			SafeNativeMethods.FILE_SEGMENT_ELEMENT[] elements =
+			var bufferCount = buffers.Length;
+			var elemCount = buffers[0].BufferSize * bufferCount / VirtualBuffer.SystemPageSize;
+			var elements =
 				new SafeNativeMethods.FILE_SEGMENT_ELEMENT[elemCount + 1];
-			for (int bufferIndex = 0; bufferIndex < bufferCount; ++bufferIndex)
+			for (var bufferIndex = 0; bufferIndex < bufferCount; ++bufferIndex)
 			{
-				VirtualBuffer buffer = buffers[bufferIndex];
+				var buffer = buffers[bufferIndex];
 
 				// Add buffer to list in "SystemPageSize" sized chunks.
-				int elemPerBuffer = buffer.BufferSize / VirtualBuffer.SystemPageSize;
-				int elemOffset = elemPerBuffer * bufferIndex;
-				for (int elemIndex = 0; elemIndex < elemPerBuffer; ++elemIndex)
+				var elemPerBuffer = buffer.BufferSize / VirtualBuffer.SystemPageSize;
+				var elemOffset = elemPerBuffer * bufferIndex;
+				for (var elemIndex = 0; elemIndex < elemPerBuffer; ++elemIndex)
 				{
 					elements[elemOffset + elemIndex] = new SafeNativeMethods.FILE_SEGMENT_ELEMENT(
 						new IntPtr(buffer.Buffer + (VirtualBuffer.SystemPageSize * elemIndex)));
@@ -2157,30 +2115,30 @@ namespace Zen.Trunk.Storage.IO
 			}
 
 			// Calculate total number of pages and bytes to transfer
-			int numBytes = elemCount * SystemPageSize;
+			var numBytes = elemCount * SystemPageSize;
 
 			// Prepare async helper object
-			AdvancedStreamAsyncResult ar = new AdvancedStreamAsyncResult();
+			var ar = new AdvancedStreamAsyncResult();
 			ar._handle = _handle;
 			ar._userCallback = userCallback;
 			ar._userStateObject = stateObject;
 			ar._isWrite = true;
 			ar._isScatterGather = true;
 			ar._numBufferedBytes = numBytes;
-			ManualResetEvent completeEvent = new ManualResetEvent(false);
+			var completeEvent = new ManualResetEvent(false);
 			ar._waitHandle = completeEvent;
 
 			// Ensure we don't get our buffers freed too early
 			ar._pinnedBuffers = new GCHandle[buffers.Length];
-			int index = 0;
-			foreach (VirtualBuffer buffer in buffers)
+			var index = 0;
+			foreach (var buffer in buffers)
 			{
 				ar._pinnedBuffers[index++] = GCHandle.Alloc(buffer);
 			}
 
 			// Prepare overlapped structure
 			NativeOverlapped* overlappedPtr;
-			Overlapped overlapped = new Overlapped(0, 0, IntPtr.Zero, ar);
+			var overlapped = new Overlapped(0, 0, IntPtr.Zero, ar);
 			if (userCallback != null)
 			{
 				overlappedPtr = overlapped.Pack(_ioCallback, elements);
@@ -2191,7 +2149,7 @@ namespace Zen.Trunk.Storage.IO
 			}
 			ar._overlapped = overlappedPtr;
 
-			int hr = 0;
+			var hr = 0;
 			if ((WriteFileGatherNative(elements, numBytes, overlappedPtr, out hr) == -1) && (numBytes != -1))
 			{
 				if (hr == ERROR_BROKEN_PIPE)
@@ -2275,7 +2233,7 @@ namespace Zen.Trunk.Storage.IO
 				{
 					return structure;
 				}
-				byte[] securityDescriptorBinaryForm = fileSecurity.GetSecurityDescriptorBinaryForm();
+				var securityDescriptorBinaryForm = fileSecurity.GetSecurityDescriptorBinaryForm();
 				pinningHandle = GCHandle.Alloc(securityDescriptorBinaryForm, GCHandleType.Pinned);
 				fixed (byte* numRef = securityDescriptorBinaryForm)
 				{
@@ -2334,8 +2292,8 @@ namespace Zen.Trunk.Storage.IO
 				return 0;
 			}
 
-			bool result = false;
-			int numBytesRead = 0;
+			var result = false;
+			var numBytesRead = 0;
 			fixed (byte* numRef = bytes)
 			{
 				if (_isAsync)
@@ -2374,7 +2332,7 @@ namespace Zen.Trunk.Storage.IO
 
 			if (CanSeek)
 			{
-				long length = Length;
+				var length = Length;
 				if (_exposedHandle)
 				{
 					VerifyOSHandlePosition();
@@ -2406,7 +2364,7 @@ namespace Zen.Trunk.Storage.IO
 
 		private long SeekCore(long offset, SeekOrigin origin)
 		{
-			int hr = 0;
+			var hr = 0;
 			long num2 = 0;
 			num2 = SafeNativeMethods.SetFilePointer(_handle, offset, origin, out hr);
 			if (num2 == -1)
@@ -2424,7 +2382,7 @@ namespace Zen.Trunk.Storage.IO
 		private void SetLengthCore(long value)
 		{
 			// Save current offset
-			long offset = _pos;
+			var offset = _pos;
 
 			// Verify position of any exposed handle
 			if (_exposedHandle)
@@ -2439,7 +2397,7 @@ namespace Zen.Trunk.Storage.IO
 			}
 			if (!SafeNativeMethods.SetEndOfFile(_handle))
 			{
-				int errorCode = Marshal.GetLastWin32Error();
+				var errorCode = Marshal.GetLastWin32Error();
 				if (errorCode == __Error.ERROR_INVALID_PARAMETER)
 				{
 					throw new ArgumentOutOfRangeException("value", "file length too large.");
@@ -2456,7 +2414,7 @@ namespace Zen.Trunk.Storage.IO
 					if (_isSparse)
 					{
 						// Set increased file region as sparse area.
-						Win32.FILE_ZERO_DATA_INFORMATION zeroInfo =
+						var zeroInfo =
 							new Win32.FILE_ZERO_DATA_INFORMATION();
 						zeroInfo.FileOffset = offset;
 						zeroInfo.BeyondFinalZero = value;
@@ -2475,7 +2433,7 @@ namespace Zen.Trunk.Storage.IO
 		{
 			if (CanSeek)
 			{
-				long num = _pos;
+				var num = _pos;
 				if (SeekCore((long)0, SeekOrigin.Current) != num)
 				{
 					_readPos = 0;
@@ -2501,8 +2459,8 @@ namespace Zen.Trunk.Storage.IO
 			{
 				VerifyOSHandlePosition();
 			}
-			int hr = 0;
-			int num2 = 0;
+			var hr = 0;
+			var num2 = 0;
 			unsafe
 			{
 				num2 = WriteFileNative(_handle, buffer, offset, count, null, out hr);
@@ -2539,7 +2497,7 @@ namespace Zen.Trunk.Storage.IO
 				return 0;
 			}
 
-			int numBytesWritten = 0;
+			var numBytesWritten = 0;
 			bool result;
 			fixed (byte* numRef = bytes)
 			{
@@ -2578,7 +2536,7 @@ namespace Zen.Trunk.Storage.IO
 
 			if (CanSeek)
 			{
-				long length = Length;
+				var length = Length;
 				if (_exposedHandle)
 				{
 					VerifyOSHandlePosition();
@@ -2633,15 +2591,9 @@ namespace Zen.Trunk.Storage.IO
 		/// Gets a user-defined object that qualifies or contains information about an asynchronous operation.
 		/// </summary>
 		/// <returns>A user-defined object that qualifies or contains information about an asynchronous operation.</returns>
-		public object AsyncState
-		{
-			get
-			{
-				return _userStateObject;
-			}
-		}
+		public object AsyncState => _userStateObject;
 
-		/// <summary>
+	    /// <summary>
 		/// Gets a <see cref="T:System.Threading.WaitHandle" /> that is used to wait for an asynchronous operation to complete.
 		/// </summary>
 		/// <returns>A <see cref="T:System.Threading.WaitHandle" /> that is used to wait for an asynchronous operation to complete.</returns>
@@ -2653,7 +2605,7 @@ namespace Zen.Trunk.Storage.IO
 			{
 				if (_waitHandle == null)
 				{
-					ManualResetEvent event2 = new ManualResetEvent(false);
+					var event2 = new ManualResetEvent(false);
 					unsafe
 					{
 						if ((_overlapped != null) && (_overlapped->EventHandle != IntPtr.Zero))
@@ -2675,31 +2627,20 @@ namespace Zen.Trunk.Storage.IO
 		/// Gets a value that indicates whether the asynchronous operation completed synchronously.
 		/// </summary>
 		/// <returns>true if the asynchronous operation completed synchronously; otherwise, false.</returns>
-		public bool CompletedSynchronously
-		{
-			get
-			{
-				return _completedSynchronously;
-			}
-		}
+		public bool CompletedSynchronously => _completedSynchronously;
 
-		/// <summary>
+	    /// <summary>
 		/// Gets a value that indicates whether the asynchronous operation has completed.
 		/// </summary>
 		/// <returns>true if the operation is complete; otherwise, false.</returns>
-		public bool IsCompleted
-		{
-			get
-			{
-				return _isComplete;
-			}
-		}
-		#endregion
+		public bool IsCompleted => _isComplete;
+
+	    #endregion
 
 		#region Internal Methods
 		internal static AdvancedStreamAsyncResult CreateBufferedReadResult(int numBufferedBytes, AsyncCallback userCallback, object userStateObject)
 		{
-			AdvancedStreamAsyncResult result = new AdvancedStreamAsyncResult();
+			var result = new AdvancedStreamAsyncResult();
 			result._userCallback = userCallback;
 			result._userStateObject = userStateObject;
 			result._isWrite = false;
@@ -2712,7 +2653,7 @@ namespace Zen.Trunk.Storage.IO
 			// Will be safe to unpin buffers now
 			if (_pinnedBuffers != null)
 			{
-				foreach (GCHandle handle in _pinnedBuffers)
+				foreach (var handle in _pinnedBuffers)
 				{
 					handle.Free();
 				}
@@ -2781,7 +2722,7 @@ namespace Zen.Trunk.Storage.IO
 		{
 			if (!string.IsNullOrEmpty(path))
 			{
-				bool flag = false;
+				var flag = false;
 				if (path.Length < 2)
 				{
 					return path;
@@ -2799,7 +2740,7 @@ namespace Zen.Trunk.Storage.IO
 				{
 					return path;
 				}
-				bool flag2 = false;
+				var flag2 = false;
 				try
 				{
 					if (!isInvalidPath)
@@ -2858,7 +2799,7 @@ namespace Zen.Trunk.Storage.IO
 
 		internal static void WinIODriveError(string driveName)
 		{
-			int errorCode = Marshal.GetLastWin32Error();
+			var errorCode = Marshal.GetLastWin32Error();
 			WinIODriveError(driveName, errorCode);
 		}
 
@@ -2882,8 +2823,8 @@ namespace Zen.Trunk.Storage.IO
 
 		internal static void WinIOError(int errorCode, string maybeFullPath)
 		{
-			bool isInvalidPath = (errorCode == 0x7b) || (errorCode == 0xa1);
-			string fileName = GetDisplayablePath(maybeFullPath, isInvalidPath);
+			var isInvalidPath = (errorCode == 0x7b) || (errorCode == 0xa1);
+			var fileName = GetDisplayablePath(maybeFullPath, isInvalidPath);
 			switch (errorCode)
 			{
 				case 0x20:

@@ -106,13 +106,13 @@ namespace Zen.Trunk.Storage.Data
 		internal const ulong DBSignature = 0x2948f3d3a123e500;
 		internal const uint DBSchemaVersion = 0x01000001;
 
-		private BufferFieldInt32 _deviceCount;
-		private BufferFieldInt32 _indexCount;
-		private BufferFieldInt32 _objectCount;
+		private readonly BufferFieldInt32 _deviceCount;
+		private readonly BufferFieldInt32 _indexCount;
+		private readonly BufferFieldInt32 _objectCount;
 
-		private Dictionary<ushort, DeviceInfo> _devices = new Dictionary<ushort, DeviceInfo>();
+		private readonly Dictionary<ushort, DeviceInfo> _devices = new Dictionary<ushort, DeviceInfo>();
 		//private Dictionary<uint, IndexRefInfo> _indices = new Dictionary<uint,IndexRefInfo> ();
-		private Dictionary<uint, ObjectRefInfo> _objects = new Dictionary<uint, ObjectRefInfo>();
+		private readonly Dictionary<uint, ObjectRefInfo> _objects = new Dictionary<uint, ObjectRefInfo>();
 		#endregion
 
 		#region Public Constructors
@@ -125,53 +125,25 @@ namespace Zen.Trunk.Storage.Data
 		#endregion
 
 		#region Public Properties
-		public override uint MinHeaderSize
-		{
-			get
-			{
-				return base.MinHeaderSize + 12;
-			}
-		}
+		public override uint MinHeaderSize => base.MinHeaderSize + 12;
 
-		public IEnumerable<DeviceInfo> Devices
-		{
-			get
-			{
-				return from item in _devices.Values
-					   select new DeviceInfo(item);
-			}
-		}
-		#endregion
+	    public IEnumerable<DeviceInfo> Devices => from item in _devices.Values
+	        select new DeviceInfo(item);
+
+	    #endregion
 
 		#region Protected Properties
-		protected override ulong RootPageSignature
-		{
-			get
-			{
-				return DBSignature;
-			}
-		}
+		protected override ulong RootPageSignature => DBSignature;
 
-		protected override uint RootPageSchemaVersion
-		{
-			get
-			{
-				return DBSchemaVersion;
-			}
-		}
+	    protected override uint RootPageSchemaVersion => DBSchemaVersion;
 
-		/// <summary>
+	    /// <summary>
 		/// Overridden. Gets the last header field.
 		/// </summary>
 		/// <value>The last header field.</value>
-		protected override BufferField LastHeaderField
-		{
-			get
-			{
-				return _objectCount;
-			}
-		}
-		#endregion
+		protected override BufferField LastHeaderField => _objectCount;
+
+	    #endregion
 
 		#region Public Methods
 		/// <summary>
@@ -186,8 +158,8 @@ namespace Zen.Trunk.Storage.Data
 		/// <param name="pageDevice"></param>
 		public Task CreateSlaveDataDevices(FileGroupDevice pageDevice)
 		{
-			List<Task> addTaskList = new List<Task>();
-			foreach (DeviceInfo di in _devices.Values)
+			var addTaskList = new List<Task>();
+			foreach (var di in _devices.Values)
 			{
 				addTaskList.Add(pageDevice.AddDataDevice(
 					new AddDataDeviceParameters(di.Name, di.PathName, 0, di.Id)));
@@ -216,7 +188,7 @@ namespace Zen.Trunk.Storage.Data
 
 		public bool UpdateDeviceInfo(DeviceInfo info)
 		{
-			bool result = false;
+			var result = false;
 			CheckReadOnly();
 			if (_devices.ContainsKey(info.Id))
 			{
@@ -269,7 +241,7 @@ namespace Zen.Trunk.Storage.Data
 
 		public bool UpdateObjectInfo(ObjectRefInfo info)
 		{
-			bool result = false;
+			var result = false;
 			CheckReadOnly();
 			if (_objects.ContainsKey(info.ObjectId))
 			{
@@ -294,9 +266,9 @@ namespace Zen.Trunk.Storage.Data
 		protected override void ReadData(BufferReaderWriter streamManager)
 		{
 			base.ReadData(streamManager);
-			for (int index = 0; index < _deviceCount.Value; ++index)
+			for (var index = 0; index < _deviceCount.Value; ++index)
 			{
-				DeviceInfo info = new DeviceInfo();
+				var info = new DeviceInfo();
 				info.Read(streamManager);
 				_devices.Add(info.Id, info);
 			}
@@ -308,9 +280,9 @@ namespace Zen.Trunk.Storage.Data
 
 				_indices.Add (indexRef.RootIndex.IndexId, indexRef);
 			}*/
-			for (int index = 0; index < _objectCount.Value; ++index)
+			for (var index = 0; index < _objectCount.Value; ++index)
 			{
-				ObjectRefInfo info = new ObjectRefInfo();
+				var info = new ObjectRefInfo();
 				info.Read(streamManager);
 				_objects.Add(info.ObjectId, info);
 
@@ -331,7 +303,7 @@ namespace Zen.Trunk.Storage.Data
 			{
 				throw new InvalidOperationException("Device count mismatch.");
 			}
-			foreach (DeviceInfo di in _devices.Values)
+			foreach (var di in _devices.Values)
 			{
 				di.Write(streamManager);
 			}
@@ -339,7 +311,7 @@ namespace Zen.Trunk.Storage.Data
 			{
 				info.Write (streamManager);
 			}*/
-			foreach (ObjectRefInfo info in _objects.Values)
+			foreach (var info in _objects.Values)
 			{
 				info.Write(streamManager);
 			}

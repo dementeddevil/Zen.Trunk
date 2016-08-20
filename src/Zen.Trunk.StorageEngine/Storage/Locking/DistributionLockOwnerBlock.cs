@@ -18,7 +18,7 @@ namespace Zen.Trunk.Storage.Locking
 	internal class DistributionLockOwnerBlock : LockOwnerBlockBase<uint>
 	{
 		#region Private Fields
-		private ulong _virtualPageId;
+		private readonly ulong _virtualPageId;
 		#endregion
 
 		#region Public Constructors

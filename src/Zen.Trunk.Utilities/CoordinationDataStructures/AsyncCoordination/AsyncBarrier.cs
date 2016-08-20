@@ -34,9 +34,10 @@ namespace System.Threading.Async
         }
 
         /// <summary>Gets the participant count.</summary>
-        public int ParticipantCount { get { return _participantCount; } }
+        public int ParticipantCount => _participantCount;
+
         /// <summary>Gets the number of participants still not yet arrived in this round.</summary>
-        public int RemainingCount { get { return _remainingParticipants; } }
+        public int RemainingCount => _remainingParticipants;
 
         /// <summary>Signals that a participant has arrived.</summary>
         /// <returns>A Task that will be signaled when the current round completes.</returns>

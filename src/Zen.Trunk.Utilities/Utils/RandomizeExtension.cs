@@ -34,7 +34,7 @@ namespace Zen.Trunk.Utils
 				return;
 			}
 
-			T value = list[fromIndex];
+			var value = list[fromIndex];
 			list.RemoveAt(fromIndex);
 			list.Insert(toIndex, value);
 		}
@@ -46,11 +46,11 @@ namespace Zen.Trunk.Utils
 				return;
 			}
 
-			ThreadSafeRandom random = new ThreadSafeRandom();
-			int maxValue = list.Count - 1;
-			for (int removeIndex = 0; removeIndex < list.Count; ++removeIndex)
+			var random = new ThreadSafeRandom();
+			var maxValue = list.Count - 1;
+			for (var removeIndex = 0; removeIndex < list.Count; ++removeIndex)
 			{
-				int insertIndex = random.Next(maxValue);
+				var insertIndex = random.Next(maxValue);
 				list.Move(removeIndex, insertIndex);
 			}
 		}

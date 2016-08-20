@@ -33,8 +33,8 @@ namespace Zen.Trunk.Storage.Log
 		#region Private Fields
 		private LogEntryType logType;
 
-		private BufferFieldUInt32 _logId;
-		private BufferFieldUInt32 _lastLog;
+		private readonly BufferFieldUInt32 _logId;
+		private readonly BufferFieldUInt32 _lastLog;
 		#endregion
 
 		#region Public Constructors
@@ -52,15 +52,9 @@ namespace Zen.Trunk.Storage.Log
 		#endregion
 
 		#region Public Properties
-		public virtual uint RawSize
-		{
-			get
-			{
-				return (uint)(base.TotalFieldLength + 1);
-			}
-		}
+		public virtual uint RawSize => (uint)(base.TotalFieldLength + 1);
 
-		public uint LogId
+	    public uint LogId
 		{
 			get
 			{
@@ -84,20 +78,15 @@ namespace Zen.Trunk.Storage.Log
 			}
 		}
 
-		public LogEntryType LogType
-		{
-			get
-			{
-				return logType;
-			}
-		}
-		#endregion
+		public LogEntryType LogType => logType;
+
+	    #endregion
 
 		#region Public Methods
 		public static LogEntry ReadEntry(BufferReaderWriter streamManager)
 		{
 			LogEntry entry = null;
-			LogEntryType logType = ReadLogType(streamManager);
+			var logType = ReadLogType(streamManager);
 			switch (logType)
 			{
 				case LogEntryType.NoOp:
@@ -159,22 +148,11 @@ namespace Zen.Trunk.Storage.Log
 		#endregion
 
 		#region Protected Properties
-		protected override BufferField FirstField
-		{
-			get
-			{
-				return _logId;
-			}
-		}
+		protected override BufferField FirstField => _logId;
 
-		protected override BufferField LastField
-		{
-			get
-			{
-				return _lastLog;
-			}
-		}
-		#endregion
+	    protected override BufferField LastField => _lastLog;
+
+	    #endregion
 
 		#region Protected Methods
 		protected override void DoWrite(BufferReaderWriter streamManager)
@@ -241,7 +219,7 @@ namespace Zen.Trunk.Storage.Log
 	public class TransactionLogEntry : LogEntry
 	{
 		#region Private Fields
-		private BufferFieldUInt32 _transactionId;
+		private readonly BufferFieldUInt32 _transactionId;
 		#endregion
 
 		#region Public Constructors
@@ -263,24 +241,14 @@ namespace Zen.Trunk.Storage.Log
 		#endregion
 
 		#region Public Properties
-		public uint TransactionId
-		{
-			get
-			{
-				return _transactionId.Value;
-			}
-		}
-		#endregion
+		public uint TransactionId => _transactionId.Value;
+
+	    #endregion
 
 		#region Protected Properties
-		protected override BufferField LastField
-		{
-			get
-			{
-				return _transactionId;
-			}
-		}
-		#endregion
+		protected override BufferField LastField => _transactionId;
+
+	    #endregion
 
 		#region Internal Methods
 		internal void RewriteTransactionId(uint transactionId)
@@ -324,7 +292,7 @@ namespace Zen.Trunk.Storage.Log
 		{
 			get
 			{
-				uint rawSize = base.RawSize + (uint)2;
+				var rawSize = base.RawSize + (uint)2;
 				if (activeTransactions != null)
 				{
 					rawSize += (uint)(activeTransactions.Count * 14);
@@ -344,15 +312,9 @@ namespace Zen.Trunk.Storage.Log
 			}
 		}
 
-		public IEnumerable<ActiveTransaction> ActiveTransactions
-		{
-			get
-			{
-				return activeTransactions;
-			}
-		}
+		public IEnumerable<ActiveTransaction> ActiveTransactions => activeTransactions;
 
-		public ActiveTransaction FirstProtectedTransaction
+	    public ActiveTransaction FirstProtectedTransaction
 		{
 			get
 			{
@@ -362,7 +324,7 @@ namespace Zen.Trunk.Storage.Log
 				}
 
 				ActiveTransaction first = null;
-				for (int index = 0; index < activeTransactions.Count; ++index)
+				for (var index = 0; index < activeTransactions.Count; ++index)
 				{
 					if (index == 0 ||
 						first.FirstLogId > activeTransactions[index].FirstLogId)
@@ -393,7 +355,7 @@ namespace Zen.Trunk.Storage.Log
 			base.DoWrite(streamManager);
 
 			streamManager.Write((ushort)TransactionCount);
-			for (int index = 0; index < TransactionCount; ++index)
+			for (var index = 0; index < TransactionCount; ++index)
 			{
 				streamManager.Write(activeTransactions[index].FileId);
 				streamManager.Write(activeTransactions[index].FileOffset);
@@ -406,18 +368,18 @@ namespace Zen.Trunk.Storage.Log
 		{
 			base.DoRead(streamManager);
 
-			ushort count = streamManager.ReadUInt16();
+			var count = streamManager.ReadUInt16();
 			if (count > 0)
 			{
 				activeTransactions = new List<ActiveTransaction>();
-				for (int index = 0; index < count; ++index)
+				for (var index = 0; index < count; ++index)
 				{
-					ushort fileId = streamManager.ReadUInt16();
-					uint fileOffset = streamManager.ReadUInt32();
-					uint firstLogId = streamManager.ReadUInt32();
-					uint transactionId = streamManager.ReadUInt32();
+					var fileId = streamManager.ReadUInt16();
+					var fileOffset = streamManager.ReadUInt32();
+					var firstLogId = streamManager.ReadUInt32();
+					var transactionId = streamManager.ReadUInt32();
 
-					ActiveTransaction tran = new ActiveTransaction(
+					var tran = new ActiveTransaction(
 						transactionId, fileId, fileOffset, firstLogId);
 					activeTransactions.Add(tran);
 				}
@@ -525,8 +487,8 @@ namespace Zen.Trunk.Storage.Log
 	public abstract class PageLogEntry : TransactionLogEntry
 	{
 		#region Private Fields
-		private BufferFieldUInt64 _virtualPageId;
-		private BufferFieldInt64 _timestamp;
+		private readonly BufferFieldUInt64 _virtualPageId;
+		private readonly BufferFieldInt64 _timestamp;
 		#endregion
 
 		#region Public Constructors
@@ -558,40 +520,24 @@ namespace Zen.Trunk.Storage.Log
 		/// Gets the virtual page id.
 		/// </summary>
 		/// <value>The virtual page id.</value>
-		public ulong VirtualPageId
-		{
-			get
-			{
-				return _virtualPageId.Value;
-			}
-		}
+		public ulong VirtualPageId => _virtualPageId.Value;
 
-		/// <summary>
+	    /// <summary>
 		/// Gets the timestamp.
 		/// </summary>
 		/// <value>The timestamp.</value>
-		public long Timestamp
-		{
-			get
-			{
-				return _timestamp.Value;
-			}
-		}
-		#endregion
+		public long Timestamp => _timestamp.Value;
+
+	    #endregion
 
 		#region Protected Properties
 		/// <summary>
 		/// Gets the last field.
 		/// </summary>
 		/// <value>The last field.</value>
-		protected override BufferField LastField
-		{
-			get
-			{
-				return _timestamp;
-			}
-		}
-		#endregion
+		protected override BufferField LastField => _timestamp;
+
+	    #endregion
 
 		#region Public Methods
 		/// <summary>
@@ -602,7 +548,7 @@ namespace Zen.Trunk.Storage.Log
 		/// <returns></returns>
 		public override async Task RollBack(DatabaseDevice device)
 		{
-			DataPage page = await LoadPageFromDevice(device);
+			var page = await LoadPageFromDevice(device);
 
 			if (page.Timestamp != _timestamp.Value)
 			{
@@ -618,7 +564,7 @@ namespace Zen.Trunk.Storage.Log
 		/// <returns></returns>
 		public override async Task RollForward(DatabaseDevice device)
 		{
-			DataPage page = await LoadPageFromDevice(device);
+			var page = await LoadPageFromDevice(device);
 
 			if (page.Timestamp != _timestamp.Value)
 			{
@@ -655,7 +601,7 @@ namespace Zen.Trunk.Storage.Log
 		private async Task<DataPage> LoadPageFromDevice(DatabaseDevice device)
 		{
 			// Create generic page object and load
-			DataPage page = new DataPage();
+			var page = new DataPage();
 			page.VirtualId = VirtualPageId;
 			page.FileGroupId = FileGroupDevice.Invalid;
 			await device.LoadFileGroupPage(
@@ -700,22 +646,11 @@ namespace Zen.Trunk.Storage.Log
 		#endregion
 
 		#region Public Properties
-		public override uint RawSize
-		{
-			get
-			{
-				return (uint)(base.RawSize + _image.Length);
-			}
-		}
+		public override uint RawSize => (uint)(base.RawSize + _image.Length);
 
-		public byte[] Image
-		{
-			get
-			{
-				return _image;
-			}
-		}
-		#endregion
+	    public byte[] Image => _image;
+
+	    #endregion
 
 		#region Protected Methods
 		protected override void DoWrite(BufferReaderWriter streamManager)
@@ -735,10 +670,10 @@ namespace Zen.Trunk.Storage.Log
 		internal override void OnUndoChanges(PageBuffer DataBuffer)
 		{
 			// Copy before image into page DataBuffer
-			using (Stream stream = DataBuffer.GetBufferStream(0, 8192, false))
+			using (var stream = DataBuffer.GetBufferStream(0, 8192, false))
 			{
 				// NOTE: The before image in this case is empty
-				byte[] initStream = new byte[8192];
+				var initStream = new byte[8192];
 				stream.Write(initStream, 0, 8192);
 				stream.Flush();
 			}
@@ -750,7 +685,7 @@ namespace Zen.Trunk.Storage.Log
 		internal override void OnRedoChanges(PageBuffer DataBuffer)
 		{
 			// Copy after image into page DataBuffer
-			using (Stream stream = DataBuffer.GetBufferStream(0, 8192, false))
+			using (var stream = DataBuffer.GetBufferStream(0, 8192, false))
 			{
 				stream.Write(_image, 0, 8192);
 				stream.Flush();
@@ -793,30 +728,13 @@ namespace Zen.Trunk.Storage.Log
 		#endregion
 
 		#region Public Properties
-		public override uint RawSize
-		{
-			get
-			{
-				return base.RawSize + 16384;
-			}
-		}
+		public override uint RawSize => base.RawSize + 16384;
 
-		public byte[] BeforeImage
-		{
-			get
-			{
-				return _beforeImage;
-			}
-		}
+	    public byte[] BeforeImage => _beforeImage;
 
-		public byte[] AfterImage
-		{
-			get
-			{
-				return _afterImage;
-			}
-		}
-		#endregion
+	    public byte[] AfterImage => _afterImage;
+
+	    #endregion
 
 		#region Protected Methods
 		protected override void DoWrite(BufferReaderWriter streamManager)
@@ -838,7 +756,7 @@ namespace Zen.Trunk.Storage.Log
 		internal override void OnUndoChanges(PageBuffer DataBuffer)
 		{
 			// Copy before image into page DataBuffer
-			using (Stream stream = DataBuffer.GetBufferStream(0, 8192, false))
+			using (var stream = DataBuffer.GetBufferStream(0, 8192, false))
 			{
 				stream.Write(_beforeImage, 0, 8192);
 				stream.Flush();
@@ -851,7 +769,7 @@ namespace Zen.Trunk.Storage.Log
 		internal override void OnRedoChanges(PageBuffer DataBuffer)
 		{
 			// Copy after image into page DataBuffer
-			using (Stream stream = DataBuffer.GetBufferStream(0, 8192, false))
+			using (var stream = DataBuffer.GetBufferStream(0, 8192, false))
 			{
 				stream.Write(_afterImage, 0, 8192);
 				stream.Flush();
@@ -889,22 +807,11 @@ namespace Zen.Trunk.Storage.Log
 		#endregion
 
 		#region Public Properties
-		public override uint RawSize
-		{
-			get
-			{
-				return base.RawSize + 8192;
-			}
-		}
+		public override uint RawSize => base.RawSize + 8192;
 
-		public byte[] Image
-		{
-			get
-			{
-				return image;
-			}
-		}
-		#endregion
+	    public byte[] Image => image;
+
+	    #endregion
 
 		#region Protected Methods
 		protected override void DoWrite(BufferReaderWriter streamManager)
@@ -924,7 +831,7 @@ namespace Zen.Trunk.Storage.Log
 		internal override void OnUndoChanges(PageBuffer DataBuffer)
 		{
 			// Copy before image into page DataBuffer
-			using (Stream stream = DataBuffer.GetBufferStream(0, 8192, false))
+			using (var stream = DataBuffer.GetBufferStream(0, 8192, false))
 			{
 				stream.Write(image, 0, 8192);
 				stream.Flush();
@@ -937,9 +844,9 @@ namespace Zen.Trunk.Storage.Log
 		internal override void OnRedoChanges(PageBuffer DataBuffer)
 		{
 			// Copy after image into page DataBuffer
-			using (Stream stream = DataBuffer.GetBufferStream(0, 8192, false))
+			using (var stream = DataBuffer.GetBufferStream(0, 8192, false))
 			{
-				byte[] initStream = new byte[8192];
+				var initStream = new byte[8192];
 				stream.Write(initStream, 0, 8192);
 				stream.Flush();
 			}

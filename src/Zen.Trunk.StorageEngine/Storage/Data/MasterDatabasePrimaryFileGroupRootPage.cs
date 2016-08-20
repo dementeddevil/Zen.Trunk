@@ -20,11 +20,11 @@ namespace Zen.Trunk.Storage.Data
 		#region Internal Objects
 		internal class DatabaseRefInfo : BufferFieldWrapper
 		{
-			private BufferFieldByte _databaseId;
-			private BufferFieldStringFixed _name;
-			private BufferFieldStringFixed _primaryName;
-			private BufferFieldStringFixed _primaryFilePathName;
-			private BufferFieldBitVector8 _flags;
+			private readonly BufferFieldByte _databaseId;
+			private readonly BufferFieldStringFixed _name;
+			private readonly BufferFieldStringFixed _primaryName;
+			private readonly BufferFieldStringFixed _primaryFilePathName;
+			private readonly BufferFieldBitVector8 _flags;
 
 			public DatabaseRefInfo()
 			{
@@ -35,23 +35,11 @@ namespace Zen.Trunk.Storage.Data
 				_flags = new BufferFieldBitVector8(_primaryFilePathName);
 			}
 
-			protected override BufferField FirstField
-			{
-				get
-				{
-					return _databaseId;
-				}
-			}
+			protected override BufferField FirstField => _databaseId;
 
-			protected override BufferField LastField
-			{
-				get
-				{
-					return _flags;
-				}
-			}
+		    protected override BufferField LastField => _flags;
 
-			public byte DatabaseId
+		    public byte DatabaseId
 			{
 				get
 				{
@@ -116,9 +104,9 @@ namespace Zen.Trunk.Storage.Data
 		#region Private Fields
 		internal const ulong DBMasterSignature = 0x2948f3d3a123e502;
 		internal const uint DBMasterSchemaVersion = 0x01000001;
-		private BufferFieldInt32 _databaseCount;
+		private readonly BufferFieldInt32 _databaseCount;
 
-		private Dictionary<byte, DatabaseRefInfo> _databases = new Dictionary<byte, DatabaseRefInfo>();
+		private readonly Dictionary<byte, DatabaseRefInfo> _databases = new Dictionary<byte, DatabaseRefInfo>();
 		#endregion
 
 		#region Public Constructors
@@ -129,44 +117,22 @@ namespace Zen.Trunk.Storage.Data
 		#endregion
 
 		#region Public Properties
-		public override uint MinHeaderSize
-		{
-			get
-			{
-				return base.MinHeaderSize + 4;
-			}
-		}
-		#endregion
+		public override uint MinHeaderSize => base.MinHeaderSize + 4;
+
+	    #endregion
 
 		#region Protected Properties
-		protected override ulong RootPageSignature
-		{
-			get
-			{
-				return DBMasterSignature;
-			}
-		}
+		protected override ulong RootPageSignature => DBMasterSignature;
 
-		protected override uint RootPageSchemaVersion
-		{
-			get
-			{
-				return DBMasterSchemaVersion;
-			}
-		}
+	    protected override uint RootPageSchemaVersion => DBMasterSchemaVersion;
 
-		/// <summary>
+	    /// <summary>
 		/// Overridden. Gets the last header field.
 		/// </summary>
 		/// <value>The last header field.</value>
-		protected override BufferField LastHeaderField
-		{
-			get
-			{
-				return _databaseCount;
-			}
-		}
-		#endregion
+		protected override BufferField LastHeaderField => _databaseCount;
+
+	    #endregion
 
 		#region Public Methods
 		#endregion
@@ -245,9 +211,9 @@ namespace Zen.Trunk.Storage.Data
 		protected override void ReadData(BufferReaderWriter streamManager)
 		{
 			base.ReadData(streamManager);
-			for (int index = 0; index < _databaseCount.Value; ++index)
+			for (var index = 0; index < _databaseCount.Value; ++index)
 			{
-				DatabaseRefInfo info = new DatabaseRefInfo();
+				var info = new DatabaseRefInfo();
 				info.Read(streamManager);
 				_databases.Add(info.DatabaseId, info);
 			}
@@ -270,7 +236,7 @@ namespace Zen.Trunk.Storage.Data
 		protected override void WriteData(BufferReaderWriter streamManager)
 		{
 			base.WriteData(streamManager);
-			foreach (DatabaseRefInfo info in _databases.Values)
+			foreach (var info in _databases.Values)
 			{
 				info.Write(streamManager);
 			}

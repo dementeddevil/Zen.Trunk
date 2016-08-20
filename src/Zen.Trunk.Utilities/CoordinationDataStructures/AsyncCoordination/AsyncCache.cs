@@ -29,13 +29,7 @@ namespace System.Threading
 		}
 
 		[DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
-		internal KeyValuePair<TKey, Task<TValue>>[] Values
-		{
-			get
-			{
-				return _asyncCache.ToArray();
-			}
-		}
+		internal KeyValuePair<TKey, Task<TValue>>[] Values => _asyncCache.ToArray();
 	}
 
 	/// <summary>Caches asynchronously retrieved data.</summary>
@@ -120,15 +114,9 @@ namespace System.Threading
 		}
 
 		/// <summary>Gets the number of items in the cache.</summary>
-		public int Count
-		{
-			get
-			{
-				return _map.Count;
-			}
-		}
+		public int Count => _map.Count;
 
-		/// <summary>Gets an enumerator for the contents of the cache.</summary>
+	    /// <summary>Gets an enumerator for the contents of the cache.</summary>
 		/// <returns>An enumerator for the contents of the cache.</returns>
 		public IEnumerator<KeyValuePair<TKey, Task<TValue>>> GetEnumerator()
 		{
@@ -173,15 +161,9 @@ namespace System.Threading
 		}
 
 		/// <summary>Gets whether the cache is read-only.</summary>
-		bool ICollection<KeyValuePair<TKey, Task<TValue>>>.IsReadOnly
-		{
-			get
-			{
-				return false;
-			}
-		}
+		bool ICollection<KeyValuePair<TKey, Task<TValue>>>.IsReadOnly => false;
 
-		/// <summary>Removes the specified key from the cache.</summary>
+	    /// <summary>Removes the specified key from the cache.</summary>
 		/// <param name="item">The item containing the key to be removed.</param>
 		/// <returns>True if the item could be removed; otherwise, false.</returns>
 		bool ICollection<KeyValuePair<TKey, Task<TValue>>>.Remove(KeyValuePair<TKey, Task<TValue>> item)

@@ -24,13 +24,7 @@
 		{
 		}
 
-		Task ITaskRequest.Task
-		{
-			get
-			{
-				return Task;
-			}
-		}
+		Task ITaskRequest.Task => Task;
 	}
 
 	//[CLSCompliant(false)]
@@ -72,7 +66,7 @@
 	public class TaskRequestActionBlock<TRequest, TResult> : ITargetBlock<TRequest>
 		where TRequest : TaskRequest<TResult>
 	{
-		private ITargetBlock<TRequest> _innerBlock;
+		private readonly ITargetBlock<TRequest> _innerBlock;
 
 		public TaskRequestActionBlock(Func<TRequest, TResult> action)
 			: this(action, new ExecutionDataflowBlockOptions())
@@ -98,15 +92,9 @@
 				dataflowBlockOptions);
 		}
 
-		public virtual Task Completion
-		{
-			get
-			{
-				return _innerBlock.Completion;
-			}
-		}
+		public virtual Task Completion => _innerBlock.Completion;
 
-		public virtual void Fault(Exception exception)
+	    public virtual void Fault(Exception exception)
 		{
 			_innerBlock.Fault(exception);
 		}
@@ -171,7 +159,7 @@
 	public class TaskRequestActionBlock<TRequest, TMessage, TResult> : ITargetBlock<TRequest>
 		where TRequest : TaskRequest<TMessage, TResult>
 	{
-		private ITargetBlock<TRequest> _innerBlock;
+		private readonly ITargetBlock<TRequest> _innerBlock;
 
 		public TaskRequestActionBlock(Func<TRequest, TResult> action)
 			: this(action, new ExecutionDataflowBlockOptions())
@@ -197,15 +185,9 @@
 				dataflowBlockOptions);
 		}
 
-		public virtual Task Completion
-		{
-			get
-			{
-				return _innerBlock.Completion;
-			}
-		}
+		public virtual Task Completion => _innerBlock.Completion;
 
-		public virtual void Fault(Exception exception)
+	    public virtual void Fault(Exception exception)
 		{
 			_innerBlock.Fault(exception);
 		}

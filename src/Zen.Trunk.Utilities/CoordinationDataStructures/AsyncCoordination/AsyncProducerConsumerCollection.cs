@@ -19,7 +19,7 @@ namespace System.Threading.Async
         /// <summary>Asynchronous semaphore used to keep track of asynchronous work.</summary>
         private AsyncSemaphore _semaphore = new AsyncSemaphore();
         /// <summary>The data stored in the collection.</summary>
-        private IProducerConsumerCollection<T> _collection;
+        private readonly IProducerConsumerCollection<T> _collection;
 
         /// <summary>Initializes the asynchronous producer/consumer collection to store data in a first-in-first-out (FIFO) order.</summary>
         public AsyncProducerConsumerCollection() : this(new ConcurrentQueue<T>()) { }
@@ -53,7 +53,7 @@ namespace System.Threading.Async
         }
 
         /// <summary>Gets the number of elements in the collection.</summary>
-        public int Count { get { return _collection.Count; } }
+        public int Count => _collection.Count;
 
         /// <summary>Disposes of the collection.</summary>
         public void Dispose()

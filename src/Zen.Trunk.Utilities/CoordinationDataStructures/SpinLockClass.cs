@@ -33,7 +33,7 @@ namespace System.Threading
         /// <param name="runUnderLock">The delegate to be executed while holding the lock.</param>
         public void Execute(Action runUnderLock)
         {
-            bool lockTaken = false;
+            var lockTaken = false;
             try
             {
                 Enter(ref lockTaken);

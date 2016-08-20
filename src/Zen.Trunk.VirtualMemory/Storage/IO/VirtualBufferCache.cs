@@ -6,12 +6,12 @@ namespace Zen.Trunk.Storage.IO
 	{
 		#region Private Fields
 		private static int s_nextCacheId = 0;
-		private int _cacheId;
-		private SafeCommitableMemoryHandle _baseAddress;
-		private SafeCommitableMemoryHandle _nextAddress;
+		private readonly int _cacheId;
+		private readonly SafeCommitableMemoryHandle _baseAddress;
+		private readonly SafeCommitableMemoryHandle _nextAddress;
 		private int _bufferSize;
-		private int _bufferCacheSize;
-		private VirtualBuffer[] _buffers;
+		private readonly int _bufferCacheSize;
+		private readonly VirtualBuffer[] _buffers;
 		private int _usedBuffers;
 		#endregion
 
@@ -30,9 +30,9 @@ namespace Zen.Trunk.Storage.IO
 			_bufferCacheSize = bufferSlots;
 
 			_buffers = new VirtualBuffer[_bufferCacheSize];
-			for (int index = 0; index < _bufferCacheSize; ++index)
+			for (var index = 0; index < _bufferCacheSize; ++index)
 			{
-				VirtualBuffer buffer = new VirtualBuffer(baseAddress, bufferSize, this, index);
+				var buffer = new VirtualBuffer(baseAddress, bufferSize, this, index);
 				_buffers[index] = buffer;
 				baseAddress = SafeNativeMethods.GetCommitableMemoryHandle(baseAddress, bufferSize, bufferSize);
 			}
@@ -41,68 +41,27 @@ namespace Zen.Trunk.Storage.IO
 		#endregion
 
 		#region Internal Properties
-		internal int CacheId
-		{
-			get
-			{
-				return _cacheId;
-			}
-		}
+		internal int CacheId => _cacheId;
 
-		internal bool IsHalfFull
-		{
-			get
-			{
-				return UsedSpace > 50;
-			}
-		}
+	    internal bool IsHalfFull => UsedSpace > 50;
 
-		internal bool IsNearlyFull
-		{
-			get
-			{
-				return UsedSpace > 75;
-			}
-		}
+	    internal bool IsNearlyFull => UsedSpace > 75;
 
-		internal bool IsFull
-		{
-			get
-			{
-				return UsedSpace > 97;
-			}
-		}
+	    internal bool IsFull => UsedSpace > 97;
 
-		internal int UsedSpace
-		{
-			get
-			{
-				return (_usedBuffers * 100) / _bufferCacheSize;
-			}
-		}
+	    internal int UsedSpace => (_usedBuffers * 100) / _bufferCacheSize;
 
-		internal SafeCommitableMemoryHandle BaseAddress
-		{
-			get
-			{
-				return _baseAddress;
-			}
-		}
+	    internal SafeCommitableMemoryHandle BaseAddress => _baseAddress;
 
-		internal SafeCommitableMemoryHandle NextBaseAddress
-		{
-			get
-			{
-				return _nextAddress;
-			}
-		}
-		#endregion
+	    internal SafeCommitableMemoryHandle NextBaseAddress => _nextAddress;
+
+	    #endregion
 
 		public VirtualBuffer AllocateBuffer()
 		{
-			for (int index = 0; index < _bufferCacheSize; ++index)
+			for (var index = 0; index < _bufferCacheSize; ++index)
 			{
-				VirtualBuffer buffer = Interlocked.Exchange<VirtualBuffer>(
+				var buffer = Interlocked.Exchange<VirtualBuffer>(
 					ref _buffers[index], null);
 				if (buffer != null)
 				{

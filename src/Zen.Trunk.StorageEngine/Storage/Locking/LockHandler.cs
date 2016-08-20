@@ -27,9 +27,9 @@ namespace Zen.Trunk.Storage.Locking
 	{
 		#region Private Fields
 		private int _maxFreeLocks;
-		private SpinLockClass syncLocks = new SpinLockClass();
-		private Dictionary<string, TLockClass> _activeLocks = new Dictionary<string, TLockClass>();
-		private ObjectPool<TLockClass> _freeLocks;
+		private readonly SpinLockClass syncLocks = new SpinLockClass();
+		private readonly Dictionary<string, TLockClass> _activeLocks = new Dictionary<string, TLockClass>();
+		private readonly ObjectPool<TLockClass> _freeLocks;
 		#endregion
 
 		#region Public Constructors
@@ -93,7 +93,7 @@ namespace Zen.Trunk.Storage.Locking
 		#region Private Methods
 		private TLockClass CreateLock()
 		{
-			TLockClass lockObject = new TLockClass();
+			var lockObject = new TLockClass();
 			lockObject.Initialise();
 			lockObject.FinalRelease += Lock_FinalRelease;
 			return lockObject;
@@ -101,7 +101,7 @@ namespace Zen.Trunk.Storage.Locking
 
 		private void Lock_FinalRelease(object sender, EventArgs e)
 		{
-			TLockClass lockObject = (TLockClass)sender;
+			var lockObject = (TLockClass)sender;
 			syncLocks.Execute(
 				() =>
 				{
@@ -131,23 +131,11 @@ namespace Zen.Trunk.Storage.Locking
 			}
 		}
 
-		int ILockHandler.ActiveLockCount
-		{
-			get
-			{
-				return _activeLocks.Count;
-			}
-		}
+		int ILockHandler.ActiveLockCount => _activeLocks.Count;
 
-		int ILockHandler.FreeLockCount
-		{
-			get
-			{
-				return _freeLocks.Count;
-			}
-		}
+	    int ILockHandler.FreeLockCount => _freeLocks.Count;
 
-		void ILockHandler.PopulateFreeLockPool(int maxLocks)
+	    void ILockHandler.PopulateFreeLockPool(int maxLocks)
 		{
 			syncLocks.Execute(
 				() =>

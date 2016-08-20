@@ -35,17 +35,17 @@ namespace System.Threading.Algorithms
                 throw new ArgumentNullException("processRowColumnCell");
 
             // Compute the size of each block
-            int rowBlockSize = numRows / numBlocksPerRow;
-            int columnBlockSize = numColumns / numBlocksPerColumn;
+            var rowBlockSize = numRows / numBlocksPerRow;
+            var columnBlockSize = numColumns / numBlocksPerColumn;
 
             Wavefront(numBlocksPerRow, numBlocksPerColumn, (row, column) =>
             {
-                int start_i = row * rowBlockSize;
-                int end_i = row < numBlocksPerRow - 1 ?
+                var start_i = row * rowBlockSize;
+                var end_i = row < numBlocksPerRow - 1 ?
                     start_i + rowBlockSize : numRows;
 
-                int start_j = column * columnBlockSize;
-                int end_j = column < numBlocksPerColumn - 1 ?
+                var start_j = column * columnBlockSize;
+                var end_j = column < numBlocksPerColumn - 1 ?
                     start_j + columnBlockSize : numColumns;
 
                 processBlock(start_i, end_i, start_j, end_j);
@@ -64,15 +64,15 @@ namespace System.Threading.Algorithms
             if (processRowColumnCell == null) throw new ArgumentNullException("processRowColumnCell");
 
             // Store the previous row of tasks as well as the previous task in the current row
-            Task[] prevTaskRow = new Task[numColumns];
+            var prevTaskRow = new Task[numColumns];
             Task prevTaskInCurrentRow = null;
             var dependencies = new Task[2];
 
             // Create a task for each cell
-            for (int row = 0; row < numRows; row++)
+            for (var row = 0; row < numRows; row++)
             {
                 prevTaskInCurrentRow = null;
-                for (int column = 0; column < numColumns; column++)
+                for (var column = 0; column < numColumns; column++)
                 {
                     // In-scope locals for being captured in the task closures
                     int j = row, i = column;

@@ -96,7 +96,7 @@ namespace System.Collections.Concurrent
         public void Clear() { lock(_syncLock) _minHeap.Clear(); }
 
         /// <summary>Gets whether the queue is empty.</summary>
-        public bool IsEmpty { get { return Count == 0; } }
+        public bool IsEmpty => Count == 0;
 
         /// <summary>Gets the number of elements contained in the queue.</summary>
         public int Count
@@ -125,7 +125,7 @@ namespace System.Collections.Concurrent
             {
                 var clonedHeap = new MinBinaryHeap(_minHeap);
                 var result = new KeyValuePair<TKey, TValue>[_minHeap.Count];
-                for (int i = 0; i < result.Length; i++)
+                for (var i = 0; i < result.Length; i++)
                 {
                     result[i] = clonedHeap.Remove();
                 }
@@ -189,12 +189,12 @@ namespace System.Collections.Concurrent
         /// <summary>
         /// Gets a value indicating whether access to the ICollection is synchronized with the SyncRoot.
         /// </summary>
-        bool ICollection.IsSynchronized { get { return true; } }
+        bool ICollection.IsSynchronized => true;
 
         /// <summary>
         /// Gets an object that can be used to synchronize access to the collection.
         /// </summary>
-        object ICollection.SyncRoot { get { return _syncLock; } }
+        object ICollection.SyncRoot => _syncLock;
 
         /// <summary>Implements a binary heap that prioritizes smaller values.</summary>
         private sealed class MinBinaryHeap
@@ -230,7 +230,7 @@ namespace System.Collections.Concurrent
             {
                 // Add the item to the list, making sure to keep track of where it was added.
                 _items.Add(entry);
-                int pos = _items.Count - 1;
+                var pos = _items.Count - 1;
 
                 // If the new item is the only item, we're done.
                 if (pos == 0) return;
@@ -240,7 +240,7 @@ namespace System.Collections.Concurrent
                 while (pos > 0)
                 {
                     // Get the next position to check
-                    int nextPos = pos / 2;
+                    var nextPos = pos / 2;
 
                     // Extract the entry at the next position
                     var toCheck = _items[nextPos];
@@ -272,7 +272,7 @@ namespace System.Collections.Concurrent
             {
                 // Get the first item and save it for later (this is what will be returned).
                 if (_items.Count == 0) throw new InvalidOperationException("The heap is empty.");
-                KeyValuePair<TKey, TValue> toReturn = _items[0];
+                var toReturn = _items[0];
 
                 // Remove the first item if there will only be 0 or 1 items left after doing so.  
                 if (_items.Count <= 2) _items.RemoveAt(0);
@@ -290,8 +290,8 @@ namespace System.Collections.Concurrent
                     while (true)
                     {
                         // Get the positions of the node's children
-                        int leftChildPos = 2 * current + 1;
-                        int rightChildPos = leftChildPos + 1;
+                        var leftChildPos = 2 * current + 1;
+                        var rightChildPos = leftChildPos + 1;
 
                         // Should we swap with the left child?
                         if (leftChildPos < _items.Count)
@@ -336,9 +336,9 @@ namespace System.Collections.Concurrent
             }
 
             /// <summary>Gets the number of objects stored in the heap.</summary>
-            public int Count { get { return _items.Count; } }
+            public int Count => _items.Count;
 
-            internal List<KeyValuePair<TKey, TValue>> Items { get { return _items; } }
+            internal List<KeyValuePair<TKey, TValue>> Items => _items;
         }
     }
 }

@@ -36,11 +36,11 @@ namespace Zen.Trunk.Storage.Data
 		internal class ExtentInfo : BufferFieldWrapper
 		{
 			// 5 bytes
-			private BufferFieldBitVector8 _status;
-			private BufferFieldUInt32 _objectId;
+			private readonly BufferFieldBitVector8 _status;
+			private readonly BufferFieldUInt32 _objectId;
 
 			// 14 bytes * 8
-			private PageInfo[] _pageState;
+			private readonly PageInfo[] _pageState;
 
 			public const uint ExtentInfoBytes = 5 + (14 * PagesPerExtent);
 
@@ -49,37 +49,19 @@ namespace Zen.Trunk.Storage.Data
 				_status = new BufferFieldBitVector8();
 				_objectId = new BufferFieldUInt32(_status);
 				_pageState = new PageInfo[PagesPerExtent];
-				for (int index = 0; index < PagesPerExtent; ++index)
+				for (var index = 0; index < PagesPerExtent; ++index)
 				{
 					_pageState[index] = new PageInfo();
 				}
 			}
 
-			protected override BufferField FirstField
-			{
-				get
-				{
-					return _status;
-				}
-			}
+			protected override BufferField FirstField => _status;
 
-			protected override BufferField LastField
-			{
-				get
-				{
-					return _objectId;
-				}
-			}
+		    protected override BufferField LastField => _objectId;
 
-			internal bool IsFree
-			{
-				get
-				{
-					return (!IsMixedExtent) && (!IsFull) && (ObjectId == 0);
-				}
-			}
+		    internal bool IsFree => (!IsMixedExtent) && (!IsFull) && (ObjectId.Value == 0);
 
-			internal bool IsMixedExtent
+		    internal bool IsMixedExtent
 			{
 				get
 				{
@@ -115,29 +97,23 @@ namespace Zen.Trunk.Storage.Data
 				}
 			}
 
-			internal uint ObjectId
+			internal ObjectId ObjectId
 			{
 				get
 				{
-					return _objectId.Value;
+					return new ObjectId(_objectId.Value);
 				}
 				set
 				{
-					_objectId.Value = value;
+					_objectId.Value = value.Value;
 				}
 			}
 
-			internal PageInfo[] Pages
-			{
-				get
-				{
-					return _pageState;
-				}
-			}
+			internal PageInfo[] Pages => _pageState;
 
-			public void ReadFrom(PageBuffer buffer, uint headerSize, uint extentIndex)
+		    public void ReadFrom(PageBuffer buffer, uint headerSize, uint extentIndex)
 			{
-				using (Stream stream = buffer.GetBufferStream(
+				using (var stream = buffer.GetBufferStream(
 					(int)(headerSize + (extentIndex * ExtentInfoBytes)),
 					(int)ExtentInfoBytes,
 					false))
@@ -152,7 +128,7 @@ namespace Zen.Trunk.Storage.Data
 				base.DoRead(streamManager);
 
 				// We need to read the page info too
-				for (int index = 0; index < PagesPerExtent; ++index)
+				for (var index = 0; index < PagesPerExtent; ++index)
 				{
 					_pageState[index].Read(streamManager);
 				}
@@ -164,7 +140,7 @@ namespace Zen.Trunk.Storage.Data
 				base.DoWrite(streamManager);
 
 				// We need to write the page info too
-				for (int index = 0; index < PagesPerExtent; ++index)
+				for (var index = 0; index < PagesPerExtent; ++index)
 				{
 					_pageState[index].Write(streamManager);
 				}
@@ -173,10 +149,10 @@ namespace Zen.Trunk.Storage.Data
 
 		internal class PageInfo : BufferFieldWrapper
 		{
-			private BufferFieldUInt64 _logicalId;
-			private BufferFieldUInt32 _objectId;
-			private BufferFieldByte _objectType;
-			private BufferFieldByte _allocationStatus;
+			private readonly BufferFieldUInt64 _logicalId;
+			private readonly BufferFieldUInt32 _objectId;
+			private readonly BufferFieldByte _objectType;
+			private readonly BufferFieldByte _allocationStatus;
 
 			public PageInfo()
 			{
@@ -186,49 +162,37 @@ namespace Zen.Trunk.Storage.Data
 				_allocationStatus = new BufferFieldByte(_objectType);
 			}
 
-			protected override BufferField FirstField
-			{
-				get
-				{
-					return _logicalId;
-				}
-			}
+			protected override BufferField FirstField => _logicalId;
 
-			protected override BufferField LastField
-			{
-				get
-				{
-					return _allocationStatus;
-				}
-			}
+		    protected override BufferField LastField => _allocationStatus;
 
-			/// <summary>
+		    /// <summary>
 			/// Logical ID
 			/// </summary>
-			internal ulong LogicalId
+			internal LogicalPageId LogicalId
 			{
 				get
 				{
-					return _logicalId.Value;
+					return new LogicalPageId(_logicalId.Value);
 				}
 				set
 				{
-					_logicalId.Value = value;
+					_logicalId.Value = value.Value;
 				}
 			}
 
 			/// <summary>
 			/// Owner object ID
 			/// </summary>
-			internal uint ObjectId
+			internal ObjectId ObjectId
 			{
 				get
 				{
-					return _objectId.Value;
+					return new ObjectId(_objectId.Value);
 				}
 				set
 				{
-					_objectId.Value = value;
+					_objectId.Value = value.Value;
 				}
 			}
 
@@ -239,15 +203,15 @@ namespace Zen.Trunk.Storage.Data
 			/// 3 = Sample
 			/// 4 = Index
 			/// </summary>
-			internal byte ObjectType
+			internal ObjectType ObjectType
 			{
 				get
 				{
-					return _objectType.Value;
+					return new ObjectType(_objectType.Value);
 				}
 				set
 				{
-					_objectType.Value = value;
+					_objectType.Value = value.Value;
 				}
 			}
 
@@ -286,7 +250,7 @@ namespace Zen.Trunk.Storage.Data
 		#endregion
 
 		#region Private Fields
-		private ExtentInfo[] _extents;
+		private readonly ExtentInfo[] _extents;
 		private List<uint> _lockedExtents;
 
 		private ObjectLockType _distributionLock = ObjectLockType.IntentShared;
@@ -299,7 +263,7 @@ namespace Zen.Trunk.Storage.Data
 		public DistributionPage()
 		{
 			_extents = new ExtentInfo[ExtentTrackingCount];
-			for (int index = 0; index < ExtentTrackingCount; ++index)
+			for (var index = 0; index < ExtentTrackingCount; ++index)
 			{
 				_extents[index] = new ExtentInfo();
 			}
@@ -317,7 +281,7 @@ namespace Zen.Trunk.Storage.Data
 			{
 				if (_distributionLock != value)
 				{
-					ObjectLockType oldLock = _distributionLock;
+					var oldLock = _distributionLock;
 					try
 					{
 						_distributionLock = value;
@@ -332,14 +296,9 @@ namespace Zen.Trunk.Storage.Data
 			}
 		}
 
-		public override PageType PageType
-		{
-			get
-			{
-				return PageType.Distribution;
-			}
-		}
-		#endregion
+		public override PageType PageType => PageType.Distribution;
+
+	    #endregion
 
 		#region Internal Properties
 		internal DistributionLockOwnerBlock LockBlock
@@ -381,8 +340,8 @@ namespace Zen.Trunk.Storage.Data
 		{
 			System.Diagnostics.Debug.WriteLine(
 				string.Format("Allocate page via DistributionPage {0}",
-				new DevicePageId(VirtualId)));
-			IDatabaseLockManager lm = (IDatabaseLockManager)GetService(typeof(IDatabaseLockManager));
+				new VirtualPageId(VirtualId)));
+			var lm = (IDatabaseLockManager)GetService(typeof(IDatabaseLockManager));
 
 			// Ensure we have some kind of lock on the page...
 			if (DistributionLock == ObjectLockType.None)
@@ -398,7 +357,7 @@ namespace Zen.Trunk.Storage.Data
 				try
 				{
 					// Get the extent information
-					ExtentInfo info = GetLatestExtentInfoWithLock(lm, index, out hasAcquiredLock);
+					var info = GetLatestExtentInfoWithLock(lm, index, out hasAcquiredLock);
 
 					// If this extent is unusable then stop as we have reached
 					//	the end of the device...
@@ -443,7 +402,7 @@ namespace Zen.Trunk.Storage.Data
 					try
 					{
 						// Get the extent information
-						ExtentInfo info = GetLatestExtentInfoWithLock(lm, index, out hasAcquiredLock);
+						var info = GetLatestExtentInfoWithLock(lm, index, out hasAcquiredLock);
 
 						// If this extent is unusable then stop as we have reached
 						//	the end of the device...
@@ -491,7 +450,7 @@ namespace Zen.Trunk.Storage.Data
 					// Escalate the extent lock if necessary
 					if (DistributionLock != ObjectLockType.Exclusive)
 					{
-						DataLock extentLock = lm.GetExtentLock(VirtualId, extent);
+						var extentLock = lm.GetExtentLock(VirtualId, extent);
 						if (!extentLock.HasLock(DataLockType.Exclusive))
 						{
 							LockExtent(extent, DataLockType.Update);
@@ -513,7 +472,7 @@ namespace Zen.Trunk.Storage.Data
 				// Check extent is still available and usable
 				// NOTE: We do not need to reload since we've had (at a minimum)
 				//	a shared read lock since identifying the extent...
-				ExtentInfo info = _extents[extent];
+				var info = _extents[extent];
 				if (info.IsFull || !info.IsUsable)
 				{
 					return 0;
@@ -540,15 +499,15 @@ namespace Zen.Trunk.Storage.Data
 						info.Pages[index].ObjectType = allocParams.ObjectType;
 
 						// Determine the virtual id for this page
-						uint pageIndex = (extent * PagesPerExtent) + index;
+						var pageIndex = (extent * PagesPerExtent) + index;
 						virtPageId = VirtualId + pageIndex + 1;
 						break;
 					}
 				}
 
 				// Check whether the extent is now full
-				bool extentFull = true;
-				for (int index = 0; extentFull && index < PagesPerExtent; ++index)
+				var extentFull = true;
+				for (var index = 0; extentFull && index < PagesPerExtent; ++index)
 				{
 					if (!info.Pages[index].AllocationStatus)
 					{
@@ -576,11 +535,11 @@ namespace Zen.Trunk.Storage.Data
 			CheckReadOnly();
 
 			// Determine extent and page index
-			uint extent = offset / PagesPerExtent;
-			uint pageIndex = offset % PagesPerExtent;
+			var extent = offset / PagesPerExtent;
+			var pageIndex = offset % PagesPerExtent;
 			if (_extents[extent].Pages[pageIndex].AllocationStatus)
 			{
-				IDatabaseLockManager lm = GetService<IDatabaseLockManager>();
+				var lm = GetService<IDatabaseLockManager>();
 
 				// We need extent lock before we can free page
 				if (DistributionLock != ObjectLockType.IntentExclusive &&
@@ -597,16 +556,16 @@ namespace Zen.Trunk.Storage.Data
 
 				// Update page information
 				_extents[extent].Pages[pageIndex].AllocationStatus = false;
-				_extents[extent].Pages[pageIndex].ObjectId = 0;
-				_extents[extent].Pages[pageIndex].LogicalId = 0;
-				_extents[extent].Pages[pageIndex].ObjectType = 0;
+				_extents[extent].Pages[pageIndex].ObjectId = ObjectId.Zero;
+				_extents[extent].Pages[pageIndex].LogicalId = LogicalPageId.Zero;
+				_extents[extent].Pages[pageIndex].ObjectType = ObjectType.Unknown;
 
 				// Update extent information
 				_extents[extent].IsFull = false;
 				if (!_extents[extent].Pages.Any((pi) => pi.AllocationStatus))
 				{
 					_extents[extent].IsMixedExtent = false;
-					_extents[extent].ObjectId = 0;
+					_extents[extent].ObjectId = ObjectId.Zero;
 				}
 
 				SetDirty();
@@ -618,11 +577,11 @@ namespace Zen.Trunk.Storage.Data
 
 		public Task Import(ILogicalVirtualManager logicalVirtualManager)
 		{
-			DevicePageId startPageId = new DevicePageId(VirtualId).NextPage;
+			var startPageId = new VirtualPageId(VirtualId).NextPage;
 
 			// Loop through next 512 device pages adding logical
 			//	lookups where we have allocated pages.
-			List<Task> addTasks = new List<Task>();
+			var addTasks = new List<Task>();
 
 			for (uint extentIndex = 0; extentIndex < ExtentTrackingCount; ++extentIndex)
 			{
@@ -637,8 +596,8 @@ namespace Zen.Trunk.Storage.Data
 				{
 					if (_extents[extentIndex].Pages[pageIndex].AllocationStatus)
 					{
-						uint pageOffset = extentIndex * PagesPerExtent + pageIndex;
-						DevicePageId pageId = new DevicePageId(
+						var pageOffset = extentIndex * PagesPerExtent + pageIndex;
+						var pageId = new VirtualPageId(
 							startPageId.DeviceId,
 							startPageId.PhysicalPageId + pageOffset);
 
@@ -674,28 +633,28 @@ namespace Zen.Trunk.Storage.Data
 			}
 
 			// Determine the physical page index for this page
-			DevicePageId pageId = new DevicePageId(VirtualId);
-			uint pageIndex = pageId.PhysicalPageId;
+			var pageId = new VirtualPageId(VirtualId);
+			var pageIndex = pageId.PhysicalPageId;
 
 			// Determine the number of extents that are usable
-			uint usableExtents = ExtentTrackingCount;
+			var usableExtents = ExtentTrackingCount;
 			if ((pageIndex + PageTrackingCount) >= devicePageCapacity)
 			{
 				// This distribution page covers more than the device has pages
 				// NOTE: We do not consider partially usable extents
-				uint validPages = devicePageCapacity - pageIndex - 1;
+				var validPages = devicePageCapacity - pageIndex - 1;
 				usableExtents = validPages / PagesPerExtent;
 			}
 
 			// Set extent usability state
-			for (int index = 0; index < ExtentTrackingCount; ++index)
+			for (var index = 0; index < ExtentTrackingCount; ++index)
 			{
 				if (index < usableExtents)
 				{
 					_extents[index].IsUsable = true;
 					_extents[index].IsMixedExtent = false;
 					_extents[index].IsFull = false;
-					_extents[index].ObjectId = 0;
+					_extents[index].ObjectId = ObjectId.Zero;
 				}
 				else
 				{
@@ -714,11 +673,11 @@ namespace Zen.Trunk.Storage.Data
 		protected override void PreUpdateTimestamp()
 		{
 			// Acquire distribution page spin lock
-			IDatabaseLockManager lm = (IDatabaseLockManager)GetService(typeof(IDatabaseLockManager));
+			var lm = (IDatabaseLockManager)GetService(typeof(IDatabaseLockManager));
 			if (lm != null)
 			{
 				lm.LockDistributionHeader(
-					DataBuffer.PageId.VirtualPageId,
+					DataBuffer.PageId.Value,
 					TimeSpan.FromMilliseconds(40));
 
 				// Reload header
@@ -734,14 +693,14 @@ namespace Zen.Trunk.Storage.Data
 
 		protected override void PostUpdateTimestamp()
 		{
-			IDatabaseLockManager lm = (IDatabaseLockManager)GetService(typeof(IDatabaseLockManager));
+			var lm = (IDatabaseLockManager)GetService(typeof(IDatabaseLockManager));
 			if (lm != null)
 			{
 				// Force write of header information to DataBuffer
 				WriteHeader();
 
 				// Unlock distribution page header
-				lm.UnlockDistributionHeader(DataBuffer.PageId.VirtualPageId);
+				lm.UnlockDistributionHeader(DataBuffer.PageId.Value);
 			}
 
 			base.PostUpdateTimestamp();
@@ -751,7 +710,7 @@ namespace Zen.Trunk.Storage.Data
 		{
 			// Save locked extents and page information unless this
 			//	is a new page
-			bool hasExclusiveLock = false;
+			var hasExclusiveLock = false;
 			if (DistributionLock == ObjectLockType.Exclusive)
 			{
 				hasExclusiveLock = true;
@@ -772,7 +731,7 @@ namespace Zen.Trunk.Storage.Data
 
 		protected override void ReadData(BufferReaderWriter streamManager)
 		{
-			for (int index = 0; index < ExtentTrackingCount; ++index)
+			for (var index = 0; index < ExtentTrackingCount; ++index)
 			{
 				_extents[index].Read(streamManager);
 			}
@@ -800,15 +759,15 @@ namespace Zen.Trunk.Storage.Data
 		protected override void OnInit(EventArgs e)
 		{
 			// Reset allocation maps
-			for (int index = 0; index < ExtentTrackingCount; ++index)
+			for (var index = 0; index < ExtentTrackingCount; ++index)
 			{
-				_extents[index].ObjectId = 0;
-				foreach (PageInfo page in _extents[index].Pages)
+				_extents[index].ObjectId = ObjectId.Zero;
+				foreach (var page in _extents[index].Pages)
 				{
 					page.AllocationStatus = false;
-					page.ObjectType = 0;
-					page.ObjectId = 0;
-					page.LogicalId = 0;
+					page.ObjectType = ObjectType.Unknown;
+					page.ObjectId = ObjectId.Zero;
+					page.LogicalId = LogicalPageId.Zero;
 				}
 			}
 			base.OnInit(e);
@@ -855,7 +814,7 @@ namespace Zen.Trunk.Storage.Data
 				if (_lockedExtents != null)
 				{
 					// Release all distribution page locks
-					foreach (uint extent in _lockedExtents)
+					foreach (var extent in _lockedExtents)
 					{
 						lm.UnlockDistributionExtent(VirtualId, extent);
 					}
@@ -864,7 +823,7 @@ namespace Zen.Trunk.Storage.Data
 				}
 
 				// Release distribution page lock
-				DistributionLockOwnerBlock lob = LockBlock;
+				var lob = LockBlock;
 				if (lob != null)
 				{
 					LockBlock.UnlockOwner();
@@ -882,7 +841,7 @@ namespace Zen.Trunk.Storage.Data
 			IDatabaseLockManager lm, uint extentIndex, out bool hasAcquiredLock)
 		{
 			hasAcquiredLock = false;
-			bool alreadyHasLock = false;
+			var alreadyHasLock = false;
 
 			// Check whether we already have this extent locked
 			//	in case we are allocating more than once in the same txn
@@ -897,7 +856,7 @@ namespace Zen.Trunk.Storage.Data
 			if (!alreadyHasLock)
 			{
 				// NOTE: We only need to check for exclusive lock
-				DataLock extentLock = lm.GetExtentLock(VirtualId, extentIndex);
+				var extentLock = lm.GetExtentLock(VirtualId, extentIndex);
 				alreadyHasLock = extentLock.HasLock(DataLockType.Exclusive);
 			}
 
@@ -909,7 +868,7 @@ namespace Zen.Trunk.Storage.Data
 			}
 
 			// Re-read extent information (it may have changed)
-			ExtentInfo info = _extents[extentIndex];
+			var info = _extents[extentIndex];
 
 			// Do not re-read extent if we already held the lock
 			//	as we will overwrite previous changes unless lock was acquired

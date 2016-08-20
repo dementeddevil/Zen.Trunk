@@ -11,10 +11,10 @@
 	public abstract class IndexPage : ObjectDataPage
 	{
 		#region Private Fields
-		private BufferFieldUInt64 _leftLogicalPageId;
-		private BufferFieldUInt64 _rightLogicalPageId;
-		private BufferFieldUInt64 _parentLogicalPageId;
-		private BufferFieldByte _depth;
+		private readonly BufferFieldUInt64 _leftLogicalPageId;
+		private readonly BufferFieldUInt64 _rightLogicalPageId;
+		private readonly BufferFieldUInt64 _parentLogicalPageId;
+		private readonly BufferFieldByte _depth;
 		#endregion
 
 		#region Protected Constructors
@@ -72,18 +72,18 @@
 		/// Gets or sets the left logical page id.
 		/// </summary>
 		/// <value>The left logical page id.</value>
-		public ulong LeftLogicalPageId
+		public LogicalPageId LeftLogicalPageId
 		{
 			get
 			{
-				return _leftLogicalPageId.Value;
+				return new LogicalPageId(_leftLogicalPageId.Value);
 			}
 			set
 			{
 				CheckReadOnly();
-				if (_leftLogicalPageId.Value != value)
+				if (_leftLogicalPageId.Value != value.Value)
 				{
-					_leftLogicalPageId.Value = value;
+					_leftLogicalPageId.Value = value.Value;
 					SetHeaderDirty();
 				}
 			}
@@ -93,18 +93,18 @@
 		/// Gets or sets the right logical page id.
 		/// </summary>
 		/// <value>The right logical page id.</value>
-		public ulong RightLogicalPageId
+		public LogicalPageId RightLogicalPageId
 		{
 			get
 			{
-				return _rightLogicalPageId.Value;
+				return new LogicalPageId(_rightLogicalPageId.Value);
 			}
 			set
 			{
 				CheckReadOnly();
-				if (_rightLogicalPageId.Value != value)
+				if (_rightLogicalPageId.Value != value.Value)
 				{
-					_rightLogicalPageId.Value = value;
+					_rightLogicalPageId.Value = value.Value;
 					SetHeaderDirty();
 				}
 			}
@@ -114,18 +114,18 @@
 		/// Gets or sets the parent logical page id.
 		/// </summary>
 		/// <value>The parent logical page id.</value>
-		public ulong ParentLogicalPageId
+		public LogicalPageId ParentLogicalPageId
 		{
 			get
 			{
-				return _parentLogicalPageId.Value;
+				return new LogicalPageId(_parentLogicalPageId.Value);
 			}
 			set
 			{
 				CheckReadOnly();
-				if (_parentLogicalPageId.Value != value)
+				if (_parentLogicalPageId.Value != value.Value)
 				{
-					_parentLogicalPageId.Value = value;
+					_parentLogicalPageId.Value = value.Value;
 					SetHeaderDirty();
 				}
 			}
@@ -165,14 +165,9 @@
 		/// Gets the last header field.
 		/// </summary>
 		/// <value>The last header field.</value>
-		protected override BufferField LastHeaderField
-		{
-			get
-			{
-				return _depth;
-			}
-		}
-		#endregion
+		protected override BufferField LastHeaderField => _depth;
+
+	    #endregion
 
 		#region Public Methods
 		#endregion

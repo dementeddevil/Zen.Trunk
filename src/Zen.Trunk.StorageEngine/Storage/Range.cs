@@ -55,7 +55,7 @@
 		#region Public Methods
 		public bool IsInRange(int value)
 		{
-			bool result = true;
+			var result = true;
 			EnsureValid();
 			if (value < Min || value > Max)
 			{
@@ -68,7 +68,7 @@
 		{
 			if (Min > Max)
 			{
-				int temp = Min;
+				var temp = Min;
 				Min = Max;
 				Max = temp;
 			}
@@ -83,7 +83,7 @@
 		{
 			if (obj is InclusiveRange)
 			{
-				InclusiveRange range = (InclusiveRange)obj;
+				var range = (InclusiveRange)obj;
 				if (range._min == _min)
 				{
 					return (range._max == _max);
@@ -118,14 +118,14 @@
 		}
 		public static InclusiveRange operator +(InclusiveRange lhs, InclusiveRange rhs)
 		{
-			InclusiveRange result = new InclusiveRange();
+			var result = new InclusiveRange();
 			result.Min = lhs.Min + rhs.Min;
 			result.Max = lhs.Max + rhs.Max;
 			return result;
 		}
 		public static InclusiveRange operator -(InclusiveRange lhs, InclusiveRange rhs)
 		{
-			InclusiveRange result = new InclusiveRange();
+			var result = new InclusiveRange();
 			result.Min = lhs.Min - rhs.Min;
 			result.Max = lhs.Max - rhs.Max;
 			return result;
@@ -194,7 +194,7 @@
 		#region Public Methods
 		public bool IsInRange(int value)
 		{
-			bool result = true;
+			var result = true;
 			EnsureValid();
 			if (value <= Min || value >= Max)
 			{
@@ -207,7 +207,7 @@
 		{
 			if (Min > Max)
 			{
-				int temp = Min;
+				var temp = Min;
 				Min = Max;
 				Max = temp;
 			}
@@ -222,7 +222,7 @@
 		{
 			if (obj is ExclusiveRange)
 			{
-				ExclusiveRange range = (ExclusiveRange)obj;
+				var range = (ExclusiveRange)obj;
 				if (range._min == _min)
 				{
 					return (range._max == _max);
@@ -257,14 +257,14 @@
 		}
 		public static ExclusiveRange operator +(ExclusiveRange lhs, ExclusiveRange rhs)
 		{
-			ExclusiveRange result = new ExclusiveRange();
+			var result = new ExclusiveRange();
 			result.Min = lhs.Min + rhs.Min;
 			result.Max = lhs.Max + rhs.Max;
 			return result;
 		}
 		public static ExclusiveRange operator -(ExclusiveRange lhs, ExclusiveRange rhs)
 		{
-			ExclusiveRange result = new ExclusiveRange();
+			var result = new ExclusiveRange();
 			result.Min = lhs.Min - rhs.Min;
 			result.Max = lhs.Max - rhs.Max;
 			return result;

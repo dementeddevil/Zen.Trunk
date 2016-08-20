@@ -107,9 +107,9 @@ namespace System.Threading.Algorithms
         // Stores the data necessary for the sort, and provides the core sorting method
         private sealed class Sorter<TKey, TItem>
         {
-            private TKey[] _keys;
-            private TItem[] _items;
-            private IComparer<TKey> _comparer;
+            private readonly TKey[] _keys;
+            private readonly TItem[] _items;
+            private readonly IComparer<TKey> _comparer;
 
             public Sorter(TKey[] keys, TItem[] items, IComparer<TKey> comparer)
             {
@@ -134,12 +134,12 @@ namespace System.Threading.Algorithms
                 {
                     if (_comparer.Compare(_keys[a], _keys[b]) > 0)
                     {
-                        TKey temp = _keys[a];
+                        var temp = _keys[a];
                         _keys[a] = _keys[b];
                         _keys[b] = temp;
                         if (_items != null)
                         {
-                            TItem item = _items[a];
+                            var item = _items[a];
                             _items[a] = _items[b];
                             _items[b] = item;
                         }
@@ -172,22 +172,22 @@ namespace System.Threading.Algorithms
                 }
 
                 // Store all tasks generated to process subarrays
-                List<Task> tasks = new List<Task>();
+                var tasks = new List<Task>();
 
                 // Run the same basic algorithm used by Array.Sort, but spawning Tasks for all recursive calls
                 do
                 {
-                    int i = left;
-                    int j = right;
+                    var i = left;
+                    var j = right;
 
                     // Pre-sort the low, middle (pivot), and high values in place.
-                    int middle = GetMiddle(i, j);
+                    var middle = GetMiddle(i, j);
                     SwapIfGreaterWithItems(i, middle); // swap the low with the mid point
                     SwapIfGreaterWithItems(i, j);      // swap the low with the high
                     SwapIfGreaterWithItems(middle, j); // swap the middle with the high
 
                     // Get the pivot
-                    TKey x = _keys[middle];
+                    var x = _keys[middle];
 
                     // Move all data around the pivot value
                     do
@@ -198,12 +198,12 @@ namespace System.Threading.Algorithms
                         if (i > j) break;
                         if (i < j)
                         {
-                            TKey key = _keys[i];
+                            var key = _keys[i];
                             _keys[i] = _keys[j];
                             _keys[j] = key;
                             if (_items != null)
                             {
-                                TItem item = _items[i];
+                                var item = _items[i];
                                 _items[i] = _items[j];
                                 _items[j] = item;
                             }

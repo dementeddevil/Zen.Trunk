@@ -21,7 +21,7 @@ namespace System.Threading.Async
         /// <summary>The maximum count. If _maxCount isn't positive, the instance has been disposed.</remarks>
         private int _maxCount;
         /// <summary>Tasks waiting to be completed when the semaphore has count available.</summary>
-        private Queue<TaskCompletionSource<object>> _waitingTasks;
+        private readonly Queue<TaskCompletionSource<object>> _waitingTasks;
 
         /// <summary>Initializes the SemaphoreAsync with a count of zero and a maximum count of Int32.MaxValue.</summary>
         public AsyncSemaphore() : this(0) { }
@@ -43,9 +43,11 @@ namespace System.Threading.Async
         }
 
         /// <summary>Gets the current count.</summary>
-        public int CurrentCount { get { return _currentCount; } }
+        public int CurrentCount => _currentCount;
+
         /// <summary>Gets the maximum count.</summary>
-        public int MaximumCount { get { return _maxCount; } }
+        public int MaximumCount => _maxCount;
+
         /// <summary>Gets the number of operations currently waiting on the semaphore.</summary>
         public int WaitingCount { get { lock(_waitingTasks) return _waitingTasks.Count; } }
 

@@ -18,7 +18,7 @@
 	{
 		#region Private Fields
 		private RootTableIndexInfo _rootInfo;
-		private BufferFieldTableRow _keyRow;
+		private readonly BufferFieldTableRow _keyRow;
 		#endregion
 
 		#region Public Constructors
@@ -70,15 +70,9 @@
 		/// <value>
 		/// The length of the key.
 		/// </value>
-		public int KeyLength
-		{
-			get
-			{
-				return _keyRow.KeyLength;
-			}
-		}
+		public int KeyLength => _keyRow.KeyLength;
 
-		/// <summary>
+	    /// <summary>
 		/// Gets the keys.
 		/// </summary>
 		/// <value>
@@ -88,8 +82,8 @@
 		{
 			get
 			{
-				object[] keys = new object[_keyRow.KeyLength];
-				for (int index = 0; index < _keyRow.KeyLength; ++index)
+				var keys = new object[_keyRow.KeyLength];
+				for (var index = 0; index < _keyRow.KeyLength; ++index)
 				{
 					keys[index] = _keyRow[index];
 				}
@@ -108,11 +102,11 @@
 
 			// Build list of table columns needed by row
 			_rootInfo = rootInfo;
-			TableColumnInfo[] columns = new TableColumnInfo[_keyRow.KeyLength];
-			for (int keyIndex = 0; keyIndex < columns.Length; ++keyIndex)
+			var columns = new TableColumnInfo[_keyRow.KeyLength];
+			for (var keyIndex = 0; keyIndex < columns.Length; ++keyIndex)
 			{
-				bool found = false;
-				foreach (TableColumnInfo colInfo in def.Columns)
+				var found = false;
+				foreach (var colInfo in def.Columns)
 				{
 					if (colInfo.Id == rootInfo.ColumnIDs[keyIndex])
 					{
@@ -132,16 +126,16 @@
 
 		public override int CompareTo(IndexInfo rhs)
 		{
-			TableIndexInfo tiRhs = (TableIndexInfo)rhs;
+			var tiRhs = (TableIndexInfo)rhs;
 			if (tiRhs._keyRow.KeyLength != _keyRow.KeyLength)
 			{
 				throw new ArgumentException("Key length mismatch.");
 			}
 
-			for (int index = 0; index < _keyRow.KeyLength; ++index)
+			for (var index = 0; index < _keyRow.KeyLength; ++index)
 			{
-				IComparer comp = _keyRow.GetComparer(index);
-				int value = comp.Compare(_keyRow[index], tiRhs._keyRow[index]);
+				var comp = _keyRow.GetComparer(index);
+				var value = comp.Compare(_keyRow[index], tiRhs._keyRow[index]);
 				if (value != 0)
 				{
 					// When sort order is descending then flip sign
@@ -187,7 +181,7 @@
 	public class TableIndexLogicalInfo : TableIndexInfo
 	{
 		#region Private Fields
-		private BufferFieldUInt64 _logicalId;
+		private readonly BufferFieldUInt64 _logicalId;
 		#endregion
 
 		#region Public Constructors
@@ -216,10 +210,10 @@
 		/// </summary>
 		/// <param name="keySize">Size of the key.</param>
 		/// <param name="logicalId">The logical id.</param>
-		public TableIndexLogicalInfo(int keySize, ulong logicalId)
+		public TableIndexLogicalInfo(int keySize, LogicalPageId logicalId)
 			: base(keySize)
 		{
-			_logicalId = new BufferFieldUInt64(logicalId);
+			_logicalId = new BufferFieldUInt64(logicalId.Value);
 		}
 
 		/// <summary>
@@ -227,10 +221,10 @@
 		/// </summary>
 		/// <param name="keys">The keys.</param>
 		/// <param name="logicalId">The logical id.</param>
-		public TableIndexLogicalInfo(object[] keys, ulong logicalId)
+		public TableIndexLogicalInfo(object[] keys, LogicalPageId logicalId)
 			: base(keys)
 		{
-			_logicalId = new BufferFieldUInt64(logicalId);
+			_logicalId = new BufferFieldUInt64(logicalId.Value);
 		}
 		#endregion
 
@@ -240,15 +234,15 @@
 		/// intermediate index pages only) or the logical ID of the
 		/// data page (leaf pages only).
 		/// </summary>
-		public ulong LogicalId
+		public LogicalPageId LogicalId
 		{
 			get
 			{
-				return _logicalId.Value;
+				return new LogicalPageId(_logicalId.Value);
 			}
 			set
 			{
-				_logicalId.Value = value;
+				_logicalId.Value = value.Value;
 			}
 		}
 		#endregion
@@ -258,26 +252,15 @@
 		/// Gets the first buffer field object.
 		/// </summary>
 		/// <value>A <see cref="T:BufferField"/> object.</value>
-		protected override BufferField FirstField
-		{
-			get
-			{
-				return _logicalId;
-			}
-		}
+		protected override BufferField FirstField => _logicalId;
 
-		/// <summary>
+	    /// <summary>
 		/// Gets the last buffer field object.
 		/// </summary>
 		/// <value>A <see cref="T:BufferField"/> object.</value>
-		protected override BufferField LastField
-		{
-			get
-			{
-				return _logicalId;
-			}
-		}
-		#endregion
+		protected override BufferField LastField => _logicalId;
+
+	    #endregion
 
 		#region Public Methods
 		/// <summary>

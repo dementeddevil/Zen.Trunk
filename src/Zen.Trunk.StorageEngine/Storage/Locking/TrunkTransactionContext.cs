@@ -70,7 +70,7 @@
 		{
 			get
 			{
-				ITrunkTransaction transaction =
+				var transaction =
 					(ITrunkTransaction)CallContext.LogicalGetData("TrunkTransactionContext");
 				if (transaction != null)
 				{
@@ -118,7 +118,7 @@
 
 		public static async Task Commit()
 		{
-			ITrunkTransactionPrivate txn =
+			var txn =
 				Current as ITrunkTransactionPrivate;
 			if (txn != null)
 			{
@@ -134,7 +134,7 @@
 
 		public static async Task Rollback()
 		{
-			ITrunkTransactionPrivate txn =
+			var txn =
 				Current as ITrunkTransactionPrivate;
 			if (txn != null)
 			{
@@ -156,7 +156,7 @@
 			}
 			else
 			{
-				ITrunkTransactionPrivate priv = Current as ITrunkTransactionPrivate;
+				var priv = Current as ITrunkTransactionPrivate;
 				if (priv != null)
 				{
 					priv.BeginNestedTransaction();

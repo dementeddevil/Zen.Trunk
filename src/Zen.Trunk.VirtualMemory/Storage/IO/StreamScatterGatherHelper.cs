@@ -7,20 +7,20 @@ namespace Zen.Trunk.Storage.IO
 	public class StreamScatterGatherHelper
 	{
 		#region Private Fields
-		private AdvancedFileStream _stream;
-		private bool _isReader;
+		private readonly AdvancedFileStream _stream;
+		private readonly bool _isReader;
 
-		private TimeSpan _maximumWriteAge = TimeSpan.FromMilliseconds(500);
-		private TimeSpan _coalesceRequestsPeriod = TimeSpan.FromMilliseconds(100);
-		private int _maximumArraySize = 16;
-		private int _maximumNumberOfArrays = 5;
+		private readonly TimeSpan _maximumWriteAge = TimeSpan.FromMilliseconds(500);
+		private readonly TimeSpan _coalesceRequestsPeriod = TimeSpan.FromMilliseconds(100);
+		private readonly int _maximumArraySize = 16;
+		private readonly int _maximumNumberOfArrays = 5;
 
 		private DateTime _lastCoalescedAt;
 		private DateTime _lastScavengeAt;
 
-		private List<ScatterGatherRequestArray> _requests =
+		private readonly List<ScatterGatherRequestArray> _requests =
 			new List<ScatterGatherRequestArray>();
-		private object _syncCallback = new object();
+		private readonly object _syncCallback = new object();
 		#endregion
 
 		#region Public Constructors
@@ -51,11 +51,11 @@ namespace Zen.Trunk.Storage.IO
 		[CLSCompliant(false)]
 		public Task ProcessBufferAsync(uint physicalPageId, VirtualBuffer buffer)
 		{
-			ScatterGatherRequest request =
+			var request =
 				new ScatterGatherRequest(physicalPageId, buffer);
 
 			// Attempt to add to existing array or create a new one
-			bool added = false;
+			var added = false;
 			lock (_syncCallback)
 			{
 				foreach (var array in _requests)
@@ -101,8 +101,8 @@ namespace Zen.Trunk.Storage.IO
 			if (arrayList != null)
 			{
 				// Build list of async tasks from the flush action for each array
-				List<Task> flushList = new List<Task>();
-				foreach (ScatterGatherRequestArray array in arrayList)
+				var flushList = new List<Task>();
+				foreach (var array in arrayList)
 				{
 					flushList.Add(FlushArray(array));
 				}
@@ -163,8 +163,8 @@ namespace Zen.Trunk.Storage.IO
 
 			if (candidates != null)
 			{
-				List<Task> flushList = new List<Task>();
-				foreach (ScatterGatherRequestArray array in candidates)
+				var flushList = new List<Task>();
+				foreach (var array in candidates)
 				{
 					flushList.Add(FlushArray(array));
 				}
@@ -192,8 +192,8 @@ namespace Zen.Trunk.Storage.IO
 				{
 					if (_requests.Count > 1)
 					{
-						int primaryRequest = 0;
-						int candidateRequest = 1;
+						var primaryRequest = 0;
+						var candidateRequest = 1;
 						while (primaryRequest < _requests.Count - 1)
 						{
 							if (_requests[primaryRequest].Consume(_requests[candidateRequest]))
@@ -234,8 +234,8 @@ namespace Zen.Trunk.Storage.IO
 
 			if (candidates != null)
 			{
-				List<Task> flushList = new List<Task>();
-				foreach (ScatterGatherRequestArray array in candidates)
+				var flushList = new List<Task>();
+				foreach (var array in candidates)
 				{
 					flushList.Add(FlushArray(array));
 				}

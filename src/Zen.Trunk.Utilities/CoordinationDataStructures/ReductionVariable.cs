@@ -86,7 +86,7 @@ namespace System.Threading
     /// <typeparam name="T">Specifies the type of the data being aggregated.</typeparam>
     internal sealed class ReductionVariable_DebugView<T>
     {
-        private ReductionVariable<T> _variable;
+        private readonly ReductionVariable<T> _variable;
 
         public ReductionVariable_DebugView(ReductionVariable<T> variable)
         {
@@ -94,6 +94,6 @@ namespace System.Threading
         }
 
         [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
-        public T[] Values { get { return _variable.Values.ToArray(); } }
+        public T[] Values => _variable.Values.ToArray();
     }
 }

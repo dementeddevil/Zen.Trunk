@@ -74,8 +74,8 @@ namespace System.Threading.Algorithms
             if (associativeCommutativeOperation == null) throw new ArgumentNullException("associativeCommutativeOperation");
             if (toExclusive < fromInclusive) throw new ArgumentOutOfRangeException("toExclusive");
 
-            object obj = new object(); // used as a monitor for the final reduction
-            T result = seed; // accumulator for final reduction
+            var obj = new object(); // used as a monitor for the final reduction
+            var result = seed; // accumulator for final reduction
 
             // Reduce in parallel
             Parallel.For(fromInclusive, toExclusive, parallelOptions,

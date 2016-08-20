@@ -5,10 +5,10 @@ namespace Zen.Trunk.Storage.Log
 	public class VirtualLogFileInfo : BufferFieldWrapper
 	{
 		#region Private Fields
-		private BufferFieldBitVector8 _status;
-		private BufferFieldLogFileId _id;
-		private BufferFieldInt64 _startOffset;
-		private BufferFieldUInt32 _length;
+		private readonly BufferFieldBitVector8 _status;
+		private readonly BufferFieldLogFileId _id;
+		private readonly BufferFieldInt64 _startOffset;
+		private readonly BufferFieldUInt32 _length;
 
 		private VirtualLogFileHeader _currentHeader;
 		#endregion
@@ -154,33 +154,22 @@ namespace Zen.Trunk.Storage.Log
 		#endregion
 
 		#region Protected Properties
-		protected override BufferField FirstField
-		{
-			get
-			{
-				return _status;
-			}
-		}
+		protected override BufferField FirstField => _status;
 
-		protected override BufferField LastField
-		{
-			get
-			{
-				return _length;
-			}
-		}
-		#endregion
+	    protected override BufferField LastField => _length;
+
+	    #endregion
 	}
 
 	public class VirtualLogFileHeader : BufferFieldWrapper
 	{
 		#region Private Fields
-		private BufferFieldInt64 _timestamp;
-		private BufferFieldUInt32 _lastCursor;
-		private BufferFieldUInt32 _cursor;
-		private BufferFieldUInt32 _prevFileId;
-		private BufferFieldUInt32 _nextFileId;
-		private BufferFieldInt32 _hash;
+		private readonly BufferFieldInt64 _timestamp;
+		private readonly BufferFieldUInt32 _lastCursor;
+		private readonly BufferFieldUInt32 _cursor;
+		private readonly BufferFieldUInt32 _prevFileId;
+		private readonly BufferFieldUInt32 _nextFileId;
+		private readonly BufferFieldInt32 _hash;
 		#endregion
 
 		#region Public Constructors
@@ -288,21 +277,10 @@ namespace Zen.Trunk.Storage.Log
 		#endregion
 
 		#region Protected Properties
-		protected override BufferField FirstField
-		{
-			get
-			{
-				return _timestamp;
-			}
-		}
+		protected override BufferField FirstField => _timestamp;
 
-		protected override BufferField LastField
-		{
-			get
-			{
-				return _hash;
-			}
-		}
-		#endregion
+	    protected override BufferField LastField => _hash;
+
+	    #endregion
 	}
 }

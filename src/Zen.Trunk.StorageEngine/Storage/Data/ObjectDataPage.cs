@@ -44,7 +44,7 @@ namespace Zen.Trunk.Storage.Data
 			{
 				if (_pageLock != value)
 				{
-					DataLockType oldLock = _pageLock;
+					var oldLock = _pageLock;
 					try
 					{
 						_pageLock = value;
@@ -175,7 +175,7 @@ namespace Zen.Trunk.Storage.Data
 			try
 			{
 				// Lock data via lock owner block
-				DataLockOwnerBlock lob = LockBlock;
+				var lob = LockBlock;
 				if (lob == null)
 				{
 					throw new InvalidOperationException("Cannot obtain lock owner block for this transaction.");
@@ -194,7 +194,7 @@ namespace Zen.Trunk.Storage.Data
 			try
 			{
 				// Unlock data via lock owner block
-				DataLockOwnerBlock lob = LockBlock;
+				var lob = LockBlock;
 				if (lob != null)
 				{
 					lob.UnlockItem(LogicalId);

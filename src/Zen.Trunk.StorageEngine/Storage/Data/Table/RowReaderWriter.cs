@@ -9,9 +9,9 @@
 	public class RowReaderWriter
 	{
 		#region Private Fields
-		private BufferReaderWriter _bufferReaderWriter;
-		private IList<TableColumnInfo> _rowDef;
-		private object[] _rowValues;
+		private readonly BufferReaderWriter _bufferReaderWriter;
+		private readonly IList<TableColumnInfo> _rowDef;
+		private readonly object[] _rowValues;
 		#endregion
 
 		#region Public Constructors
@@ -80,7 +80,7 @@
 		/// </summary>
 		public void Read()
 		{
-			for (int index = 0; index < _rowDef.Count; ++index)
+			for (var index = 0; index < _rowDef.Count; ++index)
 			{
 				_rowValues[index] = _rowDef[index].ReadData(_bufferReaderWriter);
 			}
@@ -91,7 +91,7 @@
 		/// </summary>
 		public void Write()
 		{
-			for (int index = 0; index < _rowDef.Count; ++index)
+			for (var index = 0; index < _rowDef.Count; ++index)
 			{
 				_rowDef[index].WriteData(_bufferReaderWriter, _rowValues[index]);
 			}

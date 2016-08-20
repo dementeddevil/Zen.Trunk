@@ -19,8 +19,8 @@
 		where IndexRootClass : RootIndexInfo
 	{
 		#region Private Fields
-		private BufferFieldUInt16 _indexEntryCount;
-		private List<IndexClass> _indexEntries;
+		private readonly BufferFieldUInt16 _indexEntryCount;
+		private readonly List<IndexClass> _indexEntries;
 		private bool _lastInternalLockWritable;
 		#endregion
 
@@ -40,54 +40,33 @@
 		/// Gets the count of index entries in this page.
 		/// </summary>
 		/// <value>The index count.</value>
-		public ushort IndexCount
-		{
-			get
-			{
-				return (ushort)_indexEntries.Count;
-			}
-		}
+		public ushort IndexCount => (ushort)_indexEntries.Count;
 
-		/// <summary>
+	    /// <summary>
 		/// Overridden. Gets the minimum required header space.
 		/// </summary>
 		/// <value></value>
-		public override uint MinHeaderSize
-		{
-			get
-			{
-				return base.MinHeaderSize + 2;
-			}
-		}
-		#endregion
+		public override uint MinHeaderSize => base.MinHeaderSize + 2;
+
+	    #endregion
 
 		#region Internal Properties
 		/// <summary>
 		/// Gets the index entries.
 		/// </summary>
 		/// <value>The index entries.</value>
-		internal List<IndexClass> IndexEntries
-		{
-			get
-			{
-				return _indexEntries;
-			}
-		}
-		#endregion
+		internal List<IndexClass> IndexEntries => _indexEntries;
+
+	    #endregion
 
 		#region Protected Properties
 		/// <summary>
 		/// Overridden. Gets the last header field.
 		/// </summary>
 		/// <value>The last header field.</value>
-		protected override BufferField LastHeaderField
-		{
-			get
-			{
-				return _indexEntryCount;
-			}
-		}
-		#endregion
+		protected override BufferField LastHeaderField => _indexEntryCount;
+
+	    #endregion
 
 		#region Public Methods
 		/// <summary>
@@ -99,7 +78,7 @@
 		/// </param>
 		public void AddLinkToPage(IndexPage<IndexClass, IndexRootClass> page, out bool updateParentPage)
 		{
-			IndexClass info = CreateLinkToPage(page);
+			var info = CreateLinkToPage(page);
 			AddLinkToPage(info, out updateParentPage);
 		}
 
@@ -122,11 +101,11 @@
 			}
 
 			// Everything else must use positioned insert.
-			bool isAdded = false;
+			var isAdded = false;
 			for (ushort index = 0; !isAdded && index < (IndexCount + 1); ++index)
 			{
-				int sort = 0;
-				bool isFinal = false;
+				var sort = 0;
+				var isFinal = false;
 				if (index < IndexCount)
 				{
 					sort = link.CompareTo(IndexEntries[index]);

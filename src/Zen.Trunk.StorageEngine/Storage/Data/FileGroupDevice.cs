@@ -97,7 +97,7 @@ namespace Zen.Trunk.Storage.Data
 			}
 		}
 
-		private class AllocateDataPageRequest : TransactionContextTaskRequest<AllocateDataPageParameters, DevicePageId>
+		private class AllocateDataPageRequest : TransactionContextTaskRequest<AllocateDataPageParameters, VirtualPageId>
 		{
 			public AllocateDataPageRequest(AllocateDataPageParameters allocParams)
 				: base(allocParams)
@@ -148,15 +148,9 @@ namespace Zen.Trunk.Storage.Data
 			/// <value>
 			/// 	<c>true</c> if the device id is valid; otherwise, <c>false</c>.
 			/// </value>
-			public bool IsDeviceIdValid
-			{
-				get
-				{
-					return (DeviceId != 0);
-				}
-			}
+			public bool IsDeviceIdValid => (DeviceId != 0);
 
-			/// <summary>
+		    /// <summary>
 			/// Gets or sets an integer that will be added to the existing page 
 			/// count of the target device to determine the new page capacity.
 			/// </summary>
@@ -168,7 +162,7 @@ namespace Zen.Trunk.Storage.Data
 			}
 		}
 
-		private class AddTableRequest : TransactionContextTaskRequest<AddTableParameters, uint>
+		private class AddTableRequest : TransactionContextTaskRequest<AddTableParameters, ObjectId>
 		{
 			#region Public Constructors
 			public AddTableRequest(AddTableParameters tableParams)
@@ -212,9 +206,9 @@ namespace Zen.Trunk.Storage.Data
 
 		private ushort? _primaryDeviceId;
 		private PrimaryDistributionPageDevice _primaryDevice;
-		private Dictionary<ushort, SecondaryDistributionPageDevice> _devices =
+		private readonly Dictionary<ushort, SecondaryDistributionPageDevice> _devices =
 			new Dictionary<ushort, SecondaryDistributionPageDevice>();
-		private HashSet<uint> _assignedObjectIds = new HashSet<uint>();
+		private readonly HashSet<uint> _assignedObjectIds = new HashSet<uint>();
 
 		// Logical id mapping
 		private ILogicalVirtualManager _logicalVirtual;
@@ -280,153 +274,83 @@ namespace Zen.Trunk.Storage.Data
 		/// <value>
 		/// 	<c>true</c> if this instance is primary file group; otherwise, <c>false</c>.
 		/// </value>
-		public bool IsPrimaryFileGroup
-		{
-			get
-			{
-				return (FileGroupId == Primary || FileGroupId == Master);
-			}
-		}
-		#endregion
+		public bool IsPrimaryFileGroup => (FileGroupId == Primary || FileGroupId == Master);
+
+	    #endregion
 
 		#region Protected Properties
 		/// <summary>
 		/// Gets the name of the tracer.
 		/// </summary>
 		/// <value>The name of the tracer.</value>
-		protected override string TracerName
-		{
-			get
-			{
-				return GetType().Name + ":" + FileGroupId + ":" + FileGroupName;
-			}
-		}
-		#endregion
+		protected override string TracerName => GetType().Name + ":" + FileGroupId + ":" + FileGroupName;
+
+	    #endregion
 
 		#region Private Properties
 		/// <summary>
 		/// Gets the add data device port.
 		/// </summary>
 		/// <value>The add data device port.</value>
-		private ITargetBlock<AddDataDeviceRequest> AddDataDevicePort
-		{
-			get
-			{
-				return _addDataDevicePort;
-			}
-		}
+		private ITargetBlock<AddDataDeviceRequest> AddDataDevicePort => _addDataDevicePort;
 
-		/// <summary>
+	    /// <summary>
 		/// Gets the remove data device port.
 		/// </summary>
 		/// <value>The remove data device port.</value>
-		private ITargetBlock<RemoveDataDeviceRequest> RemoveDataDevicePort
-		{
-			get
-			{
-				return _removeDataDevicePort;
-			}
-		}
+		private ITargetBlock<RemoveDataDeviceRequest> RemoveDataDevicePort => _removeDataDevicePort;
 
-		/// <summary>
+	    /// <summary>
 		/// Gets the init data page port.
 		/// </summary>
 		/// <value>The init data page port.</value>
-		private ITargetBlock<InitDataPageRequest> InitDataPagePort
-		{
-			get
-			{
-				return _initDataPagePort;
-			}
-		}
+		private ITargetBlock<InitDataPageRequest> InitDataPagePort => _initDataPagePort;
 
-		/// <summary>
+	    /// <summary>
 		/// Gets the load data page port.
 		/// </summary>
 		/// <value>The load data page port.</value>
-		private ITargetBlock<LoadDataPageRequest> LoadDataPagePort
-		{
-			get
-			{
-				return _loadDataPagePort;
-			}
-		}
+		private ITargetBlock<LoadDataPageRequest> LoadDataPagePort => _loadDataPagePort;
 
-		/// <summary>
+	    /// <summary>
 		/// Gets the create distribution pages port.
 		/// </summary>
 		/// <value>The create distribution pages port.</value>
-		private ITargetBlock<CreateDistributionPagesRequest> CreateDistributionPagesPort
-		{
-			get
-			{
-				return _createDistributionPagesPort;
-			}
-		}
+		private ITargetBlock<CreateDistributionPagesRequest> CreateDistributionPagesPort => _createDistributionPagesPort;
 
-		/// <summary>
+	    /// <summary>
 		/// Gets the expand data device port.
 		/// </summary>
 		/// <value>The expand data device port.</value>
-		private ITargetBlock<ExpandDataDeviceRequest> ExpandDataDevicePort
-		{
-			get
-			{
-				return _expandDataDevicePort;
-			}
-		}
+		private ITargetBlock<ExpandDataDeviceRequest> ExpandDataDevicePort => _expandDataDevicePort;
 
-		/// <summary>
+	    /// <summary>
 		/// Gets the allocate data page port.
 		/// </summary>
 		/// <value>The allocate data page port.</value>
-		private ITargetBlock<AllocateDataPageRequest> AllocateDataPagePort
-		{
-			get
-			{
-				return _allocateDataPagePort;
-			}
-		}
+		private ITargetBlock<AllocateDataPageRequest> AllocateDataPagePort => _allocateDataPagePort;
 
-		/// <summary>
+	    /// <summary>
 		/// Gets the import distribution page port.
 		/// </summary>
 		/// <value>The import distribution page.</value>
-		private ITargetBlock<ImportDistributionPageRequest> ImportDistributionPagePort
-		{
-			get
-			{
-				return _importDistributionPagePort;
-			}
-		}
+		private ITargetBlock<ImportDistributionPageRequest> ImportDistributionPagePort => _importDistributionPagePort;
 
-		/// <summary>
+	    /// <summary>
 		/// Gets the add table port.
 		/// </summary>
 		/// <value>The add table port.</value>
-		private ITargetBlock<AddTableRequest> AddTablePort
-		{
-			get
-			{
-				return _addTablePort;
-			}
-		}
+		private ITargetBlock<AddTableRequest> AddTablePort => _addTablePort;
 
-		/// <summary>
+	    /// <summary>
 		/// Gets the add table index port.
 		/// </summary>
 		/// <value>
 		/// The add table index port.
 		/// </value>
-		private ITargetBlock<AddTableIndexRequest> AddTableIndexPort
-		{
-			get
-			{
-				return _addTableIndexPort;
-			}
-		}
+		private ITargetBlock<AddTableIndexRequest> AddTableIndexPort => _addTableIndexPort;
 
-		private DatabaseDevice Owner
+	    private DatabaseDevice Owner
 		{
 			get
 			{
@@ -506,7 +430,7 @@ namespace Zen.Trunk.Storage.Data
 			return request.Task;
 		}
 
-		public Task<DevicePageId> AllocateDataPage(AllocateDataPageParameters allocParams)
+		public Task<VirtualPageId> AllocateDataPage(AllocateDataPageParameters allocParams)
 		{
 			var request = new AllocateDataPageRequest(allocParams);
 			if (!AllocateDataPagePort.Post(request))
@@ -536,7 +460,7 @@ namespace Zen.Trunk.Storage.Data
 			return request.Task;
 		}
 
-		public Task<uint> AddTable(AddTableParameters tableParams)
+		public Task<ObjectId> AddTable(AddTableParameters tableParams)
 		{
 			var request = new AddTableRequest(tableParams);
 			if (!AddTablePort.Post(request))
@@ -578,7 +502,7 @@ namespace Zen.Trunk.Storage.Data
 
 			// Load or create the root page
 			Tracer.WriteInfoLine("OnOpen: Opening secondary devices");
-			using (PrimaryFileGroupRootPage rootPage = (PrimaryFileGroupRootPage)
+			using (var rootPage = (PrimaryFileGroupRootPage)
 				await _primaryDevice.LoadOrCreateRootPage().ConfigureAwait(false))
 			{
 				var bufferDevice = GetService<IMultipleBufferDevice>();
@@ -689,7 +613,7 @@ namespace Zen.Trunk.Storage.Data
 				{
 					TaskScheduler = _taskInterleave.ExclusiveScheduler
 				});
-			_allocateDataPagePort = new TransactionContextActionBlock<AllocateDataPageRequest, DevicePageId>(
+			_allocateDataPagePort = new TransactionContextActionBlock<AllocateDataPageRequest, VirtualPageId>(
 				(request) => AllocateDataPageHandler(request),
 				new ExecutionDataflowBlockOptions
 				{
@@ -725,7 +649,7 @@ namespace Zen.Trunk.Storage.Data
 				{
 					TaskScheduler = _taskInterleave.ConcurrentScheduler
 				});
-			_addTablePort = new TransactionContextActionBlock<AddTableRequest, uint>(
+			_addTablePort = new TransactionContextActionBlock<AddTableRequest, ObjectId>(
 				(request) => AddTableHandler(request),
 				new ExecutionDataflowBlockOptions
 				{
@@ -755,7 +679,7 @@ namespace Zen.Trunk.Storage.Data
 
 		private List<ushort> GetDistributionPageDeviceKeys()
 		{
-			List<ushort> deviceIds = new List<ushort>();
+			var deviceIds = new List<ushort>();
 			deviceIds.Add(_primaryDevice.DeviceId);
 			deviceIds.AddRange(_devices.Keys);
 			return deviceIds;
@@ -770,14 +694,14 @@ namespace Zen.Trunk.Storage.Data
 			// When the dist device is opened
 
 			// Determine whether this is the first device in a file-group
-			bool priFileGroupDevice = false;
+			var priFileGroupDevice = false;
 			if (_devices.Count == 0)
 			{
 				priFileGroupDevice = true;
 			}
 
 			// Determine file-extension for DBF
-			string extn = ".sdf";
+			var extn = ".sdf";
 			if (priFileGroupDevice)
 			{
 				if (IsPrimaryFileGroup)
@@ -800,7 +724,7 @@ namespace Zen.Trunk.Storage.Data
 			{
 				fileName = Path.GetFileNameWithoutExtension(request.Message.PathName) + extn;
 			}
-			string fullPathName = Path.Combine(Path.Combine(
+			var fullPathName = Path.Combine(Path.Combine(
 				Path.GetPathRoot(request.Message.PathName),
 				Path.GetDirectoryName(request.Message.PathName)), fileName);
 
@@ -871,7 +795,7 @@ namespace Zen.Trunk.Storage.Data
 			request.Message.Page.FileGroupId = FileGroupId;
 
 			// Stage #1: Assign logical id
-			LogicalPage logicalPage = request.Message.Page as LogicalPage;
+			var logicalPage = request.Message.Page as LogicalPage;
 			if (logicalPage != null && request.Message.AssignAutomaticLogicalId)
 			{
 				// Get next logical id from the logical/virtual manager
@@ -879,24 +803,25 @@ namespace Zen.Trunk.Storage.Data
 			}
 
 			// Stage #2: Assign virtual id
-			DevicePageId pageId;
+			VirtualPageId pageId;
 			if (!request.Message.AssignVirtualId)
 			{
-				pageId = new DevicePageId(request.Message.Page.VirtualId);
+				pageId = new VirtualPageId(request.Message.Page.VirtualId);
 			}
 			else
 			{
 				// Post allocation request to file-group device.
-				ObjectPage objectPage = request.Message.Page as ObjectPage;
-				pageId = await AllocateDataPage(new AllocateDataPageParameters(
-					(logicalPage != null) ? logicalPage.LogicalId : 0,
-					(objectPage != null) ? objectPage.ObjectId : 0,
-					(byte)request.Message.Page.PageType,
-					request.Message.IsNewObject))
+				var objectPage = request.Message.Page as ObjectPage;
+				pageId = await AllocateDataPage(
+                    new AllocateDataPageParameters(
+					    (logicalPage != null) ? logicalPage.LogicalId : LogicalPageId.Zero,
+					    (objectPage != null) ? objectPage.ObjectId : ObjectId.Zero,
+					    new ObjectType((byte)request.Message.Page.PageType),
+					    request.Message.IsNewObject))
 					.ConfigureAwait(false);
 
 				// Setup the page virtual id
-				request.Message.Page.VirtualId = pageId.VirtualPageId;
+				request.Message.Page.VirtualId = pageId.Value;
 			}
 
 			// Stage #3: Add virtual/logical mapping
@@ -904,7 +829,7 @@ namespace Zen.Trunk.Storage.Data
 				(request.Message.AssignLogicalId || request.Message.AssignAutomaticLogicalId))
 			{
 				// Post request to logical/virtual manager
-				ulong logicalId = await _logicalVirtual.AddLookupAsync(pageId, logicalPage.LogicalId).ConfigureAwait(false);
+				var logicalId = await _logicalVirtual.AddLookupAsync(pageId, logicalPage.LogicalId).ConfigureAwait(false);
 
 				// Update page with new logical id as necessary
 				if (!request.Message.AssignAutomaticLogicalId)
@@ -914,10 +839,10 @@ namespace Zen.Trunk.Storage.Data
 			}
 
 			// Stage #3: Initialise page object passed in request
-			CachingPageBufferDevice pageBufferDevice =
+			var pageBufferDevice =
 				GetService<CachingPageBufferDevice>();
 			request.Message.Page.PreInitInternal();
-			using (StatefulBufferScope<PageBuffer> scope =
+			using (var scope =
 				new StatefulBufferScope<PageBuffer>(
 					await pageBufferDevice.InitPageAsync(pageId)
 						.ConfigureAwait(false)))
@@ -948,10 +873,10 @@ namespace Zen.Trunk.Storage.Data
 			request.Message.Page.FileGroupId = FileGroupId;
 
 			// Setup virtual and logical defaults
-			DevicePageId pageId = new DevicePageId(request.Message.Page.VirtualId);
+			var pageId = new VirtualPageId(request.Message.Page.VirtualId);
 
 			// Stage #1: Determine virtual id if we only have logical id.
-			LogicalPage logicalPage = request.Message.Page as LogicalPage;
+			var logicalPage = request.Message.Page as LogicalPage;
 			if (!request.Message.VirtualPageIdValid && request.Message.LogicalPageIdValid)
 			{
 				if (logicalPage == null)
@@ -961,14 +886,14 @@ namespace Zen.Trunk.Storage.Data
 
 				// Map from logical page to virtual page
 				pageId = await _logicalVirtual.GetVirtualAsync(logicalPage.LogicalId).ConfigureAwait(false);
-				request.Message.Page.VirtualId = pageId.VirtualPageId;
+				request.Message.Page.VirtualId = pageId.Value;
 			}
 
 			// Stage #2: Load the buffer from the underlying cache
-			CachingPageBufferDevice pageBufferDevice =
+			var pageBufferDevice =
 				GetService<CachingPageBufferDevice>();
 			request.Message.Page.PreLoadInternal();
-			using (StatefulBufferScope<PageBuffer> scope =
+			using (var scope =
 				new StatefulBufferScope<PageBuffer>(
 					await pageBufferDevice.LoadPageAsync(pageId)
 						.ConfigureAwait(false)))
@@ -997,15 +922,15 @@ namespace Zen.Trunk.Storage.Data
 		private async Task<bool> CreateDistributionPagesHandler(CreateDistributionPagesRequest request)
 		{
 			// Get distribution page device
-			DistributionPageDevice pageDevice =
+			var pageDevice =
 				GetDistributionPageDevice(request.DeviceId);
 
-			uint strideLength = DistributionPage.PageTrackingCount + 1;
-			uint distPhyId = pageDevice.DistributionPageOffset;
+			var strideLength = DistributionPage.PageTrackingCount + 1;
+			var distPhyId = pageDevice.DistributionPageOffset;
 			if (request.StartPhysicalId > distPhyId)
 			{
-				uint distTemp = request.StartPhysicalId - pageDevice.DistributionPageOffset;
-				uint remainder = distTemp % strideLength;
+				var distTemp = request.StartPhysicalId - pageDevice.DistributionPageOffset;
+				var remainder = distTemp % strideLength;
 				if (remainder == 0)
 				{
 					distPhyId += (distTemp + strideLength);
@@ -1019,10 +944,10 @@ namespace Zen.Trunk.Storage.Data
 			for (; distPhyId <= request.EndPhysicalId; distPhyId += strideLength)
 			{
 				// Create distribution page
-				DevicePageId pageId = new DevicePageId(request.DeviceId, distPhyId);
-				using (DistributionPage page = new DistributionPage())
+				var pageId = new VirtualPageId(request.DeviceId, distPhyId);
+				using (var page = new DistributionPage())
 				{
-					page.VirtualId = pageId.VirtualPageId;
+					page.VirtualId = pageId.Value;
 					page.DistributionLock = ObjectLockType.Exclusive;
 
 					// Add page to the device
@@ -1128,7 +1053,7 @@ namespace Zen.Trunk.Storage.Data
 			if (request.IsDeviceIdValid)
 			{
 				// Load the root page and obtain update lock before we start
-				DistributionPageDevice pageDevice = GetDistributionPageDevice(request.DeviceId);
+				var pageDevice = GetDistributionPageDevice(request.DeviceId);
 				rootPage = await pageDevice.LoadOrCreateRootPage().ConfigureAwait(false);
 				rootPage.RootLock = RootLockType.Shared;
 
@@ -1139,13 +1064,13 @@ namespace Zen.Trunk.Storage.Data
 				// TODO: Load root page for each device in our list
 				// TODO: Sort pages into "allocated pages" ascending
 				//	excluding all non-expandable devices
-				List<ushort> deviceIds = GetDistributionPageDeviceKeys();
-				Dictionary<ushort, RootPage> rootPages =
+				var deviceIds = GetDistributionPageDeviceKeys();
+				var rootPages =
 					new Dictionary<ushort, RootPage>();
-				foreach (ushort deviceId in deviceIds)
+				foreach (var deviceId in deviceIds)
 				{
 					// Get distribution page device
-					DistributionPageDevice pageDevice =
+					var pageDevice =
 						GetDistributionPageDevice(deviceId);
 					rootPage = await pageDevice
 						.LoadOrCreateRootPage()
@@ -1163,9 +1088,9 @@ namespace Zen.Trunk.Storage.Data
 				}
 
 				// Walk sorted list of devices
-				bool hasExpanded = false;
-				bool failedDueToLock = false;
-				bool failedDueToFull = false;
+				var hasExpanded = false;
+				var failedDueToLock = false;
+				var failedDueToFull = false;
 				foreach (var pair in rootPages.OrderBy((item) => item.Value.AllocatedPages))
 				{
 					// Hook root page
@@ -1209,17 +1134,17 @@ namespace Zen.Trunk.Storage.Data
 			return true;
 		}
 
-		private async Task<DevicePageId> AllocateDataPageHandler(AllocateDataPageRequest request)
+		private async Task<VirtualPageId> AllocateDataPageHandler(AllocateDataPageRequest request)
 		{
 			// Get device keys and perform randomisation
-			List<ushort> deviceIds = GetDistributionPageDeviceKeys();
+			var deviceIds = GetDistributionPageDeviceKeys();
 			deviceIds.Randomize();
 
 			// Walk each device and attempt to allocate page
-			foreach (ushort deviceId in deviceIds)
+			foreach (var deviceId in deviceIds)
 			{
 				// Get distribution page device
-				DistributionPageDevice pageDevice =
+				var pageDevice =
 					GetDistributionPageDevice(deviceId);
 
 				try
@@ -1239,27 +1164,28 @@ namespace Zen.Trunk.Storage.Data
 			throw new FileGroupFullException(FileGroupId, null);
 		}
 
-		private async Task<uint> AddTableHandler(AddTableRequest request)
+		private async Task<ObjectId> AddTableHandler(AddTableRequest request)
 		{
-			uint objectId = 0;
+			var objectId = ObjectId.Zero;
 
 			// Load primary file-group root page
-			using (PrimaryFileGroupRootPage rootPage = (PrimaryFileGroupRootPage)
+			using (var rootPage = (PrimaryFileGroupRootPage)
 				await _primaryDevice.LoadOrCreateRootPage())
 			{
 				// Obtain object id for this table
 				rootPage.RootLock = RootLockType.Exclusive;
 				rootPage.ReadOnly = false;
-				ObjectRefInfo objectRef =
+				var objectRef =
 					new ObjectRefInfo
 					{
 						Name = request.Message.TableName,
 						ObjectType = ObjectType.Table
 					};
-				for (objectId = 1; ; ++objectId)
+				for (uint candidateObjectId = 1; ; ++candidateObjectId)
 				{
-					if (!_assignedObjectIds.Contains(objectId))
+					if (!_assignedObjectIds.Contains(candidateObjectId))
 					{
+                        objectId = new ObjectId(candidateObjectId);
 						objectRef.ObjectId = objectId;
 						break;
 					}
@@ -1267,14 +1193,16 @@ namespace Zen.Trunk.Storage.Data
 				rootPage.AddObjectInfo(objectRef);
 
 				// Create database table helper and setup object
-				DatabaseTable table = new DatabaseTable(this);
-				table.FileGroupId = FileGroupId;
-				table.ObjectId = objectRef.ObjectId;
-				table.IsNewTable = true;
+			    var table = new DatabaseTable(this)
+			    {
+			        FileGroupId = FileGroupId,
+			        ObjectId = objectRef.ObjectId,
+			        IsNewTable = true
+			    };
 
-				// Create columns
+			    // Create columns
 				table.BeginColumnUpdate();
-				foreach (TableColumnInfo column in request.Message.Columns)
+				foreach (var column in request.Message.Columns)
 				{
 					table.AddColumn(column, -1);
 				}
@@ -1298,11 +1226,13 @@ namespace Zen.Trunk.Storage.Data
 		{
 			uint indexId = 0;
 
-			DatabaseTable table = new DatabaseTable(this);
-			table.FileGroupId = FileGroupId;
-			table.ObjectId = request.Message.OwnerObjectId;
-			table.IsNewTable = false;
-			//table.AddIndex
+		    var table = new DatabaseTable(this)
+		    {
+		        FileGroupId = FileGroupId,
+		        ObjectId = request.Message.OwnerObjectId,
+		        IsNewTable = false
+		    };
+		    //table.AddIndex
 
 			return indexId;
 		}

@@ -1,16 +1,22 @@
 ﻿using System;
-using System.Globalization;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace Zen.Trunk.Storage
 {
     /// <summary>
-    /// Simple value type which represents a Logical Page Identifier.
+    /// Simple value type which represents an Object Type.
     /// </summary>
     [Serializable]
-    public struct LogicalPageId : IComparable, ICloneable
+    public struct ObjectType : IComparable, ICloneable
     {
         #region Public Fields
-        public static readonly LogicalPageId Zero = new LogicalPageId(0);
+        public static readonly ObjectType Unknown = new ObjectType(0);
+        public static readonly ObjectType Sample = new ObjectType(1);
+        public static readonly ObjectType Table = new ObjectType(2);
+        public static readonly ObjectType View = new ObjectType(3);
         #endregion
 
         #region Private Fields
@@ -18,22 +24,22 @@ namespace Zen.Trunk.Storage
 
         #region Public Constructors
         /// <summary>
-        /// Initializes a new instance of the <see cref="LogicalPageId"/> struct.
+        /// Initializes a new instance of the <see cref="ObjectType"/> struct.
         /// </summary>
-        /// <param name="logicalPageId">The logical page id.</param>
+        /// <param name="objectType">The object type.</param>
         [CLSCompliant(false)]
-        public LogicalPageId(ulong logicalPageId)
+        public ObjectType(byte objectType)
         {
-            Value = logicalPageId;
+            Value = objectType;
         }
         #endregion
 
         #region Public Properties
         /// <summary>
-        /// Gets/sets the logical page ID.
+        /// Gets the object type value.
         /// </summary>
         [CLSCompliant(false)]
-        public ulong Value { get; }
+        public byte Value { get; }
         #endregion
 
         #region Public Methods
@@ -43,7 +49,7 @@ namespace Zen.Trunk.Storage
         /// <returns></returns>
         public override string ToString()
         {
-            return $"LogicalPageId{Value:X8}";
+            return $"ObjectType{Value:X2}";
         }
 
         /// <summary>
@@ -54,9 +60,9 @@ namespace Zen.Trunk.Storage
         public override bool Equals(object obj)
         {
             var equal = false;
-            if (obj is LogicalPageId)
+            if (obj is ObjectType)
             {
-                var rhs = (LogicalPageId)obj;
+                var rhs = (ObjectType)obj;
                 if (Value == rhs.Value)
                 {
                     equal = true;
@@ -85,27 +91,27 @@ namespace Zen.Trunk.Storage
         /// <b>=0</b> this object sorts the same as obj.
         /// <b>&gt;0</b> this object sorts higher than obj.
         /// </returns>
-        public int CompareTo(LogicalPageId obj)
+        public int CompareTo(ObjectType obj)
         {
             var order = Value.CompareTo(obj.Value);
             return order;
         }
 
-        public static bool operator <(LogicalPageId left, LogicalPageId right)
+        public static bool operator <(ObjectType left, ObjectType right)
         {
             return (left.Value < right.Value);
         }
 
-        public static bool operator >(LogicalPageId left, LogicalPageId right)
+        public static bool operator >(ObjectType left, ObjectType right)
         {
             return (left.Value > right.Value);
         }
 
-        public static bool operator ==(LogicalPageId left, LogicalPageId right)
+        public static bool operator ==(ObjectType left, ObjectType right)
         {
             return (left.Value == right.Value);
         }
-        public static bool operator !=(LogicalPageId left, LogicalPageId right)
+        public static bool operator !=(ObjectType left, ObjectType right)
         {
             return (left.Value != right.Value);
         }
@@ -115,22 +121,22 @@ namespace Zen.Trunk.Storage
         int IComparable.CompareTo(object obj)
         {
             var order = -1;
-            if (obj is LogicalPageId)
+            if (obj is ObjectType)
             {
-                order = ((LogicalPageId)this).CompareTo((LogicalPageId)obj);
+                order = ((ObjectType)this).CompareTo((ObjectType)obj);
             }
             return order;
         }
         #endregion
 
         #region ICloneable Members
-        public LogicalPageId Clone()
+        public ObjectType Clone()
         {
-            return (LogicalPageId)MemberwiseClone();
+            return (ObjectType)MemberwiseClone();
         }
         object ICloneable.Clone()
         {
-            return ((LogicalPageId)this).Clone();
+            return ((ObjectType)this).Clone();
         }
         #endregion
     }

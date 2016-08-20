@@ -72,7 +72,7 @@
 		/// </returns>
 		public override bool Equals(object obj)
 		{
-			IndexInfo rhs = obj as IndexInfo;
+			var rhs = obj as IndexInfo;
 			if (rhs != null)
 			{
 				return (CompareTo(rhs) == 0);

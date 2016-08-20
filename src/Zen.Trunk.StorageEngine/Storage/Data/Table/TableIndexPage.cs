@@ -51,27 +51,15 @@
 		/// Overridden. Gets the index manager.
 		/// </summary>
 		/// <value>The index manager.</value>
-		public override IndexManager IndexManager
-		{
-			get
-			{
-				return (IndexManager)GetService(typeof(TableIndexManager));
-			}
-		}
+		public override IndexManager IndexManager => (IndexManager)GetService(typeof(TableIndexManager));
 
-		/// <summary>
+	    /// <summary>
 		/// Gets the max index entries.
 		/// </summary>
 		/// <value>The max index entries.</value>
-		public override ushort MaxIndexEntries
-		{
-			get
-			{
-				return (ushort)(DataSize / KeySize);
-			}
-		}
+		public override ushort MaxIndexEntries => (ushort)(DataSize / KeySize);
 
-		/// <summary>
+	    /// <summary>
 		/// Gets the size of the key for this page.
 		/// </summary>
 		/// <value>The size of the key.</value>
@@ -109,15 +97,9 @@
 		/// Gets the size of the min header.
 		/// </summary>
 		/// <value>The size of the min header.</value>
-		public override uint MinHeaderSize
-		{
-			get
-			{
-				return base.MinHeaderSize + 0;
-			}
-		}
+		public override uint MinHeaderSize => base.MinHeaderSize + 0;
 
-		/// <summary>
+	    /// <summary>
 		/// Gets a value indicating whether the index this page is attached to
 		/// is a normal index operating over a clustered index
 		/// </summary>
@@ -145,7 +127,7 @@
 		{
 			_ownerTable = def;
 			_rootIndex = rootIndex;
-			for (int index = 0; index < IndexCount; ++index)
+			for (var index = 0; index < IndexCount; ++index)
 			{
 				IndexEntries[index].SetContext(def, rootIndex);
 			}
@@ -153,8 +135,8 @@
 
 		public int CompareIndex(int index, object[] keys)
 		{
-			TableIndexInfo lhs = IndexEntries[index];
-			TableIndexInfo rhs = new TableIndexInfo(keys);
+			var lhs = IndexEntries[index];
+			var rhs = new TableIndexInfo(keys);
 			return lhs.CompareTo(rhs);
 		}
 		#endregion
@@ -167,7 +149,7 @@
 		protected override TableIndexInfo CreateLinkToPage(
 			IndexPage<TableIndexInfo, RootTableIndexInfo> page)
 		{
-			object[] keys = page.IndexEntries[0].Keys;
+			var keys = page.IndexEntries[0].Keys;
 			return new TableIndexLogicalInfo(keys, page.LogicalId);
 		}
 

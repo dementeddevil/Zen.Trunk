@@ -7,10 +7,10 @@ namespace Zen.Trunk.Storage.Data
     {
         Task<LogicalPageId> GetNewLogicalAsync();
 
-        Task<LogicalPageId> AddLookupAsync(DevicePageId pageId, LogicalPageId logicalId);
+        Task<LogicalPageId> AddLookupAsync(VirtualPageId pageId, LogicalPageId logicalId);
 
-        Task<LogicalPageId> GetLogicalAsync(DevicePageId pageId);
+        Task<LogicalPageId> GetLogicalAsync(VirtualPageId pageId);
 
-        Task<DevicePageId> GetVirtualAsync(LogicalPageId logicalId);
+        Task<VirtualPageId> GetVirtualAsync(LogicalPageId logicalId);
     }
 }

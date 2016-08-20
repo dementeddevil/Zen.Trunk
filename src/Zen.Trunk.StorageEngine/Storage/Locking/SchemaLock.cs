@@ -66,88 +66,40 @@ namespace Zen.Trunk.Storage.Locking
 		}
 		protected class NoneState : SchemaLockState
 		{
-			public override SchemaLockType Lock
-			{
-				get
-				{
-					return SchemaLockType.None;
-				}
-			}
+			public override SchemaLockType Lock => SchemaLockType.None;
 
-			public override SchemaLockType[] CompatableLocks
-			{
-				get
-				{
-					return new SchemaLockType[3] 
-					{
-						SchemaLockType.SchemaStability,
-						SchemaLockType.BulkUpdate,
-						SchemaLockType.SchemaModification,
-					};
-				}
-			}
+		    public override SchemaLockType[] CompatableLocks => new SchemaLockType[3] 
+		    {
+		        SchemaLockType.SchemaStability,
+		        SchemaLockType.BulkUpdate,
+		        SchemaLockType.SchemaModification,
+		    };
 		}
 		protected class SchemaStabilityState : SchemaLockState
 		{
-			public override SchemaLockType Lock
-			{
-				get
-				{
-					return SchemaLockType.SchemaStability;
-				}
-			}
+			public override SchemaLockType Lock => SchemaLockType.SchemaStability;
 
-			public override SchemaLockType[] CompatableLocks
+		    public override SchemaLockType[] CompatableLocks => new SchemaLockType[2] 
 			{
-				get
-				{
-					return new SchemaLockType[2] 
-					{
-						SchemaLockType.SchemaStability,
-						SchemaLockType.BulkUpdate,
-					};
-				}
-			}
+			    SchemaLockType.SchemaStability,
+			    SchemaLockType.BulkUpdate,
+			};
 		}
 		protected class BulkUpdateState : SchemaLockState
 		{
-			public override SchemaLockType Lock
-			{
-				get
-				{
-					return SchemaLockType.BulkUpdate;
-				}
-			}
+			public override SchemaLockType Lock => SchemaLockType.BulkUpdate;
 
-			public override SchemaLockType[] CompatableLocks
-			{
-				get
-				{
-					return new SchemaLockType[2] 
-					{
-						SchemaLockType.SchemaStability,
-						SchemaLockType.BulkUpdate,
-					};
-				}
-			}
+		    public override SchemaLockType[] CompatableLocks => new SchemaLockType[2] 
+		    {
+		        SchemaLockType.SchemaStability,
+		        SchemaLockType.BulkUpdate,
+		    };
 		}
 		protected class SchemaModificationState : SchemaLockState
 		{
-			public override SchemaLockType Lock
-			{
-				get
-				{
-					return SchemaLockType.SchemaModification;
-				}
-			}
+			public override SchemaLockType Lock => SchemaLockType.SchemaModification;
 
-			public override SchemaLockType[] CompatableLocks
-			{
-				get
-				{
-					return new SchemaLockType[0];
-				}
-			}
+		    public override SchemaLockType[] CompatableLocks => new SchemaLockType[0];
 		}
 		#endregion
 
@@ -166,14 +118,9 @@ namespace Zen.Trunk.Storage.Locking
 		#endregion
 
 		#region Protected Properties
-		protected override SchemaLockType NoneLockType
-		{
-			get
-			{
-				return SchemaLockType.None;
-			}
-		}
-		#endregion
+		protected override SchemaLockType NoneLockType => SchemaLockType.None;
+
+	    #endregion
 
 		#region Protected Methods
 		protected override TransactionLock<SchemaLockType>.State GetStateFromType (SchemaLockType lockType)

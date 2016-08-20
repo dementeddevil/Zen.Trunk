@@ -37,22 +37,11 @@ namespace Zen.Trunk.Storage.Data
 		#endregion
 
 		#region Protected Properties
-		protected override ulong RootPageSignature
-		{
-			get
-			{
-				return DBSignature;
-			}
-		}
+		protected override ulong RootPageSignature => DBSignature;
 
-		protected override uint RootPageSchemaVersion
-		{
-			get
-			{
-				return DBSchemaVersion;
-			}
-		}
-		#endregion
+	    protected override uint RootPageSchemaVersion => DBSchemaVersion;
+
+	    #endregion
 
 		#region Public Methods
 		#endregion

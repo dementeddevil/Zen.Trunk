@@ -51,27 +51,15 @@ namespace Zen.Trunk.Storage.Locking
 		}
 		protected class NoneState : DatabaseLockState
 		{
-			public override DatabaseLockType Lock
-			{
-				get
-				{
-					return DatabaseLockType.None;
-				}
-			}
+			public override DatabaseLockType Lock => DatabaseLockType.None;
 
-			public override DatabaseLockType[] CompatableLocks
-			{
-				get
-				{
-					return new DatabaseLockType[] 
-					{
-						DatabaseLockType.Shared,
-						DatabaseLockType.Update
-					};
-				}
-			}
+		    public override DatabaseLockType[] CompatableLocks => new DatabaseLockType[] 
+		    {
+		        DatabaseLockType.Shared,
+		        DatabaseLockType.Update
+		    };
 
-			public override bool CanAcquireLock(
+		    public override bool CanAcquireLock(
 				TransactionLock<DatabaseLockType> owner,
 				TransactionLock<DatabaseLockType>.AcquireLock request)
 			{
@@ -80,72 +68,30 @@ namespace Zen.Trunk.Storage.Locking
 		}
 		protected class SharedState : DatabaseLockState
 		{
-			public override DatabaseLockType Lock
-			{
-				get
-				{
-					return DatabaseLockType.Shared;
-				}
-			}
+			public override DatabaseLockType Lock => DatabaseLockType.Shared;
 
-			public override DatabaseLockType[] CompatableLocks
-			{
-				get
-				{
-					return new DatabaseLockType[2] 
-					{
-						DatabaseLockType.Shared,
-						DatabaseLockType.Update,
-					};
-				}
-			}
+		    public override DatabaseLockType[] CompatableLocks => new DatabaseLockType[2] 
+		    {
+		        DatabaseLockType.Shared,
+		        DatabaseLockType.Update,
+		    };
 		}
 		protected class UpdateState : DatabaseLockState
 		{
-			public override DatabaseLockType Lock
-			{
-				get
-				{
-					return DatabaseLockType.Update;
-				}
-			}
+			public override DatabaseLockType Lock => DatabaseLockType.Update;
 
-			public override DatabaseLockType[] CompatableLocks
-			{
-				get
-				{
-					return new DatabaseLockType[] 
-					{
-						DatabaseLockType.Shared
-					};
-				}
-			}
+		    public override DatabaseLockType[] CompatableLocks => new DatabaseLockType[] 
+		    {
+		        DatabaseLockType.Shared
+		    };
 
-			public override bool CanEnterExclusiveLock
-			{
-				get
-				{
-					return true;
-				}
-			}
+		    public override bool CanEnterExclusiveLock => true;
 		}
 		protected class ExclusiveState : DatabaseLockState
 		{
-			public override DatabaseLockType Lock
-			{
-				get
-				{
-					return DatabaseLockType.Exclusive;
-				}
-			}
+			public override DatabaseLockType Lock => DatabaseLockType.Exclusive;
 
-			public override DatabaseLockType[] CompatableLocks
-			{
-				get
-				{
-					return new DatabaseLockType[0];
-				}
-			}
+		    public override DatabaseLockType[] CompatableLocks => new DatabaseLockType[0];
 		}
 		#endregion
 
@@ -167,14 +113,9 @@ namespace Zen.Trunk.Storage.Locking
 		#endregion
 
 		#region Protected Properties
-		protected override DatabaseLockType NoneLockType
-		{
-			get
-			{
-				return DatabaseLockType.None;
-			}
-		}
-		#endregion
+		protected override DatabaseLockType NoneLockType => DatabaseLockType.None;
+
+	    #endregion
 
 		#region Protected Methods
 		protected override TransactionLock<DatabaseLockType>.State GetStateFromType(DatabaseLockType lockType)

@@ -24,8 +24,8 @@ namespace Zen.Trunk.Storage.Data
 		#region Private Fields
 		private TimeSpan _lockTimeout = TimeSpan.FromSeconds(10);
 		private PageBuffer _buffer;
-		private SpinLockClass _syncTimestamp = new SpinLockClass();
-		private BufferFieldInt64 _timestamp;
+		private readonly SpinLockClass _syncTimestamp = new SpinLockClass();
+		private readonly BufferFieldInt64 _timestamp;
 		#endregion
 
 		#region Public Constructors
@@ -60,7 +60,7 @@ namespace Zen.Trunk.Storage.Data
 			{
 				if (_buffer != null)
 				{
-					return _buffer.PageId.VirtualPageId;
+					return _buffer.PageId.Value;
 				}
 				return base.VirtualId;
 			}
@@ -125,48 +125,24 @@ namespace Zen.Trunk.Storage.Data
 		/// <summary>
 		/// Overridden. Gets the header size - 192 bytes
 		/// </summary>
-		public override uint HeaderSize
-		{
-			get
-			{
-				return 192;
-			}
-		}
+		public override uint HeaderSize => 192;
 
-		/// <summary>
+	    /// <summary>
 		/// Overridden. Gets the page size - 8192 bytes
 		/// </summary>
-		public override uint PageSize
-		{
-			get
-			{
-				return 8192;
-			}
-		}
+		public override uint PageSize => 8192;
 
-		/// <summary>
+	    /// <summary>
 		/// Gets the minimum number of bytes required for the header block.
 		/// </summary>
-		public override uint MinHeaderSize
-		{
-			get
-			{
-				return base.MinHeaderSize + 8;
-			}
-		}
+		public override uint MinHeaderSize => base.MinHeaderSize + 8;
 
-		/// <summary>
+	    /// <summary>
 		/// Returns the current page timestamp.
 		/// </summary>
-		public long Timestamp
-		{
-			get
-			{
-				return _timestamp.Value;
-			}
-		}
+		public long Timestamp => _timestamp.Value;
 
-		/// <summary>
+	    /// <summary>
 		/// Gets/sets the page file-group ID.
 		/// </summary>
 		public byte FileGroupId
@@ -236,14 +212,9 @@ namespace Zen.Trunk.Storage.Data
 		/// Gets the last header field.
 		/// </summary>
 		/// <value>The last header field.</value>
-		protected override BufferField LastHeaderField
-		{
-			get
-			{
-				return _timestamp;
-			}
-		}
-		#endregion
+		protected override BufferField LastHeaderField => _timestamp;
+
+	    #endregion
 
 		#region Protected Methods
 		/// <summary>
@@ -451,7 +422,7 @@ namespace Zen.Trunk.Storage.Data
 			if (IsLockingEnabled)
 			{
 				// Get instance of lock manager
-				IDatabaseLockManager lm = (IDatabaseLockManager)GetService(typeof(IDatabaseLockManager));
+				var lm = (IDatabaseLockManager)GetService(typeof(IDatabaseLockManager));
 				if (lm != null)
 				{
 					OnLockPage(lm);
@@ -484,7 +455,7 @@ namespace Zen.Trunk.Storage.Data
 			if (IsLockingEnabled && !HoldLock)
 			{
 				// Get instance of lock manager
-				IDatabaseLockManager lm = (IDatabaseLockManager)GetService(typeof(IDatabaseLockManager));
+				var lm = (IDatabaseLockManager)GetService(typeof(IDatabaseLockManager));
 				if (lm != null)
 				{
 					OnUnlockPage(lm);

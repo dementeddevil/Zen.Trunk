@@ -106,7 +106,7 @@ namespace Zen.Trunk.Storage.IO
 
 		internal static string GetMessage(int errorCode)
 		{
-			StringBuilder lpBuffer = new StringBuilder(0x200);
+			var lpBuffer = new StringBuilder(0x200);
 			if (FormatMessage(0x3200, NULL, errorCode, 0, lpBuffer,
 				lpBuffer.Capacity, NULL) != 0)
 			{
@@ -138,7 +138,7 @@ namespace Zen.Trunk.Storage.IO
 			SECURITY_ATTRIBUTES securityAttrs, FileMode dwCreationDisposition,
 			int dwFlagsAndAttributes, IntPtr hTemplateFile)
 		{
-			SafeFileHandle handle = CreateFile(lpFileName, dwDesiredAccess,
+			var handle = CreateFile(lpFileName, dwDesiredAccess,
 				dwShareMode, securityAttrs, dwCreationDisposition,
 				dwFlagsAndAttributes, hTemplateFile);
 			if (!handle.IsInvalid && (GetFileType(handle) != 1))
@@ -200,8 +200,8 @@ namespace Zen.Trunk.Storage.IO
 			long offset, SeekOrigin origin, out int hr)
 		{
 			hr = 0;
-			int lo = (int)offset;
-			int hi = (int)(offset >> 0x20);
+			var lo = (int)offset;
+			var hi = (int)(offset >> 0x20);
 			lo = SetFilePointerWin32(handle, lo, &hi, (int)origin);
 			if ((lo == -1) && ((hr = Marshal.GetLastWin32Error()) != 0))
 			{
@@ -285,14 +285,14 @@ namespace Zen.Trunk.Storage.IO
 		internal static unsafe SafeMemoryHandle VirtualReserve(
 			UIntPtr numBytes, int pageProtectionMode)
 		{
-			SafeMemoryHandle result = new SafeMemoryHandle();
+			var result = new SafeMemoryHandle();
 			RuntimeHelpers.PrepareConstrainedRegions();
 			try
 			{
 			}
 			finally
 			{
-				IntPtr address = DoVirtualAlloc(IntPtr.Zero, numBytes, MEM_RESERVE, pageProtectionMode);
+				var address = DoVirtualAlloc(IntPtr.Zero, numBytes, MEM_RESERVE, pageProtectionMode);
 				if (address != IntPtr.Zero)
 				{
 					result.SetHandleInternal(address);
@@ -308,8 +308,8 @@ namespace Zen.Trunk.Storage.IO
 
 		internal static unsafe SafeCommitableMemoryHandle GetCommitableMemoryHandle(SafeMemoryHandle handle, int bufferSize)
 		{
-			SafeCommitableMemoryHandle result = new SafeCommitableMemoryHandle();
-			bool success = false;
+			var result = new SafeCommitableMemoryHandle();
+			var success = false;
 			handle.DangerousAddRef(ref success);
 			if (!success)
 			{
@@ -333,8 +333,8 @@ namespace Zen.Trunk.Storage.IO
 				throw new ArgumentOutOfRangeException("offset");
 			}
 
-			SafeCommitableMemoryHandle result = new SafeCommitableMemoryHandle();
-			bool success = false;
+			var result = new SafeCommitableMemoryHandle();
+			var success = false;
 			handle.DangerousAddRef(ref success);
 			if (!success)
 			{
@@ -343,7 +343,7 @@ namespace Zen.Trunk.Storage.IO
 			try
 			{
 				// Dangerous pointer arithmetic (my favourite)
-				byte* pointer = (byte*)handle.DangerousGetHandle().ToPointer();
+				var pointer = (byte*)handle.DangerousGetHandle().ToPointer();
 				pointer = pointer + offset;
 				result.SetHandleInternal(new IntPtr(pointer), new UIntPtr((ulong)bufferSize));
 			}
@@ -356,7 +356,7 @@ namespace Zen.Trunk.Storage.IO
 
 		internal static unsafe void VirtualCommit(SafeCommitableMemoryHandle existingAddress, int pageProtectionMode)
 		{
-			bool success = false;
+			var success = false;
 			existingAddress.DangerousAddRef(ref success);
 			if (!success)
 			{
@@ -364,8 +364,8 @@ namespace Zen.Trunk.Storage.IO
 			}
 			try
 			{
-				IntPtr existingAddressPtr = existingAddress.DangerousGetHandle();
-				IntPtr address = DoVirtualAlloc(existingAddressPtr, existingAddress.TotalBytes, MEM_COMMIT, pageProtectionMode);
+				var existingAddressPtr = existingAddress.DangerousGetHandle();
+				var address = DoVirtualAlloc(existingAddressPtr, existingAddress.TotalBytes, MEM_COMMIT, pageProtectionMode);
 				if (address == IntPtr.Zero)
 				{
 					Marshal.ThrowExceptionForHR(Marshal.GetHRForLastWin32Error());
@@ -384,7 +384,7 @@ namespace Zen.Trunk.Storage.IO
 
 		internal static unsafe void VirtualDecommit(SafeCommitableMemoryHandle existingAddress)
 		{
-			bool success = false;
+			var success = false;
 			existingAddress.DangerousAddRef(ref success);
 			if (!success)
 			{
@@ -392,7 +392,7 @@ namespace Zen.Trunk.Storage.IO
 			}
 			try
 			{
-				IntPtr existingAddressPtr = existingAddress.DangerousGetHandle();
+				var existingAddressPtr = existingAddress.DangerousGetHandle();
 				if (!VirtualFree(existingAddressPtr, existingAddress.TotalBytes, MEM_DECOMMIT))
 				{
 					Marshal.ThrowExceptionForHR(Marshal.GetHRForLastWin32Error());
@@ -430,7 +430,7 @@ namespace Zen.Trunk.Storage.IO
 
 		internal static unsafe int VirtualProtect(SafeCommitableMemoryHandle address, int newPageProtection)
 		{
-			bool success = false;
+			var success = false;
 			address.DangerousAddRef(ref success);
 			if (!success)
 			{
@@ -438,8 +438,8 @@ namespace Zen.Trunk.Storage.IO
 			}
 			try
 			{
-				IntPtr addressPtr = address.DangerousGetHandle();
-				IntPtr oldPageProtectionPtr = new IntPtr();
+				var addressPtr = address.DangerousGetHandle();
+				var oldPageProtectionPtr = new IntPtr();
 				if (!VirtualProtectInternal(addressPtr,
 #if PLATFORMx86
  (int)address.TotalBytes,
@@ -505,15 +505,9 @@ namespace Zen.Trunk.Storage.IO
 		{
 		}
 
-		public UIntPtr TotalBytes
-		{
-			get
-			{
-				return _totalBytes;
-			}
-		}
+		public UIntPtr TotalBytes => _totalBytes;
 
-		public override bool IsInvalid
+	    public override bool IsInvalid
 		{
 			[ReliabilityContract(Consistency.WillNotCorruptState, Cer.Success)]
 			[PrePrepareMethod]

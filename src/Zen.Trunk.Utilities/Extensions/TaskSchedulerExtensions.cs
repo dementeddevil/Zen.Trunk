@@ -23,7 +23,7 @@ namespace System.Threading.Tasks
         private sealed class TaskSchedulerSynchronizationContext : SynchronizationContext
         {
             /// <summary>The scheduler.</summary>
-            private TaskScheduler _scheduler;
+            private readonly TaskScheduler _scheduler;
 
             /// <summary>Initializes the context with the specified scheduler.</summary>
             /// <param name="scheduler">The scheduler to target.</param>
@@ -46,7 +46,7 @@ namespace System.Threading.Tasks
             /// <param name="state">The object passed to the delegate.</param>
             public override void Send(SendOrPostCallback d, object state)
             {
-                Task t = new Task(() => d(state));
+                var t = new Task(() => d(state));
                 t.RunSynchronously(_scheduler);
                 t.Wait();
             }

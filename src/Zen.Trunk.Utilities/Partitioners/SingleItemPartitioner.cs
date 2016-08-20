@@ -39,7 +39,7 @@ namespace System.Collections.Concurrent.Partitioners
             internal SingleItemEnumerablePartitioner(IEnumerable<T> source) : base(true, false, true) { _source = source; }
 
             /// <summary>Gets whether this partitioner supports dynamic partitioning (it does).</summary>
-            public override bool SupportsDynamicPartitions { get { return true; } }
+            public override bool SupportsDynamicPartitions => true;
 
             public override IList<IEnumerator<KeyValuePair<long, T>>> GetOrderablePartitions(int partitionCount)
             {
@@ -136,7 +136,7 @@ namespace System.Collections.Concurrent.Partitioners
             internal SingleItemIListPartitioner(IList<T> source) : base(true, false, true) { _source = source; }
 
             /// <summary>Gets whether this partitioner supports dynamic partitioning (it does).</summary>
-            public override bool SupportsDynamicPartitions { get { return true; } }
+            public override bool SupportsDynamicPartitions => true;
 
             /// <summary>Gets a list of the specified static number of partitions.</summary>
             /// <param name="partitionCount">The static number of partitions to create.</param>

@@ -119,15 +119,9 @@
 			/// <c>true</c> if an exclusive lock can be acquired from this
 			/// state; otherwise, <c>false</c>. The default is <c>false</c>.
 			/// </value>
-			public virtual bool CanEnterExclusiveLock
-			{
-				get
-				{
-					return false;
-				}
-			}
+			public virtual bool CanEnterExclusiveLock => false;
 
-			/// <summary>
+		    /// <summary>
 			/// Determines whether the specified lock type is equivalent to an
 			/// exclusive lock.
 			/// </summary>
@@ -203,7 +197,7 @@
 			{
 				if (CompatableLocks.Length > 0)
 				{
-					foreach (LockTypeEnum lockType in CompatableLocks)
+					foreach (var lockType in CompatableLocks)
 					{
 						if (Convert.ToInt32(lockType) == Convert.ToInt32(request.Lock))
 						{
@@ -224,9 +218,9 @@
 		private string _id;
 		private int _referenceCount = 0;
 		private bool _initialised;
-		private Dictionary<uint, AcquireLock> _activeRequests = new Dictionary<uint, AcquireLock>();
+		private readonly Dictionary<uint, AcquireLock> _activeRequests = new Dictionary<uint, AcquireLock>();
 		private AcquireLock _pendingExclusiveRequest;
-		private Queue<AcquireLock> _pendingRequests = new Queue<AcquireLock>();
+		private readonly Queue<AcquireLock> _pendingRequests = new Queue<AcquireLock>();
 		private State _currentState;
 		#endregion
 
@@ -379,7 +373,7 @@
 			// Retrieve connection id and create request object.
 			// Will throw if no connection information is available for the
 			//  calling thread.
-			uint transactionId = GetThreadTransactionId(true);
+			var transactionId = GetThreadTransactionId(true);
 			return HasLock(transactionId, lockType);
 		}
 
@@ -403,7 +397,7 @@
 			// Retrieve connection id and create request object.
 			// Will throw if no connection information is available for the
 			//  calling thread.
-			uint transactionId = GetThreadTransactionId(true);
+			var transactionId = GetThreadTransactionId(true);
 			Lock(transactionId, lockType, timeout);
 		}
 
@@ -430,7 +424,7 @@
 			// Retrieve connection id and create request object.
 			// Will throw if no connection information is available for the
 			//  calling thread.
-			uint transactionId = GetThreadTransactionId(true);
+			var transactionId = GetThreadTransactionId(true);
 			Unlock(transactionId, newLockType);
 		}
 		#endregion
@@ -439,7 +433,7 @@
 		internal void Lock(uint transactionId, LockTypeEnum lockType, TimeSpan timeout)
 		{
 			// Post lock acquisition message
-			AcquireLock request = new AcquireLock(lockType, transactionId);
+			var request = new AcquireLock(lockType, transactionId);
 			_acquireLockAction.Post(request);
 			if (!request.Task.Wait(timeout))
 			{
@@ -459,7 +453,7 @@
 		internal void Unlock(uint transactionId, LockTypeEnum newLockType)
 		{
 			// Post lock acquisition message
-			ReleaseLock request = new ReleaseLock(newLockType, transactionId);
+			var request = new ReleaseLock(newLockType, transactionId);
 			_releaseLockAction.Post(request);
 			request.Task.Wait();
 			if (request.Task.IsFaulted)
@@ -484,7 +478,7 @@
 		protected internal bool HasLock(uint transactionId, LockTypeEnum lockType)
 		{
 			// Post lock acquisition message
-			QueryLock request = new QueryLock(lockType, transactionId);
+			var request = new QueryLock(lockType, transactionId);
 			_queryLockAction.Post(request);
 			request.Task.Wait();
 			return request.Task.Result;
@@ -571,7 +565,7 @@
 				try
 				{
 					// Acquire the lock
-					bool result = false;
+					var result = false;
 					if (_activeRequests.ContainsKey(request.TransactionId))
 					{
 						_activeRequests[request.TransactionId] = request;
@@ -697,10 +691,10 @@
 		/// </remarks>
 		protected LockTypeEnum GetActiveLockType()
 		{
-			LockTypeEnum lockType = NoneLockType;
-			foreach (AcquireLock request in _activeRequests.Values)
+			var lockType = NoneLockType;
+			foreach (var request in _activeRequests.Values)
 			{
-				IConvertible conv = (IConvertible)request.Lock;
+				var conv = (IConvertible)request.Lock;
 				if (Convert.ToInt32(request.Lock) > Convert.ToInt32(lockType))
 				{
 					lockType = request.Lock;
@@ -748,11 +742,11 @@
 
 		private void UpdateActiveLockState()
 		{
-			LockTypeEnum lockType = GetActiveLockType();
-			State newState = GetStateFromType(lockType);
+			var lockType = GetActiveLockType();
+			var newState = GetStateFromType(lockType);
 			if (_currentState != newState)
 			{
-				State oldState = _currentState;
+				var oldState = _currentState;
 				if (oldState != null)
 				{
 					oldState.OnExitState(this, newState);
@@ -784,7 +778,7 @@
 			while (_pendingRequests.Count > 0)
 			{
 				// Attempt to release the next request from the queue
-				AcquireLock queuedRequest = _pendingRequests.Peek();
+				var queuedRequest = _pendingRequests.Peek();
 				if (!ReleaseWaitingRequest(queuedRequest))
 				{
 					break;

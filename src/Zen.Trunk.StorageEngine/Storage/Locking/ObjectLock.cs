@@ -55,143 +55,65 @@ namespace Zen.Trunk.Storage.Locking
 		}
 		protected class NoneState : ObjectLockState
 		{
-			public override ObjectLockType Lock
-			{
-				get
-				{
-					return ObjectLockType.None;
-				}
-			}
+			public override ObjectLockType Lock => ObjectLockType.None;
 
-			public override ObjectLockType[] CompatableLocks
-			{
-				get
-				{
-					return new ObjectLockType[] 
-					{
-						ObjectLockType.IntentShared,
-						ObjectLockType.Shared,
-						ObjectLockType.IntentExclusive,
-						ObjectLockType.SharedIntentExclusive,
-						ObjectLockType.Exclusive,
-					};
-				}
-			}
+		    public override ObjectLockType[] CompatableLocks => new ObjectLockType[] 
+		    {
+		        ObjectLockType.IntentShared,
+		        ObjectLockType.Shared,
+		        ObjectLockType.IntentExclusive,
+		        ObjectLockType.SharedIntentExclusive,
+		        ObjectLockType.Exclusive,
+		    };
 		}
 		protected class IntentSharedState : ObjectLockState
 		{
-			public override ObjectLockType Lock
-			{
-				get
-				{
-					return ObjectLockType.IntentShared;
-				}
-			}
+			public override ObjectLockType Lock => ObjectLockType.IntentShared;
 
-			public override ObjectLockType[] CompatableLocks
-			{
-				get
-				{
-					return new ObjectLockType[]
-					{
-						ObjectLockType.IntentShared,
-						ObjectLockType.Shared,
-						ObjectLockType.IntentExclusive,
-						ObjectLockType.SharedIntentExclusive,
-					};
-				}
-			}
+		    public override ObjectLockType[] CompatableLocks => new ObjectLockType[]
+		    {
+		        ObjectLockType.IntentShared,
+		        ObjectLockType.Shared,
+		        ObjectLockType.IntentExclusive,
+		        ObjectLockType.SharedIntentExclusive,
+		    };
 		}
 		protected class SharedState : ObjectLockState
 		{
-			public override ObjectLockType Lock
-			{
-				get
-				{
-					return ObjectLockType.Shared;
-				}
-			}
+			public override ObjectLockType Lock => ObjectLockType.Shared;
 
-			public override ObjectLockType[] CompatableLocks
-			{
-				get
-				{
-					return new ObjectLockType[] 
-					{
-						ObjectLockType.IntentShared,
-						ObjectLockType.Shared,
-					};
-				}
-			}
+		    public override ObjectLockType[] CompatableLocks => new ObjectLockType[] 
+		    {
+		        ObjectLockType.IntentShared,
+		        ObjectLockType.Shared,
+		    };
 		}
 		protected class IntentExclusiveState : ObjectLockState
 		{
-			public override ObjectLockType Lock
-			{
-				get
-				{
-					return ObjectLockType.IntentExclusive;
-				}
-			}
+			public override ObjectLockType Lock => ObjectLockType.IntentExclusive;
 
-			public override ObjectLockType[] CompatableLocks
-			{
-				get
-				{
-					return new ObjectLockType[] 
-					{
-						ObjectLockType.IntentShared,
-						ObjectLockType.IntentExclusive,
-					};
-				}
-			}
+		    public override ObjectLockType[] CompatableLocks => new ObjectLockType[] 
+		    {
+		        ObjectLockType.IntentShared,
+		        ObjectLockType.IntentExclusive,
+		    };
 
-			public override bool CanEnterExclusiveLock
-			{
-				get
-				{
-					return true;
-				}
-			}
+		    public override bool CanEnterExclusiveLock => true;
 		}
 		protected class SharedIntentExclusiveState : ObjectLockState
 		{
-			public override ObjectLockType Lock
-			{
-				get
-				{
-					return ObjectLockType.SharedIntentExclusive;
-				}
-			}
+			public override ObjectLockType Lock => ObjectLockType.SharedIntentExclusive;
 
-			public override ObjectLockType[] CompatableLocks
-			{
-				get
-				{
-					return new ObjectLockType[]
-					{
-						ObjectLockType.IntentShared,
-					};
-				}
-			}
+		    public override ObjectLockType[] CompatableLocks => new ObjectLockType[]
+		    {
+		        ObjectLockType.IntentShared,
+		    };
 		}
 		protected class ExclusiveState : ObjectLockState
 		{
-			public override ObjectLockType Lock
-			{
-				get
-				{
-					return ObjectLockType.Exclusive;
-				}
-			}
+			public override ObjectLockType Lock => ObjectLockType.Exclusive;
 
-			public override ObjectLockType[] CompatableLocks
-			{
-				get
-				{
-					return new ObjectLockType[0];
-				}
-			}
+		    public override ObjectLockType[] CompatableLocks => new ObjectLockType[0];
 		}
 		#endregion
 
@@ -221,14 +143,9 @@ namespace Zen.Trunk.Storage.Locking
 		#endregion
 
 		#region Protected Properties
-		protected override ObjectLockType NoneLockType
-		{
-			get
-			{
-				return ObjectLockType.None;
-			}
-		}
-		#endregion
+		protected override ObjectLockType NoneLockType => ObjectLockType.None;
+
+	    #endregion
 
 		#region Protected Methods
 		protected override State GetStateFromType(ObjectLockType objectLockType)

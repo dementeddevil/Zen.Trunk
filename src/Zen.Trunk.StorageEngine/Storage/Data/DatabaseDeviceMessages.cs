@@ -43,14 +43,9 @@
 			private set;
 		}
 
-		public bool FileGroupIdValid
-		{
-			get
-			{
-				return FileGroupId != FileGroupDevice.Invalid;
-			}
-		}
-		#endregion
+		public bool FileGroupIdValid => FileGroupId != FileGroupDevice.Invalid;
+
+	    #endregion
 	}
 
 	public class RemoveFileGroupDeviceParameters : RemoveDataDeviceParameters
@@ -112,14 +107,9 @@
 			private set;
 		}
 
-		public bool FileGroupIdValid
-		{
-			get
-			{
-				return FileGroupId != FileGroupDevice.Invalid;
-			}
-		}
-		#endregion
+		public bool FileGroupIdValid => FileGroupId != FileGroupDevice.Invalid;
+
+	    #endregion
 	}
 
 	public class LoadFileGroupPageParameters : LoadDataPageParameters
@@ -147,14 +137,9 @@
 			private set;
 		}
 
-		public bool FileGroupIdValid
-		{
-			get
-			{
-				return FileGroupId != FileGroupDevice.Invalid;
-			}
-		}
-		#endregion
+		public bool FileGroupIdValid => FileGroupId != FileGroupDevice.Invalid;
+
+	    #endregion
 	}
 
 	public class AddFileGroupTableParameters : AddTableParameters
@@ -182,13 +167,7 @@
 			set;
 		}
 
-		public bool FileGroupIdValid
-		{
-			get
-			{
-				return FileGroupId != FileGroupDevice.Invalid;
-			}
-		}
+		public bool FileGroupIdValid => FileGroupId != FileGroupDevice.Invalid;
 	}
 
 	public class AddFileGroupTableIndexParameters : AddTableIndexParameters
@@ -216,12 +195,6 @@
 			set;
 		}
 
-		public bool FileGroupIdValid
-		{
-			get
-			{
-				return FileGroupId != FileGroupDevice.Invalid;
-			}
-		}
+		public bool FileGroupIdValid => FileGroupId != FileGroupDevice.Invalid;
 	}
 }

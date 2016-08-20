@@ -58,7 +58,7 @@
 		#endregion
 
 		#region Private Fields
-		private DatabaseTable _ownerTable;
+		private readonly DatabaseTable _ownerTable;
 		private ConcurrentExclusiveSchedulerPair _taskInterleave;
 		private ITargetBlock<CreateTableIndex> _createIndexPort;
 		private ITargetBlock<SplitTableIndexPage> _splitPagePort;
@@ -81,14 +81,9 @@
 		#endregion
 
 		#region Public Properties
-		public TimeSpan Timeout
-		{
-			get
-			{
-				return TimeSpan.FromSeconds(1);
-			}
-		}
-		#endregion
+		public TimeSpan Timeout => TimeSpan.FromSeconds(1);
+
+	    #endregion
 
 		#region Public Methods
 		public Task<bool> CreateIndex(RootTableIndexInfo rootInfo)
@@ -107,14 +102,14 @@
 
 		public Task<FindTableIndexResult> FindIndex(FindTableIndexParameters parameters)
 		{
-			FindTableIndex findLeaf = new FindTableIndex(parameters);
+			var findLeaf = new FindTableIndex(parameters);
 			_findIndexPort.Post(findLeaf);
 			return findLeaf.Task;
 		}
 
 		public Task<bool> EnumerateIndex(EnumerateIndexEntriesParameters parameters)
 		{
-			EnumerateIndexEntries iter = new EnumerateIndexEntries(parameters);
+			var iter = new EnumerateIndexEntries(parameters);
 			_enumerateIndexEntriesPort.Post(iter);
 			return iter.Task;
 		}
@@ -155,7 +150,7 @@
 		private async Task<bool> CreateIndexHandler(CreateTableIndex request)
 		{
 			// Sanity checks
-			foreach (RootTableIndexInfo def in Indices)
+			foreach (var def in Indices)
 			{
 				if (def.IndexId == request.Message.IndexId)
 				{
@@ -178,7 +173,7 @@
 			request.Message.RootIndexDepth = 0;
 
 			// Switch off clustered index during initial index population if table has data
-			bool restoreClusteredIndex = false;
+			var restoreClusteredIndex = false;
 			if (_ownerTable.HasData &&
 				(request.Message.IndexSubType & TableIndexSubType.Clustered) != 0)
 			{
@@ -187,7 +182,7 @@
 			}
 
 			// Create the root index page
-			TableIndexPage rootPage = new TableIndexPage();
+			var rootPage = new TableIndexPage();
 			rootPage.FileGroupId = request.Message.IndexFileGroupId;
 			rootPage.ObjectId = request.Message.OwnerObjectId;
 			rootPage.IndexType = IndexType.Root | IndexType.Leaf;
@@ -202,7 +197,7 @@
 
 			// We need the zero-based ordinal positions of the columns used
 			//	in the index being created
-			int[] indexOrdinals = request.Message.ColumnIDs
+			var indexOrdinals = request.Message.ColumnIDs
 				.Select((columnId) => _ownerTable.Columns.IndexOf(
 					_ownerTable.Columns.First((item) => item.Id == columnId)))
 				.ToArray();
@@ -215,27 +210,29 @@
 				//	id is zero.
 				// For each page we load, we walk the rows in the page, pull
 				//	out the index column values and add an entry to the index.
-				ulong logicalPageId = _ownerTable.DataFirstLogicalId;
-				while (logicalPageId != 0)
+				var logicalPageId = _ownerTable.DataFirstLogicalId;
+				while (logicalPageId != LogicalPageId.Zero)
 				{
 					// Load the next table data page
-					TableDataPage dataPage = new TableDataPage();
-					dataPage.LogicalId = logicalPageId;
-					dataPage.FileGroupId = _ownerTable.FileGroupId;
-					dataPage.PageLock = DataLockType.Shared;
-					await Database.LoadFileGroupPage(
+				    var dataPage = new TableDataPage
+				    {
+				        LogicalId = logicalPageId,
+				        FileGroupId = _ownerTable.FileGroupId,
+				        PageLock = DataLockType.Shared
+				    };
+				    await Database.LoadFileGroupPage(
 						new LoadFileGroupPageParameters(null, dataPage, false, true)).ConfigureAwait(false);
 
 					// Walk the table rows
 					for (uint rowIndex = 0; rowIndex < dataPage.RowCount; ++rowIndex)
 					{
 						// Get row reader for this row
-						RowReaderWriter rowReader = dataPage.GetRowReaderWriter(
+						var rowReader = dataPage.GetRowReaderWriter(
 							rowIndex, _ownerTable.Columns, false);
 
 						// Build array of row index values
-						object[] rowIndexValues = new object[indexOrdinals.Length];
-						for (int dataValueIndex = 0; dataValueIndex < indexOrdinals.Length; ++dataValueIndex)
+						var rowIndexValues = new object[indexOrdinals.Length];
+						for (var dataValueIndex = 0; dataValueIndex < indexOrdinals.Length; ++dataValueIndex)
 						{
 							rowIndexValues[dataValueIndex] = rowReader[indexOrdinals[dataValueIndex]];
 						}
@@ -265,8 +262,8 @@
 						else
 						{
 							// Determine the clustered index we need to use
-							object[] clusteredKeyValues = new object[_ownerTable.ClusteredIndex.ColumnIDs.Length];
-							for (int index = 0; index < clusteredKeyValues.Length; ++index)
+							var clusteredKeyValues = new object[_ownerTable.ClusteredIndex.ColumnIDs.Length];
+							for (var index = 0; index < clusteredKeyValues.Length; ++index)
 							{
 								if (index == (clusteredKeyValues.Length - 1) &&
 									(_ownerTable.ClusteredIndex.IndexSubType & TableIndexSubType.Unique) == 0)
@@ -275,8 +272,8 @@
 								}
 								else
 								{
-									bool found = false;
-									for (int columnIndex = 0; !found && columnIndex < _ownerTable.Columns.Count; ++columnIndex)
+									var found = false;
+									for (var columnIndex = 0; !found && columnIndex < _ownerTable.Columns.Count; ++columnIndex)
 									{
 										if (_ownerTable.Columns[columnIndex].Id == _ownerTable.ClusteredIndex.ColumnIDs[index])
 										{
@@ -359,9 +356,9 @@
 
 		private async Task<bool> SplitPageHandler(SplitTableIndexPage request)
 		{
-			TableIndexPage parentPage = request.Message.ParentPage;
-			TableIndexPage currentPage = request.Message.PageToSplit;
-			TableIndexPage splitPage = request.Message.SplitPage;
+			var parentPage = request.Message.ParentPage;
+			var currentPage = request.Message.PageToSplit;
+			var splitPage = request.Message.SplitPage;
 
 			// TODO: Setup appropriate locking mode (should be exclusive)
 			// Technically since this method is only called during writable 
@@ -379,7 +376,7 @@
 			if (currentPage.IsRootIndex)
 			{
 				// Initialise new page
-				TableIndexPage newRootPage = new TableIndexPage();
+				var newRootPage = new TableIndexPage();
 				newRootPage.FileGroupId = currentPage.FileGroupId;
 				await Database.InitFileGroupPage(
 					new InitFileGroupPageParameters(null, newRootPage)).ConfigureAwait(false);
@@ -411,7 +408,7 @@
 				newRootPage.AddLinkToPage(splitPage, out updateParentPage);
 
 				// Notify index manager
-				RootTableIndexInfo root = GetIndexInfo(request.Message.IndexObjectId);
+				var root = GetIndexInfo(request.Message.IndexObjectId);
 				root.RootLogicalId = newRootPage.LogicalId;
 				root.RootIndexDepth = newRootPage.Depth;
 				parentPage = newRootPage;
@@ -429,10 +426,10 @@
 
 			// If the next logical id is non-zero on the split page
 			//	then we need to load the page and rewire the prev id
-			if (splitPage.NextLogicalId != 0)
+			if (splitPage.NextLogicalId != LogicalPageId.Zero)
 			{
 				// Prepare page for loading
-				TableIndexPage pageAfterSplit = new TableIndexPage();
+				var pageAfterSplit = new TableIndexPage();
 				pageAfterSplit.FileGroupId = currentPage.FileGroupId;
 				pageAfterSplit.LogicalId = splitPage.NextLogicalId;
 				await Database.LoadFileGroupPage(
@@ -449,7 +446,7 @@
 			splitPage.IndexType = currentPage.IndexType;
 
 			// Move half entries to new page
-			int startIndex = currentPage.IndexCount / 2;
+			var startIndex = currentPage.IndexCount / 2;
 			while (startIndex < currentPage.IndexCount)
 			{
 				splitPage.IndexEntries.Add(currentPage.IndexEntries[startIndex]);
@@ -466,17 +463,19 @@
 		private async Task<FindTableIndexResult> FindIndexHandler(FindTableIndex request)
 		{
 			TableIndexPage prevPage = null, parentPage = null;
-			ulong logicalId = request.Message.RootInfo.RootLogicalId;
+			var logicalId = request.Message.RootInfo.RootLogicalId;
 			bool isForInsert = request.Message.IsForInsert, found = false;
 
 			// Main find loop
 			while (!found)
 			{
 				// Load the current index page
-				TableIndexPage indexPage = new TableIndexPage();
-				indexPage.FileGroupId = request.Message.RootInfo.IndexFileGroupId;
-				indexPage.LogicalId = logicalId;
-				await Database.LoadFileGroupPage(
+			    var indexPage = new TableIndexPage
+			    {
+			        FileGroupId = request.Message.RootInfo.IndexFileGroupId,
+			        LogicalId = logicalId
+			    };
+			    await Database.LoadFileGroupPage(
 					new LoadFileGroupPageParameters(null, indexPage, false, true)).ConfigureAwait(false);
 
 				// Perform crab-search through index table entries
@@ -487,7 +486,7 @@
 					if (indexPage.IndexCount >= (indexPage.MaxIndexEntries - 2))
 					{
 						// Split the index page
-						TableIndexPage newPage = new TableIndexPage();
+						var newPage = new TableIndexPage();
 						var split = new SplitTableIndexPageParameters(parentPage, indexPage,
 							newPage);
 						splitTask = SplitPage(split);
@@ -495,7 +494,7 @@
 				}
 
 				// Check whether we were supposed to go via prev page.
-				TableIndexInfo findInfo = new TableIndexInfo(request.Message.Keys);
+				var findInfo = new TableIndexInfo(request.Message.Keys);
 				if (prevPage != null && indexPage.IndexCount > 0)
 				{
 					// If current page's first index is past cursor
@@ -553,18 +552,18 @@
 				}
 
 				// Search for descent point
-				for (int index = 0; indexPage != null &&
+				for (var index = 0; indexPage != null &&
 					index < indexPage.IndexCount; --index)
 				{
-					TableIndexInfo lhs = indexPage.IndexEntries[index];
+					var lhs = indexPage.IndexEntries[index];
 					TableIndexInfo rhs = null;
 					if (index < indexPage.IndexCount - 1)
 					{
 						rhs = indexPage.IndexEntries[index + 1];
 					}
 
-					int compLower = lhs.CompareTo(findInfo);
-					int compHigher = rhs.CompareTo(findInfo);
+					var compLower = lhs.CompareTo(findInfo);
+					var compHigher = rhs.CompareTo(findInfo);
 
 					if (compLower < 0 && compHigher < 0)
 					{
@@ -599,7 +598,7 @@
 
 				// If we have a next page then go
 				if (indexPage != null &&
-					indexPage.NextLogicalId != 0)
+					indexPage.NextLogicalId != LogicalPageId.Zero)
 				{
 					// Determine new logical id and make this page
 					//	the new previous page.
@@ -617,23 +616,23 @@
 
 		private async Task<bool> EnumerateIndexEntriesHandler(EnumerateIndexEntries request)
 		{
-			bool success = false;
+			var success = false;
 			var find = new FindTableIndexParameters(
 				request.Message.Index,
 				request.Message.FromKeys);
 			var result = await FindIndex(find);
 			if (result != null)
 			{
-				TableIndexPage indexPage = result.Page;
-				TableIndexInfo endIndexInfo = new TableIndexInfo(request.Message.ToKeys);
-				int entryIndex = indexPage.IndexEntries.IndexOf(result.Entry);
-				int iterationIndex = 0;
+				var indexPage = result.Page;
+				var endIndexInfo = new TableIndexInfo(request.Message.ToKeys);
+				var entryIndex = indexPage.IndexEntries.IndexOf(result.Entry);
+				var iterationIndex = 0;
 				while (true)
 				{
 					if (entryIndex >= indexPage.IndexEntries.Count)
 					{
 						// Have we reached the last page of index?
-						if (indexPage.NextLogicalId == 0)
+						if (indexPage.NextLogicalId == LogicalPageId.Zero)
 						{
 							break;
 						}
@@ -653,13 +652,13 @@
 					}
 
 					// Compare with end index
-					int comp = indexPage.IndexEntries[entryIndex].CompareTo(endIndexInfo);
+					var comp = indexPage.IndexEntries[entryIndex].CompareTo(endIndexInfo);
 					if (comp > 0)
 					{
 						break;
 					}
 
-					bool continueIter = request.Message.OnIteration(indexPage, (TableIndexLeafInfo)indexPage.IndexEntries[entryIndex], iterationIndex++);
+					var continueIter = request.Message.OnIteration(indexPage, (TableIndexLeafInfo)indexPage.IndexEntries[entryIndex], iterationIndex++);
 					if (!continueIter)
 					{
 						break;
@@ -678,10 +677,10 @@
 	public class SplitTableIndexPageParameters
 	{
 		#region Private Fields
-		private uint _indexObjectId;
-		private TableIndexPage _parentPage;
-		private TableIndexPage _pageToSplit;
-		private TableIndexPage _splitPage;
+		private readonly uint _indexObjectId;
+		private readonly TableIndexPage _parentPage;
+		private readonly TableIndexPage _pageToSplit;
+		private readonly TableIndexPage _splitPage;
 		#endregion
 
 		#region Public Constructors
@@ -713,64 +712,41 @@
 		#endregion
 
 		#region Public Properties
-		public uint IndexObjectId
-		{
-			get
-			{
-				return _indexObjectId;
-			}
-		}
+		public uint IndexObjectId => _indexObjectId;
 
-		/// <summary>
+	    /// <summary>
 		/// Gets the parent page.
 		/// </summary>
 		/// <value>The parent page.</value>
-		public TableIndexPage ParentPage
-		{
-			get
-			{
-				return _parentPage;
-			}
-		}
+		public TableIndexPage ParentPage => _parentPage;
 
-		/// <summary>
+	    /// <summary>
 		/// Gets the page to split.
 		/// </summary>
 		/// <value>The page to split.</value>
-		public TableIndexPage PageToSplit
-		{
-			get
-			{
-				return _pageToSplit;
-			}
-		}
+		public TableIndexPage PageToSplit => _pageToSplit;
 
-		/// <summary>
+	    /// <summary>
 		/// Gets the split page.
 		/// </summary>
 		/// <value>The split page.</value>
-		public TableIndexPage SplitPage
-		{
-			get
-			{
-				return _splitPage;
-			}
-		}
-		#endregion
+		public TableIndexPage SplitPage => _splitPage;
+
+	    #endregion
 	}
 
 	public class FindTableIndexParameters
 	{
 		#region Private Fields
-		private RootTableIndexInfo _rootInfo;
-		private object[] _keys;
+		private readonly RootTableIndexInfo _rootInfo;
+		private readonly object[] _keys;
 
-		private bool _forInsert;
-		private object[] _clusteredKey;
-		private ulong _rowLogicalId;
-		private uint _rowId;
+		private readonly bool _forInsert;
+		private readonly object[] _clusteredKey;
+		private readonly ulong _rowLogicalId;
+		private readonly uint _rowId;
 
-		private ushort? _rowSize;
+		private readonly ushort? _rowSize;
 		#endregion
 
 		#region Public Constructors
@@ -822,99 +798,58 @@
 		/// Gets the root index information.
 		/// </summary>
 		/// <value>The root info.</value>
-		public RootTableIndexInfo RootInfo
-		{
-			get
-			{
-				return _rootInfo;
-			}
-		}
+		public RootTableIndexInfo RootInfo => _rootInfo;
 
-		/// <summary>
+	    /// <summary>
 		/// Gets the keys.
 		/// </summary>
 		/// <value>The keys.</value>
-		public object[] Keys
-		{
-			get
-			{
-				return _keys;
-			}
-		}
+		public object[] Keys => _keys;
 
-		/// <summary>
+	    /// <summary>
 		/// Gets a value indicating whether this instance is for insert.
 		/// </summary>
 		/// <value>
 		/// 	<c>true</c> if this instance is for insert; otherwise, <c>false</c>.
 		/// </value>
-		public bool IsForInsert
-		{
-			get
-			{
-				return _forInsert;
-			}
-		}
+		public bool IsForInsert => _forInsert;
 
-		/// <summary>
+	    /// <summary>
 		/// Gets the clustered key.
 		/// </summary>
 		/// <value>
 		/// The clustered key.
 		/// </value>
-		public object[] ClusteredKey
-		{
-			get
-			{
-				return _clusteredKey;
-			}
-		}
+		public object[] ClusteredKey => _clusteredKey;
 
-		/// <summary>
+	    /// <summary>
 		/// Gets the row logical id.
 		/// </summary>
 		/// <value>The row logical id.</value>
 		/// <remarks>
 		/// This value is only valid for index inserts.
 		/// </remarks>
-		public ulong RowLogicalId
-		{
-			get
-			{
-				return _rowLogicalId;
-			}
-		}
+		public ulong RowLogicalId => _rowLogicalId;
 
-		/// <summary>
+	    /// <summary>
 		/// Gets the row id.
 		/// </summary>
 		/// <value>The row id.</value>
 		/// <remarks>
 		/// This value is only valid for index inserts.
 		/// </remarks>
-		public uint RowId
-		{
-			get
-			{
-				return _rowId;
-			}
-		}
+		public uint RowId => _rowId;
 
-		/// <summary>
+	    /// <summary>
 		/// Gets the size of the row.
 		/// </summary>
 		/// <value>The size of the row.</value>
 		/// <remarks>
 		/// This value is only valid for index inserts for a clustered index.
 		/// </remarks>
-		public ushort? RowSize
-		{
-			get
-			{
-				return _rowSize;
-			}
-		}
-		#endregion
+		public ushort? RowSize => _rowSize;
+
+	    #endregion
 	}
 
 	public class FindTableIndexResult

@@ -9,7 +9,7 @@
 	public class SingleBufferDevice : BufferDevice, ISingleBufferDevice
 	{
 		#region Private Fields
-		private IVirtualBufferFactory _bufferFactory;
+		private readonly IVirtualBufferFactory _bufferFactory;
 		private FileStream _fileStream;
 		private AdvancedFileStream _scatterGatherStream;
 		private ScatterGatherReaderWriter _scatterGatherHelper;
@@ -73,15 +73,9 @@
 		/// <value>
 		/// The buffer factory.
 		/// </value>
-		public override IVirtualBufferFactory BufferFactory
-		{
-			get
-			{
-				return _bufferFactory;
-			}
-		}
+		public override IVirtualBufferFactory BufferFactory => _bufferFactory;
 
-		/// <summary>
+	    /// <summary>
 		/// Gets or sets a value indicating whether this instance is primary.
 		/// </summary>
 		/// <value>
@@ -162,13 +156,13 @@
 			else
 			{
 				Task<int> task;
-				byte[] rawBuffer = new byte[_bufferFactory.BufferSize];
+				var rawBuffer = new byte[_bufferFactory.BufferSize];
 				lock (_fileStream)
 				{
 					_fileStream.Seek(physicalPageId * _bufferFactory.BufferSize, SeekOrigin.Begin);
 					task = _fileStream.ReadAsync(rawBuffer, 0, _bufferFactory.BufferSize);
 				}
-				int bytesRead = await task.ConfigureAwait(false);
+				var bytesRead = await task.ConfigureAwait(false);
 				buffer.InitFrom(rawBuffer);
 			}
 		}
@@ -184,7 +178,7 @@
 			else
 			{
 				Task task;
-				byte[] rawBuffer = new byte[_bufferFactory.BufferSize];
+				var rawBuffer = new byte[_bufferFactory.BufferSize];
 				buffer.CopyTo(rawBuffer);
 				lock (_fileStream)
 				{
@@ -212,9 +206,9 @@
 
 		public uint ExpandDevice(int pageCount)
 		{
-			uint oldPageCapacity = PageCount;
-			uint newPageCapacity = (uint)((long)oldPageCapacity + pageCount);
-			long fileLengthInBytes = _bufferFactory.BufferSize * newPageCapacity;
+			var oldPageCapacity = PageCount;
+			var newPageCapacity = (uint)((long)oldPageCapacity + pageCount);
+			var fileLengthInBytes = _bufferFactory.BufferSize * newPageCapacity;
 
 			if (_fileStream != null)
 			{

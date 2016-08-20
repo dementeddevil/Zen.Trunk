@@ -97,14 +97,14 @@
 		ICloneable
 	{
 		#region Private Fields
-		private BufferFieldByte _id;
-		private BufferFieldStringFixed _name;
-		private BufferFieldByte _dataType;
-		private BufferFieldUInt16 _length;
-		private BufferFieldBitVector8 _flags;
-		private BufferFieldUInt32 _incrementSeed;
-		private BufferFieldUInt32 _incrementAmount;
-		private BufferFieldUInt32 _incrementValue;
+		private readonly BufferFieldByte _id;
+		private readonly BufferFieldStringFixed _name;
+		private readonly BufferFieldByte _dataType;
+		private readonly BufferFieldUInt16 _length;
+		private readonly BufferFieldBitVector8 _flags;
+		private readonly BufferFieldUInt32 _incrementSeed;
+		private readonly BufferFieldUInt32 _incrementAmount;
+		private readonly BufferFieldUInt32 _incrementValue;
 
 		private Type _columnType;
 		#endregion
@@ -223,7 +223,7 @@
 				}
 				if (_name.Value != value)
 				{
-					string oldValue = _name.Value;
+					var oldValue = _name.Value;
 					try
 					{
 						NotifyPropertyChanging("Name");
@@ -251,7 +251,7 @@
 			}
 			set
 			{
-				byte type = (byte)value;
+				var type = (byte)value;
 				if (_dataType.Value != type)
 				{
 					NotifyPropertyChanging("DataType");
@@ -521,7 +521,7 @@
 		{
 			get
 			{
-				bool isSupported = false;
+				var isSupported = false;
 				switch (DataType)
 				{
 					case TableColumnDataType.Byte:
@@ -544,15 +544,9 @@
 		/// Gets a Range object which represents the min and max data size
 		/// of this column in bytes.
 		/// </summary>
-		public InclusiveRange DataSize
-		{
-			get
-			{
-				return new InclusiveRange((int)MinDataSize, (int)MaxDataSize);
-			}
-		}
+		public InclusiveRange DataSize => new InclusiveRange((int)MinDataSize, (int)MaxDataSize);
 
-		/// <summary>
+	    /// <summary>
 		/// Gets a Type object which represents the CLR version
 		/// of this column data type.
 		/// </summary>
@@ -640,7 +634,7 @@
 					return MaxDataSize;
 				}
 
-				ushort minLength = Length;
+				var minLength = Length;
 				if (IsVariableLength)
 				{
 					return 2;
@@ -657,7 +651,7 @@
 		{
 			get
 			{
-				ushort maxLength = Length;
+				var maxLength = Length;
 				if (DataType == TableColumnDataType.NChar ||
 					DataType == TableColumnDataType.NVarChar)
 				{
@@ -694,10 +688,10 @@
 				case TableColumnDataType.Timestamp:
 					return MaxDataSize;
 				case TableColumnDataType.VarChar:
-					string strVarValue = (string)value;
+					var strVarValue = (string)value;
 					return 2 + strVarValue.Length;
 				case TableColumnDataType.NVarChar:
-					string strNVarValue = (string)value;
+					var strNVarValue = (string)value;
 					return 2 + (strNVarValue.Length * 2);
 				default:
 					throw new InvalidOperationException("Unknown column type specified.");
@@ -879,22 +873,11 @@
 		#endregion
 
 		#region Protected Properties
-		protected override BufferField FirstField
-		{
-			get
-			{
-				return _id;
-			}
-		}
+		protected override BufferField FirstField => _id;
 
-		protected override BufferField LastField
-		{
-			get
-			{
-				return _incrementValue;
-			}
-		}
-		#endregion
+	    protected override BufferField LastField => _incrementValue;
+
+	    #endregion
 
 		#region Private Methods
 		private void SetLengthInternal(ushort newLength)
@@ -1045,9 +1028,9 @@
 					else
 					{
 						byte[] lhs = (byte[])x, rhs = (byte[])y;
-						for (int index = 0; index < Math.Min(lhs.Length, rhs.Length); ++index)
+						for (var index = 0; index < Math.Min(lhs.Length, rhs.Length); ++index)
 						{
-							int comp = lhs[index].CompareTo(rhs[index]);
+							var comp = lhs[index].CompareTo(rhs[index]);
 							if (comp != 0)
 							{
 								return comp;
@@ -1078,9 +1061,9 @@
 					else
 					{
 						char[] lhs = (char[])x, rhs = (char[])y;
-						for (int index = 0; index < Math.Min(lhs.Length, rhs.Length); ++index)
+						for (var index = 0; index < Math.Min(lhs.Length, rhs.Length); ++index)
 						{
-							int comp = lhs[index].CompareTo(rhs[index]);
+							var comp = lhs[index].CompareTo(rhs[index]);
 							if (comp != 0)
 							{
 								return comp;

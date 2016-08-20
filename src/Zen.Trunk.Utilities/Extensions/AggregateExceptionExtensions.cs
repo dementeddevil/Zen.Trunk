@@ -49,11 +49,11 @@ namespace System
             foreach(var inner in aggregateException.InnerExceptions)
             {
                 // If the inner exception is itself an aggregate, process recursively
-                AggregateException innerAsAggregate = inner as AggregateException;
+                var innerAsAggregate = inner as AggregateException;
                 if (innerAsAggregate != null)
                 {
                     // Process recursively, and if we get back a new aggregate, store it
-                    AggregateException newChildAggregate = HandleRecursively(innerAsAggregate, predicate);
+                    var newChildAggregate = HandleRecursively(innerAsAggregate, predicate);
                     if (newChildAggregate != null)
                     {
                         if (innerExceptions != null) innerExceptions = new List<Exception>();

@@ -10,9 +10,9 @@ namespace Zen.Trunk.Storage.Locking
 		#region Private Fields
 		private int maxFreeLocks = 100;
 		//private SpinLockClass syncLocks = new SpinLockClass();
-		private ConcurrentDictionary<string, RLock> _activeLocks =
+		private readonly ConcurrentDictionary<string, RLock> _activeLocks =
 			new ConcurrentDictionary<string, RLock>();
-		private ObjectPool<RLock> _freeLocks =
+		private readonly ObjectPool<RLock> _freeLocks =
 			new ObjectPool<RLock>(
 				() =>
 				{
@@ -39,7 +39,7 @@ namespace Zen.Trunk.Storage.Locking
 		/// </remarks>
 		public void LockResource(string resource, TimeSpan timeout, bool writable)
 		{
-			RLock lockObject = _activeLocks.GetOrAdd(
+			var lockObject = _activeLocks.GetOrAdd(
 				resource, (key) => _freeLocks.GetObject());
 
 			// Attempt to lock object
@@ -81,21 +81,11 @@ namespace Zen.Trunk.Storage.Locking
 				Interlocked.Exchange(ref maxFreeLocks, value);
 			}
 		}
-		int ILockHandler.ActiveLockCount
-		{
-			get
-			{
-				return _activeLocks.Count;
-			}
-		}
-		int ILockHandler.FreeLockCount
-		{
-			get
-			{
-				return _freeLocks.Count;
-			}
-		}
-		void ILockHandler.PopulateFreeLockPool(int maxLocks)
+		int ILockHandler.ActiveLockCount => _activeLocks.Count;
+
+	    int ILockHandler.FreeLockCount => _freeLocks.Count;
+
+	    void ILockHandler.PopulateFreeLockPool(int maxLocks)
 		{
 			while ((_freeLocks.Count < maxFreeLocks) && (maxLocks > 0))
 			{

@@ -25,7 +25,7 @@ namespace Zen.Trunk.Storage.Data
 		#region Private Fields
 		private GlobalLockManager _globalLockManager;
 		private int _nextDatabaseId = 0;
-		private Dictionary<string, DatabaseDevice> _userDatabases =
+		private readonly Dictionary<string, DatabaseDevice> _userDatabases =
 			new Dictionary<string, DatabaseDevice>();
 		private bool _hasAttachedMaster;
 		private IVirtualBufferFactory _bufferFactory;
@@ -58,20 +58,15 @@ namespace Zen.Trunk.Storage.Data
 		/// Gets the primary file group id.
 		/// </summary>
 		/// <value>The primary file group id.</value>
-		protected override byte PrimaryFileGroupId
-		{
-			get
-			{
-				return FileGroupDevice.Master;
-			}
-		}
-		#endregion
+		protected override byte PrimaryFileGroupId => FileGroupDevice.Master;
+
+	    #endregion
 
 		#region Public Methods
 		public async Task AttachDatabase(AttachDatabaseParameters request)
 		{
 			// Determine whether we are attaching the master database
-			bool mountingMaster = false;
+			var mountingMaster = false;
 			DatabaseDevice device;
 			if (!_hasAttachedMaster)
 			{
@@ -92,7 +87,7 @@ namespace Zen.Trunk.Storage.Data
 
 				// Create new database device
 				// NOTE: This object is the parent service provider
-				ushort dbId = (ushort)Interlocked.Increment(ref _nextDatabaseId);
+				var dbId = (ushort)Interlocked.Increment(ref _nextDatabaseId);
 				device = new DatabaseDevice(dbId, this);
 			}
 
@@ -109,15 +104,15 @@ namespace Zen.Trunk.Storage.Data
 			//	needed for the device (in create scenarios only)
 			uint pageSize;
 			{
-				DataPage page = new DataPage();
+				var page = new DataPage();
 				pageSize = page.PageSize;
 			}
 
 			// Walk the list of file-groups
-			string primaryName = string.Empty;
-			string primaryFileName = string.Empty;
-			bool mountingPrimary = true;
-			bool needToCreateMasterFilegroup = mountingMaster;
+			var primaryName = string.Empty;
+			var primaryFileName = string.Empty;
+			var mountingPrimary = true;
+			var needToCreateMasterFilegroup = mountingMaster;
 			foreach (var fileGroup in request.FileGroups)
 			{
 				ushort deviceId = 1;
@@ -159,7 +154,7 @@ namespace Zen.Trunk.Storage.Data
 			// Walk the list of log files
 			foreach (var file in request.LogFiles)
 			{
-				uint pageCount = (uint)(file.Size / pageSize);
+				var pageCount = (uint)(file.Size / pageSize);
 
 				var deviceParams =
 					new AddLogDeviceParameters(file.Name, file.FileName, pageCount);
@@ -180,7 +175,7 @@ namespace Zen.Trunk.Storage.Data
 				//TrunkTransactionContext.BeginTransaction(this, TimeSpan.FromMinutes(1));
 
 				// Load the master database primary file-group root page
-				MasterDatabasePrimaryFileGroupRootPage masterRootPage =
+				var masterRootPage =
 					new MasterDatabasePrimaryFileGroupRootPage();
 				masterRootPage.RootLock = Locking.RootLockType.Shared;
 
@@ -209,7 +204,7 @@ namespace Zen.Trunk.Storage.Data
 		public Task DetachDatabase(string name)
 		{
 			// Check for reserved database names
-			foreach (string reserved in ReservedDatabaseNames)
+			foreach (var reserved in ReservedDatabaseNames)
 			{
 				if (string.Equals(reserved, name))
 				{
@@ -243,7 +238,7 @@ namespace Zen.Trunk.Storage.Data
 		public Task ChangeDatabaseStatus(ChangeDatabaseStatusParameters request)
 		{
 			// Check for reserved database names
-			foreach (string reserved in ReservedDatabaseNames)
+			foreach (var reserved in ReservedDatabaseNames)
 			{
 				if (string.Equals(reserved, request.Name))
 				{
@@ -320,7 +315,7 @@ namespace Zen.Trunk.Storage.Data
 			if (!IsCreate)
 			{
 				// Load the master database primary file-group root page
-				MasterDatabasePrimaryFileGroupRootPage masterRootPage =
+				var masterRootPage =
 					new MasterDatabasePrimaryFileGroupRootPage();
 				masterRootPage.RootLock = Locking.RootLockType.Shared;
 
@@ -335,7 +330,7 @@ namespace Zen.Trunk.Storage.Data
 					.Where((item) => item.IsOnline))
 				{
 					// Create attach request and post - no need to wait...
-					AttachDatabaseParameters attach =
+					var attach =
 						new AttachDatabaseParameters
 						{
 							Name = deviceInfo.Name,
@@ -361,8 +356,8 @@ namespace Zen.Trunk.Storage.Data
 		{
 			// TODO: Make sure we close TEMPDB last
 			// Close user databases first
-			List<Task> subTasks = new List<Task>();
-			foreach (DatabaseDevice device in _userDatabases.Values)
+			var subTasks = new List<Task>();
+			foreach (var device in _userDatabases.Values)
 			{
 				subTasks.Add(device.CloseAsync());
 			}
@@ -395,9 +390,9 @@ namespace Zen.Trunk.Storage.Data
 
 	public class AttachDatabaseParameters
 	{
-		private IList<Tuple<string, IList<FileSpec>>> _fileGroups =
+		private readonly IList<Tuple<string, IList<FileSpec>>> _fileGroups =
 			new List<Tuple<string, IList<FileSpec>>>();
-		private IList<FileSpec> _logFiles =
+		private readonly IList<FileSpec> _logFiles =
 			new List<FileSpec>();
 
 		public string Name
@@ -421,25 +416,13 @@ namespace Zen.Trunk.Storage.Data
 			}
 		}
 
-		public IEnumerable<Tuple<string, IList<FileSpec>>> FileGroups
-		{
-			get
-			{
-				return _fileGroups;
-			}
-		}
+		public IEnumerable<Tuple<string, IList<FileSpec>>> FileGroups => _fileGroups;
 
-		public IEnumerable<FileSpec> LogFiles
-		{
-			get
-			{
-				return _logFiles;
-			}
-		}
+	    public IEnumerable<FileSpec> LogFiles => _logFiles;
 
-		public void AddDataFile(string fileGroup, FileSpec file)
+	    public void AddDataFile(string fileGroup, FileSpec file)
 		{
-			IList<FileSpec> files = _fileGroups
+			var files = _fileGroups
 				.Where((item) => item.Item1.Equals(fileGroup, StringComparison.OrdinalIgnoreCase))
 				.Select((item) => item.Item2)
 				.FirstOrDefault();

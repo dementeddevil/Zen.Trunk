@@ -8,7 +8,7 @@ namespace Zen.Trunk.Storage
 
 	public class BufferFieldChangingEventArgs : EventArgs
 	{
-		private object _oldValue;
+		private readonly object _oldValue;
 		private object _newValue;
 		private bool _cancel;
 
@@ -18,15 +18,9 @@ namespace Zen.Trunk.Storage
 			_newValue = newValue;
 		}
 
-		public object OldValue
-		{
-			get
-			{
-				return _oldValue;
-			}
-		}
+		public object OldValue => _oldValue;
 
-		public object NewValue
+	    public object NewValue
 		{
 			get
 			{
@@ -98,15 +92,9 @@ namespace Zen.Trunk.Storage
 		/// Gets a value indicating whether this instance is writeable.
 		/// </summary>
 		/// <value><c>true</c> if this instance is writeable; otherwise, <c>false</c>.</value>
-		public bool IsWriteable
-		{
-			get
-			{
-				return _isWriteable;
-			}
-		}
+		public bool IsWriteable => _isWriteable;
 
-		/// <summary>
+	    /// <summary>
 		/// Gets the size of a single element of this field
 		/// </summary>
 		/// <value>The size of the data.</value>
@@ -123,15 +111,9 @@ namespace Zen.Trunk.Storage
 		/// By default this property returns 1.
 		/// </remarks>
 		[CLSCompliant(false)]
-		public virtual ushort MaxElements
-		{
-			get
-			{
-				return 1;
-			}
-		}
+		public virtual ushort MaxElements => 1;
 
-		/// <summary>
+	    /// <summary>
 		/// Gets the maximum length of this field.
 		/// </summary>
 		/// <value>The length of the field.</value>
@@ -139,26 +121,15 @@ namespace Zen.Trunk.Storage
 		/// By default this is the <see cref="P:DataSize"/> value multiplied
 		/// by the <see cref="P:MaxElements"/> value.
 		/// </remarks>
-		public virtual int FieldLength
-		{
-			get
-			{
-				return (DataSize * MaxElements);
-			}
-		}
+		public virtual int FieldLength => (DataSize * MaxElements);
 
-		/// <summary>
+	    /// <summary>
 		/// Gets the next field.
 		/// </summary>
 		/// <value>The next <see cref="T:BufferField"/> field object.</value>
-		public BufferField NextField
-		{
-			get
-			{
-				return _next;
-			}
-		}
-		#endregion
+		public BufferField NextField => _next;
+
+	    #endregion
 
 		#region Public Methods
 		/// <summary>
@@ -324,7 +295,7 @@ namespace Zen.Trunk.Storage
 				if (!_gotTotalLength)
 				{
 					_totalLength = 0;
-					BufferField field = FirstField;
+					var field = FirstField;
 					while (field != null)
 					{
 						_totalLength += field.FieldLength;
@@ -342,26 +313,15 @@ namespace Zen.Trunk.Storage
 		/// Gets the first buffer field object.
 		/// </summary>
 		/// <value>A <see cref="T:BufferField"/> object.</value>
-		protected virtual BufferField FirstField
-		{
-			get
-			{
-				return null;
-			}
-		}
+		protected virtual BufferField FirstField => null;
 
-		/// <summary>
+	    /// <summary>
 		/// Gets the last buffer field object.
 		/// </summary>
 		/// <value>A <see cref="T:BufferField"/> object.</value>
-		protected virtual BufferField LastField
-		{
-			get
-			{
-				return null;
-			}
-		}
-		#endregion
+		protected virtual BufferField LastField => null;
+
+	    #endregion
 
 		#region Protected Methods
 		/// <summary>
@@ -433,7 +393,7 @@ namespace Zen.Trunk.Storage
 				if ((_value == null && value != null) ||
 					(_value != null && !_value.Equals(value)))
 				{
-					BufferFieldChangingEventArgs e =
+					var e =
 						new BufferFieldChangingEventArgs(_value, value);
 					if (OnValueChanging(e))
 					{
@@ -452,7 +412,7 @@ namespace Zen.Trunk.Storage
 	[CLSCompliant(false)]
 	public abstract class ArrayBufferField<T> : SimpleBufferField<T>
 	{
-		private ushort _maxElements;
+		private readonly ushort _maxElements;
 
 		public ArrayBufferField(ushort maxElements)
 		{
@@ -477,13 +437,7 @@ namespace Zen.Trunk.Storage
 			_maxElements = maxElements;
 		}
 
-		public override ushort MaxElements
-		{
-			get
-			{
-				return _maxElements;
-			}
-		}
+		public override ushort MaxElements => _maxElements;
 	}
 
 	/// <summary>
@@ -513,13 +467,7 @@ namespace Zen.Trunk.Storage
 		{
 		}
 
-		public override int FieldLength
-		{
-			get
-			{
-				return base.FieldLength + 2;
-			}
-		}
+		public override int FieldLength => base.FieldLength + 2;
 	}
 
 	public class BufferFieldByte : SimpleBufferField<byte>
@@ -544,14 +492,9 @@ namespace Zen.Trunk.Storage
 		}
 
 		#region Public Properties
-		public override int DataSize
-		{
-			get
-			{
-				return 1;
-			}
-		}
-		#endregion
+		public override int DataSize => 1;
+
+	    #endregion
 
 		protected override void OnRead(BufferReaderWriter streamManager)
 		{
@@ -601,26 +544,15 @@ namespace Zen.Trunk.Storage
 			}
 		}
 
-		public override int DataSize
-		{
-			get
-			{
-				return 1;
-			}
-		}
+		public override int DataSize => 1;
 
-		public override int FieldLength
-		{
-			get
-			{
-				return base.FieldLength + 1;
-			}
-		}
-		#endregion
+	    public override int FieldLength => base.FieldLength + 1;
+
+	    #endregion
 
 		protected override bool OnValueChanging(BufferFieldChangingEventArgs e)
 		{
-			byte[] data = (byte[])e.NewValue;
+			var data = (byte[])e.NewValue;
 			if (data != null && data.Length > 255)
 			{
 				throw new InvalidOperationException("Array too long (255 elem max).");
@@ -629,7 +561,7 @@ namespace Zen.Trunk.Storage
 		}
 		protected override void OnRead(BufferReaderWriter streamManager)
 		{
-			byte length = streamManager.ReadByte();
+			var length = streamManager.ReadByte();
 			if (length > 0)
 			{
 				Value = streamManager.ReadBytes((int)length);
@@ -675,14 +607,9 @@ namespace Zen.Trunk.Storage
 		#endregion
 
 		#region Public Properties
-		public override int DataSize
-		{
-			get
-			{
-				return 2;
-			}
-		}
-		#endregion
+		public override int DataSize => 2;
+
+	    #endregion
 
 		protected override void OnRead(BufferReaderWriter streamManager)
 		{
@@ -718,14 +645,9 @@ namespace Zen.Trunk.Storage
 		}
 
 		#region Public Properties
-		public override int DataSize
-		{
-			get
-			{
-				return 4;
-			}
-		}
-		#endregion
+		public override int DataSize => 4;
+
+	    #endregion
 
 		protected override void OnRead(BufferReaderWriter streamManager)
 		{
@@ -761,14 +683,9 @@ namespace Zen.Trunk.Storage
 		}
 
 		#region Public Properties
-		public override int DataSize
-		{
-			get
-			{
-				return 8;
-			}
-		}
-		#endregion
+		public override int DataSize => 8;
+
+	    #endregion
 
 		protected override void OnRead(BufferReaderWriter streamManager)
 		{
@@ -803,14 +720,9 @@ namespace Zen.Trunk.Storage
 		}
 
 		#region Public Properties
-		public override int DataSize
-		{
-			get
-			{
-				return 2;
-			}
-		}
-		#endregion
+		public override int DataSize => 2;
+
+	    #endregion
 
 		protected override void OnRead(BufferReaderWriter streamManager)
 		{
@@ -845,14 +757,9 @@ namespace Zen.Trunk.Storage
 		}
 
 		#region Public Properties
-		public override int DataSize
-		{
-			get
-			{
-				return 4;
-			}
-		}
-		#endregion
+		public override int DataSize => 4;
+
+	    #endregion
 
 		protected override void OnRead(BufferReaderWriter streamManager)
 		{
@@ -887,14 +794,9 @@ namespace Zen.Trunk.Storage
 		}
 
 		#region Public Properties
-		public override int DataSize
-		{
-			get
-			{
-				return 8;
-			}
-		}
-		#endregion
+		public override int DataSize => 8;
+
+	    #endregion
 
 		protected override void OnRead(BufferReaderWriter streamManager)
 		{
@@ -928,15 +830,9 @@ namespace Zen.Trunk.Storage
 		{
 		}
 
-		public override int DataSize
-		{
-			get
-			{
-				return 4;
-			}
-		}
+		public override int DataSize => 4;
 
-		protected override void OnRead(BufferReaderWriter streamManager)
+	    protected override void OnRead(BufferReaderWriter streamManager)
 		{
 			Value = streamManager.ReadSingle();
 		}
@@ -968,15 +864,9 @@ namespace Zen.Trunk.Storage
 		{
 		}
 
-		public override int DataSize
-		{
-			get
-			{
-				return 8;
-			}
-		}
+		public override int DataSize => 8;
 
-		protected override void OnRead(BufferReaderWriter streamManager)
+	    protected override void OnRead(BufferReaderWriter streamManager)
 		{
 			Value = streamManager.ReadDouble();
 		}
@@ -1016,7 +906,7 @@ namespace Zen.Trunk.Storage
 			{
 				throw new ArgumentOutOfRangeException("Index out of range (0-7)");
 			}
-			byte mask = (byte)(1 << index);
+			var mask = (byte)(1 << index);
 			return (Value & mask) != 0;
 		}
 
@@ -1026,7 +916,7 @@ namespace Zen.Trunk.Storage
 			{
 				throw new ArgumentOutOfRangeException("Index out of range (0-7)");
 			}
-			byte mask = (byte)(1 << index);
+			var mask = (byte)(1 << index);
 			if (on)
 			{
 				Value |= mask;
@@ -1062,14 +952,9 @@ namespace Zen.Trunk.Storage
 		}
 
 		#region Public Properties
-		public override int DataSize
-		{
-			get
-			{
-				return 4;
-			}
-		}
-		#endregion
+		public override int DataSize => 4;
+
+	    #endregion
 
 		[CLSCompliant(false)]
 		public bool GetBit(BitVector32.Section section, uint mask)
@@ -1080,7 +965,7 @@ namespace Zen.Trunk.Storage
 		[CLSCompliant(false)]
 		public void SetBit(BitVector32.Section section, uint mask, bool on)
 		{
-			BitVector32 vector = Value;
+			var vector = Value;
 			if (on)
 			{
 				vector[section] |= (ushort)mask;
@@ -1093,7 +978,7 @@ namespace Zen.Trunk.Storage
 
 		public void SetValue(BitVector32.Section section, int value)
 		{
-			BitVector32 vector = Value;
+			var vector = Value;
 			vector[section] = value;
 		}
 
@@ -1129,15 +1014,9 @@ namespace Zen.Trunk.Storage
 		}
 
 		#region Public Properties
-		public override int DataSize
-		{
-			get
-			{
-				return _useUnicode ? 2 : 1;
-			}
-		}
+		public override int DataSize => _useUnicode ? 2 : 1;
 
-		public bool UseUnicode
+	    public bool UseUnicode
 		{
 			get
 			{
@@ -1153,7 +1032,7 @@ namespace Zen.Trunk.Storage
 		#region Protected Methods
 		protected override bool OnValueChanging(BufferFieldChangingEventArgs e)
 		{
-			string value = (string)e.NewValue;
+			var value = (string)e.NewValue;
 			if (value != null && value.Length > MaxElements)
 			{
 				e.NewValue = value.Substring(0, MaxElements);
@@ -1201,15 +1080,9 @@ namespace Zen.Trunk.Storage
 		}
 
 		#region Public Properties
-		public override int DataSize
-		{
-			get
-			{
-				return _useUnicode ? 2 : 1;
-			}
-		}
+		public override int DataSize => _useUnicode ? 2 : 1;
 
-		public bool UseUnicode
+	    public bool UseUnicode
 		{
 			get
 			{
@@ -1221,14 +1094,9 @@ namespace Zen.Trunk.Storage
 			}
 		}
 
-		public override int FieldLength
-		{
-			get
-			{
-				return base.FieldLength + 2;
-			}
-		}
-		#endregion
+		public override int FieldLength => base.FieldLength + 2;
+
+	    #endregion
 
 		protected override void OnRead(BufferReaderWriter streamManager)
 		{
@@ -1282,7 +1150,7 @@ namespace Zen.Trunk.Storage
 		#region Internal Methods
 		internal void ReadFrom(VirtualBuffer buffer, uint offset)
 		{
-			using (Stream stream = buffer.GetBufferStream((int)offset, (int)TotalFieldLength, true))
+			using (var stream = buffer.GetBufferStream((int)offset, (int)TotalFieldLength, true))
 			{
 				ReadFrom(stream);
 			}
@@ -1290,7 +1158,7 @@ namespace Zen.Trunk.Storage
 
 		internal void ReadFrom(Stream stream)
 		{
-			using (BufferReaderWriter streamManager = new BufferReaderWriter(stream))
+			using (var streamManager = new BufferReaderWriter(stream))
 			{
 				Read(streamManager);
 			}
@@ -1321,14 +1189,9 @@ namespace Zen.Trunk.Storage
 		}
 
 		#region Public Properties
-		public override int DataSize
-		{
-			get
-			{
-				return 4;
-			}
-		}
-		#endregion
+		public override int DataSize => 4;
+
+	    #endregion
 
 		protected override void OnRead(BufferReaderWriter streamManager)
 		{

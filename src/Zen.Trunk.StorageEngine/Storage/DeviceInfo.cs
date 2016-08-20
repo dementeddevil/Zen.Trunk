@@ -11,9 +11,9 @@ namespace Zen.Trunk.Storage
 	public class DeviceInfo : BufferFieldWrapper
 	{
 		#region Private Fields
-		private BufferFieldUInt16 _id;
-		private BufferFieldStringFixed _name;
-		private BufferFieldStringFixed _pathName;
+		private readonly BufferFieldUInt16 _id;
+		private readonly BufferFieldStringFixed _name;
+		private readonly BufferFieldStringFixed _pathName;
 		#endregion
 
 		#region Public Constructors
@@ -94,22 +94,11 @@ namespace Zen.Trunk.Storage
 		#endregion
 
 		#region Protected Properties
-		protected override BufferField FirstField
-		{
-			get
-			{
-				return _id;
-			}
-		}
+		protected override BufferField FirstField => _id;
 
-		protected override BufferField LastField
-		{
-			get
-			{
-				return _pathName;
-			}
-		}
-		#endregion
+	    protected override BufferField LastField => _pathName;
+
+	    #endregion
 
 		#region Protected Methods
 		#endregion

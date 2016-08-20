@@ -99,7 +99,7 @@ namespace System.Threading.Tasks.Schedulers
         /// <returns>An enumerable of the tasks currently queued to the scheduler.</returns>
         protected override IEnumerable<Task> GetScheduledTasks()
         {
-            bool lockTaken = false;
+            var lockTaken = false;
             try
             {
                 Monitor.TryEnter(_tasks, ref lockTaken);

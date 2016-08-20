@@ -6,9 +6,9 @@ namespace Zen.Trunk.Storage.Locking
 	public class RLock
 	{
 		#region Private Fields
-		private object readLock = new object();
+		private readonly object readLock = new object();
 		private int readCount = 0;
-		private object writeLock = new object();
+		private readonly object writeLock = new object();
 		private int lockCount = 0;
 		#endregion
 
@@ -19,14 +19,9 @@ namespace Zen.Trunk.Storage.Locking
 		#endregion
 
 		#region Public Properties
-		public int LockCount
-		{
-			get
-			{
-				return lockCount;
-			}
-		}
-		#endregion
+		public int LockCount => lockCount;
+
+	    #endregion
 
 		#region Public Methods
 		public void Lock(TimeSpan timeout, bool writable)
@@ -34,7 +29,7 @@ namespace Zen.Trunk.Storage.Locking
 			Interlocked.Increment(ref lockCount);
 			try
 			{
-				DateTime start = DateTime.Now;
+				var start = DateTime.Now;
 				if (!writable)
 				{
 					// If we can lock read then we are in

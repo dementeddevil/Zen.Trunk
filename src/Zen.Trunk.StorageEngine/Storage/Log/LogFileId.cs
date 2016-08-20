@@ -76,10 +76,10 @@ namespace Zen.Trunk.Storage.Log
 		/// <returns></returns>
 		public override bool Equals (object obj)
 		{
-			bool equal = false;
+			var equal = false;
 			if (obj is LogFileId)
 			{
-				LogFileId rhs = (LogFileId) obj;
+				var rhs = (LogFileId) obj;
 				if (DeviceId == rhs.DeviceId &&
 					Index == rhs.Index)
 				{
@@ -111,7 +111,7 @@ namespace Zen.Trunk.Storage.Log
 		/// </returns>
 		public virtual int CompareTo (LogFileId obj)
 		{
-			int order = DeviceId.CompareTo (obj.DeviceId);
+			var order = DeviceId.CompareTo (obj.DeviceId);
 			if (order == 0)
 			{
 				order = Index.CompareTo (obj.Index);
@@ -121,7 +121,7 @@ namespace Zen.Trunk.Storage.Log
 
 		public static bool operator == (LogFileId left, LogFileId right)
 		{
-			bool equal = false;
+			var equal = false;
 			if (left.DeviceId == right.DeviceId &&
 				left.Index == right.Index)
 			{
@@ -131,7 +131,7 @@ namespace Zen.Trunk.Storage.Log
 		}
 		public static bool operator != (LogFileId left, LogFileId right)
 		{
-			bool notEqual = false;
+			var notEqual = false;
 			if (left.DeviceId != right.DeviceId ||
 				left.Index != right.Index)
 			{
@@ -144,7 +144,7 @@ namespace Zen.Trunk.Storage.Log
 		#region IComparable Members
 		int IComparable.CompareTo (object obj)
 		{
-			int order = -1;
+			var order = -1;
 			if (obj is LogFileId)
 			{
 				order = ((LogFileId) this).CompareTo ((LogFileId) obj);

@@ -93,7 +93,7 @@ namespace System.Collections.Concurrent.Partitioners
             {
                 if (prev < minChunkSize) return minChunkSize;
                 if (prev >= maxChunkSize) return maxChunkSize;
-                int next = prev * 2;
+                var next = prev * 2;
                 if (next >= maxChunkSize || next < 0) return maxChunkSize;
                 return next;
             };
@@ -112,7 +112,7 @@ namespace System.Collections.Concurrent.Partitioners
             // Create an array of dynamic partitions and return them
             var partitions = new IEnumerator<KeyValuePair<long, T>>[partitionCount];
             var dynamicPartitions = GetOrderableDynamicPartitions(true); 
-            for (int i = 0; i < partitionCount; i++)
+            for (var i = 0; i < partitionCount; i++)
             {
                 partitions[i] = dynamicPartitions.GetEnumerator(); // Create and store the next partition
             }
@@ -120,7 +120,7 @@ namespace System.Collections.Concurrent.Partitioners
         }
 
         /// <summary>Gets whether additional partitions can be created dynamically.</summary>
-        public override bool SupportsDynamicPartitions { get { return true; } }
+        public override bool SupportsDynamicPartitions => true;
 
         /// <summary>
         /// Creates an object that can partition the underlying collection into a variable number of
@@ -149,7 +149,7 @@ namespace System.Collections.Concurrent.Partitioners
             private int _activeEnumerators;
             private bool _noMoreElements;
             private bool _disposed;
-            private bool _referenceCountForDisposal;
+            private readonly bool _referenceCountForDisposal;
 
             public EnumerableOfEnumerators(ChunkPartitioner<T> parentPartitioner, bool referenceCountForDisposal)
             {
@@ -186,8 +186,8 @@ namespace System.Collections.Concurrent.Partitioners
 
             private class Enumerator : IEnumerator<KeyValuePair<long, T>>
             {
-                private EnumerableOfEnumerators _parentEnumerable;
-                private List<KeyValuePair<long, T>> _currentChunk = new List<KeyValuePair<long, T>>();
+                private readonly EnumerableOfEnumerators _parentEnumerable;
+                private readonly List<KeyValuePair<long, T>> _currentChunk = new List<KeyValuePair<long, T>>();
                 private int _currentChunkCurrentIndex;
                 private int _lastRequestedChunkSize;
                 private bool _disposed;
@@ -212,7 +212,7 @@ namespace System.Collections.Concurrent.Partitioners
                     // as input to figure out how much data the user now wants.  The initial chunk size
                     // supplied is 0 so that the user delegate is made aware that this is the initial request
                     // such that it can select the initial chunk size on first request.
-                    int nextChunkSize = _parentEnumerable._parentPartitioner._nextChunkSizeFunc(_lastRequestedChunkSize);
+                    var nextChunkSize = _parentEnumerable._parentPartitioner._nextChunkSizeFunc(_lastRequestedChunkSize);
                     if (nextChunkSize <= 0) throw new InvalidOperationException(
                         "Invalid chunk size requested: chunk sizes must be positive.");
                     _lastRequestedChunkSize = nextChunkSize;
@@ -230,7 +230,7 @@ namespace System.Collections.Concurrent.Partitioners
                         if (_parentEnumerable._noMoreElements) return false;
 
                         // Get another chunk
-                        for (int i = 0; i < nextChunkSize; i++)
+                        for (var i = 0; i < nextChunkSize; i++)
                         {
                             // If there are no more elements to be retrieved from the shared enumerator, mark
                             // that so that other partitions don't have to check again. Return whether we
@@ -273,7 +273,7 @@ namespace System.Collections.Concurrent.Partitioners
                     }
                 }
 
-                object IEnumerator.Current { get { return Current; } }
+                object IEnumerator.Current => Current;
                 public void Reset() { throw new NotSupportedException(); }
             }
 

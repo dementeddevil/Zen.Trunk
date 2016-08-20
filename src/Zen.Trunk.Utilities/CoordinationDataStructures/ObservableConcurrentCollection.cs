@@ -71,7 +71,7 @@ namespace System.Collections.Concurrent
         {
             // Try to add the item to the underlying collection.  If we were able to,
             // notify any listeners.
-            bool result = base.TryAdd(item);
+            var result = base.TryAdd(item);
             if (result) NotifyObserversOfChange();
             return result;
         }
@@ -81,7 +81,7 @@ namespace System.Collections.Concurrent
         {
             // Try to remove an item from the underlying collection.  If we were able to,
             // notify any listeners.
-            bool result = base.TryTake(out item);
+            var result = base.TryTake(out item);
             if (result) NotifyObserversOfChange();
             return result;
         }

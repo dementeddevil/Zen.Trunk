@@ -9,9 +9,9 @@
 	public abstract class TransactionLockBase
 	{
 #if TRACE
-		private static ITracer tracer = TS.CreateTransactionLockTracer("TransactionLock");
+		private static readonly ITracer tracer = TS.CreateTransactionLockTracer("TransactionLock");
 		private static int nextTransactionLockId = 0;
-		private int transactionLockId;
+		private readonly int transactionLockId;
 #endif
 
 		protected TransactionLockBase()
@@ -29,7 +29,7 @@
 		protected void TraceError(string format, params object[] args)
 		{
 #if TRACE
-			string prefix = "[" + GetTracePrefix() + "] ";
+			var prefix = "[" + GetTracePrefix() + "] ";
 			tracer.WriteErrorLine(prefix + format, args);
 #endif
 		}
@@ -37,7 +37,7 @@
 		protected void TraceWarning(string format, params object[] args)
 		{
 #if TRACE
-			string prefix = "[" + GetTracePrefix() + "] ";
+			var prefix = "[" + GetTracePrefix() + "] ";
 			tracer.WriteWarningLine(prefix + format, args);
 #endif
 		}
@@ -45,7 +45,7 @@
 		protected void TraceInformation(string format, params object[] args)
 		{
 #if TRACE
-			string prefix = "[" + GetTracePrefix() + "] ";
+			var prefix = "[" + GetTracePrefix() + "] ";
 			tracer.WriteInfoLine(prefix + format, args);
 #endif
 		}
@@ -53,7 +53,7 @@
 		protected void TraceVerbose(string format, params object[] args)
 		{
 #if TRACE
-			string prefix = "[" + GetTracePrefix() + "] ";
+			var prefix = "[" + GetTracePrefix() + "] ";
 			tracer.WriteVerboseLine(prefix + format, args);
 #endif
 		}

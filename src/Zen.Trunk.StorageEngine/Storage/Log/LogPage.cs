@@ -19,58 +19,22 @@ namespace Zen.Trunk.Storage.Log
 		/// <summary>
 		/// Overridden. Gets the header size - 128 bytes
 		/// </summary>
-		public override uint HeaderSize
-		{
-			get
-			{
-				return 128;
-			}
-		}
+		public override uint HeaderSize => 128;
 
-		/// <summary>
+	    /// <summary>
 		/// Overridden. Gets the page size - 128kbytes
 		/// </summary>
-		public override uint PageSize
-		{
-			get
-			{
-				return (128 * 1024);
-			}
-		}
+		public override uint PageSize => (128 * 1024);
 
-		public uint ExtentPages
-		{
-			get
-			{
-				return 4;
-			}
-		}
+	    public uint ExtentPages => 4;
 
-		public uint AllocationPages
-		{
-			get
-			{
-				return 4;
-			}
-		}
+	    public uint AllocationPages => 4;
 
-		public uint ExtentSize
-		{
-			get
-			{
-				return ExtentPages * PageSize;
-			}
-		}
+	    public uint ExtentSize => ExtentPages * PageSize;
 
-		public uint AllocationSize
-		{
-			get
-			{
-				return AllocationPages * PageSize;
-			}
-		}
+	    public uint AllocationSize => AllocationPages * PageSize;
 
-		public override bool IsNewPage
+	    public override bool IsNewPage
 		{
 			get
 			{

@@ -7,7 +7,7 @@ namespace Zen.Trunk.Storage
 	/// Simple value type which represents a Device Page Identifier.
 	/// </summary>
 	[Serializable]
-	public struct DevicePageId : IComparable, ICloneable
+	public struct VirtualPageId : IComparable, ICloneable
 	{
 		#region Private Fields
 		/// <summary>
@@ -23,33 +23,33 @@ namespace Zen.Trunk.Storage
 
 		#region Public Constructors
 		/// <summary>
-		/// Initializes a new instance of the <see cref="DevicePageId"/> struct.
+		/// Initializes a new instance of the <see cref="VirtualPageId"/> struct.
 		/// </summary>
 		/// <param name="virtualPageId">The virtual page id.</param>
-		public DevicePageId(long virtualPageId)
+		public VirtualPageId(long virtualPageId)
 		{
 			_deviceId = (ushort)((virtualPageId >> 32) & 0xffff);
 			_physicalPageId = (uint)(virtualPageId & 0xffffffff);
 		}
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="DevicePageId"/> struct.
+		/// Initializes a new instance of the <see cref="VirtualPageId"/> struct.
 		/// </summary>
 		/// <param name="virtualPageId">The virtual page id.</param>
 		[CLSCompliant(false)]
-		public DevicePageId(ulong virtualPageId)
+		public VirtualPageId(ulong virtualPageId)
 		{
 			_deviceId = (ushort)((virtualPageId >> 32) & 0xffff);
 			_physicalPageId = (uint)(virtualPageId & 0xffffffff);
 		}
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="DevicePageId"/> struct.
+		/// Initializes a new instance of the <see cref="VirtualPageId"/> struct.
 		/// </summary>
 		/// <param name="deviceId">The device id.</param>
 		/// <param name="physicalPageId">The physical page id.</param>
 		[CLSCompliant(false)]
-		public DevicePageId(ushort deviceId, uint physicalPageId)
+		public VirtualPageId(ushort deviceId, uint physicalPageId)
 		{
 			_deviceId = deviceId;
 			_physicalPageId = physicalPageId;
@@ -97,7 +97,7 @@ namespace Zen.Trunk.Storage
 		/// Gets/sets the virtual page ID.
 		/// </summary>
 		[CLSCompliant(false)]
-		public ulong VirtualPageId
+		public ulong Value
 		{
 			get
 			{
@@ -114,19 +114,13 @@ namespace Zen.Trunk.Storage
 		/// Gets the maximum allowable value for the physical page ID.
 		/// </summary>
 		[CLSCompliant(false)]
-		public static uint MaximumPhysicalPageId
-		{
-			get
-			{
-				return uint.MaxValue;
-			}
-		}
+		public static uint MaximumPhysicalPageId => uint.MaxValue;
 
-		/// <summary>
-		/// Gets a <see cref="T:DevicePageId"/> representing the previous page.
+	    /// <summary>
+		/// Gets a <see cref="T:VirtualPageId"/> representing the previous page.
 		/// </summary>
-		/// <value>A <see cref="T:DevicePageId"/> object.</value>
-		public DevicePageId PreviousPage
+		/// <value>A <see cref="T:VirtualPageId"/> object.</value>
+		public VirtualPageId PreviousPage
 		{
 			get
 			{
@@ -135,15 +129,15 @@ namespace Zen.Trunk.Storage
 					throw new InvalidOperationException("At first device page.");
 				}
 
-				return new DevicePageId(_deviceId, _physicalPageId - 1);
+				return new VirtualPageId(_deviceId, _physicalPageId - 1);
 			}
 		}
 
 		/// <summary>
-		/// Gets a <see cref="T:DevicePageId"/> representing the next page.
+		/// Gets a <see cref="T:VirtualPageId"/> representing the next page.
 		/// </summary>
-		/// <value>A <see cref="T:DevicePageId"/> object.</value>
-		public DevicePageId NextPage
+		/// <value>A <see cref="T:VirtualPageId"/> object.</value>
+		public VirtualPageId NextPage
 		{
 			get
 			{
@@ -152,7 +146,7 @@ namespace Zen.Trunk.Storage
 					throw new InvalidOperationException("At last device page.");
 				}
 
-				return new DevicePageId(_deviceId, _physicalPageId + 1);
+				return new VirtualPageId(_deviceId, _physicalPageId + 1);
 			}
 		}
 		#endregion
@@ -166,7 +160,7 @@ namespace Zen.Trunk.Storage
 		{
 			return string.Format(
 				CultureInfo.InvariantCulture,
-				"DevicePageId{{{0}:{1}}}",
+				"VirtualPageId{{{0}:{1}}}",
 				_deviceId.ToString("X4"),
 				_physicalPageId.ToString("X8"));
 		}
@@ -178,10 +172,10 @@ namespace Zen.Trunk.Storage
 		/// <returns></returns>
 		public override bool Equals(object obj)
 		{
-			bool equal = false;
-			if (obj is DevicePageId)
+			var equal = false;
+			if (obj is VirtualPageId)
 			{
-				DevicePageId rhs = (DevicePageId)obj;
+				var rhs = (VirtualPageId)obj;
 				if (_deviceId == rhs._deviceId &&
 					_physicalPageId == rhs._physicalPageId)
 				{
@@ -198,7 +192,7 @@ namespace Zen.Trunk.Storage
 		public override int GetHashCode()
 		{
 			// Use the virtual page hash code...
-			return VirtualPageId.GetHashCode();
+			return Value.GetHashCode();
 		}
 
 		/// <summary>
@@ -211,9 +205,9 @@ namespace Zen.Trunk.Storage
 		/// <b>=0</b> this object sorts the same as obj.
 		/// <b>&gt;0</b> this object sorts higher than obj.
 		/// </returns>
-		public int CompareTo(DevicePageId obj)
+		public int CompareTo(VirtualPageId obj)
 		{
-			int order = _deviceId.CompareTo(obj._deviceId);
+			var order = _deviceId.CompareTo(obj._deviceId);
 			if (order == 0)
 			{
 				order = _physicalPageId.CompareTo(obj._physicalPageId);
@@ -221,7 +215,7 @@ namespace Zen.Trunk.Storage
 			return order;
 		}
 
-		public static bool operator <(DevicePageId left, DevicePageId right)
+		public static bool operator <(VirtualPageId left, VirtualPageId right)
 		{
 			if (left._deviceId < right._deviceId)
 			{
@@ -234,7 +228,7 @@ namespace Zen.Trunk.Storage
 			return left._physicalPageId < right._physicalPageId;
 		}
 
-		public static bool operator >(DevicePageId left, DevicePageId right)
+		public static bool operator >(VirtualPageId left, VirtualPageId right)
 		{
 			if (left._deviceId > right._deviceId)
 			{
@@ -247,9 +241,9 @@ namespace Zen.Trunk.Storage
 			return left._physicalPageId > right._physicalPageId;
 		}
 
-		public static bool operator ==(DevicePageId left, DevicePageId right)
+		public static bool operator ==(VirtualPageId left, VirtualPageId right)
 		{
-			bool equal = false;
+			var equal = false;
 			if (left._deviceId == right._deviceId &&
 				left._physicalPageId == right._physicalPageId)
 			{
@@ -257,9 +251,9 @@ namespace Zen.Trunk.Storage
 			}
 			return equal;
 		}
-		public static bool operator !=(DevicePageId left, DevicePageId right)
+		public static bool operator !=(VirtualPageId left, VirtualPageId right)
 		{
-			bool notEqual = false;
+			var notEqual = false;
 			if (left._deviceId != right._deviceId ||
 				left._physicalPageId != right._physicalPageId)
 			{
@@ -272,23 +266,23 @@ namespace Zen.Trunk.Storage
 		#region IComparable Members
 		int IComparable.CompareTo(object obj)
 		{
-			int order = -1;
-			if (obj is DevicePageId)
+			var order = -1;
+			if (obj is VirtualPageId)
 			{
-				order = ((DevicePageId)this).CompareTo((DevicePageId)obj);
+				order = ((VirtualPageId)this).CompareTo((VirtualPageId)obj);
 			}
 			return order;
 		}
 		#endregion
 
 		#region ICloneable Members
-		public DevicePageId Clone()
+		public VirtualPageId Clone()
 		{
-			return (DevicePageId)MemberwiseClone();
+			return (VirtualPageId)MemberwiseClone();
 		}
 		object ICloneable.Clone()
 		{
-			return ((DevicePageId)this).Clone();
+			return ((VirtualPageId)this).Clone();
 		}
 		#endregion
 	}

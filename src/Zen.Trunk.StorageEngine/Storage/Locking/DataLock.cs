@@ -46,95 +46,41 @@ namespace Zen.Trunk.Storage.Locking
 		}
 		protected class NoneState : DataLockState
 		{
-			public override DataLockType Lock
-			{
-				get
-				{
-					return DataLockType.None;
-				}
-			}
+			public override DataLockType Lock => DataLockType.None;
 
-			public override DataLockType[] CompatableLocks
-			{
-				get
-				{
-					return new DataLockType[]
-					{
-						DataLockType.Shared,
-						DataLockType.Update,
-						DataLockType.Exclusive,
-					};
-				}
-			}
+		    public override DataLockType[] CompatableLocks => new DataLockType[]
+		    {
+		        DataLockType.Shared,
+		        DataLockType.Update,
+		        DataLockType.Exclusive,
+		    };
 		}
 		protected class SharedState : DataLockState
 		{
-			public override DataLockType Lock
-			{
-				get
-				{
-					return DataLockType.Shared;
-				}
-			}
+			public override DataLockType Lock => DataLockType.Shared;
 
-			public override DataLockType[] CompatableLocks
-			{
-				get
-				{
-					return new DataLockType[]
-					{
-						DataLockType.Shared,
-						DataLockType.Update,
-					};
-				}
-			}
+		    public override DataLockType[] CompatableLocks => new DataLockType[]
+		    {
+		        DataLockType.Shared,
+		        DataLockType.Update,
+		    };
 		}
 		protected class UpdateState : DataLockState
 		{
-			public override DataLockType Lock
-			{
-				get
-				{
-					return DataLockType.Update;
-				}
-			}
+			public override DataLockType Lock => DataLockType.Update;
 
-			public override DataLockType[] CompatableLocks
-			{
-				get
-				{
-					return new DataLockType[] 
-					{
-						DataLockType.Shared,
-					};
-				}
-			}
+		    public override DataLockType[] CompatableLocks => new DataLockType[] 
+		    {
+		        DataLockType.Shared,
+		    };
 
-			public override bool CanEnterExclusiveLock
-			{
-				get
-				{
-					return true;
-				}
-			}
+		    public override bool CanEnterExclusiveLock => true;
 		}
 		protected class ExclusiveState : DataLockState
 		{
-			public override DataLockType Lock
-			{
-				get
-				{
-					return DataLockType.Exclusive;
-				}
-			}
+			public override DataLockType Lock => DataLockType.Exclusive;
 
-			public override DataLockType[] CompatableLocks
-			{
-				get
-				{
-					return new DataLockType[0];
-				}
-			}
+		    public override DataLockType[] CompatableLocks => new DataLockType[0];
 		}
 		#endregion
 
@@ -160,14 +106,9 @@ namespace Zen.Trunk.Storage.Locking
 		#endregion
 
 		#region Protected Properties
-		protected override DataLockType NoneLockType
-		{
-			get
-			{
-				return DataLockType.None;
-			}
-		}
-		#endregion
+		protected override DataLockType NoneLockType => DataLockType.None;
+
+	    #endregion
 
 		#region Protected Methods
 		protected override State GetStateFromType(DataLockType lockType)

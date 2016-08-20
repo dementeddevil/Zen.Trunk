@@ -9,8 +9,8 @@ namespace Zen.Trunk.Storage.Locking
 	public class DatabaseLockManager : IDatabaseLockManager
 	{
 		#region Private Fields
-		private GlobalLockManager _globalLockManager;
-		private ushort _dbId;
+		private readonly GlobalLockManager _globalLockManager;
+		private readonly ushort _dbId;
 		#endregion
 
 		#region Public Constructors

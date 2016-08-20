@@ -7,11 +7,11 @@
 	{
 		#region Private Fields
 		private byte _indexFileGroupId;	// not serialized
-		private BufferFieldUInt32 _indexId;
-		private BufferFieldUInt32 _ownerObjectId;
-		private BufferFieldStringFixed _name;
-		private BufferFieldUInt64 _rootLogicalId;
-		private BufferFieldByte _rootIndexDepth;
+		private readonly BufferFieldUInt32 _indexId;
+		private readonly BufferFieldUInt32 _ownerObjectId;
+		private readonly BufferFieldStringFixed _name;
+		private readonly BufferFieldUInt64 _rootLogicalId;
+		private readonly BufferFieldByte _rootIndexDepth;
 		#endregion
 
 		#region Public Constructors
@@ -42,27 +42,21 @@
 		/// Gets the index id.
 		/// </summary>
 		/// <value>The index id.</value>
-		public uint IndexId
-		{
-			get
-			{
-				return _indexId.Value;
-			}
-		}
+		public uint IndexId => _indexId.Value;
 
-		/// <summary>
+	    /// <summary>
 		/// Gets or sets the owner object id.
 		/// </summary>
 		/// <value>The owner object id.</value>
-		public uint OwnerObjectId
+		public ObjectId OwnerObjectId
 		{
 			get
 			{
-				return _ownerObjectId.Value;
+				return new ObjectId(_ownerObjectId.Value);
 			}
 			set
 			{
-				_ownerObjectId.Value = value;
+				_ownerObjectId.Value = value.Value;
 			}
 		}
 
@@ -102,15 +96,15 @@
 		/// Gets or sets the root logical id.
 		/// </summary>
 		/// <value>The root logical id.</value>
-		public ulong RootLogicalId
+		public LogicalPageId RootLogicalId
 		{
 			get
 			{
-				return _rootLogicalId.Value;
+				return new LogicalPageId(_rootLogicalId.Value);
 			}
 			set
 			{
-				_rootLogicalId.Value = value;
+				_rootLogicalId.Value = value.Value;
 			}
 		}
 
@@ -136,25 +130,14 @@
 		/// Gets the first buffer field object.
 		/// </summary>
 		/// <value>A <see cref="T:BufferField"/> object.</value>
-		protected override BufferField FirstField
-		{
-			get
-			{
-				return _indexId;
-			}
-		}
+		protected override BufferField FirstField => _indexId;
 
-		/// <summary>
+	    /// <summary>
 		/// Gets the last buffer field object.
 		/// </summary>
 		/// <value>A <see cref="T:BufferField"/> object.</value>
-		protected override BufferField LastField
-		{
-			get
-			{
-				return _rootIndexDepth;
-			}
-		}
-		#endregion
+		protected override BufferField LastField => _rootIndexDepth;
+
+	    #endregion
 	}
 }

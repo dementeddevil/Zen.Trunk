@@ -52,10 +52,10 @@
 	public class RootTableIndexInfo : RootIndexInfo
 	{
 		#region Private Fields
-		private BufferFieldByte _indexSubType;
-		private BufferFieldByteArrayUnbounded _columnIDs;
-		private BufferFieldByteArrayUnbounded _directions;
-		private BufferFieldUInt16 _keySize;
+		private readonly BufferFieldByte _indexSubType;
+		private readonly BufferFieldByteArrayUnbounded _columnIDs;
+		private readonly BufferFieldByteArrayUnbounded _directions;
+		private readonly BufferFieldUInt16 _keySize;
 		#endregion
 
 		#region Public Constructors
@@ -129,7 +129,7 @@
 			{
 				var values = _directions.Value;
 				var translatedValues = new TableIndexSortDirection[values.Length];
-				for (int index = 0; index < values.Length; ++index)
+				for (var index = 0; index < values.Length; ++index)
 				{
 					translatedValues[index] = (TableIndexSortDirection)values[index];
 				}
@@ -138,7 +138,7 @@
 			set
 			{
 				var translatedValues = new byte[value.Length];
-				for (int index = 0; index < value.Length; ++index)
+				for (var index = 0; index < value.Length; ++index)
 				{
 					translatedValues[index] = (byte)value[index];
 				}
@@ -150,14 +150,9 @@
 		/// Gets the size of each index key.
 		/// </summary>
 		/// <value>The size of the key.</value>
-		public ushort KeySize
-		{
-			get
-			{
-				return _keySize.Value;
-			}
-		}
-		#endregion
+		public ushort KeySize => _keySize.Value;
+
+	    #endregion
 
 		#region Public Methods
 		/// <summary>
@@ -189,13 +184,8 @@
 		/// <value>
 		/// A <see cref="T:BufferField" /> object.
 		/// </value>
-		protected override BufferField LastField
-		{
-			get
-			{
-				return _keySize;
-			}
-		}
-		#endregion
+		protected override BufferField LastField => _keySize;
+
+	    #endregion
 	}
 }

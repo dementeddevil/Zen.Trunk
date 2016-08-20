@@ -84,7 +84,7 @@
     <Compile Include="Storage\BufferDevice.cs" />
     <Compile Include="Storage\BufferDeviceMessages.cs" />
     <Compile Include="Storage\BufferDeviceShuttingDownException.cs" />
-    <Compile Include="Storage\DevicePageId.cs" />
+    <Compile Include="Storage\VirtualPageId.cs" />
     <Compile Include="Storage\IBufferDevice.cs" />
     <Compile Include="Storage\IMultipleBufferDevice.cs" />
     <Compile Include="Storage\IO\AdvancedFileStream.cs" />

@@ -242,7 +242,7 @@
 
 	public class AllocateDataPageParameters
 	{
-		public AllocateDataPageParameters(ulong logicalId, uint objectId, byte objectType, bool mixedExtent)
+		public AllocateDataPageParameters(LogicalPageId logicalId, ObjectId objectId, ObjectType objectType, bool mixedExtent)
 		{
 			LogicalId = logicalId;
 			ObjectId = objectId;
@@ -250,19 +250,19 @@
 			MixedExtent = mixedExtent;
 		}
 
-		public ulong LogicalId
+		public LogicalPageId LogicalId
 		{
 			get;
 			private set;
 		}
 
-		public uint ObjectId
+		public ObjectId ObjectId
 		{
 			get;
 			private set;
 		}
 
-		public byte ObjectType
+		public ObjectType ObjectType
 		{
 			get;
 			private set;
@@ -277,7 +277,7 @@
 
 	public class AddTableParameters
 	{
-		private List<TableColumnInfo> _columns = new List<TableColumnInfo>();
+		private readonly List<TableColumnInfo> _columns = new List<TableColumnInfo>();
 
 		public AddTableParameters()
 		{
@@ -307,24 +307,18 @@
 			set;
 		}
 
-		public IList<TableColumnInfo> Columns
-		{
-			get
-			{
-				return _columns;
-			}
-		}
+		public IList<TableColumnInfo> Columns => _columns;
 	}
 
 	public class AddTableIndexParameters
 	{
-		private List<Tuple<string, TableIndexSortDirection>> _columns = new List<Tuple<string, TableIndexSortDirection>>();
+		private readonly List<Tuple<string, TableIndexSortDirection>> _columns = new List<Tuple<string, TableIndexSortDirection>>();
 
 		public AddTableIndexParameters()
 		{
 		}
 
-		public AddTableIndexParameters(string name, TableIndexSubType indexSubType, uint ownerObjectId)
+		public AddTableIndexParameters(string name, TableIndexSubType indexSubType, ObjectId ownerObjectId)
 		{
 			Name = name;
 			IndexSubType = indexSubType;
@@ -343,21 +337,15 @@
 			set;
 		}
 
-		public uint OwnerObjectId
+		public ObjectId OwnerObjectId
 		{
 			get;
 			set;
 		}
 
-		public ICollection<Tuple<string, TableIndexSortDirection>> Columns
-		{
-			get
-			{
-				return _columns;
-			}
-		}
+		public ICollection<Tuple<string, TableIndexSortDirection>> Columns => _columns;
 
-		public void AddColumn(string columnName, TableIndexSortDirection direction)
+	    public void AddColumn(string columnName, TableIndexSortDirection direction)
 		{
 			_columns.Add(new Tuple<string, TableIndexSortDirection>(columnName, direction));
 		}

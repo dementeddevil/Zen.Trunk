@@ -17,9 +17,9 @@ namespace Zen.Trunk.Storage.Data
 	public class LogicalPage : DataPage
 	{
 		#region Private Fields
-		private ulong _logicalId;
-		private BufferFieldUInt64 _prevLogicalId;
-		private BufferFieldUInt64 _nextLogicalId;
+		private LogicalPageId _logicalId;
+		private readonly BufferFieldUInt64 _prevLogicalId;
+		private readonly BufferFieldUInt64 _nextLogicalId;
 		#endregion
 
 		#region Public Constructors
@@ -34,15 +34,9 @@ namespace Zen.Trunk.Storage.Data
 		/// <summary>
 		/// Gets the minimum number of bytes required for the header block.
 		/// </summary>
-		public override uint MinHeaderSize
-		{
-			get
-			{
-				return base.MinHeaderSize + 16;
-			}
-		}
+		public override uint MinHeaderSize => base.MinHeaderSize + 16;
 
-		/// <summary>
+	    /// <summary>
 		/// Gets/sets the logical page ID.
 		/// </summary>
 		/// <value>Logical ID expressed as UInt32.</value>
@@ -77,18 +71,18 @@ namespace Zen.Trunk.Storage.Data
 		/// Gets/sets the previous logical page ID.
 		/// </summary>
 		/// <value>Logical ID expressed as UInt64.</value>
-		public ulong PrevLogicalId
+		public LogicalPageId PrevLogicalId
 		{
 			get
 			{
-				return _prevLogicalId.Value;
+				return new LogicalPageId(_prevLogicalId.Value);
 			}
 			set
 			{
 				CheckReadOnly();
-				if (_prevLogicalId.Value != value)
+				if (_prevLogicalId.Value != value.Value)
 				{
-					_prevLogicalId.Value = value;
+					_prevLogicalId.Value = value.Value;
 					SetHeaderDirty();
 				}
 			}
@@ -98,18 +92,18 @@ namespace Zen.Trunk.Storage.Data
 		/// Gets/sets the next logical page ID.
 		/// </summary>
 		/// <value>Logical ID expressed as UInt64.</value>
-		public ulong NextLogicalId
+		public LogicalPageId NextLogicalId
 		{
 			get
 			{
-				return _nextLogicalId.Value;
+				return new LogicalPageId(_nextLogicalId.Value);
 			}
 			set
 			{
 				CheckReadOnly();
-				if (_nextLogicalId.Value != value)
+				if (_nextLogicalId.Value != value.Value)
 				{
-					_nextLogicalId.Value = value;
+					_nextLogicalId.Value = value.Value;
 					SetHeaderDirty();
 				}
 			}
@@ -117,13 +111,8 @@ namespace Zen.Trunk.Storage.Data
 		#endregion
 
 		#region Protected Properties
-		protected override BufferField LastHeaderField
-		{
-			get
-			{
-				return _nextLogicalId;
-			}
-		}
-		#endregion
+		protected override BufferField LastHeaderField => _nextLogicalId;
+
+	    #endregion
 	}
 }

@@ -20,7 +20,7 @@ namespace Zen.Trunk.Storage.Data
 	public class ObjectPage : LogicalPage
 	{
 		#region Private Fields
-		private BufferFieldUInt32 _objectId;
+		private readonly BufferFieldUInt32 _objectId;
 		private ObjectLockType _objectLock;
 		#endregion
 
@@ -39,30 +39,24 @@ namespace Zen.Trunk.Storage.Data
 		/// Gets the minimum number of bytes required for the header block.
 		/// </summary>
 		/// <value></value>
-		public override uint MinHeaderSize
-		{
-			get
-			{
-				return base.MinHeaderSize + 4;
-			}
-		}
+		public override uint MinHeaderSize => base.MinHeaderSize + 4;
 
-		/// <summary>
+	    /// <summary>
 		/// Gets or sets the object id.
 		/// </summary>
 		/// <value>The object id.</value>
-		public uint ObjectId
+		public ObjectId ObjectId
 		{
 			get
 			{
-				return _objectId.Value;
+				return new ObjectId(_objectId.Value);
 			}
 			set
 			{
 				CheckReadOnly();
-				if (_objectId.Value != value)
+				if (_objectId.Value != value.Value)
 				{
-					_objectId.Value = value;
+					_objectId.Value = value.Value;
 					SetHeaderDirty();
 				}
 			}
@@ -82,7 +76,7 @@ namespace Zen.Trunk.Storage.Data
 			{
 				if (_objectLock != value)
 				{
-					ObjectLockType oldLock = _objectLock;
+					var oldLock = _objectLock;
 					try
 					{
 						_objectLock = value;
@@ -126,14 +120,9 @@ namespace Zen.Trunk.Storage.Data
 		/// Gets the last header field.
 		/// </summary>
 		/// <value>The last header field.</value>
-		protected override BufferField LastHeaderField
-		{
-			get
-			{
-				return _objectId;
-			}
-		}
-		#endregion
+		protected override BufferField LastHeaderField => _objectId;
+
+	    #endregion
 
 		#region Protected Methods
 		/// <summary>
@@ -166,7 +155,7 @@ namespace Zen.Trunk.Storage.Data
 			try
 			{
 				// Unlock owner via lock owner block
-				DataLockOwnerBlock lob = LockBlock;
+				var lob = LockBlock;
 				if (lob != null)
 				{
 					LockBlock.UnlockOwner();

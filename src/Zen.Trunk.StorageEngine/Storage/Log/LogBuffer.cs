@@ -22,10 +22,10 @@ namespace Zen.Trunk.Storage.Log
 
 		private static class LogBufferStateFactory
 		{
-			private static Lazy<State> _freeState = new Lazy<State>(() => new FreeState(), true);
-			private static Lazy<State> _loadState = new Lazy<State>(() => new LoadState(), true);
-			private static Lazy<State> _allocatedState = new Lazy<State>(() => new AllocatedState(), true);
-			private static Lazy<State> _dirtyState = new Lazy<State>(() => new DirtyState(), true);
+			private static readonly Lazy<State> _freeState = new Lazy<State>(() => new FreeState(), true);
+			private static readonly Lazy<State> _loadState = new Lazy<State>(() => new LoadState(), true);
+			private static readonly Lazy<State> _allocatedState = new Lazy<State>(() => new AllocatedState(), true);
+			private static readonly Lazy<State> _dirtyState = new Lazy<State>(() => new DirtyState(), true);
 
 			public static State GetState(LogBufferStateType state)
 			{
@@ -52,13 +52,13 @@ namespace Zen.Trunk.Storage.Log
 				get;
 			}
 
-			public virtual Task Init(LogBuffer instance, DevicePageId pageId)
+			public virtual Task Init(LogBuffer instance, VirtualPageId pageId)
 			{
 				InvalidState();
 				return CompletedTask.Default;
 			}
 
-			public virtual Task Load(LogBuffer instance, DevicePageId pageId)
+			public virtual Task Load(LogBuffer instance, VirtualPageId pageId)
 			{
 				InvalidState();
 				return CompletedTask.Default;
@@ -68,15 +68,9 @@ namespace Zen.Trunk.Storage.Log
 
 		private class FreeState : LogBufferState
 		{
-			public override LogBufferStateType StateType
-			{
-				get
-				{
-					return LogBufferStateType.Free;
-				}
-			}
+			public override LogBufferStateType StateType => LogBufferStateType.Free;
 
-			public override Task Init(LogBuffer instance, DevicePageId pageId)
+		    public override Task Init(LogBuffer instance, VirtualPageId pageId)
 			{
 				instance.PageId = pageId;
 				if (instance._buffer == null)
@@ -89,18 +83,12 @@ namespace Zen.Trunk.Storage.Log
 
 		private class LoadState : LogBufferState
 		{
-			public override LogBufferStateType StateType
-			{
-				get
-				{
-					return LogBufferStateType.Load;
-				}
-			}
+			public override LogBufferStateType StateType => LogBufferStateType.Load;
 
-			public override async Task OnEnterState(StatefulBuffer instance, State lastState, object userState)
+		    public override async Task OnEnterState(StatefulBuffer instance, State lastState, object userState)
 			{
 				// Ask page buffer to load from underlying device.
-				LogBuffer logPage = (LogBuffer)instance;
+				var logPage = (LogBuffer)instance;
 				await logPage.DoLoad().ConfigureAwait(false);
 
 				// Switch to allocated state
@@ -110,15 +98,9 @@ namespace Zen.Trunk.Storage.Log
 
 		private class AllocatedState : LogBufferState
 		{
-			public override LogBufferStateType StateType
-			{
-				get
-				{
-					return LogBufferStateType.Allocated;
-				}
-			}
+			public override LogBufferStateType StateType => LogBufferStateType.Allocated;
 
-			public override Task SetFree(StatefulBuffer instance)
+		    public override Task SetFree(StatefulBuffer instance)
 			{
 				return ((LogBuffer)instance).SwitchState(LogBufferStateType.Free);
 			}
@@ -142,14 +124,9 @@ namespace Zen.Trunk.Storage.Log
 			/// Overridden. Returns a value indicating the implemented state for
 			/// this state object.
 			/// </summary>
-			public override LogBufferStateType StateType
-			{
-				get
-				{
-					return LogBufferStateType.Dirty;
-				}
-			}
-			#endregion
+			public override LogBufferStateType StateType => LogBufferStateType.Dirty;
+
+		    #endregion
 
 			#region Public Methods
 			public override Task SetDirty(StatefulBuffer instance)
@@ -162,7 +139,7 @@ namespace Zen.Trunk.Storage.Log
 		#endregion
 
 		#region Private Fields
-		private Stream _backingStore;
+		private readonly Stream _backingStore;
 	    private VirtualBuffer _buffer;
 		#endregion
 
@@ -183,22 +160,11 @@ namespace Zen.Trunk.Storage.Log
 		/// Gets the size of the buffer.
 		/// </summary>
 		/// <value>The size of the buffer.</value>
-		public override int BufferSize
-		{
-			get
-			{
-				return BufferFactory.BufferSize;
-			}
-		}
+		public override int BufferSize => BufferFactory.BufferSize;
 
-		public override bool CanFree
-		{
-			get
-			{
-				return CurrentPageBufferState.StateType != LogBufferStateType.Dirty;
-			}
-		}
-		#endregion
+	    public override bool CanFree => CurrentPageBufferState.StateType != LogBufferStateType.Dirty;
+
+	    #endregion
 
 		#region Private Properties
 
@@ -211,12 +177,12 @@ namespace Zen.Trunk.Storage.Log
 	    #endregion
 
 		#region Public Methods
-		public Task Init(DevicePageId pageId)
+		public Task Init(VirtualPageId pageId)
 		{
 			return CurrentPageBufferState.Init(this, pageId);
 		}
 
-		public Task Load(DevicePageId pageId)
+		public Task Load(VirtualPageId pageId)
 		{
 			return CurrentPageBufferState.Load(this, pageId);
 		}
@@ -267,7 +233,7 @@ namespace Zen.Trunk.Storage.Log
 		private async Task DoLoad()
 		{
 			Task loadTask;
-			byte[] buffer = new byte[8192];
+			var buffer = new byte[8192];
 			lock (_backingStore)
 			{
 				_backingStore.Seek(8192 * PageId.PhysicalPageId, SeekOrigin.Begin);
@@ -280,7 +246,7 @@ namespace Zen.Trunk.Storage.Log
 		private Task DoSave()
 		{
 			Task saveTask;
-			byte[] buffer = new byte[8192];
+			var buffer = new byte[8192];
 			_buffer.CopyTo(buffer);
 			lock (_backingStore)
 			{

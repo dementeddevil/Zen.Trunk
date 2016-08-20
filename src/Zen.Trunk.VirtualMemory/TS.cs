@@ -19,8 +19,8 @@ namespace Zen.Trunk
 		#region Private Objects
 		private class Tracer : ITracer
 		{
-			private TraceSwitch _switch;
-			private string _category;
+			private readonly TraceSwitch _switch;
+			private readonly string _category;
 
 			[SecurityCritical]
 			public Tracer(TraceSwitch traceSwitch, string category)
@@ -37,7 +37,7 @@ namespace Zen.Trunk
 #if USE_INTELLITRACE
 				if (_switch.TraceError)
 				{
-					string text = string.Format(format, args);
+					var text = string.Format(format, args);
 					Trace.TraceError("{0}:{1}", _category, text);
 				}
 #else
@@ -53,7 +53,7 @@ namespace Zen.Trunk
 #if USE_INTELLITRACE
 				if (_switch.TraceWarning)
 				{
-					string text = string.Format(format, args);
+					var text = string.Format(format, args);
 					Trace.TraceWarning("{0}:{1}", _category, text);
 				}
 #else
@@ -69,7 +69,7 @@ namespace Zen.Trunk
 #if USE_INTELLITRACE
 				if (_switch.TraceInfo)
 				{
-					string text = string.Format(format, args);
+					var text = string.Format(format, args);
 					Trace.TraceInformation("{0}:{1}", _category, text);
 				}
 #else
@@ -85,7 +85,7 @@ namespace Zen.Trunk
 #if USE_INTELLITRACE
 				if (_switch.TraceVerbose)
 				{
-					string text = string.Format(format, args);
+					var text = string.Format(format, args);
 					Trace.TraceInformation("{0}:{1}", _category, text);
 				}
 #else

@@ -11,9 +11,9 @@ namespace System
 {
 	internal class DelegateBasedObserver<T> : IObserver<T>
 	{
-		private Action<T> _onNext;
-		private Action<Exception> _onError;
-		private Action _onCompleted;
+		private readonly Action<T> _onNext;
+		private readonly Action<Exception> _onError;
+		private readonly Action _onCompleted;
 
 		internal DelegateBasedObserver(Action<T> onNext, Action<Exception> onError, Action onCompleted)
 		{

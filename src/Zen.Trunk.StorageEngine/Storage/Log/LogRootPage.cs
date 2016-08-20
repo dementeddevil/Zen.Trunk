@@ -12,14 +12,14 @@ namespace Zen.Trunk.Storage.Log
 		#endregion
 
 		#region Private Fields
-		private BufferFieldBitVector8 _status;
-		private BufferFieldUInt32 _allocatedPages;
-		private BufferFieldUInt32 _maximumPages;
-		private BufferFieldUInt32 _growthPages;
-		private BufferFieldDouble _growthPercent;
+		private readonly BufferFieldBitVector8 _status;
+		private readonly BufferFieldUInt32 _allocatedPages;
+		private readonly BufferFieldUInt32 _maximumPages;
+		private readonly BufferFieldUInt32 _growthPages;
+		private readonly BufferFieldDouble _growthPercent;
 
-		private BufferFieldUInt16 _logFileCount;
-		private List<VirtualLogFileInfo> _logFiles =
+		private readonly BufferFieldUInt16 _logFileCount;
+		private readonly List<VirtualLogFileInfo> _logFiles =
 			new List<VirtualLogFileInfo>();
 		#endregion
 
@@ -178,51 +178,29 @@ namespace Zen.Trunk.Storage.Log
 		/// <summary>
 		/// Overridden. Returns boolean true indicating this is a root page object.
 		/// </summary>
-		public override bool IsRootPage
-		{
-			get
-			{
-				return true;
-			}
-		}
+		public override bool IsRootPage => true;
 
-		/// <summary>
+	    /// <summary>
 		/// Overridden. Returns the minimum header size for this page object.
 		/// </summary>
-		public override uint MinHeaderSize
-		{
-			get
-			{
-				return base.MinHeaderSize + 23;
-			}
-		}
+		public override uint MinHeaderSize => base.MinHeaderSize + 23;
 
-		/// <summary>
+	    /// <summary>
 		/// Gets the number of virtual log files present on this device.
 		/// </summary>
 		/// <value>The log file count.</value>
-		public ushort LogFileCount
-		{
-			get
-			{
-				return (ushort)_logFiles.Count;
-			}
-		}
-		#endregion
+		public ushort LogFileCount => (ushort)_logFiles.Count;
+
+	    #endregion
 
 		#region Protected Properties
 		/// <summary>
 		/// Gets the last header field.
 		/// </summary>
 		/// <value>The last header field.</value>
-		protected override BufferField LastHeaderField
-		{
-			get
-			{
-				return _logFileCount;
-			}
-		}
-		#endregion
+		protected override BufferField LastHeaderField => _logFileCount;
+
+	    #endregion
 
 		#region Public Methods
 		public VirtualLogFileInfo AddLogFile(
@@ -235,12 +213,12 @@ namespace Zen.Trunk.Storage.Log
 			}
 
 			// Create log file and assign Id
-			VirtualLogFileInfo info = new VirtualLogFileInfo();
+			var info = new VirtualLogFileInfo();
 			info.DeviceId = deviceId;
 			info.IndexId = LogFileCount;
 
 			// Chain the log file if we can
-			LogFileId lastLogFileId = new LogFileId(lastLogFile);
+			var lastLogFileId = new LogFileId(lastLogFile);
 			if (lastLogFile != 0)
 			{
 				// If last log file is on a different device then the we can
@@ -267,7 +245,7 @@ namespace Zen.Trunk.Storage.Log
 			// Handle default case of chaining to last file on device
 			else if (LogFileCount > 0)
 			{
-				int lastIndexOnDevice = _logFiles.Count - 1;
+				var lastIndexOnDevice = _logFiles.Count - 1;
 				if (_logFiles[lastIndexOnDevice].CurrentHeader.NextFileId == 0)
 				{
 					_logFiles[lastIndexOnDevice].CurrentHeader.NextFileId = info.FileId;
@@ -326,7 +304,7 @@ namespace Zen.Trunk.Storage.Log
 			{
 				for (byte index = 0; index < _logFileCount.Value; ++index)
 				{
-					VirtualLogFileInfo logFile = new VirtualLogFileInfo();
+					var logFile = new VirtualLogFileInfo();
 					logFile.Read(streamManager);
 					_logFiles.Add(logFile);
 				}
@@ -336,7 +314,7 @@ namespace Zen.Trunk.Storage.Log
 		protected override void WriteData(BufferReaderWriter streamManager)
 		{
 			base.WriteData(streamManager);
-			for (int index = 0; index < _logFiles.Count; ++index)
+			for (var index = 0; index < _logFiles.Count; ++index)
 			{
 				_logFiles[index].Write(streamManager);
 			}

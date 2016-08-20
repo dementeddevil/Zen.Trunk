@@ -11,7 +11,7 @@
 	public class ScatterGatherRequestArray
 	{
 		private readonly DateTime _createdDate;
-		private List<ScatterGatherRequest> _callbackInfo = new List<ScatterGatherRequest>();
+		private readonly List<ScatterGatherRequest> _callbackInfo = new List<ScatterGatherRequest>();
 		private uint _startBlockNo;
 		private uint _endBlockNo;
 
@@ -81,10 +81,10 @@
 				_callbackInfo.Count);
 #endif
 			// Prepare buffer array
-			VirtualBuffer[] buffers = _callbackInfo
+			var buffers = _callbackInfo
 				.Select((item) => item.Buffer)
 				.ToArray();
-			int bufferSize = buffers[0].BufferSize;
+			var bufferSize = buffers[0].BufferSize;
 
 			Task task = null;
 			lock (stream.SyncRoot)
@@ -124,10 +124,10 @@
 				_callbackInfo.Count);
 #endif
 			// Prepare buffer array
-			VirtualBuffer[] buffers = _callbackInfo
+			var buffers = _callbackInfo
 				.Select((item) => item.Buffer)
 				.ToArray();
-			int bufferSize = buffers[0].BufferSize;
+			var bufferSize = buffers[0].BufferSize;
 
 			// Lock stream until we start async operation
 			Task task = null;
@@ -147,7 +147,7 @@
 			catch (Exception e)
 			{
 				// Pass error back to each caller
-				foreach (ScatterGatherRequest callback in _callbackInfo)
+				foreach (var callback in _callbackInfo)
 				{
 					callback.TrySetException(e);
 				}
@@ -155,7 +155,7 @@
 			}
 
 			// Notify each callback that we are now finished
-			foreach (ScatterGatherRequest callback in _callbackInfo)
+			foreach (var callback in _callbackInfo)
 			{
 				callback.Buffer.ClearDirty();
 				callback.TrySetResult(null);

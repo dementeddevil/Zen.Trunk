@@ -57,7 +57,7 @@ namespace Zen.Trunk.Storage.Log
 		private ITargetBlock<WriteLogEntryRequest> _writeLogEntryPort;
 		private ITargetBlock<PerformRecoveryRequest> _performRecoveryPort;
 
-		private Dictionary<ushort, LogPageDevice> _secondaryDevices =
+		private readonly Dictionary<ushort, LogPageDevice> _secondaryDevices =
 			new Dictionary<ushort, LogPageDevice>();
 
 		private VirtualLogFileStream _currentStream;
@@ -66,7 +66,7 @@ namespace Zen.Trunk.Storage.Log
 		private int _nextTransactionId = 1;
 		private ushort _nextLogDeviceId;
 
-		private bool _trucateLog = false;
+		private readonly bool _trucateLog = false;
 		private bool _isInRecovery = false;
 		#endregion
 
@@ -92,23 +92,11 @@ namespace Zen.Trunk.Storage.Log
 		#endregion
 
 		#region Public Properties
-		public uint CurrentLogFileId
-		{
-			get
-			{
-				return _currentStream.FileId;
-			}
-		}
+		public uint CurrentLogFileId => _currentStream.FileId;
 
-		public uint CurrentLogFileOffset
-		{
-			get
-			{
-				return (uint)_currentStream.Position;
-			}
-		}
+	    public uint CurrentLogFileOffset => (uint)_currentStream.Position;
 
-		public long Position
+	    public long Position
 		{
 			get
 			{
@@ -148,55 +136,22 @@ namespace Zen.Trunk.Storage.Log
 			}
 		}*/
 
-		public override bool IsInRecovery
-		{
-			get
-			{
-				return _isInRecovery;
-			}
-		}
-		public bool IsTruncatingLog
-		{
-			get
-			{
-				return _trucateLog;
-			}
-		}
-		#endregion
+		public override bool IsInRecovery => _isInRecovery;
+
+	    public bool IsTruncatingLog => _trucateLog;
+
+	    #endregion
 
 		#region Private Properties
-		private ITargetBlock<AddLogDeviceRequest> AddLogDevicePort
-		{
-			get
-			{
-				return _addLogDevicePort;
-			}
-		}
+		private ITargetBlock<AddLogDeviceRequest> AddLogDevicePort => _addLogDevicePort;
 
-		private ITargetBlock<RemoveLogDeviceRequest> RemoveLogDevicePort
-		{
-			get
-			{
-				return _removeLogDevicePort;
-			}
-		}
+	    private ITargetBlock<RemoveLogDeviceRequest> RemoveLogDevicePort => _removeLogDevicePort;
 
-		private ITargetBlock<WriteLogEntryRequest> WriteLogEntryPort
-		{
-			get
-			{
-				return _writeLogEntryPort;
-			}
-		}
+	    private ITargetBlock<WriteLogEntryRequest> WriteLogEntryPort => _writeLogEntryPort;
 
-		private ITargetBlock<PerformRecoveryRequest> PerformRecoveryPort
-		{
-			get
-			{
-				return _performRecoveryPort;
-			}
-		}
-		#endregion
+	    private ITargetBlock<PerformRecoveryRequest> PerformRecoveryPort => _performRecoveryPort;
+
+	    #endregion
 
 		#region Public Methods
 		public Task<ushort> AddDevice(AddLogDeviceParameters deviceParams)
@@ -332,10 +287,10 @@ namespace Zen.Trunk.Storage.Log
 		internal async Task CommitTransactions(List<TransactionLogEntry> transactions)
 		{
 			// We need the database device
-			DatabaseDevice pageDevice = (DatabaseDevice)GetService(typeof(DatabaseDevice));
+			var pageDevice = (DatabaseDevice)GetService(typeof(DatabaseDevice));
 
 			// Work through each transaction in the list
-			foreach (TransactionLogEntry entry in transactions)
+			foreach (var entry in transactions)
 			{
 				await entry
 					.RollForward(pageDevice)
@@ -353,7 +308,7 @@ namespace Zen.Trunk.Storage.Log
 		internal async Task RollbackTransactions(List<TransactionLogEntry> transactions)
 		{
 			// We need the data page device
-			DatabaseDevice pageDevice = (DatabaseDevice)GetService(typeof(DatabaseDevice));
+			var pageDevice = (DatabaseDevice)GetService(typeof(DatabaseDevice));
 
 			// We need to rollback transactions in reverse order and we don't
 			//	need to worry about locks as the owner transaction is still
@@ -361,7 +316,7 @@ namespace Zen.Trunk.Storage.Log
 			transactions.Reverse();
 
 			// Work through each transaction in the list
-			foreach (TransactionLogEntry entry in transactions)
+			foreach (var entry in transactions)
 			{
 				await entry
 					.RollBack(pageDevice)
@@ -387,12 +342,12 @@ namespace Zen.Trunk.Storage.Log
 			// Do base class work first
 			await base.OnOpen().ConfigureAwait(false);
 
-			MasterLogRootPage rootPage = GetRootPage<MasterLogRootPage>();
+			var rootPage = GetRootPage<MasterLogRootPage>();
 			if (IsCreate)
 			{
 				// Open each secondary device we know about
-				List<Task> secondaryTasks = new List<Task>();
-				foreach (LogPageDevice device in _secondaryDevices.Values)
+				var secondaryTasks = new List<Task>();
+				foreach (var device in _secondaryDevices.Values)
 				{
 					secondaryTasks.Add(device.OpenAsync(true));
 				}
@@ -419,12 +374,12 @@ namespace Zen.Trunk.Storage.Log
 			else
 			{
 				// Open each slave device and add to device collection.
-				List<Task> secondaryTasks = new List<Task>();
-				for (int index = 0; index < rootPage.DeviceCount; ++index)
+				var secondaryTasks = new List<Task>();
+				for (var index = 0; index < rootPage.DeviceCount; ++index)
 				{
-					DeviceInfo info = rootPage.GetDeviceByIndex(index);
+					var info = rootPage.GetDeviceByIndex(index);
 
-					LogPageDevice secondaryDevice = new LogPageDevice(
+					var secondaryDevice = new LogPageDevice(
 						info.Id, info.PathName, this);
 					_secondaryDevices.Add(info.Id, secondaryDevice);
 
@@ -477,14 +432,14 @@ namespace Zen.Trunk.Storage.Log
 
 		private async Task<ushort> AddLogDeviceHandler(AddLogDeviceRequest request)
 		{
-			MasterLogRootPage masterRootPage = GetRootPage<MasterLogRootPage>();
+			var masterRootPage = GetRootPage<MasterLogRootPage>();
 
 			// Determine file-extension for LOG
 			ushort proposedDeviceId = 0;
-			bool proposedDeviceIdValid = false;
+			var proposedDeviceIdValid = false;
 
-			bool primaryLog = false;
-			string extn = ".slf";
+			var primaryLog = false;
+			var extn = ".slf";
 
 			if (DeviceState == MountableDeviceState.Closed &&
 				string.IsNullOrEmpty(PathName))
@@ -496,10 +451,10 @@ namespace Zen.Trunk.Storage.Log
 			}
 
 			// Rewrite extension as required
-			string fullPathName = request.Message.PathName;
+			var fullPathName = request.Message.PathName;
 			if (string.Compare(Path.GetExtension(request.Message.PathName), extn, true) != 0)
 			{
-				string fileName = Path.GetFileNameWithoutExtension(request.Message.PathName) + extn;
+				var fileName = Path.GetFileNameWithoutExtension(request.Message.PathName) + extn;
 				fullPathName = Path.Combine(Path.Combine(
 					Path.GetPathRoot(request.Message.PathName),
 					Path.GetDirectoryName(request.Message.PathName)), fileName);
@@ -531,7 +486,7 @@ namespace Zen.Trunk.Storage.Log
 			LogPageDevice device;
 			if (!primaryLog)
 			{
-				LogPageDevice secondaryDevice = new LogPageDevice(
+				var secondaryDevice = new LogPageDevice(
 					proposedDeviceId, fullPathName, this);
 				_secondaryDevices.Add(proposedDeviceId, secondaryDevice);
 
@@ -552,7 +507,7 @@ namespace Zen.Trunk.Storage.Log
 			// Setup root page information for new device
 			if (request.Message.IsCreate)
 			{
-				LogRootPage rootPage = device.GetRootPage<LogRootPage>();
+				var rootPage = device.GetRootPage<LogRootPage>();
 				rootPage.AllocatedPages = request.Message.CreatePageCount;
 				rootPage.MaximumPages = 0;
 				rootPage.GrowthPages = request.Message.GrowthPages;
@@ -589,7 +544,7 @@ namespace Zen.Trunk.Storage.Log
 		private Dictionary<uint, List<TransactionLogEntry>> GetCheckPointTransactions()
 		{
 			// Read last reliable checkpoint record
-			CheckPointInfo cpi = GetBestCheckpoint();
+			var cpi = GetBestCheckpoint();
 
 			// Determine first virtual file for check-point start.
 			_currentStream = GetVirtualFileStream(cpi.BeginFileId);
@@ -602,7 +557,7 @@ namespace Zen.Trunk.Storage.Log
 			while (endCheck == null)
 			{
 				// Read begin checkpoint record and build list of transactions
-				LogEntry entry = _currentStream.ReadEntry();
+				var entry = _currentStream.ReadEntry();
 				if (entry.LogType == LogEntryType.BeginCheckpoint)
 				{
 					if (startCheck != null)
@@ -625,7 +580,7 @@ namespace Zen.Trunk.Storage.Log
 				// Process all other entries
 				else if (entry.LogType != LogEntryType.NoOp)
 				{
-					TransactionLogEntry transEntry = (TransactionLogEntry)entry;
+					var transEntry = (TransactionLogEntry)entry;
 
 					// We should have a begin checkpoint.
 					// We should not have an end checkpoint.
@@ -636,7 +591,7 @@ namespace Zen.Trunk.Storage.Log
 					}
 
 					// Create transaction array as required
-					uint transactionId = transEntry.TransactionId;
+					var transactionId = transEntry.TransactionId;
 					if (!transactionTable.ContainsKey(transactionId))
 					{
 						transactionTable.Add(transactionId, new List<TransactionLogEntry>());
@@ -663,7 +618,7 @@ namespace Zen.Trunk.Storage.Log
 				throw new DeviceException(0, "Not mounted!");
 			}
 
-			LogEntry entry = request.Message;
+			var entry = request.Message;
 
 			// Update checkpoint records with active transaction list
 			if ((entry.LogType == LogEntryType.BeginCheckpoint ||
@@ -671,8 +626,8 @@ namespace Zen.Trunk.Storage.Log
 				(_activeTransactions != null && _activeTransactions.Count > 0))
 			{
 				// Update log entry with active transactions
-				CheckPointLogEntry cple = entry as CheckPointLogEntry;
-				List<ActiveTransaction> tranlist = new List<ActiveTransaction>(
+				var cple = entry as CheckPointLogEntry;
+				var tranlist = new List<ActiveTransaction>(
 					_activeTransactions.Keys);
 				cple.UpdateTransactions(tranlist);
 			}
@@ -680,13 +635,13 @@ namespace Zen.Trunk.Storage.Log
 			// Write log entry
 			WriteEntryCore(entry);
 
-			MasterLogRootPage rootPage = GetRootPage<MasterLogRootPage>();
+			var rootPage = GetRootPage<MasterLogRootPage>();
 
 			// Update active transactions for begin/end transaction
 			if (entry.LogType == LogEntryType.BeginXact)
 			{
-				TransactionLogEntry tle = entry as TransactionLogEntry;
-				ActiveTransaction tran = new ActiveTransaction(
+				var tle = entry as TransactionLogEntry;
+				var tran = new ActiveTransaction(
 					tle.TransactionId,
 					rootPage.LogEndFileId,
 					rootPage.LogEndOffset,
@@ -695,7 +650,7 @@ namespace Zen.Trunk.Storage.Log
 				{
 					_activeTransactions = new Dictionary<ActiveTransaction, List<TransactionLogEntry>>();
 				}
-				List<TransactionLogEntry> tranEntries = new List<TransactionLogEntry>();
+				var tranEntries = new List<TransactionLogEntry>();
 				_activeTransactions.Add(tran, tranEntries);
 			}
 
@@ -713,8 +668,8 @@ namespace Zen.Trunk.Storage.Log
 			else if (entry.LogType == LogEntryType.RollbackXact ||
 				entry.LogType == LogEntryType.CommitXact)
 			{
-				TransactionLogEntry tle = entry as TransactionLogEntry;
-				foreach (ActiveTransaction tran in _activeTransactions.Keys)
+				var tle = entry as TransactionLogEntry;
+				foreach (var tran in _activeTransactions.Keys)
 				{
 					// Is this the matching transaction?
 					if (tran.TransactionId == tle.TransactionId)
@@ -729,8 +684,8 @@ namespace Zen.Trunk.Storage.Log
 			// Add transaction records to correct list
 			else if (entry is TransactionLogEntry)
 			{
-				TransactionLogEntry tle = entry as TransactionLogEntry;
-				ActiveTransaction tran =
+				var tle = entry as TransactionLogEntry;
+				var tran =
 					(from item in _activeTransactions.Keys
 					 where item.TransactionId == tle.TransactionId
 					 select item).FirstOrDefault();
@@ -751,14 +706,14 @@ namespace Zen.Trunk.Storage.Log
 
 		private void WriteEntryCore(LogEntry entry)
 		{
-			MasterLogRootPage rootPage = GetRootPage<MasterLogRootPage>();
+			var rootPage = GetRootPage<MasterLogRootPage>();
 
 			// Determine whether entry fits on current stream
-			uint freeSpace = (uint)(_currentStream.Length - _currentStream.Position);
+			var freeSpace = (uint)(_currentStream.Length - _currentStream.Position);
 			if (entry.RawSize > freeSpace)
 			{
 				// Determine next file id
-				VirtualLogFileInfo current = GetVirtualFileById(_currentStream.FileId);
+				var current = GetVirtualFileById(_currentStream.FileId);
 
 				// If the next file is zero then attempt to expand the log device
 				if (current.CurrentHeader.NextFileId == 0)
@@ -774,7 +729,7 @@ namespace Zen.Trunk.Storage.Log
 					throw new StorageEngineException("Log device is full");
 				}
 
-				VirtualLogFileStream newStream = GetVirtualFileStream(
+				var newStream = GetVirtualFileStream(
 					current.CurrentHeader.NextFileId);
 
 				// Chain new file to old
@@ -808,14 +763,14 @@ namespace Zen.Trunk.Storage.Log
 			_isInRecovery = true;
 			try
 			{
-				bool workDone = false;
+				var workDone = false;
 				List<uint> rollbackList = null;
 
 				// Process each transaction
-				Dictionary<uint, List<TransactionLogEntry>> transactionTable = GetCheckPointTransactions();
+				var transactionTable = GetCheckPointTransactions();
 				if (transactionTable != null)
 				{
-					foreach (List<TransactionLogEntry> tranList in transactionTable.Values)
+					foreach (var tranList in transactionTable.Values)
 					{
 						if (tranList.Count > 0)
 						{
@@ -852,8 +807,8 @@ namespace Zen.Trunk.Storage.Log
 				//	rolled back and that didn't already have a rollback record.
 				if (rollbackList != null)
 				{
-					List<Task> subTasks = new List<Task>();
-					foreach (uint transactionId in rollbackList)
+					var subTasks = new List<Task>();
+					foreach (var transactionId in rollbackList)
 					{
 						subTasks.Add(WriteEntry(new RollbackTransactionLogEntry(transactionId)));
 					}
@@ -892,12 +847,12 @@ namespace Zen.Trunk.Storage.Log
 		/// </returns>
 		private CheckPointInfo GetBestCheckpoint()
 		{
-			MasterLogRootPage rootPage = GetRootPage<MasterLogRootPage>();
+			var rootPage = GetRootPage<MasterLogRootPage>();
 
 			CheckPointInfo check = null;
-			for (int index = 0; index < rootPage.CheckPointHistoryCount; ++index)
+			for (var index = 0; index < rootPage.CheckPointHistoryCount; ++index)
 			{
-				CheckPointInfo proposed = rootPage.GetCheckPointHistory(index);
+				var proposed = rootPage.GetCheckPointHistory(index);
 				if (proposed.Valid)
 				{
 					check = proposed;
@@ -914,9 +869,9 @@ namespace Zen.Trunk.Storage.Log
 		/// </remarks>
 		internal void InitVirtualFiles()
 		{
-			MasterLogRootPage rootPage = GetRootPage<MasterLogRootPage>();
-			VirtualLogFileInfo lastFileInfo = InitVirtualFileForDevice(rootPage, null);
-			foreach (LogPageDevice device in _secondaryDevices.Values)
+			var rootPage = GetRootPage<MasterLogRootPage>();
+			var lastFileInfo = InitVirtualFileForDevice(rootPage, null);
+			foreach (var device in _secondaryDevices.Values)
 			{
 				lastFileInfo = device.InitVirtualFileForDevice(rootPage, lastFileInfo);
 			}
@@ -924,28 +879,28 @@ namespace Zen.Trunk.Storage.Log
 
 		internal override VirtualLogFileInfo GetVirtualFileById(uint fileId)
 		{
-			LogFileId file = new LogFileId(fileId);
+			var file = new LogFileId(fileId);
 			if (file.DeviceId == DeviceId)
 			{
 				return base.GetVirtualFileById(fileId);
 			}
 			else
 			{
-				LogPageDevice secondaryDevice = _secondaryDevices[file.DeviceId];
+				var secondaryDevice = _secondaryDevices[file.DeviceId];
 				return secondaryDevice.GetVirtualFileById(fileId);
 			}
 		}
 
 		private VirtualLogFileStream GetVirtualFileStream(uint fileId)
 		{
-			VirtualLogFileInfo info = GetVirtualFileById(fileId);
+			var info = GetVirtualFileById(fileId);
 			if (info.DeviceId == DeviceId)
 			{
 				return GetVirtualFileStream(info);
 			}
 			else
 			{
-				LogPageDevice secondaryDevice = _secondaryDevices[info.DeviceId];
+				var secondaryDevice = _secondaryDevices[info.DeviceId];
 				return secondaryDevice.GetVirtualFileStream(info);
 			}
 		}

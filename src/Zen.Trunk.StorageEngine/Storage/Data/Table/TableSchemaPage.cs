@@ -16,9 +16,9 @@
 
 	public class RowConstraint : BufferFieldWrapper
 	{
-		private BufferFieldUInt16 _columnId;
-		private BufferFieldByte _constraintType;
-		private BufferFieldStringFixed _constraintData;
+		private readonly BufferFieldUInt16 _columnId;
+		private readonly BufferFieldByte _constraintType;
+		private readonly BufferFieldStringFixed _constraintData;
 
 		public RowConstraint()
 		{
@@ -77,21 +77,9 @@
 			}
 		}
 
-		protected override BufferField FirstField
-		{
-			get
-			{
-				return _columnId;
-			}
-		}
+		protected override BufferField FirstField => _columnId;
 
-		protected override BufferField LastField
-		{
-			get
-			{
-				return _constraintData;
-			}
-		}
+	    protected override BufferField LastField => _constraintData;
 	}
 
 	internal abstract class IRowConstraintExecute
@@ -120,7 +108,7 @@
 		private class PageItemCollection<T> : Collection<T>
 		{
 			#region Private Fields
-			private TableSchemaPage _owner;
+			private readonly TableSchemaPage _owner;
 			#endregion
 
 			#region Public Constructors
@@ -156,7 +144,7 @@
 
 			protected override void SetItem(int index, T item)
 			{
-				T oldItem = this[index];
+				var oldItem = this[index];
 				base.SetItem(index, item);
 				if (!_owner.TestWrite())
 				{
@@ -171,9 +159,9 @@
 
 		#region Private Fields
 		// Header fields
-		private BufferFieldByte _columnCount;
-		private BufferFieldByte _constraintCount;
-		private BufferFieldByte _indexCount;
+		private readonly BufferFieldByte _columnCount;
+		private readonly BufferFieldByte _constraintCount;
+		private readonly BufferFieldByte _indexCount;
 
 		// Data fields
 		private PageItemCollection<TableColumnInfo> _columns;
@@ -214,15 +202,9 @@
 		/// <summary>
 		/// Gets the minimum number of bytes required for the header block.
 		/// </summary>
-		public override uint MinHeaderSize
-		{
-			get
-			{
-				return base.MinHeaderSize + 3;
-			}
-		}
+		public override uint MinHeaderSize => base.MinHeaderSize + 3;
 
-		/// <summary>
+	    /// <summary>
 		/// Gets the column collection for this page.
 		/// </summary>
 		public IList<TableColumnInfo> Columns
@@ -275,10 +257,10 @@
 			get
 			{
 				ushort keySize = 0;
-				foreach (TableColumnInfo column in Columns)
+				foreach (var column in Columns)
 				{
 					// Min length for variable length columns is two bytes
-					ushort columnLength = column.Length;
+					var columnLength = column.Length;
 					if (column.IsVariableLength)
 					{
 						columnLength = 2;
@@ -299,10 +281,10 @@
 			get
 			{
 				ushort keySize = 0;
-				foreach (TableColumnInfo column in Columns)
+				foreach (var column in Columns)
 				{
 					// Max length for variable length columns is plus two bytes
-					ushort columnLength = column.Length;
+					var columnLength = column.Length;
 					if (column.IsVariableLength)
 					{
 						columnLength += 2;
@@ -325,10 +307,10 @@
 		public ushort GetKeySize(byte[] columnIndices)
 		{
 			ushort keySize = 0;
-			foreach (byte index in columnIndices)
+			foreach (var index in columnIndices)
 			{
 				// Restrict variable length columns to first 10 bytes
-				ushort columnLength = Columns[index].Length;
+				var columnLength = Columns[index].Length;
 				if (Columns[index].IsVariableLength && columnLength > 10)
 				{
 					columnLength = 10;
@@ -348,14 +330,9 @@
 		/// <value>
 		/// The last header field.
 		/// </value>
-		protected override BufferField LastHeaderField
-		{
-			get
-			{
-				return _indexCount;
-			}
-		}
-		#endregion
+		protected override BufferField LastHeaderField => _indexCount;
+
+	    #endregion
 
 		#region Protected Methods
 		/// <summary>
@@ -384,21 +361,21 @@
 			_columns.Clear();
 			for (byte index = 0; index < _columnCount.Value; ++index)
 			{
-				TableColumnInfo column = new TableColumnInfo();
+				var column = new TableColumnInfo();
 				column.Read(streamManager);
 				_columns.Add(column);
 			}
 			_constraints.Clear();
 			for (byte index = 0; index < _constraintCount.Value; ++index)
 			{
-				RowConstraint constraint = new RowConstraint();
+				var constraint = new RowConstraint();
 				constraint.Read(streamManager);
 				_constraints.Add(constraint);
 			}
 			_indices.Clear();
 			for (byte index = 0; index < _indexCount.Value; ++index)
 			{
-				RootTableIndexInfo rootIndex = new RootTableIndexInfo();
+				var rootIndex = new RootTableIndexInfo();
 				rootIndex.Read(streamManager);
 				_indices.Add(rootIndex);
 			}
@@ -408,21 +385,21 @@
 		{
 			if (_columns != null)
 			{
-				foreach (TableColumnInfo column in _columns)
+				foreach (var column in _columns)
 				{
 					column.Write(streamManager);
 				}
 			}
 			if (_constraints != null)
 			{
-				foreach (RowConstraint constraint in _constraints)
+				foreach (var constraint in _constraints)
 				{
 					constraint.Write(streamManager);
 				}
 			}
 			if (_indices != null)
 			{
-				foreach (RootTableIndexInfo index in _indices)
+				foreach (var index in _indices)
 				{
 					index.Write(streamManager);
 				}
@@ -433,9 +410,9 @@
 		#region Private Methods
 		private bool TestWrite()
 		{
-			using (MemoryStream tempStream = new MemoryStream((int)DataSize))
+			using (var tempStream = new MemoryStream((int)DataSize))
 			{
-				using (BufferReaderWriter writer = new BufferReaderWriter(tempStream))
+				using (var writer = new BufferReaderWriter(tempStream))
 				{
 					WriteData(writer);
 
@@ -462,8 +439,8 @@
 	public class TableSchemaRootPage : TableSchemaPage
 	{
 		#region Private Fields
-		private BufferFieldUInt64 _dataFirstLogicalId;
-		private BufferFieldUInt64 _dataLastLogicalId;
+		private readonly BufferFieldUInt64 _dataFirstLogicalId;
+		private readonly BufferFieldUInt64 _dataLastLogicalId;
 		#endregion
 
 		#region Public Constructors
@@ -484,31 +461,25 @@
 		/// <value>
 		/// The minimum size of the header.
 		/// </value>
-		public override uint MinHeaderSize
-		{
-			get
-			{
-				return base.MinHeaderSize + 16;
-			}
-		}
+		public override uint MinHeaderSize => base.MinHeaderSize + 16;
 
-		/// <summary>
+	    /// <summary>
 		/// Gets or sets the logical page identifier of the first data page for the table.
 		/// </summary>
 		/// <value>
 		/// The logical page identifier.
 		/// </value>
-		public ulong DataFirstLogicalId
+		public LogicalPageId DataFirstLogicalId
 		{
 			get
 			{
-				return _dataFirstLogicalId.Value;
+				return new LogicalPageId(_dataFirstLogicalId.Value);
 			}
 			set
 			{
-				if (_dataFirstLogicalId.Value != value)
+				if (_dataFirstLogicalId.Value != value.Value)
 				{
-					_dataFirstLogicalId.Value = value;
+					_dataFirstLogicalId.Value = value.Value;
 					SetHeaderDirty();
 				}
 			}
@@ -520,17 +491,17 @@
 		/// <value>
 		/// The logical page identifier.
 		/// </value>
-		public ulong DataLastLogicalId
+		public LogicalPageId DataLastLogicalId
 		{
 			get
 			{
-				return _dataLastLogicalId.Value;
+				return new LogicalPageId(_dataLastLogicalId.Value);
 			}
 			set
 			{
-				if (_dataLastLogicalId.Value != value)
+				if (_dataLastLogicalId.Value != value.Value)
 				{
-					_dataLastLogicalId.Value = value;
+					_dataLastLogicalId.Value = value.Value;
 					SetHeaderDirty();
 				}
 			}
@@ -544,13 +515,8 @@
 		/// <value>
 		/// The last header field.
 		/// </value>
-		protected override BufferField LastHeaderField
-		{
-			get
-			{
-				return _dataLastLogicalId;
-			}
-		}
-		#endregion
+		protected override BufferField LastHeaderField => _dataLastLogicalId;
+
+	    #endregion
 	}
 }

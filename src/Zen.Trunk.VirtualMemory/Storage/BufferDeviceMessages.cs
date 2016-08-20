@@ -85,15 +85,9 @@
 		/// <value>
 		/// <c>true</c> to flush all devices; otherwise, <c>false</c>.
 		/// </value>
-		public bool AllDevices
-		{
-			get
-			{
-				return (DeviceId == 0);
-			}
-		}
+		public bool AllDevices => (DeviceId == 0);
 
-		/// <summary>
+	    /// <summary>
 		/// Gets or sets the device id.
 		/// </summary>
 		/// <value>The device id.</value>
@@ -226,26 +220,15 @@
 		/// Gets or sets a value indicating whether the device id is valid.
 		/// </summary>
 		/// <value><c>true</c> if the device id is valid; otherwise, <c>false</c>.</value>
-		public bool IsDeviceIdValid
-		{
-			get
-			{
-				return DeviceId != 0;
-			}
-		}
+		public bool IsDeviceIdValid => DeviceId != 0;
 
-		/// <summary>
+	    /// <summary>
 		/// Gets or sets a value indicating whether this instance is create.
 		/// </summary>
 		/// <value><c>true</c> if this instance is create; otherwise, <c>false</c>.</value>
-		public bool IsCreate
-		{
-			get
-			{
-				return CreatePageCount != 0;
-			}
-		}
-		#endregion
+		public bool IsCreate => CreatePageCount != 0;
+
+	    #endregion
 	}
 
 	[CLSCompliant(false)]
@@ -302,13 +285,8 @@
 		/// <value>
 		/// <c>true</c> if device unique identifier is valid; otherwise, <c>false</c>.
 		/// </value>
-		public bool DeviceIdValid
-		{
-			get
-			{
-				return (DeviceId != 0);
-			}
-		}
-		#endregion
+		public bool DeviceIdValid => (DeviceId != 0);
+
+	    #endregion
 	}
 }

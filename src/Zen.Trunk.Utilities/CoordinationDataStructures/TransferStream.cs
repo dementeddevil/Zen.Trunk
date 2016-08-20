@@ -17,9 +17,9 @@ namespace System.Threading
 	/// </summary>
 	public sealed class TransferStream : AbstractStreamBase
 	{
-		private Stream _writeableStream;
-		private BlockingCollection<byte[]> _chunks;
-		private Task _processingTask;
+		private readonly Stream _writeableStream;
+		private readonly BlockingCollection<byte[]> _chunks;
+		private readonly Task _processingTask;
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="TransferStream" /> class.
@@ -57,15 +57,9 @@ namespace System.Threading
 		/// <summary>
 		/// Determines whether data can be written to the stream.
 		/// </summary>
-		public override bool CanWrite
-		{
-			get
-			{
-				return true;
-			}
-		}
+		public override bool CanWrite => true;
 
-		/// <summary>
+	    /// <summary>
 		/// Writes a sequence of bytes to the stream.
 		/// </summary>
 		/// <param name="buffer">An array of bytes. Write copies count bytes from buffer to the stream.</param>

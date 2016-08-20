@@ -80,10 +80,7 @@ namespace System.Threading.Tasks.Schedulers
         }
 
         /// <summary>Gets the maximum concurrency level supported by this scheduler.</summary>
-        public override int MaximumConcurrencyLevel
-        {
-            get { return _threads.Count; }
-        }
+        public override int MaximumConcurrencyLevel => _threads.Count;
 
         /// <summary>
         /// Cleans up the scheduler by indicating that no more tasks will be queued.

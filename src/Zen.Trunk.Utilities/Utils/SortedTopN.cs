@@ -8,10 +8,10 @@ namespace System.Linq
 {
     internal class SortedTopN<TKey, TValue> : IEnumerable<KeyValuePair<TKey, TValue>>
     {
-        private int _n;
-        private List<TKey> _topNKeys;
-        private List<TValue> _topNValues;
-        private IComparer<TKey> _comparer;
+        private readonly int _n;
+        private readonly List<TKey> _topNKeys;
+        private readonly List<TValue> _topNValues;
+        private readonly IComparer<TKey> _comparer;
 
         public SortedTopN(int count, IComparer<TKey> comparer)
         {
@@ -30,7 +30,7 @@ namespace System.Linq
 
         public bool Add(TKey key, TValue value)
         {
-            int position = _topNKeys.BinarySearch(key, _comparer);
+            var position = _topNKeys.BinarySearch(key, _comparer);
             if (position < 0) position = ~position;
             if (_topNKeys.Count < _n || position != 0)
             {
@@ -65,7 +65,7 @@ namespace System.Linq
         {
             get
             {
-                for (int i = _topNKeys.Count - 1; i >= 0; i--)
+                for (var i = _topNKeys.Count - 1; i >= 0; i--)
                 {
                     yield return _topNValues[i];
                 }
@@ -74,7 +74,7 @@ namespace System.Linq
 
         public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
         {
-            for (int i = _topNKeys.Count - 1; i>=0; i--)
+            for (var i = _topNKeys.Count - 1; i>=0; i--)
             {
                 yield return new KeyValuePair<TKey, TValue>(_topNKeys[i], _topNValues[i]);
             }

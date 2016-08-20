@@ -19,7 +19,7 @@ namespace Zen.Trunk.Storage
 		#region Internal Objects
 		private class NewPageInterceptorField : BufferField
 		{
-			private Page _owner;
+			private readonly Page _owner;
 
 			public NewPageInterceptorField(BufferField prev, Page owner)
 				: base(prev)
@@ -27,31 +27,13 @@ namespace Zen.Trunk.Storage
 				_owner = owner;
 			}
 
-			public override ushort MaxElements
-			{
-				get
-				{
-					return 0;
-				}
-			}
+			public override ushort MaxElements => 0;
 
-			public override int DataSize
-			{
-				get
-				{
-					return 0;
-				}
-			}
+		    public override int DataSize => 0;
 
-			public override int FieldLength
-			{
-				get
-				{
-					return 0;
-				}
-			}
+		    public override int FieldLength => 0;
 
-			protected override bool CanContinue(bool isReading)
+		    protected override bool CanContinue(bool isReading)
 			{
 				if (isReading && _owner.PageType == PageType.New)
 				{
@@ -82,8 +64,8 @@ namespace Zen.Trunk.Storage
 		private ISite _site;
 
 		private ulong _virtualId;
-		private BufferFieldBitVector32 _status;
-		private NewPageInterceptorField _newPageField;
+		private readonly BufferFieldBitVector32 _status;
+		private readonly NewPageInterceptorField _newPageField;
 		private BitVector32.Section pageType;
 		private BitVector32.Section indexType;
 		private bool _managedData = true;
@@ -211,48 +193,24 @@ namespace Zen.Trunk.Storage
 		/// <summary>
 		/// Gets the minimum number of bytes required for the header block.
 		/// </summary>
-		public virtual uint MinHeaderSize
-		{
-			get
-			{
-				return 8;
-			}
-		}
+		public virtual uint MinHeaderSize => 8;
 
-		/// <summary>
+	    /// <summary>
 		/// Gets the header block size.
 		/// </summary>
-		public virtual uint HeaderSize
-		{
-			get
-			{
-				return MinHeaderSize;
-			}
-		}
+		public virtual uint HeaderSize => MinHeaderSize;
 
-		/// <summary>
+	    /// <summary>
 		/// Gets the page size.
 		/// </summary>
-		public virtual uint PageSize
-		{
-			get
-			{
-				return 1024;
-			}
-		}
+		public virtual uint PageSize => 1024;
 
-		/// <summary>
+	    /// <summary>
 		/// Gets the data area size.
 		/// </summary>
-		public uint DataSize
-		{
-			get
-			{
-				return PageSize - HeaderSize;
-			}
-		}
+		public uint DataSize => PageSize - HeaderSize;
 
-		/// <summary>
+	    /// <summary>
 		/// Gets/sets the page type.
 		/// </summary>
 		public virtual PageType PageType
@@ -406,26 +364,14 @@ namespace Zen.Trunk.Storage
 		/// Gets a value indicating whether this page is dirty.
 		/// Note: This does not check the underlying _buffer.
 		/// </summary>
-		public bool IsDirty
-		{
-			get
-			{
-				return _headerDirty | _dataDirty;
-			}
-		}
+		public bool IsDirty => _headerDirty | _dataDirty;
 
-		/// <summary>
+	    /// <summary>
 		/// Gets a value indicating whether this is the root database page.
 		/// </summary>
-		public virtual bool IsRootPage
-		{
-			get
-			{
-				return false;
-			}
-		}
+		public virtual bool IsRootPage => false;
 
-		/// <summary>
+	    /// <summary>
 		/// Gets/sets a value indicating whether the data section of a page
 		/// is managed by the persistence logic. Default: true.
 		/// </summary>
@@ -492,30 +438,13 @@ namespace Zen.Trunk.Storage
 			}
 		}
 
-		protected override string TracerName
-		{
-			get
-			{
-				return GetType().Name;
-			}
-		}
+		protected override string TracerName => GetType().Name;
 
-		protected virtual BufferField FirstHeaderField
-		{
-			get
-			{
-				return _status;
-			}
-		}
+	    protected virtual BufferField FirstHeaderField => _status;
 
-		protected virtual BufferField LastHeaderField
-		{
-			get
-			{
-				return _newPageField;
-			}
-		}
-		#endregion
+	    protected virtual BufferField LastHeaderField => _newPageField;
+
+	    #endregion
 
 		#region Public Methods
 		/// <summary>
@@ -637,7 +566,7 @@ namespace Zen.Trunk.Storage
 				if (_events != null)
 				{
 					// Notify objects that we are disappearing...
-					EventHandler handler = (EventHandler)Events[DisposedEvent];
+					var handler = (EventHandler)Events[DisposedEvent];
 					if (handler != null)
 					{
 						handler(this, EventArgs.Empty);
@@ -670,9 +599,9 @@ namespace Zen.Trunk.Storage
 		/// </summary>
 		protected void ReadHeader()
 		{
-			using (Stream stream = CreateHeaderStream(true))
+			using (var stream = CreateHeaderStream(true))
 			{
-				using (BufferReaderWriter streamManager = new BufferReaderWriter(stream))
+				using (var streamManager = new BufferReaderWriter(stream))
 				{
 					ReadHeader(streamManager);
 					streamManager.Close();
@@ -686,9 +615,9 @@ namespace Zen.Trunk.Storage
 		/// </summary>
 		protected void WriteHeader()
 		{
-			using (Stream stream = CreateHeaderStream(false))
+			using (var stream = CreateHeaderStream(false))
 			{
-				using (BufferReaderWriter streamManager = new BufferReaderWriter(stream))
+				using (var streamManager = new BufferReaderWriter(stream))
 				{
 					WriteHeader(streamManager);
 					streamManager.Close();
@@ -702,9 +631,9 @@ namespace Zen.Trunk.Storage
 		/// </summary>
 		protected void ReadData()
 		{
-			using (Stream stream = CreateDataStream(true))
+			using (var stream = CreateDataStream(true))
 			{
-				using (BufferReaderWriter streamManager = new BufferReaderWriter(stream))
+				using (var streamManager = new BufferReaderWriter(stream))
 				{
 					ReadData(streamManager);
 					streamManager.Close();
@@ -718,9 +647,9 @@ namespace Zen.Trunk.Storage
 		/// </summary>
 		protected void WriteData()
 		{
-			using (Stream stream = CreateDataStream(false))
+			using (var stream = CreateDataStream(false))
 			{
-				using (BufferReaderWriter streamManager = new BufferReaderWriter(stream))
+				using (var streamManager = new BufferReaderWriter(stream))
 				{
 					WriteData(streamManager);
 					streamManager.Close();
@@ -833,7 +762,7 @@ namespace Zen.Trunk.Storage
 		/// <param name="e">The <see cref="System.EventArgs"/> instance containing the event data.</param>
 		protected virtual void OnInit(EventArgs e)
 		{
-			EventHandler handler = (EventHandler)Events[InitEvent];
+			var handler = (EventHandler)Events[InitEvent];
 			if (handler != null)
 			{
 				handler(this, e);
@@ -856,7 +785,7 @@ namespace Zen.Trunk.Storage
 		/// <param name="e">The <see cref="System.EventArgs"/> instance containing the event data.</param>
 		protected virtual void OnPostLoad(EventArgs e)
 		{
-			EventHandler handler = (EventHandler)Events[LoadEvent];
+			var handler = (EventHandler)Events[LoadEvent];
 			if (handler != null)
 			{
 				handler(this, e);
@@ -888,7 +817,7 @@ namespace Zen.Trunk.Storage
 		/// <param name="e">The <see cref="System.EventArgs"/> instance containing the event data.</param>
 		protected virtual void OnPostSave(EventArgs e)
 		{
-			EventHandler handler = (EventHandler)Events[SaveEvent];
+			var handler = (EventHandler)Events[SaveEvent];
 			if (handler != null)
 			{
 				handler(this, e);
@@ -901,7 +830,7 @@ namespace Zen.Trunk.Storage
 		/// <param name="e">The <see cref="System.EventArgs"/> instance containing the event data.</param>
 		protected virtual void OnDirty(EventArgs e)
 		{
-			EventHandler handler = (EventHandler)Events[DirtyEvent];
+			var handler = (EventHandler)Events[DirtyEvent];
 			if (handler != null)
 			{
 				handler(this, e);
@@ -921,8 +850,8 @@ namespace Zen.Trunk.Storage
 		{
 			if (!_suppressDirty)
 			{
-				bool alreadyDirty = _headerDirty | _dataDirty;
-				bool canFire = false;
+				var alreadyDirty = _headerDirty | _dataDirty;
+				var canFire = false;
 				if (headerDirty && !_headerDirty)
 				{
 					_headerDirty = true;

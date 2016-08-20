@@ -7,7 +7,7 @@ namespace Zen.Trunk.Storage
 	public class PageException : StorageEngineException, ISerializable
 	{
 		#region Private Fields
-		private Page _page;
+		private readonly Page _page;
 		#endregion
 
 		#region Public Constructors
@@ -58,14 +58,9 @@ namespace Zen.Trunk.Storage
 		#endregion
 
 		#region Public Properties
-		public Page Page
-		{
-			get
-			{
-				return _page;
-			}
-		}
-		#endregion
+		public Page Page => _page;
+
+	    #endregion
 
 		#region Public Methods
 		public override void GetObjectData (SerializationInfo info, StreamingContext context)

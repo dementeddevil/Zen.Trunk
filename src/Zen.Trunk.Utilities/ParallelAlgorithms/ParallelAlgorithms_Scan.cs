@@ -114,7 +114,7 @@ namespace System.Threading.Algorithms
         /// <remarks>No parameter validation is performed.</remarks>
         private static void InclusiveScanInPlaceSerial<T>(T[] arr, Func<T, T, T> function, int arrStart, int arrLength, int skip)
         {
-            for (int i = arrStart; i + skip < arrLength; i += skip)
+            for (var i = arrStart; i + skip < arrLength; i += skip)
             {
                 arr[i + skip] = function(arr[i], arr[i + skip]);
             }
@@ -127,11 +127,11 @@ namespace System.Threading.Algorithms
         /// <param name="upperBoundExclusive">The exclusive upper bound of the array at which to end the scan.</param>
         public static void ExclusiveScanInPlaceSerial<T>(T[] arr, Func<T, T, T> function, int lowerBoundInclusive, int upperBoundExclusive)
         {
-            T total = arr[lowerBoundInclusive];
+            var total = arr[lowerBoundInclusive];
             arr[lowerBoundInclusive] = default(T);
-            for (int i = lowerBoundInclusive + 1; i < upperBoundExclusive; i++)
+            for (var i = lowerBoundInclusive + 1; i < upperBoundExclusive; i++)
             {
-                T prevTotal = total;
+                var prevTotal = total;
                 total = function(total, arr[i]);
                 arr[i] = prevTotal;
             }
@@ -150,13 +150,13 @@ namespace System.Threading.Algorithms
         {
             // If the length is 0 or 1, just return a copy of the original array.
             if (arrLength <= 1) return;
-            int halfInputLength = arrLength / 2;
+            var halfInputLength = arrLength / 2;
 
             // Pairwise combine. Use static partitioning, as the function
             // is likely to be very small.
             Parallel.For(0, halfInputLength, i =>
             {
-                int loc = arrStart + (i * 2 * skip);
+                var loc = arrStart + (i * 2 * skip);
                 arr[loc + skip] = function(arr[loc], arr[loc + skip]);
             });
 
@@ -166,7 +166,7 @@ namespace System.Threading.Algorithms
             // Generate output. As before, use static partitioning.
             Parallel.For(0, (arrLength % 2) == 0 ? halfInputLength - 1 : halfInputLength, i =>
             {
-                int loc = arrStart + (i * 2 * skip) + skip;
+                var loc = arrStart + (i * 2 * skip) + skip;
                 arr[loc + skip] = function(arr[loc], arr[loc + skip]);
             });
         }
@@ -174,23 +174,23 @@ namespace System.Threading.Algorithms
         /// <summary>Computes a parallel inclusive prefix scan over the array using the specified function.</summary>
         public static void InclusiveScanInPlaceParallel<T>(T[] arr, Func<T, T, T> function)
         {
-            int procCount = Environment.ProcessorCount;
-            T[] intermediatePartials = new T[procCount];
+            var procCount = Environment.ProcessorCount;
+            var intermediatePartials = new T[procCount];
             using (var phaseBarrier = new Barrier(procCount, 
                 _ => ExclusiveScanInPlaceSerial(intermediatePartials, function, 0, intermediatePartials.Length)))
             {
                 // Compute the size of each range
-                int rangeSize = arr.Length / procCount;
-                int nextRangeStart = 0;
+                var rangeSize = arr.Length / procCount;
+                var nextRangeStart = 0;
 
                 // Create, store, and wait on all of the tasks
                 var tasks = new Task[procCount];
-                for (int i = 0; i < procCount; i++, nextRangeStart += rangeSize)
+                for (var i = 0; i < procCount; i++, nextRangeStart += rangeSize)
                 {
                     // Get the range for each task, then start it
-                    int rangeNum = i;
-                    int lowerRangeInclusive = nextRangeStart;
-                    int upperRangeExclusive = i < procCount - 1 ? nextRangeStart + rangeSize : arr.Length;
+                    var rangeNum = i;
+                    var lowerRangeInclusive = nextRangeStart;
+                    var upperRangeExclusive = i < procCount - 1 ? nextRangeStart + rangeSize : arr.Length;
                     tasks[rangeNum] = Task.Factory.StartNew(() =>
                     {
                         // Phase 1: Prefix scan assigned range, and copy upper bound to intermediate partials
@@ -203,7 +203,7 @@ namespace System.Threading.Algorithms
                         // Phase 3: Incorporate partials
                         if (rangeNum != 0)
                         {
-                            for (int j = lowerRangeInclusive; j < upperRangeExclusive; j++)
+                            for (var j = lowerRangeInclusive; j < upperRangeExclusive; j++)
                             {
                                 arr[j] = function(intermediatePartials[rangeNum], arr[j]);
                             }

@@ -19,7 +19,7 @@ namespace System.Threading
         /// <summary>Seed provider.</summary>
         private static readonly RNGCryptoServiceProvider _global = new RNGCryptoServiceProvider();
         /// <summary>The underlyin provider of randomness, one instance per thread, initialized with _global.</summary>
-        private ThreadLocal<Random> _local = new ThreadLocal<Random>(() =>
+        private readonly ThreadLocal<Random> _local = new ThreadLocal<Random>(() =>
         {
             var buffer = new byte[4];
             _global.GetBytes(buffer); // RNGCryptoServiceProvider is thread-safe for use in this manner

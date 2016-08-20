@@ -44,15 +44,9 @@ namespace Zen.Trunk.Storage.IO
 		/// <summary>
 		/// Gets the underlying stream object.
 		/// </summary>
-		public Stream BaseStream
-		{
-			get
-			{
-				return _stream;
-			}
-		}
+		public Stream BaseStream => _stream;
 
-		/// <summary>
+	    /// <summary>
 		/// Gets/sets a boolean value controlling whether writes to this
 		/// instance are passed to the underlying stream.
 		/// </summary>
@@ -169,32 +163,32 @@ namespace Zen.Trunk.Storage.IO
 		public char ReadChar()
 		{
 			CheckDisposed();
-			int byteCount = _currentEncoding.GetMaxByteCount(1);
-			byte[] bytes = _reader.ReadBytes(byteCount);
+			var byteCount = _currentEncoding.GetMaxByteCount(1);
+			var bytes = _reader.ReadBytes(byteCount);
 			return _currentEncoding.GetChars(bytes)[0];
 		}
 
 		public char[] ReadChars(int count)
 		{
 			CheckDisposed();
-			int byteCount = _currentEncoding.GetMaxByteCount(count);
-			byte[] bytes = _reader.ReadBytes(byteCount);
+			var byteCount = _currentEncoding.GetMaxByteCount(count);
+			var bytes = _reader.ReadBytes(byteCount);
 			return _currentEncoding.GetChars(bytes);
 		}
 
 		public string ReadString()
 		{
 			CheckDisposed();
-			ushort byteCount = _reader.ReadUInt16();
-			byte[] buffer = _reader.ReadBytes((int)byteCount);
+			var byteCount = _reader.ReadUInt16();
+			var buffer = _reader.ReadBytes((int)byteCount);
 			return _currentEncoding.GetString(buffer);
 		}
 
 		public string ReadStringExact(int count)
 		{
 			CheckDisposed();
-			int byteCount = count * (_currentEncoding.IsSingleByte ? 1 : 2);
-			byte[] buffer = _reader.ReadBytes(byteCount);
+			var byteCount = count * (_currentEncoding.IsSingleByte ? 1 : 2);
+			var buffer = _reader.ReadBytes(byteCount);
 			return _currentEncoding.GetString(buffer);
 		}
 
@@ -296,14 +290,14 @@ namespace Zen.Trunk.Storage.IO
 		public void Write(char value)
 		{
 			CheckWritable();
-			int byteCount = _currentEncoding.GetByteCount(new char[1] { value });
+			var byteCount = _currentEncoding.GetByteCount(new char[1] { value });
 			if (!IsWritable)
 			{
 				_stream.Seek(byteCount, SeekOrigin.Current);
 			}
 			else
 			{
-				byte[] bytes = _currentEncoding.GetBytes(new char[1] { value });
+				var bytes = _currentEncoding.GetBytes(new char[1] { value });
 				_writer.Write(bytes, 0, byteCount);
 			}
 		}
@@ -316,14 +310,14 @@ namespace Zen.Trunk.Storage.IO
 		public void Write(char[] buffer, int index, int count)
 		{
 			CheckWritable();
-			int byteCount = _currentEncoding.GetByteCount(buffer, index, count);
+			var byteCount = _currentEncoding.GetByteCount(buffer, index, count);
 			if (!IsWritable)
 			{
 				_stream.Seek(byteCount, SeekOrigin.Current);
 			}
 			else
 			{
-				byte[] bytes = _currentEncoding.GetBytes(buffer, index, count);
+				var bytes = _currentEncoding.GetBytes(buffer, index, count);
 				_writer.Write(bytes, 0, byteCount);
 			}
 		}
@@ -337,8 +331,8 @@ namespace Zen.Trunk.Storage.IO
 			}
 			else
 			{
-				int byteCount = _currentEncoding.GetByteCount(value);
-				byte[] bytes = _currentEncoding.GetBytes(value);
+				var byteCount = _currentEncoding.GetByteCount(value);
+				var bytes = _currentEncoding.GetBytes(value);
 
 				_writer.Write((ushort)byteCount);
 				_writer.Write(bytes, 0, byteCount);
@@ -354,14 +348,14 @@ namespace Zen.Trunk.Storage.IO
 			}
 			if (!IsWritable)
 			{
-				int byteCount = _currentEncoding.GetByteCount(
+				var byteCount = _currentEncoding.GetByteCount(
 					new string(' ', count));
 				_writer.Seek(byteCount, SeekOrigin.Current);
 			}
 			else
 			{
-				int byteCount = _currentEncoding.GetByteCount(value);
-				byte[] bytes = _currentEncoding.GetBytes(value);
+				var byteCount = _currentEncoding.GetByteCount(value);
+				var bytes = _currentEncoding.GetBytes(value);
 				_writer.Write(bytes, 0, byteCount);
 
 				if (value.Length < count)

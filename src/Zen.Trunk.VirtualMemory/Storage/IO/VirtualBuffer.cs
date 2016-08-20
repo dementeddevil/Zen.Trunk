@@ -30,8 +30,8 @@ namespace Zen.Trunk.Storage.IO
 		private struct StreamInfo
 		{
 			#region Private Fields
-			private int _offset;
-			private int _count;
+			private readonly int _offset;
+			private readonly int _count;
 			#endregion
 
 			#region Public Constructors
@@ -43,22 +43,11 @@ namespace Zen.Trunk.Storage.IO
 			#endregion
 
 			#region Public Properties
-			public int Offset
-			{
-				get
-				{
-					return _offset;
-				}
-			}
+			public int Offset => _offset;
 
-			public int Count
-			{
-				get
-				{
-					return _count;
-				}
-			}
-			#endregion
+		    public int Count => _count;
+
+		    #endregion
 		}
 
 		private class BufferStream : Stream
@@ -191,7 +180,7 @@ namespace Zen.Trunk.Storage.IO
 				// Release this stream from the device buffer.
 				if (_buffer != null)
 				{
-					VirtualBuffer bufferToClose = _buffer;
+					var bufferToClose = _buffer;
 					_buffer = null;
 					bufferToClose.ReleaseStream(this);
 				}
@@ -286,10 +275,10 @@ namespace Zen.Trunk.Storage.IO
 		private static bool _gotPageSize;
 		private static int _pageSize;
 
-		private SafeCommitableMemoryHandle _buffer;
-		private int _bufferSize;
-		private VirtualBufferCache _owner;
-		private int _cacheSlot;
+		private readonly SafeCommitableMemoryHandle _buffer;
+		private readonly int _bufferSize;
+		private readonly VirtualBufferCache _owner;
+		private readonly int _cacheSlot;
 
 		private bool _committed;
 		private bool _disposed;
@@ -320,15 +309,9 @@ namespace Zen.Trunk.Storage.IO
 		/// <value>
 		/// The buffer unique identifier.
 		/// </value>
-		public string BufferId
-		{
-			get
-			{
-				return string.Format("{0}:{1}", _owner.CacheId, _cacheSlot);
-			}
-		}
+		public string BufferId => string.Format("{0}:{1}", _owner.CacheId, _cacheSlot);
 
-		/// <summary>
+	    /// <summary>
 		/// Gets the size of the system page.
 		/// </summary>
 		/// <value>The size of the page.</value>
@@ -338,7 +321,7 @@ namespace Zen.Trunk.Storage.IO
 			{
 				if (!_gotPageSize)
 				{
-					SafeNativeMethods.SYSTEM_INFO systemInfo = new SafeNativeMethods.SYSTEM_INFO();
+					var systemInfo = new SafeNativeMethods.SYSTEM_INFO();
 					SafeNativeMethods.GetSystemInfo(ref systemInfo);
 					_pageSize = systemInfo.dwPageSize;
 					_gotPageSize = true;
@@ -353,28 +336,17 @@ namespace Zen.Trunk.Storage.IO
 		/// <value>
 		/// The size of the buffer.
 		/// </value>
-		public int BufferSize
-		{
-			get
-			{
-				return _bufferSize;
-			}
-		}
+		public int BufferSize => _bufferSize;
 
-		/// <summary>
+	    /// <summary>
 		/// Gets a value indicating whether this buffer instance is dirty.
 		/// </summary>
 		/// <value>
 		/// <c>true</c> if dirty; otherwise, <c>false</c>.
 		/// </value>
-		public bool IsDirty
-		{
-			get
-			{
-				return _dirty;
-			}
-		}
-		#endregion
+		public bool IsDirty => _dirty;
+
+	    #endregion
 
 		#region Public Methods
 		/// <summary>
@@ -525,7 +497,7 @@ namespace Zen.Trunk.Storage.IO
 			}
 			if (_streams.Count > 0)
 			{
-				foreach (StreamInfo info in _streams.Values)
+				foreach (var info in _streams.Values)
 				{
 					// Does this match?
 					if ((info.Offset == offset) ||
@@ -561,15 +533,9 @@ namespace Zen.Trunk.Storage.IO
 		#endregion
 
 		#region Internal Properties
-		internal int CacheSlot
-		{
-			get
-			{
-				return _cacheSlot;
-			}
-		}
+		internal int CacheSlot => _cacheSlot;
 
-		internal unsafe byte* Buffer
+	    internal unsafe byte* Buffer
 		{
 			get
 			{
@@ -595,9 +561,9 @@ namespace Zen.Trunk.Storage.IO
 		{
 			if (_streams != null)
 			{
-				Stream[] streams = new Stream[_streams.Keys.Count];
+				var streams = new Stream[_streams.Keys.Count];
 				_streams.Keys.CopyTo(streams, 0);
-				for (int index = 0; index < streams.Length; ++index)
+				for (var index = 0; index < streams.Length; ++index)
 				{
 					streams[index].Dispose();
 				}
@@ -626,7 +592,7 @@ namespace Zen.Trunk.Storage.IO
 			{
 				do
 				{
-					int result = *((int*)dest) - *((int*)src);
+					var result = *((int*)dest) - *((int*)src);
 					if (result != 0)
 					{
 						return result;
@@ -655,7 +621,7 @@ namespace Zen.Trunk.Storage.IO
 			{
 				if ((len & 8) != 0)
 				{
-					int result = *((int*)dest) - *((int*)src);
+					var result = *((int*)dest) - *((int*)src);
 					if (result != 0)
 					{
 						return result;
@@ -670,7 +636,7 @@ namespace Zen.Trunk.Storage.IO
 				}
 				if ((len & 4) != 0)
 				{
-					int result = *((int*)dest) - *((int*)src);
+					var result = *((int*)dest) - *((int*)src);
 					if (result != 0)
 					{
 						return result;
@@ -680,7 +646,7 @@ namespace Zen.Trunk.Storage.IO
 				}
 				if ((len & 2) != 0)
 				{
-					int result = (*((short*)dest) - *((short*)src));
+					var result = (*((short*)dest) - *((short*)src));
 					if (result != 0)
 					{
 						return result;

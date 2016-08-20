@@ -10,14 +10,14 @@ namespace Zen.Trunk.Storage.Log
 		private const int HeaderSize = 24;
 		private const int TotalHeaderSize = HeaderSize * 2;
 
-		private LogPageDevice _device;
+		private readonly LogPageDevice _device;
 
-		private VirtualLogFileInfo _logFileInfo;
+		private readonly VirtualLogFileInfo _logFileInfo;
 		private bool _writeFirstHeader;
 		private bool _headerDirty;
 		private long _position;
 
-		private BufferReaderWriter _streamManager;
+		private readonly BufferReaderWriter _streamManager;
 		#endregion
 
 		#region Public Constructors
@@ -44,15 +44,9 @@ namespace Zen.Trunk.Storage.Log
 		/// <summary>
 		/// Gets the log file Id.
 		/// </summary>
-		public uint FileId
-		{
-			get
-			{
-				return _logFileInfo.FileId;
-			}
-		}
+		public uint FileId => _logFileInfo.FileId;
 
-		/// <summary>
+	    /// <summary>
 		/// Gets/sets the previous log file Id.
 		/// </summary>
 		public uint PrevFileId
@@ -113,38 +107,20 @@ namespace Zen.Trunk.Storage.Log
 		/// If the device is in recovery the stream cannot be written to
 		/// only read from. Seeking is also allowed when in this mode.
 		/// </remarks>
-		public bool Recovery
-		{
-			get
-			{
-				return _device.IsInRecovery;
-			}
-		}
+		public bool Recovery => _device.IsInRecovery;
 
-		/// <summary>
+	    /// <summary>
 		/// Gets a boolean value indicating whether this stream is read-only.
 		/// </summary>
-		public bool ReadOnly
-		{
-			get
-			{
-				return _device.IsReadOnly | Recovery;
-			}
-		}
+		public bool ReadOnly => _device.IsReadOnly | Recovery;
 
-		/// <summary>
+	    /// <summary>
 		/// Overridden. Gets a boolean value indicating whether the stream
 		/// supports reading.
 		/// </summary>
-		public override bool CanRead
-		{
-			get
-			{
-				return Recovery;
-			}
-		}
+		public override bool CanRead => Recovery;
 
-		/// <summary>
+	    /// <summary>
 		/// Overridden. Gets a boolean value indicating whether the stream
 		/// supports writing.
 		/// </summary>
@@ -162,28 +138,16 @@ namespace Zen.Trunk.Storage.Log
 		/// Overridden. Gets a boolean value indicating whether the stream
 		/// supports seeking.
 		/// </summary>
-		public override bool CanSeek
-		{
-			get
-			{
-				return true;
-			}
-		}
+		public override bool CanSeek => true;
 
-		/// <summary>
+	    /// <summary>
 		/// Overridden. Gets a value indicating the stream length.
 		/// This is equal to the number of pages multiplied by
 		/// the log page data size.
 		/// </summary>
-		public override long Length
-		{
-			get
-			{
-				return _logFileInfo.Length - TotalHeaderSize;
-			}
-		}
+		public override long Length => _logFileInfo.Length - TotalHeaderSize;
 
-		/// <summary>
+	    /// <summary>
 		/// Gets/sets a value which indicates the current stream position.
 		/// </summary>
 		public override long Position
@@ -305,7 +269,7 @@ namespace Zen.Trunk.Storage.Log
 			}
 
 			// Determine new offset
-			long newOffset = _logFileInfo.StartOffset + TotalHeaderSize;
+			var newOffset = _logFileInfo.StartOffset + TotalHeaderSize;
 			switch (origin)
 			{
 				case SeekOrigin.Begin:
@@ -381,7 +345,7 @@ namespace Zen.Trunk.Storage.Log
 				throw new InvalidOperationException ("Stream does not support reading at this time.");
 			}
 
-			int retVal = 0;
+			var retVal = 0;
 			EnsurePositionValid ();
 			try
 			{
@@ -408,7 +372,7 @@ namespace Zen.Trunk.Storage.Log
 				throw new InvalidOperationException ("Stream does not support reading at this time.");
 			}
 
-			int retVal = 0;
+			var retVal = 0;
 			EnsurePositionValid ();
 			try
 			{
@@ -483,8 +447,8 @@ namespace Zen.Trunk.Storage.Log
 		#region Private Methods
 		private void ReadHeaders ()
 		{
-			VirtualLogFileHeader info1 = new VirtualLogFileHeader ();
-			VirtualLogFileHeader info2 = new VirtualLogFileHeader ();
+			var info1 = new VirtualLogFileHeader ();
+			var info2 = new VirtualLogFileHeader ();
 			bool valid1, valid2;
 
 			Position = 0;
@@ -553,7 +517,7 @@ namespace Zen.Trunk.Storage.Log
 		private void WriteHeader ()
 		{
 			// Save the current position
-			long currentPosition = _streamManager.BaseStream.Position;
+			var currentPosition = _streamManager.BaseStream.Position;
 			try
 			{
 				// Header size is 24 bytes

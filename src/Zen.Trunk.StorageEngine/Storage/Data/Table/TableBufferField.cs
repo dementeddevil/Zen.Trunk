@@ -88,15 +88,9 @@
 		/// <value>
 		/// The size of the data.
 		/// </value>
-		public override int DataSize
-		{
-			get
-			{
-				return _fieldDef.MaxDataSize;
-			}
-		}
+		public override int DataSize => _fieldDef.MaxDataSize;
 
-		/// <summary>
+	    /// <summary>
 		/// Gets the maximum length of this field.
 		/// </summary>
 		/// <value>
@@ -191,7 +185,7 @@
 					if (_fieldDef.DataType == TableColumnDataType.Char ||
 						_fieldDef.DataType == TableColumnDataType.NChar)
 					{
-						string tempValue = (string)e.NewValue;
+						var tempValue = (string)e.NewValue;
 						if (tempValue.Length > _fieldDef.Length)
 						{
 							e.NewValue = tempValue.Substring(0, _fieldDef.Length);
@@ -206,7 +200,7 @@
 					if (_fieldDef.DataType == TableColumnDataType.VarChar ||
 						_fieldDef.DataType == TableColumnDataType.NVarChar)
 					{
-						string tempValue = (string)e.NewValue;
+						var tempValue = (string)e.NewValue;
 						if (tempValue.Length > _fieldDef.Length)
 						{
 							e.NewValue = tempValue.Substring(0, _fieldDef.Length);
@@ -247,7 +241,7 @@
 	public class BufferFieldTableRow : BufferFieldWrapper
 	{
 		#region Private Fields
-		private BufferFieldColumn[] _keys;
+		private readonly BufferFieldColumn[] _keys;
 		private bool _hasContext;
 		private bool _indexMode;
 		private bool _hasRowSize;
@@ -260,7 +254,7 @@
 			_keys = new BufferFieldColumn[keySize];
 
 			BufferFieldColumn prevBufferField = null;
-			for (int index = 0; index < keySize; ++index)
+			for (var index = 0; index < keySize; ++index)
 			{
 				_keys[index] = new BufferFieldColumn(prevBufferField);
 				prevBufferField = _keys[index];
@@ -272,7 +266,7 @@
 			_keys = new BufferFieldColumn[keys.Length];
 
 			BufferFieldColumn prevBufferField = null;
-			for (int index = 0; index < keys.Length; ++index)
+			for (var index = 0; index < keys.Length; ++index)
 			{
 				_keys[index] = new BufferFieldColumn(prevBufferField, keys[index]);
 				prevBufferField = _keys[index];
@@ -307,7 +301,7 @@
 				if (_indexMode != value)
 				{
 					_indexMode = value;
-					foreach (BufferFieldColumn column in _keys)
+					foreach (var column in _keys)
 					{
 						column.IndexMode = _indexMode;
 					}
@@ -316,15 +310,9 @@
 			}
 		}
 
-		public int KeyLength
-		{
-			get
-			{
-				return _keys.Length;
-			}
-		}
+		public int KeyLength => _keys.Length;
 
-		public int RowSize
+	    public int RowSize
 		{
 			get
 			{
@@ -332,7 +320,7 @@
 				{
 					CheckHasContext();
 					_rowSize = 0;
-					foreach (BufferFieldColumn col in _keys)
+					foreach (var col in _keys)
 					{
 						_rowSize += col.FieldLength;
 					}
@@ -350,7 +338,7 @@
 			{
 				throw new ArgumentException("Root information of differing key length.");
 			}
-			for (int index = 0; index < _keys.Length; ++index)
+			for (var index = 0; index < _keys.Length; ++index)
 			{
 				if (columns != null)
 				{
@@ -379,7 +367,7 @@
 		public void WriteData(BufferReaderWriter streamManager)
 		{
 			CheckHasContext();
-			foreach (BufferFieldColumn column in _keys)
+			foreach (var column in _keys)
 			{
 				column.WriteData(streamManager);
 			}
@@ -388,7 +376,7 @@
 		public void ReadData(BufferReaderWriter streamManager)
 		{
 			CheckHasContext();
-			foreach (BufferFieldColumn column in _keys)
+			foreach (var column in _keys)
 			{
 				column.ReadData(streamManager);
 			}
@@ -396,22 +384,11 @@
 		#endregion
 
 		#region Protected Properties
-		protected override BufferField FirstField
-		{
-			get
-			{
-				return _keys[0];
-			}
-		}
+		protected override BufferField FirstField => _keys[0];
 
-		protected override BufferField LastField
-		{
-			get
-			{
-				return _keys[_keys.Length - 1];
-			}
-		}
-		#endregion
+	    protected override BufferField LastField => _keys[_keys.Length - 1];
+
+	    #endregion
 
 		#region Private Methods
 		private void CheckHasContext()

@@ -136,6 +136,8 @@
     <Compile Include="Storage\Log\VirtualLogFileInfo.cs" />
     <Compile Include="Storage\Log\VirtualLogFileStream.cs" />
     <Compile Include="Storage\MountableDevice.cs" />
+    <Compile Include="Storage\ObjectId.cs" />
+    <Compile Include="Storage\ObjectType.cs" />
     <Compile Include="Storage\PageDevice.cs" />
     <Compile Include="Storage\Range.cs" />
     <Compile Include="Storage\StatefulBufferScope.cs" />

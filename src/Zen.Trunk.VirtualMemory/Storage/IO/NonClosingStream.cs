@@ -6,7 +6,7 @@ namespace Zen.Trunk.Storage.IO
 	public class NonClosingStream : Stream
 	{
 		#region Private Fields
-		private Stream _innerStream;
+		private readonly Stream _innerStream;
 		#endregion
 
 		#region Public Constructors

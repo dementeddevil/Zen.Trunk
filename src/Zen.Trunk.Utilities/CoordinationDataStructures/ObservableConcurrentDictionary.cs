@@ -80,7 +80,7 @@ namespace System.Collections.Concurrent
         /// <returns>Whether the add was successful.</returns>
         private bool TryAddWithNotification(TKey key, TValue value)
         {
-            bool result = _dictionary.TryAdd(key, value);
+            var result = _dictionary.TryAdd(key, value);
             if (result) NotifyObserversOfChange();
             return result;
         }
@@ -91,7 +91,7 @@ namespace System.Collections.Concurrent
         /// <returns>Whether the removal was successful.</returns>
         private bool TryRemoveWithNotification(TKey key, out TValue value)
         {
-            bool result = _dictionary.TryRemove(key, out value);
+            var result = _dictionary.TryRemove(key, out value);
             if (result) NotifyObserversOfChange();
             return result;
         }
@@ -128,15 +128,9 @@ namespace System.Collections.Concurrent
             ((ICollection<KeyValuePair<TKey, TValue>>)_dictionary).CopyTo(array, arrayIndex);
         }
 
-        int ICollection<KeyValuePair<TKey, TValue>>.Count
-        {
-            get { return ((ICollection<KeyValuePair<TKey, TValue>>)_dictionary).Count; }
-        }
+        int ICollection<KeyValuePair<TKey, TValue>>.Count => ((ICollection<KeyValuePair<TKey, TValue>>)_dictionary).Count;
 
-        bool ICollection<KeyValuePair<TKey, TValue>>.IsReadOnly
-        {
-            get { return ((ICollection<KeyValuePair<TKey, TValue>>)_dictionary).IsReadOnly; }
-        }
+        bool ICollection<KeyValuePair<TKey, TValue>>.IsReadOnly => ((ICollection<KeyValuePair<TKey, TValue>>)_dictionary).IsReadOnly;
 
         bool ICollection<KeyValuePair<TKey, TValue>>.Remove(KeyValuePair<TKey, TValue> item)
         {
@@ -168,10 +162,7 @@ namespace System.Collections.Concurrent
             return _dictionary.ContainsKey(key);
         }
 
-        public ICollection<TKey> Keys
-        {
-            get { return _dictionary.Keys; }
-        }
+        public ICollection<TKey> Keys => _dictionary.Keys;
 
         public bool Remove(TKey key)
         {
@@ -184,10 +175,7 @@ namespace System.Collections.Concurrent
             return _dictionary.TryGetValue(key, out value);
         }
 
-        public ICollection<TValue> Values
-        {
-            get { return _dictionary.Values; }
-        }
+        public ICollection<TValue> Values => _dictionary.Values;
 
         public TValue this[TKey key]
         {

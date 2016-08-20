@@ -68,6 +68,6 @@ namespace System.Threading.Tasks.Schedulers
         }
 
         /// <summary>Gets the maximum concurrency level supported by this scheduler.</summary>
-        public override int MaximumConcurrencyLevel { get { return 1; } }
+        public override int MaximumConcurrencyLevel => 1;
     }
 }

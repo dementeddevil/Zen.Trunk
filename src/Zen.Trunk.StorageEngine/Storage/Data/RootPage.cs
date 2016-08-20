@@ -28,13 +28,13 @@ namespace Zen.Trunk.Storage.Data
 		#region Private Fields
 		private RootLockType _rootLock;
 
-		private BufferFieldUInt64 _signature;
-		private BufferFieldUInt32 _schemaVersion;
-		private BufferFieldBitVector8 _status;
-		private BufferFieldUInt32 _allocatedPages;
-		private BufferFieldUInt32 _maximumPages;
-		private BufferFieldUInt32 _growthPages;
-		private BufferFieldDouble _growthPercent;
+		private readonly BufferFieldUInt64 _signature;
+		private readonly BufferFieldUInt32 _schemaVersion;
+		private readonly BufferFieldBitVector8 _status;
+		private readonly BufferFieldUInt32 _allocatedPages;
+		private readonly BufferFieldUInt32 _maximumPages;
+		private readonly BufferFieldUInt32 _growthPages;
+		private readonly BufferFieldDouble _growthPercent;
 		#endregion
 
 		#region Public Constructors
@@ -69,7 +69,7 @@ namespace Zen.Trunk.Storage.Data
 			{
 				if (_rootLock != value)
 				{
-					RootLockType oldLock = _rootLock;
+					var oldLock = _rootLock;
 					try
 					{
 						_rootLock = value;
@@ -88,34 +88,16 @@ namespace Zen.Trunk.Storage.Data
 		/// Overridden. Gets/sets the page status.
 		/// </summary>
 		/// <value></value>
-		public override PageType PageType
-		{
-			get
-			{
-				return PageType.Root;
-			}
-		}
+		public override PageType PageType => PageType.Root;
 
-		/// <summary>
+	    /// <summary>
 		/// Overridden. Returns boolean true indicating this is a root page.
 		/// </summary>
-		public override bool IsRootPage
-		{
-			get
-			{
-				return true;
-			}
-		}
+		public override bool IsRootPage => true;
 
-		public override uint MinHeaderSize
-		{
-			get
-			{
-				return base.MinHeaderSize + 29;
-			}
-		}
+	    public override uint MinHeaderSize => base.MinHeaderSize + 29;
 
-		public byte Status
+	    public byte Status
 		{
 			get
 			{
@@ -253,15 +235,9 @@ namespace Zen.Trunk.Storage.Data
 		/// Gets the last header field.
 		/// </summary>
 		/// <value>The last header field.</value>
-		protected override BufferField LastHeaderField
-		{
-			get
-			{
-				return _growthPercent;
-			}
-		}
+		protected override BufferField LastHeaderField => _growthPercent;
 
-		/// <summary>
+	    /// <summary>
 		/// Gets the root page signature.
 		/// </summary>
 		/// <value>The root page signature.</value>

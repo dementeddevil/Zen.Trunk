@@ -70,29 +70,11 @@ namespace System.Collections.Concurrent
 				((ICollection)_collection).CopyTo(array, index);
 			}
 
-			public int Count
-			{
-				get
-				{
-					return _collection.Count;
-				}
-			}
+			public int Count => _collection.Count;
 
-			public bool IsSynchronized
-			{
-				get
-				{
-					return ((ICollection)_collection).IsSynchronized;
-				}
-			}
+		    public bool IsSynchronized => ((ICollection)_collection).IsSynchronized;
 
-			public object SyncRoot
-			{
-				get
-				{
-					return ((ICollection)_collection).SyncRoot;
-				}
-			}
+		    public object SyncRoot => ((ICollection)_collection).SyncRoot;
 		}
 
 		/// <summary>Provides a partitioner that consumes a blocking collection and yields its contents.</summary>
@@ -100,7 +82,7 @@ namespace System.Collections.Concurrent
 		private class BlockingCollectionPartitioner<T> : Partitioner<T>
 		{
 			/// <summary>The target collection.</summary>
-			private BlockingCollection<T> _collection;
+			private readonly BlockingCollection<T> _collection;
 
 			/// <summary>Initializes the partitioner.</summary>
 			/// <param name="collection">The collection to be enumerated and consumed.</param>
@@ -112,15 +94,9 @@ namespace System.Collections.Concurrent
 			}
 
 			/// <summary>Gets whether additional partitions can be created dynamically.</summary>
-			public override bool SupportsDynamicPartitions
-			{
-				get
-				{
-					return true;
-				}
-			}
+			public override bool SupportsDynamicPartitions => true;
 
-			/// <summary>Partitions the underlying collection into the given number of partitions.</summary>
+		    /// <summary>Partitions the underlying collection into the given number of partitions.</summary>
 			/// <param name="partitionCount">The number of partitions to create.</param>
 			/// <returns>A list containing partitionCount enumerators.</returns>
 			public override IList<IEnumerator<T>> GetPartitions(int partitionCount)

@@ -19,18 +19,12 @@ namespace Zen.Trunk.Storage.Locking
 		#region Private Types
 		private class DBPrepare : PreparingPageEnlistment
 		{
-			private TaskCompletionSource<bool> _tcs =
+			private readonly TaskCompletionSource<bool> _tcs =
 				new TaskCompletionSource<bool>();
 
-			internal Task<bool> Task
-			{
-				get
-				{
-					return _tcs.Task;
-				}
-			}
+			internal Task<bool> Task => _tcs.Task;
 
-			public override void ForceRollback()
+		    public override void ForceRollback()
 			{
 				_tcs.TrySetException(new TransactionAbortedException(
 					"Transaction rollback forced by participant."));
@@ -54,18 +48,12 @@ namespace Zen.Trunk.Storage.Locking
 
 		private class DBNotify : PageEnlistment
 		{
-			private TaskCompletionSource<object> _tcs =
+			private readonly TaskCompletionSource<object> _tcs =
 				new TaskCompletionSource<object>();
 
-			internal Task Task
-			{
-				get
-				{
-					return _tcs.Task;
-				}
-			}
+			internal Task Task => _tcs.Task;
 
-			public override void Done()
+		    public override void Done()
 			{
 				_tcs.TrySetResult(null);
 			}
@@ -111,9 +99,9 @@ namespace Zen.Trunk.Storage.Locking
 		#endregion
 
 		#region Private Fields
-		private IServiceProvider _serviceProvider;
-		private List<IPageEnlistmentNotification> _subEnlistments = new List<IPageEnlistmentNotification>();
-		private List<TransactionLogEntry> _transactionLogs = new List<TransactionLogEntry>();
+		private readonly IServiceProvider _serviceProvider;
+		private readonly List<IPageEnlistmentNotification> _subEnlistments = new List<IPageEnlistmentNotification>();
+		private readonly List<TransactionLogEntry> _transactionLogs = new List<TransactionLogEntry>();
 		private TransactionLockOwnerBlock _lockOwner;
 		private TransactionOptions _options;
 		private bool _isBeginLogWritten = false;
@@ -124,7 +112,7 @@ namespace Zen.Trunk.Storage.Locking
 		private bool _nestedRollbackTriggered = false;
 		private bool _isCompleting = false;
 		private bool _isCompleted = false;
-		private ITracer _tracer;
+		private readonly ITracer _tracer;
 		#endregion
 
 		#region Public Constructors
@@ -171,7 +159,7 @@ namespace Zen.Trunk.Storage.Locking
 			TimeSpan timeout)
 		{
 			// Ensure minimum timeout duration
-			TimeSpan minTimeout = TimeSpan.FromSeconds(30);
+			var minTimeout = TimeSpan.FromSeconds(30);
 			if (timeout < minTimeout)
 			{
 				timeout = minTimeout;
@@ -190,39 +178,21 @@ namespace Zen.Trunk.Storage.Locking
 		/// <summary>
 		/// Gets the database transaction ID for this transaction.
 		/// </summary>
-		public uint TransactionId
-		{
-			get
-			{
-				return _transactionId;
-			}
-		}
+		public uint TransactionId => _transactionId;
 
-		/// <summary>
+	    /// <summary>
 		/// Gets the isolation level.
 		/// </summary>
 		/// <value>The isolation level.</value>
-		public IsolationLevel IsolationLevel
-		{
-			get
-			{
-				return _options.IsolationLevel;
-			}
-		}
+		public IsolationLevel IsolationLevel => _options.IsolationLevel;
 
-		/// <summary>
+	    /// <summary>
 		/// Gets the transaction timeout.
 		/// </summary>
 		/// <value>The timeout.</value>
-		public TimeSpan Timeout
-		{
-			get
-			{
-				return _options.Timeout;
-			}
-		}
+		public TimeSpan Timeout => _options.Timeout;
 
-		/// <summary>
+	    /// <summary>
 		/// Gets the logging device from the database device.
 		/// </summary>
 		public MasterLogPageDevice LoggingDevice
@@ -238,15 +208,9 @@ namespace Zen.Trunk.Storage.Locking
 			}
 		}
 
-		public TransactionLockOwnerBlock TransactionLocks
-		{
-			get
-			{
-				return _lockOwner;
-			}
-		}
+		public TransactionLockOwnerBlock TransactionLocks => _lockOwner;
 
-		public IDatabaseLockManager LockManager
+	    public IDatabaseLockManager LockManager
 		{
 			get
 			{
@@ -259,14 +223,9 @@ namespace Zen.Trunk.Storage.Locking
 			}
 		}
 
-		public bool IsCompleted
-		{
-			get
-			{
-				return _isCompleted;
-			}
-		}
-		#endregion
+		public bool IsCompleted => _isCompleted;
+
+	    #endregion
 
 		#region Public Methods
 		public void Dispose()
@@ -346,8 +305,8 @@ namespace Zen.Trunk.Storage.Locking
 			{
 				_isCompleting = true;
 
-				bool performCommit = true;
-				List<Task<bool>> prepTasks = new List<Task<bool>>();
+				var performCommit = true;
+				var prepTasks = new List<Task<bool>>();
 				if (_nestedRollbackTriggered)
 				{
 					_tracer.WriteVerboseLine(
@@ -362,9 +321,9 @@ namespace Zen.Trunk.Storage.Locking
 						_subEnlistments.Count);
 
 					// Prepare our sub-enlistments (pages) for commit operation
-					foreach (IPageEnlistmentNotification sub in _subEnlistments)
+					foreach (var sub in _subEnlistments)
 					{
-						DBPrepare prepInfo = new DBPrepare();
+						var prepInfo = new DBPrepare();
 						prepTasks.Add(prepInfo.Task);
 						try
 						{
@@ -381,17 +340,17 @@ namespace Zen.Trunk.Storage.Locking
 				}
 
 				// Wait for prepare participants to complete work
-				List<IPageEnlistmentNotification> commitList = new List<IPageEnlistmentNotification>();
+				var commitList = new List<IPageEnlistmentNotification>();
 				if (performCommit)
 				{
 					try
 					{
-						bool[] result = await TaskExtra
+						var result = await TaskExtra
 							.WhenAllOrEmpty<bool>(prepTasks.ToArray())
 							.ConfigureAwait(false);
 						if (result != null)
 						{
-							for (int index = 0; index < result.Length; ++index)
+							for (var index = 0; index < result.Length; ++index)
 							{
 								if (result[index])
 								{
@@ -415,7 +374,7 @@ namespace Zen.Trunk.Storage.Locking
 					// Notify all prepared objects that want to commit
 					_tracer.WriteVerboseLine("Committing {0} sub-enlistments",
 						commitList.Count);
-					List<Task> commitTasks = new List<Task>();
+					var commitTasks = new List<Task>();
 					try
 					{
 						// Commit each item in the commit list
@@ -423,11 +382,11 @@ namespace Zen.Trunk.Storage.Locking
 						//	committed to ensure we only commit each page once
 						// This may mean some page objects are prepared but not
 						//	necessarily committed...
-						HashSet<ulong> tracker = new HashSet<ulong>();
-						foreach (IPageEnlistmentNotification sub in commitList)
+						var tracker = new HashSet<ulong>();
+						foreach (var sub in commitList)
 						{
 							// We only track pages (they should all be pages!)
-							Page page = sub as Page;
+							var page = sub as Page;
 							if (page != null)
 							{
 								if (tracker.Contains(page.VirtualId))
@@ -437,7 +396,7 @@ namespace Zen.Trunk.Storage.Locking
 								tracker.Add(page.VirtualId);
 							}
 
-							DBNotify notifyInfo = new DBNotify();
+							var notifyInfo = new DBNotify();
 							commitTasks.Add(notifyInfo.Task);
 							sub.Commit(notifyInfo);
 						}
@@ -459,10 +418,10 @@ namespace Zen.Trunk.Storage.Locking
 				if (!performCommit)
 				{
 					// Rollback all objects in the commit list and throw
-					List<Task> rollbackTasks = new List<Task>();
-					foreach (IPageEnlistmentNotification rb in commitList)
+					var rollbackTasks = new List<Task>();
+					foreach (var rb in commitList)
 					{
-						DBNotify rollback = new DBNotify();
+						var rollback = new DBNotify();
 						try
 						{
 							rollbackTasks.Add(rollback.Task);
@@ -485,7 +444,7 @@ namespace Zen.Trunk.Storage.Locking
 				await WriteEndXact(performCommit).ConfigureAwait(false);
 
 				// Notify candidates that transaction has completed
-				List<IPageEnlistmentNotification> completeList =
+				var completeList =
 					new List<IPageEnlistmentNotification>();
 				if (commitList.Count > 0)
 				{
@@ -495,7 +454,7 @@ namespace Zen.Trunk.Storage.Locking
 				{
 					completeList.AddRange(_subEnlistments);
 				}
-				foreach (IPageEnlistmentNotification rb in completeList)
+				foreach (var rb in completeList)
 				{
 					try
 					{
@@ -551,10 +510,10 @@ namespace Zen.Trunk.Storage.Locking
 				_isCompleting = true;
 				_tracer.WriteVerboseLine("Preparing rollback on {0} sub-enlistments",
 					_subEnlistments.Count);
-				List<Task> rollbackTasks = new List<Task>();
-				foreach (IPageEnlistmentNotification sub in _subEnlistments)
+				var rollbackTasks = new List<Task>();
+				foreach (var sub in _subEnlistments)
 				{
-					DBNotify notify = new DBNotify();
+					var notify = new DBNotify();
 					try
 					{
 						rollbackTasks.Add(notify.Task);
@@ -574,7 +533,7 @@ namespace Zen.Trunk.Storage.Locking
 				await WriteEndXact(false).ConfigureAwait(false);
 
 				// Notify commit list - transaction has been completed
-				foreach (IPageEnlistmentNotification sub in _subEnlistments)
+				foreach (var sub in _subEnlistments)
 				{
 					sub.Complete();
 				}
@@ -642,9 +601,9 @@ namespace Zen.Trunk.Storage.Locking
 			}
 
 			// Cleanup enlistments that implement IDisposable
-			foreach (IPageEnlistmentNotification enlistment in _subEnlistments)
+			foreach (var enlistment in _subEnlistments)
 			{
-				IDisposable disp = enlistment as IDisposable;
+				var disp = enlistment as IDisposable;
 				if (disp != null)
 				{
 					//disp.Dispose();

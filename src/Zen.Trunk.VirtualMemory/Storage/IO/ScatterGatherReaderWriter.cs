@@ -14,10 +14,10 @@ namespace Zen.Trunk.Storage.IO
 	{
 		#region Private Fields
 		private AdvancedFileStream _stream;
-		private StreamScatterGatherHelper _readBuffers;
-		private StreamScatterGatherHelper _writeBuffers;
+		private readonly StreamScatterGatherHelper _readBuffers;
+		private readonly StreamScatterGatherHelper _writeBuffers;
 		private CancellationTokenSource _shutdown;
-		private Task _cleanupTask;
+		private readonly Task _cleanupTask;
 		#endregion
 
 		#region Public Constructors
@@ -99,7 +99,7 @@ namespace Zen.Trunk.Storage.IO
 		/// <param name="flushWrites">if set to <c>true</c> then flush writes.</param>
 		public Task Flush(bool flushReads, bool flushWrites)
 		{
-			List<Task> tasks = new List<Task>();
+			var tasks = new List<Task>();
 			if (flushReads)
 			{
 				tasks.Add(_readBuffers.FlushAsync());

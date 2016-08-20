@@ -30,10 +30,10 @@ namespace Zen.Trunk.Storage.Locking
 		{
 			public bool TryReleaseLock(ItemLockIdType key)
 			{
-				bool removed = false;
+				var removed = false;
 				if (ContainsKey(key))
 				{
-					DataLock lockObject = this[key];
+					var lockObject = this[key];
 					if (lockObject != null)
 					{
 						lockObject.Unlock();
@@ -46,9 +46,9 @@ namespace Zen.Trunk.Storage.Locking
 
 			public void ReleaseLocks(Action nullLockAction)
 			{
-				foreach (ItemLockIdType key in Keys.ToArray())
+				foreach (var key in Keys.ToArray())
 				{
-					DataLock lockObject = this[key];
+					var lockObject = this[key];
 					if (lockObject != null)
 					{
 						lockObject.Unlock();
@@ -65,14 +65,14 @@ namespace Zen.Trunk.Storage.Locking
 		#endregion
 
 		#region Private Fields
-		private IDatabaseLockManager _manager;
+		private readonly IDatabaseLockManager _manager;
 		private uint _ownerLockCount;
-		private uint _maxItemLocks;
-		private SpinLockClass _syncBlock;
+		private readonly uint _maxItemLocks;
+		private readonly SpinLockClass _syncBlock;
 		private ObjectLock _ownerLock;
-		private ItemLockDictionary _readLocks;
-		private ItemLockDictionary _updateLocks;
-		private ItemLockDictionary _writeLocks;
+		private readonly ItemLockDictionary _readLocks;
+		private readonly ItemLockDictionary _updateLocks;
+		private readonly ItemLockDictionary _writeLocks;
 		#endregion
 
 		#region Public Constructors
@@ -100,14 +100,9 @@ namespace Zen.Trunk.Storage.Locking
 		/// <value>
 		/// The lock manager.
 		/// </value>
-		protected IDatabaseLockManager LockManager
-		{
-			get
-			{
-				return _manager;
-			}
-		}
-		#endregion
+		protected IDatabaseLockManager LockManager => _manager;
+
+	    #endregion
 
 		#region Public Methods
 		/// <summary>
@@ -378,7 +373,7 @@ namespace Zen.Trunk.Storage.Locking
 				!_writeLocks.ContainsKey(key))
 			{
 				// Get data lock object then lock accordingly
-				DataLock lockObj = GetItemLock(key); // lock is already addref'ed
+				var lockObj = GetItemLock(key); // lock is already addref'ed
 				lockObj.Lock(DataLockType.Shared, timeout);
 				_ownerLockCount++;
 
@@ -390,7 +385,7 @@ namespace Zen.Trunk.Storage.Locking
 				{
 					Tracer.WriteVerboseLine("Attempting lock owner block SHARED lock escalation");
 
-					bool hasEscalatedLock = false;
+					var hasEscalatedLock = false;
 					try
 					{
 						// Acquire full shared lock on owner
@@ -546,7 +541,7 @@ namespace Zen.Trunk.Storage.Locking
 			{
 				Tracer.WriteVerboseLine("Attempting lock owner block EXCLUSIVE lock escalation");
 
-				bool hasEscalated = false;
+				var hasEscalated = false;
 				try
 				{
 					// Acquire full exclusive lock on owner

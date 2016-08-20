@@ -14,7 +14,7 @@ namespace Zen.Trunk
 	public class CoreException : ApplicationException, ISerializable
 	{
 		#region Private Fields
-		private string _subSystem;
+		private readonly string _subSystem;
 		#endregion
 
 		#region Public Constructors

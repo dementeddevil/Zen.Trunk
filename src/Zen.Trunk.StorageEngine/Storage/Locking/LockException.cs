@@ -46,7 +46,7 @@ namespace Zen.Trunk.Storage.Locking
 	[Serializable]
 	public class LockTimeoutException : LockException
 	{
-		private TimeSpan _timeout;
+		private readonly TimeSpan _timeout;
 
 		public LockTimeoutException()
 		{
@@ -74,12 +74,6 @@ namespace Zen.Trunk.Storage.Locking
 			_timeout = timeout;
 		}
 
-		public TimeSpan Timeout
-		{
-			get
-			{
-				return _timeout;
-			}
-		}
+		public TimeSpan Timeout => _timeout;
 	}
 }

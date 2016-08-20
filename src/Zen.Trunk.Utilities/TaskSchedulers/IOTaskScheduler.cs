@@ -75,7 +75,7 @@ namespace System.Threading.Tasks.Schedulers
             var pool = _availableWorkItems;
             _availableWorkItems = null;
             var workItems = pool.ToArrayAndClear();
-            foreach (WorkItem wi in workItems) Overlapped.Free(wi._pNOlap);
+            foreach (var wi in workItems) Overlapped.Free(wi._pNOlap);
             // NOTE: A window exists where some number of NativeOverlapped ptrs could
             // be leaked, if the call to Dispose races with work items completing.
         }

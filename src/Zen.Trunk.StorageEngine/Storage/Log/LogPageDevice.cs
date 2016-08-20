@@ -32,7 +32,7 @@ namespace Zen.Trunk.Storage.Log
 	{
 		#region Private Fields
 		private FileStream _deviceStream;
-		private Dictionary<uint, VirtualLogFileStream> _fileStreams =
+		private readonly Dictionary<uint, VirtualLogFileStream> _fileStreams =
 			new Dictionary<uint, VirtualLogFileStream>();
 		private LogRootPage _rootPage;
 		#endregion
@@ -74,7 +74,7 @@ namespace Zen.Trunk.Storage.Log
 		{
 			get
 			{
-				DatabaseDevice parent = (DatabaseDevice)GetService(
+				var parent = (DatabaseDevice)GetService(
 					typeof(DatabaseDevice));
 				//return parent.IsReadOnly;
 				return false;
@@ -85,7 +85,7 @@ namespace Zen.Trunk.Storage.Log
 		{
 			get
 			{
-				MasterLogPageDevice master = GetService<MasterLogPageDevice>();
+				var master = GetService<MasterLogPageDevice>();
 				return master.IsInRecovery;
 			}
 		}
@@ -112,7 +112,7 @@ namespace Zen.Trunk.Storage.Log
 			MasterLogRootPage masterRootPage)
 		{
 			// Retrieve last known log file info
-			VirtualLogFileInfo fileInfo = GetVirtualFileById(
+			var fileInfo = GetVirtualFileById(
 				masterRootPage.LogLastFileId);
 
 			// Chain file table for new device onto last file
@@ -129,11 +129,11 @@ namespace Zen.Trunk.Storage.Log
 			MasterLogRootPage masterRootPage,
 			VirtualLogFileInfo lastFileInfo)
 		{
-			LogRootPage rootPage = GetRootPage<LogRootPage>();
+			var rootPage = GetRootPage<LogRootPage>();
 
-			uint pageCount = rootPage.AllocatedPages;
-			uint filePageCount = Math.Max(1, pageCount / 4);
-			uint fileLength = filePageCount * rootPage.PageSize;
+			var pageCount = rootPage.AllocatedPages;
+			var filePageCount = Math.Max(1, pageCount / 4);
+			var fileLength = filePageCount * rootPage.PageSize;
 
 			for (byte fileIndex = 0; pageCount > 0; ++fileIndex)
 			{
@@ -157,7 +157,7 @@ namespace Zen.Trunk.Storage.Log
 				}
 
 				// Create log file information for next block
-				VirtualLogFileInfo info = rootPage.AddLogFile(DeviceId, fileLength, lastFileId);
+				var info = rootPage.AddLogFile(DeviceId, fileLength, lastFileId);
 
 				// Update next/prev fileId pointers
 				if (lastFileInfo != null)
@@ -198,13 +198,13 @@ namespace Zen.Trunk.Storage.Log
 
 		internal virtual VirtualLogFileInfo GetVirtualFileById(uint fileId)
 		{
-			LogFileId file = new LogFileId(fileId);
+			var file = new LogFileId(fileId);
 			if (file.DeviceId != DeviceId)
 			{
 				throw new ArgumentException();
 			}
 
-			LogRootPage rootPage = GetRootPage<LogRootPage>();
+			var rootPage = GetRootPage<LogRootPage>();
 			return rootPage.GetLogFile(file.Index);
 		}
 

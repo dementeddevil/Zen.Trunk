@@ -18,10 +18,10 @@ namespace Zen.Trunk.Storage.Log
 	public class MasterLogRootPage : LogRootPage
 	{
 		#region Private Fields
-		private Dictionary<ushort, DeviceInfo> _deviceById;
-		private List<DeviceInfo> _devicesByIndex;
+		private readonly Dictionary<ushort, DeviceInfo> _deviceById;
+		private readonly List<DeviceInfo> _devicesByIndex;
 
-		private BufferFieldUInt16 _deviceCount;
+		private readonly BufferFieldUInt16 _deviceCount;
 
 		/// <summary>
 		/// Last virtual log file Id created.
@@ -30,7 +30,7 @@ namespace Zen.Trunk.Storage.Log
 		/// This value is used to complete linked-list chaining during
 		/// the creation of new virtual log files.
 		/// </remarks>
-		private BufferFieldUInt32 _logLastFileId;
+		private readonly BufferFieldUInt32 _logLastFileId;
 
 		/// <summary>
 		/// Tracks the start of the log file.
@@ -40,28 +40,28 @@ namespace Zen.Trunk.Storage.Log
 		/// recover the database. It is adjusted during recovery and checkpoint
 		/// operations.
 		/// </remarks>
-		private BufferFieldUInt32 _logStartFileId;
+		private readonly BufferFieldUInt32 _logStartFileId;
 
 		/// <summary>
 		/// Tracks the offset within the start file where log records must be
 		/// preserved.
 		/// </summary>
-		private BufferFieldUInt32 _logStartOffset;
+		private readonly BufferFieldUInt32 _logStartOffset;
 
 		/// <summary>
 		/// Tracks the last written log file.
 		/// </summary>
-		private BufferFieldUInt32 _logEndFileId;
+		private readonly BufferFieldUInt32 _logEndFileId;
 
 		/// <summary>
 		/// Tracks the next free insert location for writes to the log file.
 		/// </summary>
-		private BufferFieldUInt32 _logEndOffset;
+		private readonly BufferFieldUInt32 _logEndOffset;
 
 		/// <summary>
 		/// Tracks the number of checkpoint history records
 		/// </summary>
-		private BufferFieldByte _checkPointHistoryCount;
+		private readonly BufferFieldByte _checkPointHistoryCount;
 		private CheckPointInfo[] lastCheckPoint;
 		#endregion
 
@@ -194,26 +194,14 @@ namespace Zen.Trunk.Storage.Log
 		/// Gets the check point history count.
 		/// </summary>
 		/// <value>The check point history count.</value>
-		public byte CheckPointHistoryCount
-		{
-			get
-			{
-				return _checkPointHistoryCount.Value;
-			}
-		}
+		public byte CheckPointHistoryCount => _checkPointHistoryCount.Value;
 
-		/// <summary>
+	    /// <summary>
 		/// Overridden. Returns the minimum header size for this page object.
 		/// </summary>
-		public override uint MinHeaderSize
-		{
-			get
-			{
-				return base.MinHeaderSize + 23;
-			}
-		}
+		public override uint MinHeaderSize => base.MinHeaderSize + 23;
 
-		/// <summary>
+	    /// <summary>
 		/// Gets a value indicating the number of registered devices.
 		/// </summary>
 		public int DeviceCount
@@ -322,14 +310,9 @@ namespace Zen.Trunk.Storage.Log
 		/// Gets the last header field.
 		/// </summary>
 		/// <value>The last header field.</value>
-		protected override BufferField LastHeaderField
-		{
-			get
-			{
-				return _checkPointHistoryCount;
-			}
-		}
-		#endregion
+		protected override BufferField LastHeaderField => _checkPointHistoryCount;
+
+	    #endregion
 
 		#region Protected Methods
 		protected override void WriteHeader(BufferReaderWriter streamManager)
@@ -344,7 +327,7 @@ namespace Zen.Trunk.Storage.Log
 
 			// Write checkpoint history
 			System.Diagnostics.Debug.Assert(_checkPointHistoryCount.Value < 4);
-			for (int index = 0; index < _checkPointHistoryCount.Value; ++index)
+			for (var index = 0; index < _checkPointHistoryCount.Value; ++index)
 			{
 				if (lastCheckPoint[index] == null)
 				{
@@ -354,7 +337,7 @@ namespace Zen.Trunk.Storage.Log
 			}
 
 			// then device list
-			foreach (DeviceInfo info in _devicesByIndex)
+			foreach (var info in _devicesByIndex)
 			{
 				info.Write(streamManager);
 			}
@@ -368,7 +351,7 @@ namespace Zen.Trunk.Storage.Log
 			{
 				lastCheckPoint = new CheckPointInfo[3];
 				System.Diagnostics.Debug.Assert(_checkPointHistoryCount.Value < 4);
-				for (int index = 0; index < _checkPointHistoryCount.Value; ++index)
+				for (var index = 0; index < _checkPointHistoryCount.Value; ++index)
 				{
 					lastCheckPoint[index] = new CheckPointInfo();
 					lastCheckPoint[index].Read(streamManager);
@@ -382,7 +365,7 @@ namespace Zen.Trunk.Storage.Log
 			{
 				for (byte index = 0; index < _deviceCount.Value; ++index)
 				{
-					DeviceInfo info = new DeviceInfo();
+					var info = new DeviceInfo();
 					info.Read(streamManager);
 
 					_deviceById.Add(info.Id, info);

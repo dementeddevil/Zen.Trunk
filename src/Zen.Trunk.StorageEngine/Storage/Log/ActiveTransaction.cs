@@ -5,10 +5,10 @@ namespace Zen.Trunk.Storage.Log
 	[Serializable]
 	public class ActiveTransaction
 	{
-		private uint _transactionId;
-		private uint _fileId;
-		private uint _fileOffset;
-		private uint _firstLogId;
+		private readonly uint _transactionId;
+		private readonly uint _fileId;
+		private readonly uint _fileOffset;
+		private readonly uint _firstLogId;
 
 		public ActiveTransaction (uint transactionId, uint fileId, 
 			uint fileOffset, uint firstLogId)
@@ -19,36 +19,12 @@ namespace Zen.Trunk.Storage.Log
 			_firstLogId = firstLogId;
 		}
 
-		public uint TransactionId
-		{
-			get
-			{
-				return _transactionId;
-			}
-		}
+		public uint TransactionId => _transactionId;
 
-		public uint FileId
-		{
-			get
-			{
-				return _fileId;
-			}
-		}
+	    public uint FileId => _fileId;
 
-		public uint FileOffset
-		{
-			get
-			{
-				return _fileOffset;
-			}
-		}
+	    public uint FileOffset => _fileOffset;
 
-		public uint FirstLogId
-		{
-			get
-			{
-				return _firstLogId;
-			}
-		}
+	    public uint FirstLogId => _firstLogId;
 	}
 }

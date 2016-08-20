@@ -16,6 +16,6 @@ namespace System.Threading.Algorithms
     public static partial class ParallelAlgorithms
     {
         // Default, shared instance of the ParallelOptions class.  This should not be modified.
-        private static ParallelOptions s_defaultParallelOptions = new ParallelOptions();
+        private static readonly ParallelOptions s_defaultParallelOptions = new ParallelOptions();
     }
 }

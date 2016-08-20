@@ -24,12 +24,12 @@ namespace Zen.Trunk.Storage.Locking
 	internal class TransactionLockOwnerBlock
 	{
 		#region Private Fields
-		private IDatabaseLockManager _lockManager;
+		private readonly IDatabaseLockManager _lockManager;
 		private uint _transactionId;
-		private ConcurrentDictionary<byte, RootLock> _rootLocks;
-		private ConcurrentDictionary<uint, SchemaLock> _schemaLocks;
-		private ConcurrentDictionary<ulong, DistributionLockOwnerBlock> _distributionOwnerBlocks;
-		private ConcurrentDictionary<uint, DataLockOwnerBlock> _dataOwnerBlocks;
+		private readonly ConcurrentDictionary<byte, RootLock> _rootLocks;
+		private readonly ConcurrentDictionary<uint, SchemaLock> _schemaLocks;
+		private readonly ConcurrentDictionary<ulong, DistributionLockOwnerBlock> _distributionOwnerBlocks;
+		private readonly ConcurrentDictionary<ObjectId, DataLockOwnerBlock> _dataOwnerBlocks;
 		#endregion
 
 		#region Public Constructors
@@ -46,7 +46,7 @@ namespace Zen.Trunk.Storage.Locking
 			_rootLocks = new ConcurrentDictionary<byte, RootLock>();
 			_schemaLocks = new ConcurrentDictionary<uint, SchemaLock>();
 			_distributionOwnerBlocks = new ConcurrentDictionary<ulong, DistributionLockOwnerBlock>();
-			_dataOwnerBlocks = new ConcurrentDictionary<uint, DataLockOwnerBlock>();
+			_dataOwnerBlocks = new ConcurrentDictionary<ObjectId, DataLockOwnerBlock>();
 		}
 		#endregion
 
@@ -109,7 +109,7 @@ namespace Zen.Trunk.Storage.Locking
 		/// <returns>
 		/// Lock Owner Block
 		/// </returns>
-		public DataLockOwnerBlock GetOrCreateDataLockOwnerBlock(uint objectId, uint maxPageLocks = 100)
+		public DataLockOwnerBlock GetOrCreateDataLockOwnerBlock(ObjectId objectId, uint maxPageLocks = 100)
 		{
 			return _dataOwnerBlocks.GetOrAdd(
 				objectId,

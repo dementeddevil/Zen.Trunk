@@ -51,95 +51,41 @@ namespace Zen.Trunk.Storage.Locking
 		}
 		protected class NoneState : RootLockState
 		{
-			public override RootLockType Lock
-			{
-				get
-				{
-					return RootLockType.None;
-				}
-			}
+			public override RootLockType Lock => RootLockType.None;
 
-			public override RootLockType[] CompatableLocks
-			{
-				get
-				{
-					return new RootLockType[3] 
-					{
-						RootLockType.Shared,
-						RootLockType.Update,
-						RootLockType.Exclusive,
-					};
-				}
-			}
+		    public override RootLockType[] CompatableLocks => new RootLockType[3] 
+		    {
+		        RootLockType.Shared,
+		        RootLockType.Update,
+		        RootLockType.Exclusive,
+		    };
 		}
 		protected class RootSharedState : RootLockState
 		{
-			public override RootLockType Lock
-			{
-				get
-				{
-					return RootLockType.Shared;
-				}
-			}
+			public override RootLockType Lock => RootLockType.Shared;
 
-			public override RootLockType[] CompatableLocks
-			{
-				get
-				{
-					return new RootLockType[] 
-					{
-						RootLockType.Shared,
-						RootLockType.Update,
-					};
-				}
-			}
+		    public override RootLockType[] CompatableLocks => new RootLockType[] 
+		    {
+		        RootLockType.Shared,
+		        RootLockType.Update,
+		    };
 		}
 		protected class RootUpdateState : RootLockState
 		{
-			public override RootLockType Lock
-			{
-				get
-				{
-					return RootLockType.Update;
-				}
-			}
+			public override RootLockType Lock => RootLockType.Update;
 
-			public override RootLockType[] CompatableLocks
-			{
-				get
-				{
-					return new RootLockType[] 
-					{
-						RootLockType.Shared,
-					};
-				}
-			}
+		    public override RootLockType[] CompatableLocks => new RootLockType[] 
+		    {
+		        RootLockType.Shared,
+		    };
 
-			public override bool CanEnterExclusiveLock
-			{
-				get
-				{
-					return true;
-				}
-			}
+		    public override bool CanEnterExclusiveLock => true;
 		}
 		protected class RootExclusiveState : RootLockState
 		{
-			public override RootLockType Lock
-			{
-				get
-				{
-					return RootLockType.Exclusive;
-				}
-			}
+			public override RootLockType Lock => RootLockType.Exclusive;
 
-			public override RootLockType[] CompatableLocks
-			{
-				get
-				{
-					return new RootLockType[0];
-				}
-			}
+		    public override RootLockType[] CompatableLocks => new RootLockType[0];
 		}
 		#endregion
 
@@ -161,14 +107,9 @@ namespace Zen.Trunk.Storage.Locking
 		#endregion
 
 		#region Protected Properties
-		protected override RootLockType NoneLockType
-		{
-			get
-			{
-				return RootLockType.None;
-			}
-		}
-		#endregion
+		protected override RootLockType NoneLockType => RootLockType.None;
+
+	    #endregion
 
 		#region Protected Methods
 		protected override TransactionLock<RootLockType>.State GetStateFromType(RootLockType lockType)

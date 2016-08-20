@@ -22,9 +22,9 @@ namespace System.Threading.Tasks.Schedulers
         /// <summary>The I/O completion port to use for concurrency control.</summary>
         private readonly IOCompletionPort m_iocp;
         /// <summary>Whether the current thread is a scheduler thread.</summary>
-        private ThreadLocal<bool> m_schedulerThread;
+        private readonly ThreadLocal<bool> m_schedulerThread;
         /// <summary>Event used to wait for all threads to shutdown.</summary>
-        private CountdownEvent m_remainingThreadsToShutdown;
+        private readonly CountdownEvent m_remainingThreadsToShutdown;
 
         /// <summary>Initializes the IOCompletionPortTaskScheduler.</summary>
         /// <param name="maxConcurrencyLevel">The maximum number of threads in the scheduler to be executing concurrently.</param>
@@ -41,7 +41,7 @@ namespace System.Threading.Tasks.Schedulers
             m_remainingThreadsToShutdown = new CountdownEvent(numAvailableThreads);
 
             // Create and start the threads
-            for (int i = 0; i < numAvailableThreads; i++)
+            for (var i = 0; i < numAvailableThreads; i++)
             {
                 new Thread(() =>
                 {
@@ -107,14 +107,14 @@ namespace System.Threading.Tasks.Schedulers
         private sealed class IOCompletionPort : IDisposable
         {
             /// <summary>Infinite timeout value to use for GetQueuedCompletedStatus.</summary>
-            private UInt32 INFINITE_TIMEOUT = unchecked((UInt32)Timeout.Infinite);
+            private readonly UInt32 INFINITE_TIMEOUT = unchecked((UInt32)Timeout.Infinite);
             /// <summary>An invalid file handle value.</summary>
-            private IntPtr INVALID_FILE_HANDLE = unchecked((IntPtr)(-1));
+            private readonly IntPtr INVALID_FILE_HANDLE = unchecked((IntPtr)(-1));
             /// <summary>An invalid I/O completion port handle value.</summary>
-            private IntPtr INVALID_IOCP_HANDLE = IntPtr.Zero;
+            private readonly IntPtr INVALID_IOCP_HANDLE = IntPtr.Zero;
 
             /// <summary>The I/O completion porth handle.</summary>
-            private SafeFileHandle m_handle;
+            private readonly SafeFileHandle m_handle;
 
             /// <summary>Initializes the I/O completion port.</summary>
             /// <param name="maxConcurrencyLevel">The maximum concurrency level allowed by the I/O completion port.</param>
@@ -145,7 +145,7 @@ namespace System.Threading.Tasks.Schedulers
                 IntPtr lpCompletionKey, lpOverlapped;
                 if (!GetQueuedCompletionStatus(m_handle.DangerousGetHandle(), out lpNumberOfBytes, out lpCompletionKey, out lpOverlapped, INFINITE_TIMEOUT))
                 {
-                    int errorCode = Marshal.GetLastWin32Error();
+                    var errorCode = Marshal.GetLastWin32Error();
                     if (errorCode == 735 /*ERROR_ABANDONED_WAIT_0*/ || errorCode == 6 /*INVALID_HANDLE*/)
                         return false;
                     else
