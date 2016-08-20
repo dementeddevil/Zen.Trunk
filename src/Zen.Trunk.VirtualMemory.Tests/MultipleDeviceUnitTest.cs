@@ -45,9 +45,9 @@
 			foreach (var filename in GetChildDeviceList())
 			{
 				string pathName = Path.Combine(_testContext.TestDir, filename);
-				deviceIds.Add(await device.AddDevice(filename, pathName, 0, 128));
+				deviceIds.Add(await device.AddDeviceAsync(filename, pathName, 0, 128));
 			}
-			await device.Open();
+			await device.OpenAsync();
 
 			// Write a load of buffers across the group of devices
 			List<Task> bufferTasks = new List<Task>();
@@ -58,16 +58,16 @@
 				{
 					var buffer = AllocateAndFill((byte)index);
 					buffers.Add(buffer);
-					bufferTasks.Add(device.SaveBuffer(
-						new DevicePageId(deviceId, (uint)index), buffer));
+					bufferTasks.Add(device.SaveBufferAsync(
+						new VirtualPageId(deviceId, (uint)index), buffer));
 				}
 			}
 
 			// Flush all buffers to disk
-			await device.FlushBuffers(true, true);
+			await device.FlushBuffersAsync(true, true);
 
 			// Close the device
-			await device.Close();
+			await device.CloseAsync();
 
 			// TODO: Devise method to determine whether flush/action has succeeded
 

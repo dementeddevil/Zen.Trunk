@@ -40,7 +40,7 @@
 		{
 			string testFile = Path.Combine(_testContext.TestDir, "sdt.bin");
 			var device = new SingleBufferDevice(_bufferFactory, true, "test", testFile, true, 8);
-			await device.Open();
+			await device.OpenAsync();
 
 			List<VirtualBuffer> initBuffers = new List<VirtualBuffer>();
 			List<Task> subTasks = new List<Task>();
@@ -48,9 +48,9 @@
 			{
 				var buffer = AllocateAndFill((byte)index);
 				initBuffers.Add(buffer);
-				subTasks.Add(device.SaveBuffer((uint)index, buffer));
+				subTasks.Add(device.SaveBufferAsync((uint)index, buffer));
 			}
-			await device.FlushBuffers(true, true);
+			await device.FlushBuffersAsync(true, true);
 			await Task.WhenAll(subTasks.ToArray());
 
 			subTasks.Clear();
@@ -59,12 +59,12 @@
 			{
 				var buffer = _bufferFactory.AllocateBuffer();
 				loadBuffers.Add(buffer);
-				subTasks.Add(device.LoadBuffer((uint)index, buffer));
+				subTasks.Add(device.LoadBufferAsync((uint)index, buffer));
 			}
-			await device.FlushBuffers(true, true);
+			await device.FlushBuffersAsync(true, true);
 			await Task.WhenAll(subTasks.ToArray());
 
-			await device.Close();
+			await device.CloseAsync();
 
 			// Walk buffers and check contents are the same
 			for (int index = 0; index < 7; ++index)

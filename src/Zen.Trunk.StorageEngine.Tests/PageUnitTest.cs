@@ -16,7 +16,7 @@
 		private class MockPageDevice : PageDevice, IMultipleBufferDevice
 		{
 			private VirtualBufferFactory _bufferFactory = new VirtualBufferFactory(32, 8192);
-			private Dictionary<DevicePageId, PageBuffer> _pages = new Dictionary<DevicePageId, PageBuffer>();
+			private Dictionary<VirtualPageId, PageBuffer> _pages = new Dictionary<VirtualPageId, PageBuffer>();
 			private GlobalLockManager _globalLockManager;
 			private DatabaseLockManager _lockManager;
 
@@ -25,7 +25,7 @@
 			/// </summary>
 			/// <typeparam name="TPage">The type of the page.</typeparam>
 			/// <returns></returns>
-			public TPage CreatePage<TPage>(DevicePageId pageId)
+			public TPage CreatePage<TPage>(VirtualPageId pageId)
 				where TPage : DataPage, new()
 			{
 				bool treatAsInit = false;
@@ -33,7 +33,7 @@
 				if (!_pages.TryGetValue(pageId, out pageBuffer))
 				{
 					pageBuffer = new PageBuffer(this);
-					pageBuffer.Init(pageId, 0);
+					pageBuffer.InitAsync(pageId, LogicalPageId.Zero);
 					_pages.Add(pageId, pageBuffer);
 					treatAsInit = true;
 				}
@@ -41,7 +41,7 @@
 				TPage page = new TPage();
 				HookupPageSite(page);
 
-				page.VirtualId = pageId.VirtualPageId;
+				page.VirtualId = pageId;
 
 				if (treatAsInit)
 				{
@@ -73,7 +73,8 @@
 				{
 					if (_lockManager == null)
 					{
-						_lockManager = new DatabaseLockManager(GetService<GlobalLockManager>(), 1);
+						_lockManager = new DatabaseLockManager(
+                            GetService<GlobalLockManager>(), new DatabaseId(1));
 					}
 					return _lockManager;
 				}
@@ -88,17 +89,17 @@
 				}
 			}
 
-			public Task Open()
+			public Task OpenAsync()
 			{
 				throw new NotImplementedException();
 			}
 
-			public Task<ushort> AddDevice(string name, string pathName, ushort deviceId = 0, uint createPageCount = 0)
+			public Task<ushort> AddDeviceAsync(string name, string pathName, ushort deviceId = 0, uint createPageCount = 0)
 			{
 				throw new NotImplementedException();
 			}
 
-			public Task RemoveDevice(ushort deviceId)
+			public Task RemoveDeviceAsync(ushort deviceId)
 			{
 				throw new NotImplementedException();
 			}
@@ -108,17 +109,17 @@
 				throw new NotImplementedException();
 			}
 
-			public Task LoadBuffer(DevicePageId pageId, VirtualBuffer buffer)
+			public Task LoadBufferAsync(VirtualPageId pageId, VirtualBuffer buffer)
 			{
 				throw new NotImplementedException();
 			}
 
-			public Task SaveBuffer(DevicePageId pageId, VirtualBuffer buffer)
+			public Task SaveBufferAsync(VirtualPageId pageId, VirtualBuffer buffer)
 			{
 				throw new NotImplementedException();
 			}
 
-			public Task FlushBuffers(bool flushReads, bool flushWrites, params ushort[] deviceIds)
+			public Task FlushBuffersAsync(bool flushReads, bool flushWrites, params ushort[] deviceIds)
 			{
 				throw new NotImplementedException();
 			}
@@ -136,14 +137,14 @@
 
 		[TestMethod]
 		[TestCategory("Storage Engine: PageDevice")]
-		public void DistributionValidExtentNonMixedTest()
+		public Task DistributionValidExtentNonMixedTest()
 		{
 			MockPageDevice pageDevice = new MockPageDevice();
 
 			TrunkTransactionContext.BeginTransaction(pageDevice);
 
 			DistributionPage page = pageDevice.CreatePage<DistributionPage>(
-				new DevicePageId(0));
+				new VirtualPageId(0));
 			page.InitialiseValidExtents(129);
 
 			// We should be able to allocate 128 exclusive extents for 128 
@@ -154,16 +155,24 @@
 			{
 				// This allocation must succeed
 				virtualId = page.AllocatePage(
-					new AllocateDataPageParameters(1024 + index, 1 + index, 1, false));
+					new AllocateDataPageParameters(
+                        new LogicalPageId(1024 + index),
+                        new ObjectId(1 + index),
+                        ObjectType.Sample,
+                        false));
 				Assert.IsTrue(virtualId != 0, "Expected allocation to succeed.");
 			}
 
 			// This allocation must fail
 			virtualId = page.AllocatePage(
-				new AllocateDataPageParameters(1024 + extentsToTest, 1 + extentsToTest, 1, false));
+				new AllocateDataPageParameters(
+                    new LogicalPageId(1024 + extentsToTest),
+                    new ObjectId(1 + extentsToTest),
+                    ObjectType.Sample, 
+                    false));
 			Assert.IsTrue(virtualId == 0, "Expected allocation to fail.");
 
-			TrunkTransactionContext.Commit();
+			return TrunkTransactionContext.Commit();
 		}
 	}
 }
