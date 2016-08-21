@@ -9,12 +9,12 @@ namespace Zen.Trunk.Storage.Locking
 	public class DatabaseLockManager : IDatabaseLockManager
 	{
 		#region Private Fields
-		private readonly GlobalLockManager _globalLockManager;
+		private readonly IGlobalLockManager _globalLockManager;
 		private readonly DatabaseId _dbId;
 		#endregion
 
 		#region Public Constructors
-		internal DatabaseLockManager(GlobalLockManager globalLockManager, DatabaseId dbId)
+		public DatabaseLockManager(IGlobalLockManager globalLockManager, DatabaseId dbId)
 		{
 			if (globalLockManager == null)
 			{

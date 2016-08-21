@@ -1,4 +1,6 @@
-﻿namespace Zen.Trunk.StorageEngine.Tests
+﻿using Autofac;
+
+namespace Zen.Trunk.StorageEngine.Tests
 {
 	using System;
 	using System.Collections.Generic;
@@ -15,10 +17,13 @@
 	{
 		private class MockPageDevice : PageDevice, IMultipleBufferDevice
 		{
-			private VirtualBufferFactory _bufferFactory = new VirtualBufferFactory(32, 8192);
-			private Dictionary<VirtualPageId, PageBuffer> _pages = new Dictionary<VirtualPageId, PageBuffer>();
-			private GlobalLockManager _globalLockManager;
-			private DatabaseLockManager _lockManager;
+			private readonly Dictionary<VirtualPageId, PageBuffer> _pages =
+                new Dictionary<VirtualPageId, PageBuffer>();
+
+		    public MockPageDevice(ILifetimeScope parentLifetimeScope)
+                : base(parentLifetimeScope)
+		    {
+		    }
 
 			/// <summary>
 			/// Creates a page of the specified type.
@@ -59,37 +64,9 @@
 				return page;
 			}
 
-			protected override object GetService(Type serviceType)
-			{
-				if (serviceType == typeof(GlobalLockManager))
-				{
-					if (_globalLockManager == null)
-					{
-						_globalLockManager = new GlobalLockManager();
-					}
-					return _globalLockManager;
-				}
-				if (serviceType == typeof(IDatabaseLockManager))
-				{
-					if (_lockManager == null)
-					{
-						_lockManager = new DatabaseLockManager(
-                            GetService<GlobalLockManager>(), new DatabaseId(1));
-					}
-					return _lockManager;
-				}
-				return base.GetService(serviceType);
-			}
+			public IVirtualBufferFactory BufferFactory => ResolveDeviceService<IVirtualBufferFactory>();
 
-			public IVirtualBufferFactory BufferFactory
-			{
-				get
-				{
-					return _bufferFactory;
-				}
-			}
-
-			public Task OpenAsync()
+		    public Task OpenAsync()
 			{
 				throw new NotImplementedException();
 			}
@@ -144,9 +121,14 @@
 		[TestCategory("Storage Engine: PageDevice")]
 		public Task DistributionValidExtentNonMixedTest()
 		{
-			var pageDevice = new MockPageDevice();
+            var builder = new StorageEngineBuilder()
+                .WithVirtualBufferFactory()
+                .WithGlobalLockManager()
+                .WithDatabaseLockManager(new DatabaseId(1));
+		    var lifetimeScope = builder.Build();
+			var pageDevice = new MockPageDevice(lifetimeScope);
 
-			TrunkTransactionContext.BeginTransaction(pageDevice);
+			pageDevice.BeginTransaction();
 
 			var page = pageDevice.CreatePage<DistributionPage>(
 				new VirtualPageId(0));

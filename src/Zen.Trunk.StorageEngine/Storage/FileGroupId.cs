@@ -35,14 +35,18 @@ namespace Zen.Trunk.Storage
         /// </summary>
         [CLSCompliant(false)]
         public byte Value { get; }
+
+        public FileGroupId Next
+        {
+            get
+            {
+                return new FileGroupId((byte)(Value + 1));
+            }
+        }
         #endregion
 
         #region Public Methods
 
-        public FileGroupId Next()
-        {
-            return new FileGroupId((byte)(Value + 1));    
-        }
 
         /// <summary>
         /// Overridden. Gets a string representation of the type.

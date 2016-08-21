@@ -1,4 +1,5 @@
-﻿using Zen.Trunk.Storage;
+﻿using Autofac;
+using Zen.Trunk.Storage;
 
 namespace Zen.Trunk.StorageEngine.Tests
 {
@@ -31,7 +32,7 @@ namespace Zen.Trunk.StorageEngine.Tests
 		{
 			// Setup minimal service container we need to get trunk transactions to work
 			var container = CreateLockingServiceProvider();
-			var dlm = (IDatabaseLockManager)container.GetService(typeof(IDatabaseLockManager));
+			var dlm = container.Resolve<IDatabaseLockManager>();
 
 			// Create two transaction objects
 			ITrunkTransaction firstTransaction = new TrunkTransaction(container, IsolationLevel.ReadCommitted, TimeSpan.FromSeconds(10));
@@ -77,10 +78,10 @@ namespace Zen.Trunk.StorageEngine.Tests
 		{
 			// Setup minimal service container we need to get trunk transactions to work
 			var container = CreateLockingServiceProvider();
-			var dlm = (IDatabaseLockManager)container.GetService(typeof(IDatabaseLockManager));
+            var dlm = container.Resolve<IDatabaseLockManager>();
 
-			// Create two transaction objects
-			ITrunkTransaction firstTransaction = new TrunkTransaction(container, IsolationLevel.ReadCommitted, TimeSpan.FromSeconds(10));
+            // Create two transaction objects
+            ITrunkTransaction firstTransaction = new TrunkTransaction(container, IsolationLevel.ReadCommitted, TimeSpan.FromSeconds(10));
 			ITrunkTransaction secondTransaction = new TrunkTransaction(container, IsolationLevel.ReadCommitted, TimeSpan.FromSeconds(10));
 			Assert.AreNotSame(firstTransaction.TransactionId, secondTransaction.TransactionId, "Transaction objects should have different identifiers.");
 
@@ -153,26 +154,22 @@ namespace Zen.Trunk.StorageEngine.Tests
 			}
 		}
 
-		private ServiceContainer CreateLockingServiceProvider()
+		private ILifetimeScope CreateLockingServiceProvider()
 		{
-			// Setup minimal service container we need to get trunk transactions to work
-			var container = new ServiceContainer();
+            var builder = new StorageEngineBuilder()
+                .WithGlobalLockManager()
+                .WithDatabaseLockManager(new DatabaseId(1));
 
 			// ** Master log page device is needed to getting the atomic transaction id
 			// TODO: Change MasterLogPageDevice to use interface so we can mock
 			//	and implement the single method call we need...
 			var pathName = Path.Combine(_testContext.TestDir, "LogDevice.mlb");
-			container.AddService(typeof(MasterLogPageDevice), new MasterLogPageDevice(pathName, container));
+		    builder.RegisterType<MasterLogPageDevice>()
+		        .WithParameter("pathName", pathName)
+		        .AsSelf()
+		        .SingleInstance();
 
-			// ** Global lock manager (GLM) holds the global lock object pool.
-			var glm = new GlobalLockManager();
-			container.AddService(typeof(GlobalLockManager), glm);
-
-			// ** Database lock manager is the database-instance-specific shim to the GLM.
-			IDatabaseLockManager dlm = new DatabaseLockManager(glm, new DatabaseId(1));
-			container.AddService(typeof(IDatabaseLockManager), dlm);
-
-			return container;
+            return builder.Build();
 		}
 	}
 }

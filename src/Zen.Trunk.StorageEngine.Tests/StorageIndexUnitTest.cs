@@ -2,6 +2,7 @@
 using System.ComponentModel.Design;
 using System.IO;
 using System.Threading.Tasks;
+using Autofac;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Zen.Trunk.Storage;
 using Zen.Trunk.Storage.Data;
@@ -17,7 +18,7 @@ namespace Zen.Trunk.StorageEngine.Tests
 	{
 		private class TestIndexManager : IndexManager<RootIndexInfo>
 		{
-			public TestIndexManager(IServiceProvider parentLifetimeScope)
+			public TestIndexManager(ILifetimeScope parentLifetimeScope)
 				: base(parentLifetimeScope)
 			{
 			}
@@ -180,7 +181,7 @@ namespace Zen.Trunk.StorageEngine.Tests
 		}
 
 		private static TestContext _testContext;
-		private ServiceContainer _parentServices;
+		private ILifetimeScope _parentServices;
 
 		[ClassInitialize]
 		public static void TestInitialize(TestContext context)
@@ -198,7 +199,7 @@ namespace Zen.Trunk.StorageEngine.Tests
 			var masterLogPathName =
 				Path.Combine(_testContext.TestDir, "master.mlf");
 
-			TrunkTransactionContext.BeginTransaction(dbDevice, TimeSpan.FromMinutes(1));
+			dbDevice.BeginTransaction(TimeSpan.FromMinutes(1));
 
 			var addFgDevice =
 				new AddFileGroupDeviceParameters(
@@ -223,7 +224,7 @@ namespace Zen.Trunk.StorageEngine.Tests
 
 			await TrunkTransactionContext.Commit();
 
-			TrunkTransactionContext.BeginTransaction(dbDevice, TimeSpan.FromMinutes(5));
+            dbDevice.BeginTransaction(TimeSpan.FromMinutes(5));
 
 			var manager = new TestIndexManager(_parentServices);
 			var indexInfo = new RootIndexInfo
@@ -241,12 +242,14 @@ namespace Zen.Trunk.StorageEngine.Tests
 
 		private DatabaseDevice CreateDatabaseDevice()
 		{
-			// We need a service provider to pass to the database device
-			//	otherwise it will fail to initialise
-			_parentServices = new ServiceContainer();
-			_parentServices.AddService(typeof(IVirtualBufferFactory), new VirtualBufferFactory(32, 8192));
-			_parentServices.AddService(typeof(GlobalLockManager), new GlobalLockManager());
-			return new DatabaseDevice(DatabaseId.Zero, _parentServices);
+		    var builder = new StorageEngineBuilder()
+                .WithVirtualBufferFactory()
+                .WithGlobalLockManager();
+		    builder.RegisterType<MasterLogPageDevice>()
+		        .WithParameter("pathName", string.Empty);
+		    _parentServices = builder.Build();
+
+            return new DatabaseDevice(_parentServices, DatabaseId.Zero);
 		}
 	}
 }

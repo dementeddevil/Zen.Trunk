@@ -2,8 +2,10 @@
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Transactions;
 using Autofac;
 using Autofac.Core;
+using Zen.Trunk.Storage.Locking;
 
 namespace Zen.Trunk.Storage
 {
@@ -107,11 +109,31 @@ namespace Zen.Trunk.Storage
 		{
 			DisposeManagedObjects();
 		}
-		#endregion
 
-		#region Protected Methods
+	    public void BeginTransaction()
+	    {
+	        TrunkTransactionContext.BeginTransaction(_lifetimeScope);
+	    }
 
-	    protected void HookupPageSite(Page page)
+        public void BeginTransaction(TransactionOptions transactionOptions)
+        {
+            TrunkTransactionContext.BeginTransaction(_lifetimeScope, transactionOptions);
+        }
+
+        public void BeginTransaction(TimeSpan timeout)
+        {
+            TrunkTransactionContext.BeginTransaction(_lifetimeScope, timeout);
+        }
+
+        public void BeginTransaction(IsolationLevel isoLevel, TimeSpan timeout)
+        {
+            TrunkTransactionContext.BeginTransaction(_lifetimeScope, isoLevel, timeout);
+        }
+        #endregion
+
+        #region Protected Methods
+
+        protected void HookupPageSite(Page page)
 	    {
 	        page.SetLifetimeScope(LifetimeScope);
 	    }
@@ -182,6 +204,7 @@ namespace Zen.Trunk.Storage
             builder.RegisterInstance(this)
                 .As<IMountableDevice>()
                 .As(GetType());
+            builder.RegisterType<TrunkTransaction>().AsSelf();
         }
 
         protected T ResolveDeviceService<T>(params Parameter[] parameters)

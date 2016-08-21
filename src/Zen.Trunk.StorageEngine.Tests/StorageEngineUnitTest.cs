@@ -1,4 +1,6 @@
-﻿namespace Zen.Trunk.StorageEngine.Tests
+﻿using Autofac;
+
+namespace Zen.Trunk.StorageEngine.Tests
 {
 	using System;
 	using System.ComponentModel.Design;
@@ -18,6 +20,8 @@
 	{
 		private static TestContext _testContext;
 
+	    private ILifetimeScope _lifetimeScope;
+
 		[ClassInitialize]
 		public static void TestInitialize(TestContext context)
 		{
@@ -35,7 +39,7 @@
 			var masterLogPathName =
 				Path.Combine(_testContext.TestDir, "master.mlf");
 
-			TrunkTransactionContext.BeginTransaction(dbDevice, TimeSpan.FromMinutes(1));
+            //dbDevice.BeginTransaction();
 
 			var addFgDevice =
 				new AddFileGroupDeviceParameters(
@@ -59,7 +63,7 @@
 			await dbDevice.OpenAsync(true);
 			Trace.WriteLine("DatabaseDevice.Open succeeded");
 
-			await TrunkTransactionContext.Commit();
+			//await TrunkTransactionContext.Commit();
 			Trace.WriteLine("Transaction commit succeeded");
 
 			await dbDevice.CloseAsync();
@@ -77,9 +81,9 @@
 			var masterLogPathName =
 				Path.Combine(_testContext.TestDir, "master.mlf");
 
-			TrunkTransactionContext.BeginTransaction(dbDevice, TimeSpan.FromMinutes(1));
+            dbDevice.BeginTransaction();
 
-			var addFgDevice =
+            var addFgDevice =
 				new AddFileGroupDeviceParameters(
 					FileGroupId.Primary,
 					"PRIMARY",
@@ -102,10 +106,10 @@
 
 			await TrunkTransactionContext.Commit();
 
-			TrunkTransactionContext.BeginTransaction(dbDevice, TimeSpan.FromMinutes(5));
+            dbDevice.BeginTransaction();
 
-			// Open a file
-			using (var stream = new FileStream(
+            // Open a file
+            using (var stream = new FileStream(
 				Path.Combine(_testContext.TestDir,
 				@"..\..\Zen.Trunk.VirtualMemory\Storage\IO\AdvancedFileStream.cs"),	// 83kb plain text
 				FileMode.Open, FileAccess.Read, FileShare.Read))
@@ -189,9 +193,9 @@
 			var masterLogPathName =
 				Path.Combine(_testContext.TestDir, "master.mlf");
 
-			TrunkTransactionContext.BeginTransaction(dbDevice, TimeSpan.FromMinutes(1));
+            dbDevice.BeginTransaction();
 
-			var addFgDevice =
+            var addFgDevice =
 				new AddFileGroupDeviceParameters(
 					FileGroupId.Primary,
 					"PRIMARY",
@@ -214,9 +218,9 @@
 
 			await TrunkTransactionContext.Commit();
 
-			TrunkTransactionContext.BeginTransaction(dbDevice, TimeSpan.FromMinutes(5));
+            dbDevice.BeginTransaction();
 
-			var param =
+            var param =
 				new AddFileGroupTableParameters(
 					addFgDevice.FileGroupId,
 					addFgDevice.FileGroupName,
@@ -269,12 +273,12 @@
 
 		private DatabaseDevice CreateDatabaseDevice()
 		{
-			// We need a service provider to pass to the database device
-			//	otherwise it will fail to initialise
-			var parentServices = new ServiceContainer();
-			parentServices.AddService(typeof(IVirtualBufferFactory), new VirtualBufferFactory(32, 8192));
-			parentServices.AddService(typeof(GlobalLockManager), new GlobalLockManager());
-			return new DatabaseDevice(DatabaseId.Zero, parentServices);
+            var builder = new StorageEngineBuilder()
+                .WithVirtualBufferFactory()
+                .WithGlobalLockManager();
+		    _lifetimeScope = builder.Build();
+
+			return new DatabaseDevice(_lifetimeScope, DatabaseId.Zero);
 		}
 	}
 }

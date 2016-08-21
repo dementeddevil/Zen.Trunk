@@ -104,10 +104,9 @@ namespace Zen.Trunk.Storage.Data
 			new Dictionary<FileGroupId, FileGroupDevice>();
 		private readonly Dictionary<string, FileGroupDevice> _fileGroupByName =
 			new Dictionary<string, FileGroupDevice>();
-		private FileGroupId _nextFileGroupId = FileGroupId.Primary.Next();
+		private FileGroupId _nextFileGroupId = FileGroupId.Primary.Next;
 
 		// Log device
-		private MasterLogPageDevice _logDevice;
 		private Task _currentCheckPointTask;
         #endregion
 
@@ -281,12 +280,12 @@ namespace Zen.Trunk.Storage.Data
 
 		public Task<DeviceId> AddLogDevice(AddLogDeviceParameters deviceParams)
 		{
-			return _logDevice.AddDevice(deviceParams);
+			return ResolveDeviceService<MasterLogPageDevice>().AddDevice(deviceParams);
 		}
 
 		public Task RemoveLogDevice(RemoveLogDeviceParameters deviceParams)
 		{
-			return _logDevice.RemoveDevice(deviceParams);
+			return ResolveDeviceService<MasterLogPageDevice>().RemoveDevice(deviceParams);
 		}
 		#endregion
 
@@ -297,13 +296,14 @@ namespace Zen.Trunk.Storage.Data
 	        base.BuildDeviceLifetimeScope(builder);
 
 	        builder
-	            .Register(context =>
-                    new DatabaseLockManager(context.Resolve<GlobalLockManager>(), _dbId))
+	            .RegisterType<DatabaseLockManager>()
+                .WithParameter("dbId", _dbId)
 	            .As<IDatabaseLockManager>()
 	            .SingleInstance();
 
 	        builder
-	            .Register(context => _logDevice)
+                .RegisterType<MasterLogPageDevice>()
+                .WithParameter("pathName", string.Empty)
 	            .As<LogPageDevice>()
 	            .As<MasterLogPageDevice>();
 
@@ -315,6 +315,10 @@ namespace Zen.Trunk.Storage.Data
             builder
                 .Register(context => _dataBufferDevice)
                 .As<CachingPageBufferDevice>();
+
+	        builder.RegisterType<MasterDatabasePrimaryFileGroupDevice>();
+	        builder.RegisterType<PrimaryFileGroupDevice>();
+	        builder.RegisterType<SecondaryFileGroupDevice>();
 	    }
 
 		/// <summary>
@@ -350,13 +354,13 @@ namespace Zen.Trunk.Storage.Data
 
 			// Mount the log device
 			Tracer.WriteVerboseLine("Opening log device...");
-			await _logDevice.OpenAsync(IsCreate).ConfigureAwait(false);
+			await ResolveDeviceService<MasterLogPageDevice>().OpenAsync(IsCreate).ConfigureAwait(false);
 
 			// If this is not create then we need to perform recovery
 			if (!IsCreate)
 			{
 				Tracer.WriteVerboseLine("Initiating recovery...");
-				await _logDevice.PerformRecovery().ConfigureAwait(false);
+				await ResolveDeviceService<MasterLogPageDevice>().PerformRecovery().ConfigureAwait(false);
 			}
 		}
 
@@ -410,13 +414,12 @@ namespace Zen.Trunk.Storage.Data
 			await _dataBufferDevice.CloseAsync().ConfigureAwait(false);
 
 			// Close the log device
-			await _logDevice.CloseAsync().ConfigureAwait(false);
+			await ResolveDeviceService<MasterLogPageDevice>().CloseAsync().ConfigureAwait(false);
 
 			// Close underlying buffer device
 			await _bufferDevice.CloseAsync().ConfigureAwait(false);
 
 			// Invalidate objects
-			_logDevice = null;
 			_dataBufferDevice = null;
 			_bufferDevice = null;
 		}
@@ -429,8 +432,6 @@ namespace Zen.Trunk.Storage.Data
 			var bufferFactory = ResolveDeviceService<IVirtualBufferFactory>();
 			_bufferDevice = new MultipleBufferDevice(bufferFactory, true);
 			_dataBufferDevice = new CachingPageBufferDevice(_bufferDevice);
-		    _logDevice = ResolveDeviceService<MasterLogPageDevice>(
-		        new NamedParameter("pathName", string.Empty));
 
 			// Setup ports
 			_taskInterleave = new ConcurrentExclusiveSchedulerPair(TaskScheduler.Default);
@@ -520,7 +521,7 @@ namespace Zen.Trunk.Storage.Data
 					(fileGroupId != FileGroupId.Master &&
 					fileGroupId != FileGroupId.Primary))
 				{
-					fileGroupId = _nextFileGroupId = _nextFileGroupId.Next();
+					fileGroupId = _nextFileGroupId = _nextFileGroupId.Next;
 				}
 
 				// Create new file group device and add to map
@@ -689,7 +690,7 @@ namespace Zen.Trunk.Storage.Data
 			Tracer.WriteVerboseLine("CheckPoint - Begin");
 
 			// Issue begin checkpoint
-			await _logDevice.WriteEntry(new BeginCheckPointLogEntry()).ConfigureAwait(false);
+			await ResolveDeviceService<MasterLogPageDevice>().WriteEntry(new BeginCheckPointLogEntry()).ConfigureAwait(false);
 
 			Exception exception = null;
 			try
@@ -705,7 +706,7 @@ namespace Zen.Trunk.Storage.Data
 			}
 
 			// Issue end checkpoint
-			await _logDevice.WriteEntry(new EndCheckPointLogEntry()).ConfigureAwait(false);
+			await ResolveDeviceService<MasterLogPageDevice>().WriteEntry(new EndCheckPointLogEntry()).ConfigureAwait(false);
 
 			// Discard current check-point task
 			_currentCheckPointTask = null;

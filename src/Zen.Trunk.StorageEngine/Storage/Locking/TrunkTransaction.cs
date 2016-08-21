@@ -9,14 +9,14 @@ namespace Zen.Trunk.Storage.Locking
 	using System.Transactions;
 	using Zen.Trunk.Storage.Log;
 
-	/// <summary>
-	/// The <b>DatabaseTransaction</b> object maintains the context of a
-	/// transaction within the database. To achieve this the transaction
-	/// object tracks the modified pages together with the related 
-	/// transaction log records and this enables the object to control
-	/// commit and rollback behaviour.
-	/// </summary>
-	internal class TrunkTransaction : MarshalByRefObject, ITrunkTransactionPrivate
+    /// <summary>
+    /// The <b>TrunkTransaction</b> object maintains the context of a
+    /// transaction within the database. To achieve this the transaction
+    /// object tracks the modified pages together with the related 
+    /// transaction log records and this enables the object to control
+    /// commit and rollback behaviour.
+    /// </summary>
+    internal class TrunkTransaction : MarshalByRefObject, ITrunkTransactionPrivate
 	{
 		#region Private Types
 		private class DBPrepare : PreparingPageEnlistment

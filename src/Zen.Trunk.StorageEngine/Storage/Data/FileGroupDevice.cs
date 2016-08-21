@@ -248,6 +248,17 @@ namespace Zen.Trunk.Storage.Data
 		/// <value>The name of the tracer.</value>
 		protected override string TracerName => GetType().Name + ":" + FileGroupId + ":" + FileGroupName;
 
+	    protected ILogicalVirtualManager LogicalVirtualManager
+	    {
+	        get
+	        {
+	            if (_logicalVirtual == null)
+	            {
+	                _logicalVirtual = ResolveDeviceService<ILogicalVirtualManager>();
+	            }
+	            return _logicalVirtual;
+	        }
+	    }
 	    #endregion
 
 		#region Private Properties
@@ -527,8 +538,13 @@ namespace Zen.Trunk.Storage.Data
 	    {
 	        base.BuildDeviceLifetimeScope(builder);
 
-	        builder.RegisterInstance(_logicalVirtual).As<ILogicalVirtualManager>();
+	        builder.RegisterType<LogicalVirtualManager>()
+                .As<ILogicalVirtualManager>()
+                .SingleInstance();
+	        builder.RegisterInstance(this).As<FileGroupDevice>();
 	        builder.RegisterType<DatabaseTable>().AsSelf();
+	        builder.RegisterType<PrimaryDistributionPageDevice>();
+	        builder.RegisterType<SecondaryDistributionPageDevice>();
 	    }
 
 		/// <summary>
@@ -536,21 +552,14 @@ namespace Zen.Trunk.Storage.Data
 		/// </summary>
 		protected override void DisposeManagedObjects()
 		{
-			if (_logicalVirtual != null)
-			{
-				_logicalVirtual.Dispose();
-				_logicalVirtual = null;
-			}
+			_logicalVirtual?.Dispose();
+			_logicalVirtual = null;
 		}
 		#endregion
 
 		#region Private Methods
 		private void Initialise()
 		{
-			// Create logical/virtual lookup manager
-            // TODO: Get this from IoC
-			_logicalVirtual = new LogicalVirtualManager();
-
 			// Setup ports
 			_taskInterleave = new ConcurrentExclusiveSchedulerPair();
 			_addDataDevicePort = new TransactionContextActionBlock<AddDataDeviceRequest, DeviceId>(
@@ -753,7 +762,7 @@ namespace Zen.Trunk.Storage.Data
 			if (logicalPage != null && request.Message.AssignAutomaticLogicalId)
 			{
 				// Get next logical id from the logical/virtual manager
-				logicalPage.LogicalId = await _logicalVirtual.GetNewLogicalAsync().ConfigureAwait(false);
+				logicalPage.LogicalId = await LogicalVirtualManager.GetNewLogicalAsync().ConfigureAwait(false);
 			}
 
 			// Stage #2: Assign virtual id
@@ -783,7 +792,7 @@ namespace Zen.Trunk.Storage.Data
 				(request.Message.AssignLogicalId || request.Message.AssignAutomaticLogicalId))
 			{
 				// Post request to logical/virtual manager
-				var logicalId = await _logicalVirtual.AddLookupAsync(pageId, logicalPage.LogicalId).ConfigureAwait(false);
+				var logicalId = await LogicalVirtualManager.AddLookupAsync(pageId, logicalPage.LogicalId).ConfigureAwait(false);
 
 				// Update page with new logical id as necessary
 				if (!request.Message.AssignAutomaticLogicalId)
@@ -839,7 +848,7 @@ namespace Zen.Trunk.Storage.Data
 				}
 
 				// Map from logical page to virtual page
-				pageId = await _logicalVirtual.GetVirtualAsync(logicalPage.LogicalId).ConfigureAwait(false);
+				pageId = await LogicalVirtualManager.GetVirtualAsync(logicalPage.LogicalId).ConfigureAwait(false);
 				request.Message.Page.VirtualId = pageId;
 			}
 
@@ -869,7 +878,7 @@ namespace Zen.Trunk.Storage.Data
 
 		private async Task<bool> ImportDistributionPageHandler(ImportDistributionPageRequest request)
 		{
-			await request.Page.Import(_logicalVirtual);
+			await request.Page.Import(LogicalVirtualManager);
 			return true;
 		}
 
