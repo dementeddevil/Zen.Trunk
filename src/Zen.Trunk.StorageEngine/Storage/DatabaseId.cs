@@ -33,6 +33,8 @@ namespace Zen.Trunk.Storage
         /// </summary>
         [CLSCompliant(false)]
         public ushort Value { get; }
+
+        public DatabaseId Next => new DatabaseId((ushort)(Value + 1));
         #endregion
 
         #region Public Methods

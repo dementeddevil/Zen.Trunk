@@ -5,9 +5,9 @@ namespace Zen.Trunk.Storage.Locking
 	using System.Diagnostics;
 
 	/// <summary>
-	/// Lock manager
+	/// Global lock manager
 	/// </summary>
-	internal class GlobalLockManager
+	public class GlobalLockManager : IGlobalLockManager
 	{
 		#region Private Fields
 		private readonly LockHandler<DatabaseLock, DatabaseLockType> _databaseLocks;

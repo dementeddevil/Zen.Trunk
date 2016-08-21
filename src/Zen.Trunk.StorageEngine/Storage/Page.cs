@@ -1,13 +1,12 @@
+using System;
+using System.Collections.Specialized;
+using System.ComponentModel;
+using System.IO;
 using Autofac;
+using Zen.Trunk.Storage.IO;
 
 namespace Zen.Trunk.Storage
 {
-	using System;
-	using System.Collections.Specialized;
-	using System.ComponentModel;
-	using System.IO;
-	using Zen.Trunk.Storage.IO;
-
 	/// <summary>
 	/// <b>Page</b> objects represents a 64Kb buffer block.
 	/// </summary>
@@ -16,7 +15,7 @@ namespace Zen.Trunk.Storage
 	/// In the base class the header only contains a single byte used to
 	/// track status bits for the page.
 	/// </remarks>
-	public abstract class Page : TraceableObject, IServiceProvider, IDisposable, IComponent
+	public abstract class Page : TraceableObject, IDisposable
 	{
 		#region Internal Objects
 		private class NewPageInterceptorField : BufferField
@@ -64,7 +63,6 @@ namespace Zen.Trunk.Storage
 		private EventHandlerList _events;
 
 	    private ILifetimeScope _lifetimeScope;
-		private ISite _site;
 
 		private VirtualPageId _virtualId;
 		private readonly BufferFieldBitVector32 _status;
@@ -176,33 +174,11 @@ namespace Zen.Trunk.Storage
 	    public void SetLifetimeScope(ILifetimeScope scope)
 	    {
 	        _lifetimeScope = scope.BeginLifetimeScope(
-	            (builder) =>
+	            builder =>
 	            {
-	                builder.RegisterInstance(this)
-	                    .As<Page>();
+	                builder.RegisterInstance(this).As(GetType(), typeof(Page));
 	            });
 	    }
-
-		/// <summary>
-		/// Gets or sets the <see cref="T:System.ComponentModel.ISite"/> 
-		/// associated with the <see cref="T:Page"/>.
-		/// </summary>
-		/// <value></value>
-		/// <returns>
-		/// The <see cref="T:System.ComponentModel.ISite"/> object associated 
-		/// with the page; or null, if the page does not have a site.
-		/// </returns>
-		public ISite Site
-		{
-			get
-			{
-				return _site;
-			}
-			set
-			{
-				_site = value;
-			}
-		}
 
 		/// <summary>
 		/// Gets the minimum number of bytes required for the header block.
@@ -595,7 +571,8 @@ namespace Zen.Trunk.Storage
 			}
 
 			// Disconnect from site
-			_site = null;
+			_lifetimeScope?.Dispose();
+		    _lifetimeScope = null;
 		}
 
 		/// <summary>
@@ -723,32 +700,6 @@ namespace Zen.Trunk.Storage
 		/// <summary>
 		/// Gets the service object of the specified type.
 		/// </summary>
-		/// <param name="serviceType">An object that specifies the type of service object to get.</param>
-		/// <returns>
-		/// A service object of type serviceType.-or- null if there is no service object of type serviceType.
-		/// </returns>
-		protected virtual object GetService(Type serviceType)
-		{
-			// Respond to MetaPage requests
-			if (serviceType == typeof(Page))
-			{
-				return this;
-			}
-
-			// Pass to our site if we have one
-			if (_site != null)
-			{
-				return _site.GetService(serviceType);
-			}
-			else
-			{
-				return null;
-			}
-		}
-
-		/// <summary>
-		/// Gets the service object of the specified type.
-		/// </summary>
 		/// <typeparam name="T">
 		/// An object that specifies the type of service object to get.
 		/// </typeparam>
@@ -757,7 +708,7 @@ namespace Zen.Trunk.Storage
 		/// </returns>
 		protected T GetService<T>()
 		{
-			return (T)GetService(typeof(T));
+		    return _lifetimeScope.Resolve<T>();
 		}
 
 		/// <summary>
@@ -881,13 +832,6 @@ namespace Zen.Trunk.Storage
 					OnDirty(EventArgs.Empty);
 				}
 			}
-		}
-		#endregion
-
-		#region IServiceProvider Members
-		object IServiceProvider.GetService(Type serviceType)
-		{
-			return ((Page)this).GetService(serviceType);
 		}
 		#endregion
 	}

@@ -1,4 +1,6 @@
-﻿namespace Zen.Trunk.Storage.Data.Index
+﻿using Autofac;
+
+namespace Zen.Trunk.Storage.Data.Index
 {
 	using System;
 	using System.Collections.Generic;
@@ -6,10 +8,10 @@
 	/// <summary>
 	/// <c>IndexManager</c> is a base class for all index manager classes.
 	/// </summary>
-	public abstract class IndexManager : IServiceProvider
+	public abstract class IndexManager
 	{
 		#region Private Fields
-		private readonly IServiceProvider _parentProvider;
+		private readonly ILifetimeScope _parentLifetimeScope;
 		private DatabaseDevice _database;
 		#endregion
 
@@ -17,10 +19,10 @@
 		/// <summary>
 		/// Initializes a new instance of the <see cref="IndexManager"/> class.
 		/// </summary>
-		/// <param name="parentProvider">The parent provider.</param>
-		protected IndexManager(IServiceProvider parentProvider)
+		/// <param name="parentLifetimeScope">The parent lifetime scope.</param>
+		protected IndexManager(ILifetimeScope parentLifetimeScope)
 		{
-			_parentProvider = parentProvider;
+			_parentLifetimeScope = parentLifetimeScope;
 		}
 		#endregion
 
@@ -37,55 +39,28 @@
 			{
 				if (_database == null)
 				{
-					_database = (DatabaseDevice)GetService(typeof(DatabaseDevice));
+				    _database = _parentLifetimeScope.Resolve<DatabaseDevice>();
 				}
 				return _database;
 			}
 		}
-		#endregion
+        #endregion
 
-		#region Protected Methods
-		/// <summary>
-		/// Gets the service object of the specified type.
-		/// </summary>
-		/// <typeparam name="TService">
-		/// The type of the service object to get.
-		/// </typeparam>
-		/// <returns>
-		/// A service object of type <paramref name="serviceType" />.
-		/// -or-
-		/// null if there is no service object of type <paramref name="serviceType" />.
-		/// </returns>
-		protected TService GetService<TService>()
+        #region Protected Methods
+        /// <summary>
+        /// Gets the service object of the specified type.
+        /// </summary>
+        /// <typeparam name="TService">
+        /// The type of the service object to get.
+        /// </typeparam>
+        /// <returns>
+        /// A service object of type <typeparamref name="TService"/>.
+        /// -or-
+        /// null if there is no service object of type <typeparamref name="TService"/>.
+        /// </returns>
+        protected TService GetService<TService>()
 		{
-			return (TService)GetService(typeof(TService));
-		}
-
-		/// <summary>
-		/// Gets the service object of the specified type.
-		/// </summary>
-		/// <param name="serviceType">An object that specifies the type of service object to get.</param>
-		/// <returns>
-		/// A service object of type <paramref name="serviceType" />.-or- null if there is no service object of type <paramref name="serviceType" />.
-		/// </returns>
-		protected virtual object GetService(Type serviceType)
-		{
-			if (serviceType == typeof(IndexManager))
-			{
-				return this;
-			}
-			if (_parentProvider != null)
-			{
-				return _parentProvider.GetService(serviceType);
-			}
-			return null;
-		}
-		#endregion
-
-		#region IServiceProvider Members
-		object IServiceProvider.GetService(Type serviceType)
-		{
-			return GetService(serviceType);
+		    return _parentLifetimeScope.Resolve<TService>();
 		}
 		#endregion
 	}
@@ -111,9 +86,9 @@
 		/// <summary>
 		/// Initializes a new instance of the <see cref="IndexManager{IndexRootClass}"/> class.
 		/// </summary>
-		/// <param name="parentProvider">The parent provider.</param>
-		protected IndexManager(IServiceProvider parentProvider)
-			: base(parentProvider)
+		/// <param name="parentLifetimeScope">The parent provider.</param>
+		protected IndexManager(ILifetimeScope parentLifetimeScope)
+			: base(parentLifetimeScope)
 		{
 		}
 		#endregion
@@ -124,9 +99,9 @@
 	    #endregion
 
 		#region Internal Methods
-		internal IndexRootClass GetIndexInfo(ObjectId ObjectId)
+		internal IndexRootClass GetIndexInfo(ObjectId objectId)
 		{
-			return _indices[ObjectId];
+			return _indices[objectId];
 		}
 
 		internal void AddIndexInfo(IndexRootClass index)

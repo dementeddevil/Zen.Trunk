@@ -254,7 +254,7 @@ namespace Zen.Trunk.Storage.Data
 
 		public ObjectRefInfo GetObject(string name)
 		{
-			return _objects.Values.FirstOrDefault((item) => item.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+			return _objects.Values.FirstOrDefault(item => item.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
 		}
 		#endregion
 

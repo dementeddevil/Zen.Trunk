@@ -1,12 +1,13 @@
-﻿namespace Zen.Trunk.Storage.Data.Table
-{
-	using System;
-	using System.Linq;
-	using System.Threading.Tasks;
-	using System.Threading.Tasks.Dataflow;
-	using Zen.Trunk.Storage.Data.Index;
-	using Zen.Trunk.Storage.Locking;
+﻿using System;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Threading.Tasks.Dataflow;
+using Autofac;
+using Zen.Trunk.Storage.Data.Index;
+using Zen.Trunk.Storage.Locking;
 
+namespace Zen.Trunk.Storage.Data.Table
+{
 	internal class TableIndexManager : IndexManager<RootTableIndexInfo>
 	{
 		#region Private Types
@@ -70,12 +71,11 @@
 		/// <summary>
 		/// Initializes a new instance of the <see cref="TableIndexManager"/> class.
 		/// </summary>
-		/// <param name="parentProvider">The parent provider.</param>
-		/// <param name="owner">The owner.</param>
-		public TableIndexManager(IServiceProvider parentProvider, DatabaseTable owner)
-			: base(parentProvider)
+		/// <param name="parentLifetimeScope">The parent provider.</param>
+		public TableIndexManager(ILifetimeScope parentLifetimeScope)
+			: base(parentLifetimeScope)
 		{
-			_ownerTable = owner;
+			_ownerTable = parentLifetimeScope.Resolve<DatabaseTable>();
 			Initialise();
 		}
 		#endregion
@@ -122,25 +122,25 @@
 
 			_taskInterleave = new ConcurrentExclusiveSchedulerPair();
 			_createIndexPort = new TransactionContextActionBlock<CreateTableIndex, bool>(
-				(request) => CreateIndexHandler(request),
+				request => CreateIndexHandler(request),
 				new ExecutionDataflowBlockOptions
 				{
 					TaskScheduler = _taskInterleave.ExclusiveScheduler,
 				});
 			_splitPagePort = new TransactionContextActionBlock<SplitTableIndexPage, bool>(
-				(request) => SplitPageHandler(request),
+				request => SplitPageHandler(request),
 				new ExecutionDataflowBlockOptions
 				{
 					TaskScheduler = _taskInterleave.ConcurrentScheduler,
 				});
 			_findIndexPort = new TransactionContextActionBlock<FindTableIndex, FindTableIndexResult>(
-				(request) => FindIndexHandler(request),
+				request => FindIndexHandler(request),
 				new ExecutionDataflowBlockOptions
 				{
 					TaskScheduler = _taskInterleave.ConcurrentScheduler,
 				});
 			_enumerateIndexEntriesPort = new TransactionContextActionBlock<EnumerateIndexEntries, bool>(
-				(request) => EnumerateIndexEntriesHandler(request),
+				request => EnumerateIndexEntriesHandler(request),
 				new ExecutionDataflowBlockOptions
 				{
 					TaskScheduler = _taskInterleave.ConcurrentScheduler,
@@ -198,8 +198,8 @@
 			// We need the zero-based ordinal positions of the columns used
 			//	in the index being created
 			var indexOrdinals = request.Message.ColumnIDs
-				.Select((columnId) => _ownerTable.Columns.IndexOf(
-					_ownerTable.Columns.First((item) => item.Id == columnId)))
+				.Select(columnId => _ownerTable.Columns.IndexOf(
+					_ownerTable.Columns.First(item => item.Id == columnId)))
 				.ToArray();
 
 			// TODO: Populate the index

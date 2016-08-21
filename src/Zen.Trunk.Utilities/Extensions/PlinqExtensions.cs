@@ -46,7 +46,7 @@ namespace System.Linq
                     return accum1;
                 },
 
-                (accum) => accum.Values);
+                accum => accum.Values);
         }
 
         /// <summary>A comparer that comparers using the inverse of the default comparer.</summary>

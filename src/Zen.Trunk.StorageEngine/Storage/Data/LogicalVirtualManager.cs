@@ -80,7 +80,7 @@
 			_shutdownToken = new CancellationTokenSource();
 			_taskInterleave = new ConcurrentExclusiveSchedulerPair();
 			_getNewLogicalPort = new ActionBlock<GetNewLogicalRequest>(
-				(request) =>
+				request =>
 				{
 					try
 					{
@@ -101,7 +101,7 @@
 					CancellationToken = _shutdownToken.Token
 				});
 			_addLookupPort = new ActionBlock<AddLookupRequest>(
-				(request) =>
+				request =>
 				{
 					try
 					{
@@ -130,7 +130,7 @@
 					CancellationToken = _shutdownToken.Token
 				});
 			_getLogicalPort = new ActionBlock<GetLogicalRequest>(
-				(request) =>
+				request =>
 				{
 					try
 					{
@@ -154,7 +154,7 @@
 					CancellationToken = _shutdownToken.Token
 				});
 			_getVirtualPort = new ActionBlock<GetVirtualRequest>(
-				(request) =>
+				request =>
 				{
 					try
 					{

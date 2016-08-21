@@ -116,6 +116,7 @@
     <Compile Include="Storage\Locking\GlobalLockManager.cs" />
     <Compile Include="Storage\Locking\DistributionLockOwnerBlock.cs" />
     <Compile Include="Storage\Locking\IDatabaseLockManager.cs" />
+    <Compile Include="Storage\Locking\IGlobalLockManager.cs" />
     <Compile Include="Storage\Locking\ITrunkTransaction.cs" />
     <Compile Include="Storage\Locking\LockIdent.cs" />
     <Compile Include="Storage\Locking\LockOwnerBlockBase.cs" />

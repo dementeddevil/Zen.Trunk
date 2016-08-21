@@ -362,7 +362,7 @@
 
 			// Initialisation and load handlers make use of common handler
 			_initBufferPort = new TransactionContextActionBlock<PreparePageBufferRequest, PageBuffer>(
-				(request) => HandleLoadOrInit(request, false),
+				request => HandleLoadOrInit(request, false),
 				new ExecutionDataflowBlockOptions
 				{
 					TaskScheduler = TaskScheduler.Default,
@@ -371,7 +371,7 @@
 					CancellationToken = _shutdownToken.Token
 				});
 			_loadBufferPort = new TransactionContextActionBlock<PreparePageBufferRequest, PageBuffer>(
-				(request) => HandleLoadOrInit(request, true),
+				request => HandleLoadOrInit(request, true),
 				new ExecutionDataflowBlockOptions
 				{
 					TaskScheduler = TaskScheduler.Default,
@@ -382,7 +382,7 @@
 
 			// Explicit flush handler
 			_flushBuffersPort = new TaskRequestActionBlock<FlushCachingDeviceRequest, bool>(
-				(request) => HandleFlushPageBuffers(request));
+				request => HandleFlushPageBuffers(request));
 
 			// Initialise caching support
 			_cacheManagerTask = Task.Factory.StartNew(
@@ -472,9 +472,9 @@
 					}
 
 					// Attach the continuations that will clean up the task
-					requestTask.ContinueWith((t) => LoadOrInitCancelled(request.PageId), TaskContinuationOptions.OnlyOnCanceled);
-					requestTask.ContinueWith((t) => LoadOrInitComplete(request.PageId, buffer), TaskContinuationOptions.OnlyOnRanToCompletion);
-					requestTask.ContinueWith((t) => LoadOrInitFailed(request.PageId, t.Exception), TaskContinuationOptions.OnlyOnFaulted);
+					requestTask.ContinueWith(t => LoadOrInitCancelled(request.PageId), TaskContinuationOptions.OnlyOnCanceled);
+					requestTask.ContinueWith(t => LoadOrInitComplete(request.PageId, buffer), TaskContinuationOptions.OnlyOnRanToCompletion);
+					requestTask.ContinueWith(t => LoadOrInitFailed(request.PageId, t.Exception), TaskContinuationOptions.OnlyOnFaulted);
 				}
 			}
 			return pbtcs.Task;
@@ -595,7 +595,7 @@
 						},
 						() => new FlushPageBufferState(request.Message),
 						ProcessCacheBufferEntry,
-						(blockState) =>
+						blockState =>
 						{
 							// Issue flush to each device accessed
 							var flushReads = (blockState.LoadTasks.Count > 0);
@@ -641,7 +641,7 @@
 					//	all waiting callers when complete - whatever the outcome
 					var loadTask = cacheInfo.BufferInternal.LoadAsync();
 					loadTask.ContinueWith(
-						(task) =>
+						task =>
 						{
 							if (task.IsCanceled)
 							{

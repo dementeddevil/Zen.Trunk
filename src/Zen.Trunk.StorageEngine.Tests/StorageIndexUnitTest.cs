@@ -17,8 +17,8 @@ namespace Zen.Trunk.StorageEngine.Tests
 	{
 		private class TestIndexManager : IndexManager<RootIndexInfo>
 		{
-			public TestIndexManager(IServiceProvider parentProvider)
-				: base(parentProvider)
+			public TestIndexManager(IServiceProvider parentLifetimeScope)
+				: base(parentLifetimeScope)
 			{
 			}
 

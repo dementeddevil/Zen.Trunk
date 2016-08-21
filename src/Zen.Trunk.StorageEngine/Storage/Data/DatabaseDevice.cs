@@ -99,9 +99,6 @@ namespace Zen.Trunk.Storage.Data
 		private MultipleBufferDevice _bufferDevice;
 		private CachingPageBufferDevice _dataBufferDevice;
 
-		// Locking manager
-		private IDatabaseLockManager _lockManager;
-
 		// File-group mapping
 		private readonly Dictionary<FileGroupId, FileGroupDevice> _fileGroupById =
 			new Dictionary<FileGroupId, FileGroupDevice>();
@@ -394,8 +391,8 @@ namespace Zen.Trunk.Storage.Data
 
 			// Close all secondary file-groups in parallel
 			var secondaryDeviceTasks = _fileGroupByName.Values
-				.Where((item) => !item.IsPrimaryFileGroup)
-				.Select((item) => Task.Run(() => item.CloseAsync()))
+				.Where(item => !item.IsPrimaryFileGroup)
+				.Select(item => Task.Run(() => item.CloseAsync()))
 				.ToArray();
 			await TaskExtra
 				.WhenAllOrEmpty(secondaryDeviceTasks)
@@ -403,7 +400,7 @@ namespace Zen.Trunk.Storage.Data
 
 			// Close the primary file-group last
 			var primaryDevice = _fileGroupByName.Values
-				.FirstOrDefault((item) => item.IsPrimaryFileGroup);
+				.FirstOrDefault(item => item.IsPrimaryFileGroup);
 			if (primaryDevice != null)
 			{
 				await primaryDevice.CloseAsync().ConfigureAwait(false);
@@ -439,28 +436,28 @@ namespace Zen.Trunk.Storage.Data
 			_taskInterleave = new ConcurrentExclusiveSchedulerPair(TaskScheduler.Default);
 			_initFileGroupPagePort =
 				new TransactionContextActionBlock<InitFileGroupPageRequest, bool>(
-					(request) => InitFileGroupPageHandler(request),
+					request => InitFileGroupPageHandler(request),
 					new ExecutionDataflowBlockOptions
 					{
 						TaskScheduler = _taskInterleave.ConcurrentScheduler
 					});
 			_loadFileGroupPagePort =
 				new TransactionContextActionBlock<LoadFileGroupPageRequest, bool>(
-					(request) => LoadFileGroupPageHandler(request),
+					request => LoadFileGroupPageHandler(request),
 					new ExecutionDataflowBlockOptions
 					{
 						TaskScheduler = _taskInterleave.ConcurrentScheduler
 					});
 			_addFileGroupDevicePort =
 				new TransactionContextActionBlock<AddFileGroupDeviceRequest, DeviceId>(
-					(request) => AddFileGroupDataDeviceHandler(request),
+					request => AddFileGroupDataDeviceHandler(request),
 					new ExecutionDataflowBlockOptions
 					{
 						TaskScheduler = _taskInterleave.ExclusiveScheduler
 					});
 			_removeFileGroupDevicePort =
 				new TransactionContextActionBlock<RemoveFileGroupDeviceRequest, bool>(
-					(request) => RemoveFileGroupDeviceHandler(request),
+					request => RemoveFileGroupDeviceHandler(request),
 					new ExecutionDataflowBlockOptions
 					{
 						TaskScheduler = _taskInterleave.ExclusiveScheduler
@@ -468,7 +465,7 @@ namespace Zen.Trunk.Storage.Data
 
 			_flushPageBuffersPort =
 				new TaskRequestActionBlock<FlushFileGroupRequest, bool>(
-					(request) => FlushDeviceBuffersHandler(request),
+					request => FlushDeviceBuffersHandler(request),
 					new ExecutionDataflowBlockOptions
 					{
 						TaskScheduler = _taskInterleave.ExclusiveScheduler
@@ -477,7 +474,7 @@ namespace Zen.Trunk.Storage.Data
 			// Table action ports
 			_addFileGroupTablePort =
 				new TransactionContextActionBlock<AddFileGroupTableRequest, ObjectId>(
-					(request) => AddFileGroupTableHandler(request),
+					request => AddFileGroupTableHandler(request),
 					new ExecutionDataflowBlockOptions
 					{
 						TaskScheduler = _taskInterleave.ExclusiveScheduler
@@ -485,7 +482,7 @@ namespace Zen.Trunk.Storage.Data
 
 			_issueCheckPointPort =
 				new TransactionContextActionBlock<IssueCheckPointRequest, bool>(
-					(request) => IssueCheckPointHandler(request),
+					request => IssueCheckPointHandler(request),
 					new ExecutionDataflowBlockOptions
 					{
 						TaskScheduler = _taskInterleave.ExclusiveScheduler
@@ -681,8 +678,8 @@ namespace Zen.Trunk.Storage.Data
 			}
 
 			// Checkpoint is in progress so attach to current operation
-			current.ContinueWith((t) => tcs.SetResult(true), TaskContinuationOptions.OnlyOnRanToCompletion | TaskContinuationOptions.ExecuteSynchronously);
-			current.ContinueWith((t) => tcs.SetFromTask(t), TaskContinuationOptions.NotOnRanToCompletion | TaskContinuationOptions.ExecuteSynchronously);
+			current.ContinueWith(t => tcs.SetResult(true), TaskContinuationOptions.OnlyOnRanToCompletion | TaskContinuationOptions.ExecuteSynchronously);
+			current.ContinueWith(t => tcs.SetFromTask(t), TaskContinuationOptions.NotOnRanToCompletion | TaskContinuationOptions.ExecuteSynchronously);
 
 			return tcs.Task;
 		}
@@ -728,7 +725,7 @@ namespace Zen.Trunk.Storage.Data
 
 		private FileGroupDevice GetPrimaryFileGroupDevice()
 		{
-			return _fileGroupById.Values.FirstOrDefault((item) => item.IsPrimaryFileGroup);
+			return _fileGroupById.Values.FirstOrDefault(item => item.IsPrimaryFileGroup);
 		}
 
 		private FileGroupDevice GetFileGroupDevice(FileGroupId fileGroupId, string fileGroupName)

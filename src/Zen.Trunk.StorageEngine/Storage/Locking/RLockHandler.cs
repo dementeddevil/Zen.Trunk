@@ -40,7 +40,7 @@ namespace Zen.Trunk.Storage.Locking
 		public void LockResource(string resource, TimeSpan timeout, bool writable)
 		{
 			var lockObject = _activeLocks.GetOrAdd(
-				resource, (key) => _freeLocks.GetObject());
+				resource, key => _freeLocks.GetObject());
 
 			// Attempt to lock object
 			lockObject.Lock(timeout, writable);

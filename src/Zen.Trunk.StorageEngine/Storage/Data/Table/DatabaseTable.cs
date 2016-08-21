@@ -1,4 +1,7 @@
-﻿namespace Zen.Trunk.Storage.Data.Table
+﻿using Autofac;
+using Zen.Trunk.Storage.Data.Index;
+
+namespace Zen.Trunk.Storage.Data.Table
 {
 	using System;
 	using System.Collections.Generic;
@@ -348,6 +351,8 @@
 
 		#region Private Fields
 		private readonly FileGroupDevice _owner;
+	    private ILifetimeScope _lifetimeScope;
+
 		private byte _nextColumnId = 1;
 
 		private bool _canUpdateSchema;
@@ -360,21 +365,27 @@
 		private TimeSpan _lockTimeout;
 		private InclusiveRange _rowSize;
 		private ushort _rowsPerPage;
-		private readonly TableIndexManager _indexManager;
 
 		private readonly List<TableSchemaPage> _tableDef;
-		#endregion
+        #endregion
 
-		#region Public Constructors
-		/// <summary>
-		/// Initializes a new instance of the <see cref="DatabaseTable"/> class.
-		/// </summary>
-		/// <param name="owner">The owner.</param>
-		public DatabaseTable(FileGroupDevice owner)
+        #region Public Constructors
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DatabaseTable"/> class.
+        /// </summary>
+        /// <param name="parentLifetimeScope">The parent lifetime scope.</param>
+        public DatabaseTable(ILifetimeScope parentLifetimeScope)
 		{
-			_owner = owner;
+			_owner = parentLifetimeScope.Resolve<FileGroupDevice>();
+		    _lifetimeScope = parentLifetimeScope.BeginLifetimeScope(
+		        builder =>
+		        {
+		            builder.RegisterType<TableIndexManager>()
+		                .As<IndexManager>()
+                        .As<TableIndexManager>()
+		                .SingleInstance();
+		        });
 			_tableDef = new List<TableSchemaPage>();
-			_indexManager = new TableIndexManager(_owner, this);
 #if DEBUG
 			_lockTimeout = TimeSpan.FromSeconds(30);
 #else
@@ -1048,7 +1059,7 @@
 
 		public void AddIndex(RootTableIndexInfo info)
 		{
-			_indexManager.AddIndexInfo(info);
+			_lifetimeScope.Resolve<TableIndexManager>().AddIndexInfo(info);
 		}
 
 		public void UpdateRowSize()
@@ -1139,7 +1150,7 @@
 					// If caller specified data, we must have identity insert
 					//	switched on
 					object incrValue = null;
-					if (columnIDs.Any((item) => item == column.Id))
+					if (columnIDs.Any(item => item == column.Id))
 					{
 						if (!AllowIdentityInsert)
 						{
@@ -1166,7 +1177,7 @@
 				if (column.DataType == TableColumnDataType.Timestamp)
 				{
 					// Caller cannot specify timestamp column data
-					if (columnIDs.Any((item) => item == column.Id))
+					if (columnIDs.Any(item => item == column.Id))
 					{
 						throw new ArgumentException("Cannot specify timestamp column data.");
 					}
@@ -1176,12 +1187,12 @@
 					continue;
 				}
 
-				if (!columnIDs.Any((item) => item == column.Id))
+				if (!columnIDs.Any(item => item == column.Id))
 				{
 					// This column has not been specified, look for default
 					object defaultValue = null;
 					var constraint = _constraints.FirstOrDefault(
-						(item) => item.ColumnId == column.Id &&
+						item => item.ColumnId == column.Id &&
 						item.ConstraintType == RowConstraintType.Default);
 					if (constraint != null)
 					{
@@ -1210,7 +1221,7 @@
 
 				// Apply check constraints
 				var checkConstraint = _constraints.FirstOrDefault(
-					(item) => item.ColumnId == column.Id &&
+					item => item.ColumnId == column.Id &&
 						item.ConstraintType == RowConstraintType.Check);
 				if (checkConstraint != null)
 				{
@@ -1294,7 +1305,7 @@
 				}
 
 				// Look for clustered index
-				var clusteredIndex = page.Indices.FirstOrDefault((item) => item.IndexSubType == TableIndexSubType.Clustered);
+				var clusteredIndex = page.Indices.FirstOrDefault(item => item.IndexSubType == TableIndexSubType.Clustered);
 				if (clusteredIndex != null)
 				{
 					if (IsHeap)

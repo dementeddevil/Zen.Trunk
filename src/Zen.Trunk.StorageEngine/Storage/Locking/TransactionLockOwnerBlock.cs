@@ -60,7 +60,7 @@ namespace Zen.Trunk.Storage.Locking
 		{
 			return _rootLocks.GetOrAdd(
 				fileGroupId,
-				(id) =>
+				id =>
 				{
 					return _lockManager.GetRootLock(id);
 				});
@@ -75,7 +75,7 @@ namespace Zen.Trunk.Storage.Locking
 		{
 			return _schemaLocks.GetOrAdd(
 				objectId,
-				(id) =>
+				id =>
 				{
 					return _lockManager.GetSchemaLock(id);
 				});
@@ -94,7 +94,7 @@ namespace Zen.Trunk.Storage.Locking
 		{
 			return _distributionOwnerBlocks.GetOrAdd(
 				virtualId,
-				(id) =>
+				id =>
 				{
 					return new DistributionLockOwnerBlock(_lockManager, id, maxExtentLocks);
 				});
@@ -113,7 +113,7 @@ namespace Zen.Trunk.Storage.Locking
 		{
 			return _dataOwnerBlocks.GetOrAdd(
 				objectId,
-				(id) =>
+				id =>
 				{
 					return new DataLockOwnerBlock(_lockManager, id, maxPageLocks);
 				});

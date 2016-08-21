@@ -281,7 +281,7 @@ namespace Zen.Trunk.Storage.Log
 		internal async Task CommitTransactions(List<TransactionLogEntry> transactions)
 		{
 			// We need the database device
-			var pageDevice = (DatabaseDevice)GetService(typeof(DatabaseDevice));
+			var pageDevice = ResolveDeviceService<DatabaseDevice>();
 
 			// Work through each transaction in the list
 			foreach (var entry in transactions)
@@ -301,13 +301,13 @@ namespace Zen.Trunk.Storage.Log
 		/// <param name="transactions"></param>
 		internal async Task RollbackTransactions(List<TransactionLogEntry> transactions)
 		{
-			// We need the data page device
-			var pageDevice = (DatabaseDevice)GetService(typeof(DatabaseDevice));
+            // We need the data page device
+            var pageDevice = ResolveDeviceService<DatabaseDevice>();
 
-			// We need to rollback transactions in reverse order and we don't
-			//	need to worry about locks as the owner transaction is still
-			//	active.
-			transactions.Reverse();
+            // We need to rollback transactions in reverse order and we don't
+            //	need to worry about locks as the owner transaction is still
+            //	active.
+            transactions.Reverse();
 
 			// Work through each transaction in the list
 			foreach (var entry in transactions)
@@ -320,17 +320,6 @@ namespace Zen.Trunk.Storage.Log
 		#endregion
 
 		#region Protected Methods
-		protected override object GetService(Type serviceType)
-		{
-			if (serviceType == typeof(MasterLogPageDevice))
-			{
-				return this;
-			}
-
-			// Delegate everything else
-			return base.GetService(serviceType);
-		}
-
 		protected override async Task OnOpen()
 		{
 			// Do base class work first
@@ -400,25 +389,25 @@ namespace Zen.Trunk.Storage.Log
 		{
 			_taskInterleave = new ConcurrentExclusiveSchedulerPair(TaskScheduler.Default);
 			_addLogDevicePort = new TaskRequestActionBlock<AddLogDeviceRequest, DeviceId>(
-				(request) => AddLogDeviceHandler(request),
+				request => AddLogDeviceHandler(request),
 				new ExecutionDataflowBlockOptions
 				{
 					TaskScheduler = _taskInterleave.ExclusiveScheduler
 				});
 			_removeLogDevicePort = new TaskRequestActionBlock<RemoveLogDeviceRequest, bool>(
-				(request) => RemoveLogDeviceHandler(request),
+				request => RemoveLogDeviceHandler(request),
 				new ExecutionDataflowBlockOptions
 				{
 					TaskScheduler = _taskInterleave.ExclusiveScheduler
 				});
 			_writeLogEntryPort = new TaskRequestActionBlock<WriteLogEntryRequest, bool>(
-				(request) => WriteLogEntryHandler(request),
+				request => WriteLogEntryHandler(request),
 				new ExecutionDataflowBlockOptions
 				{
 					TaskScheduler = _taskInterleave.ExclusiveScheduler
 				});
 			_performRecoveryPort = new ActionBlock<PerformRecoveryRequest>(
-				(request) => PerformRecoveryHandler(request),
+				request => PerformRecoveryHandler(request),
 				new ExecutionDataflowBlockOptions
 				{
 					TaskScheduler = _taskInterleave.ExclusiveScheduler

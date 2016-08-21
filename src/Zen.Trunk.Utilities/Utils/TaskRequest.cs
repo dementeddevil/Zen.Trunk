@@ -81,14 +81,14 @@
 		public TaskRequestActionBlock(Func<TRequest, TResult> action, ExecutionDataflowBlockOptions dataflowBlockOptions)
 		{
 			_innerBlock = new ActionBlock<TRequest>(
-				(request) => ExecuteActionAndProcessResult(action, request),
+				request => ExecuteActionAndProcessResult(action, request),
 				dataflowBlockOptions);
 		}
 
 		public TaskRequestActionBlock(Func<TRequest, Task<TResult>> action, ExecutionDataflowBlockOptions dataflowBlockOptions)
 		{
 			_innerBlock = new ActionBlock<TRequest>(
-				(request) => ExecuteActionAndProcessResultAsync(action, request),
+				request => ExecuteActionAndProcessResultAsync(action, request),
 				dataflowBlockOptions);
 		}
 
@@ -174,14 +174,14 @@
 		public TaskRequestActionBlock(Func<TRequest, TResult> action, ExecutionDataflowBlockOptions dataflowBlockOptions)
 		{
 			_innerBlock = new ActionBlock<TRequest>(
-				(request) => ExecuteActionAndProcessResult(action, request),
+				request => ExecuteActionAndProcessResult(action, request),
 				dataflowBlockOptions);
 		}
 
 		public TaskRequestActionBlock(Func<TRequest, Task<TResult>> action, ExecutionDataflowBlockOptions dataflowBlockOptions)
 		{
 			_innerBlock = new ActionBlock<TRequest>(
-				(request) => ExecuteActionAndProcessResultAsync(action, request),
+				request => ExecuteActionAndProcessResultAsync(action, request),
 				dataflowBlockOptions);
 		}
 

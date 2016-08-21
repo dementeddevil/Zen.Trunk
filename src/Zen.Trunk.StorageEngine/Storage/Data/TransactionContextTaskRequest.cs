@@ -70,7 +70,7 @@
 		}
 
 		public TransactionContextActionBlock(Func<TRequest, TResult> action, ExecutionDataflowBlockOptions dataflowBlockOptions)
-			: base((request) => ExecuteActionWithContext(action, request), dataflowBlockOptions)
+			: base(request => ExecuteActionWithContext(action, request), dataflowBlockOptions)
 		{
 		}
 
@@ -80,7 +80,7 @@
 		}
 
 		public TransactionContextActionBlock(Func<TRequest, Task<TResult>> action, ExecutionDataflowBlockOptions dataflowBlockOptions)
-			: base((request) => ExecuteActionWithContextAsync(action, request), dataflowBlockOptions)
+			: base(request => ExecuteActionWithContextAsync(action, request), dataflowBlockOptions)
 		{
 		}
 
@@ -136,7 +136,7 @@
 		}
 
 		public TransactionContextActionBlock(Func<TRequest, TResult> action, ExecutionDataflowBlockOptions dataflowBlockOptions)
-			: base((request) => ExecuteActionWithContext(action, request), dataflowBlockOptions)
+			: base(request => ExecuteActionWithContext(action, request), dataflowBlockOptions)
 		{
 		}
 
@@ -146,7 +146,7 @@
 		}
 
 		public TransactionContextActionBlock(Func<TRequest, Task<TResult>> action, ExecutionDataflowBlockOptions dataflowBlockOptions)
-			: base((request) => ExecuteActionWithContextAsync(action, request), dataflowBlockOptions)
+			: base(request => ExecuteActionWithContextAsync(action, request), dataflowBlockOptions)
 		{
 		}
 

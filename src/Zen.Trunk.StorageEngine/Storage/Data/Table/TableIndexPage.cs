@@ -51,7 +51,7 @@
 		/// Overridden. Gets the index manager.
 		/// </summary>
 		/// <value>The index manager.</value>
-		public override IndexManager IndexManager => (IndexManager)GetService(typeof(TableIndexManager));
+		public override IndexManager IndexManager => GetService<TableIndexManager>();
 
 	    /// <summary>
 		/// Gets the max index entries.

@@ -284,7 +284,7 @@
 			// Initialise receiver arbiters
 			_taskInterleave = new ConcurrentExclusiveSchedulerPair(TaskScheduler.Default);
 			_acquireLockAction = new ActionBlock<AcquireLock>(
-				(request) =>
+				request =>
 				{
 					OnAcquireLock(request);
 				},
@@ -293,7 +293,7 @@
 					TaskScheduler = _taskInterleave.ExclusiveScheduler
 				});
 			_releaseLockAction = new ActionBlock<ReleaseLock>(
-				(request) =>
+				request =>
 				{
 					OnReleaseLock(request);
 				},
@@ -302,7 +302,7 @@
 					TaskScheduler = _taskInterleave.ExclusiveScheduler
 				});
 			_queryLockAction = new ActionBlock<QueryLock>(
-				(request) =>
+				request =>
 				{
 					OnQueryLock(request);
 				},

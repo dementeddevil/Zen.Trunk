@@ -319,7 +319,7 @@ namespace Zen.Trunk.Storage.Data
 			{
 				if (_owner == null)
 				{
-					_owner = GetService<DatabaseDevice>();
+					_owner = ResolveDeviceService<DatabaseDevice>();
 				}
 				return _owner;
 			}
@@ -468,7 +468,7 @@ namespace Zen.Trunk.Storage.Data
 			using (var rootPage = (PrimaryFileGroupRootPage)
 				await _primaryDevice.LoadOrCreateRootPage().ConfigureAwait(false))
 			{
-				var bufferDevice = GetService<IMultipleBufferDevice>();
+				var bufferDevice = ResolveDeviceService<IMultipleBufferDevice>();
 				if (IsCreate)
 				{
 					// TODO: We need to initialise the root page device list with
@@ -523,24 +523,13 @@ namespace Zen.Trunk.Storage.Data
 			}
 		}
 
-		/// <summary>
-		/// Overridden. Gets the service corresponding to the specified type.
-		/// </summary>
-		/// <param name="serviceType"></param>
-		/// <returns></returns>
-		protected override object GetService(Type serviceType)
-		{
-			// Trap requests for BufferDevice objects
-			if (serviceType == typeof(FileGroupDevice))
-			{
-				return this;
-			}
-			if (serviceType == typeof(ILogicalVirtualManager))
-			{
-				return _logicalVirtual;
-			}
-			return base.GetService(serviceType);
-		}
+	    protected override void BuildDeviceLifetimeScope(ContainerBuilder builder)
+	    {
+	        base.BuildDeviceLifetimeScope(builder);
+
+	        builder.RegisterInstance(_logicalVirtual).As<ILogicalVirtualManager>();
+	        builder.RegisterType<DatabaseTable>().AsSelf();
+	    }
 
 		/// <summary>
 		/// Releases managed resources
@@ -565,61 +554,61 @@ namespace Zen.Trunk.Storage.Data
 			// Setup ports
 			_taskInterleave = new ConcurrentExclusiveSchedulerPair();
 			_addDataDevicePort = new TransactionContextActionBlock<AddDataDeviceRequest, DeviceId>(
-				(request) => AddDataDeviceHandler(request),
+				request => AddDataDeviceHandler(request),
 				new ExecutionDataflowBlockOptions
 				{
 					TaskScheduler = _taskInterleave.ExclusiveScheduler
 				});
 			_removeDataDevicePort = new TransactionContextActionBlock<RemoveDataDeviceRequest, bool>(
-				(request) => RemoveDataDeviceHandler(request),
+				request => RemoveDataDeviceHandler(request),
 				new ExecutionDataflowBlockOptions
 				{
 					TaskScheduler = _taskInterleave.ExclusiveScheduler
 				});
 			_allocateDataPagePort = new TransactionContextActionBlock<AllocateDataPageRequest, VirtualPageId>(
-				(request) => AllocateDataPageHandler(request),
+				request => AllocateDataPageHandler(request),
 				new ExecutionDataflowBlockOptions
 				{
 					TaskScheduler = _taskInterleave.ExclusiveScheduler
 				});
 			_createDistributionPagesPort = new TransactionContextActionBlock<CreateDistributionPagesRequest, bool>(
-				(request) => CreateDistributionPagesHandler(request),
+				request => CreateDistributionPagesHandler(request),
 				new ExecutionDataflowBlockOptions
 				{
 					TaskScheduler = _taskInterleave.ExclusiveScheduler
 				});
 			_expandDataDevicePort = new TransactionContextActionBlock<ExpandDataDeviceRequest, bool>(
-				(request) => ExpandDataDeviceHandler(request),
+				request => ExpandDataDeviceHandler(request),
 				new ExecutionDataflowBlockOptions
 				{
 					TaskScheduler = _taskInterleave.ExclusiveScheduler
 				});
 			_initDataPagePort = new TransactionContextActionBlock<InitDataPageRequest, bool>(
-				(request) => InitDataPageHandler(request),
+				request => InitDataPageHandler(request),
 				new ExecutionDataflowBlockOptions
 				{
 					TaskScheduler = _taskInterleave.ConcurrentScheduler
 				});
 			_loadDataPagePort = new TransactionContextActionBlock<LoadDataPageRequest, bool>(
-				(request) => LoadDataPageHandler(request),
+				request => LoadDataPageHandler(request),
 				new ExecutionDataflowBlockOptions
 				{
 					TaskScheduler = _taskInterleave.ConcurrentScheduler
 				});
 			_importDistributionPagePort = new TransactionContextActionBlock<ImportDistributionPageRequest, bool>(
-				(request) => ImportDistributionPageHandler(request),
+				request => ImportDistributionPageHandler(request),
 				new ExecutionDataflowBlockOptions
 				{
 					TaskScheduler = _taskInterleave.ConcurrentScheduler
 				});
 			_addTablePort = new TransactionContextActionBlock<AddTableRequest, ObjectId>(
-				(request) => AddTableHandler(request),
+				request => AddTableHandler(request),
 				new ExecutionDataflowBlockOptions
 				{
 					TaskScheduler = _taskInterleave.ExclusiveScheduler
 				});
 			_addTableIndexPort = new TransactionContextActionBlock<AddTableIndexRequest, ObjectId>(
-				(request) => AddTableIndexHandler(request),
+				request => AddTableIndexHandler(request),
 				new ExecutionDataflowBlockOptions
 				{
 					TaskScheduler = _taskInterleave.ExclusiveScheduler
@@ -694,7 +683,7 @@ namespace Zen.Trunk.Storage.Data
 				allocationPages = Math.Max(request.Message.CreatePageCount, 128);
 			}
 
-			var pageBufferDevice = GetService<CachingPageBufferDevice>();
+			var pageBufferDevice = ResolveDeviceService<CachingPageBufferDevice>();
 
 			// Add buffer device
 			DeviceId deviceId;
@@ -751,7 +740,7 @@ namespace Zen.Trunk.Storage.Data
 
 		private async Task<bool> InitDataPageHandler(InitDataPageRequest request)
 		{
-			if (!typeof(DataPage).IsAssignableFrom(request.Message.Page.GetType()))
+			if (!typeof(DataPage).IsInstanceOfType(request.Message.Page))
 			{
 				throw new Exception("Page object must be derived from DataPage.");
 			}
@@ -805,7 +794,7 @@ namespace Zen.Trunk.Storage.Data
 
 			// Stage #3: Initialise page object passed in request
 			var pageBufferDevice =
-				GetService<CachingPageBufferDevice>();
+                ResolveDeviceService<CachingPageBufferDevice>();
 			request.Message.Page.PreInitInternal();
 			using (var scope =
 				new StatefulBufferScope<PageBuffer>(
@@ -856,7 +845,7 @@ namespace Zen.Trunk.Storage.Data
 
 			// Stage #2: Load the buffer from the underlying cache
 			var pageBufferDevice =
-				GetService<CachingPageBufferDevice>();
+                ResolveDeviceService<CachingPageBufferDevice>();
 			request.Message.Page.PreLoadInternal();
 			using (var scope =
 				new StatefulBufferScope<PageBuffer>(
@@ -985,7 +974,7 @@ namespace Zen.Trunk.Storage.Data
 				rootPage.RootLock = RootLockType.Exclusive;
 
 				// Delegate the request to the underlying device
-				var bufferDevice = GetService<IMultipleBufferDevice>();
+				var bufferDevice = ResolveDeviceService<IMultipleBufferDevice>();
 				oldPageCount = bufferDevice.GetDeviceInfo(deviceId).PageCount;
 				newPageCount = bufferDevice.ExpandDevice(deviceId, (int)growthPages);
 			}
@@ -1055,7 +1044,7 @@ namespace Zen.Trunk.Storage.Data
 				var hasExpanded = false;
 				var failedDueToLock = false;
 				var failedDueToFull = false;
-				foreach (var pair in rootPages.OrderBy((item) => item.Value.AllocatedPages))
+				foreach (var pair in rootPages.OrderBy(item => item.Value.AllocatedPages))
 				{
 					// Hook root page
 					try
@@ -1156,12 +1145,10 @@ namespace Zen.Trunk.Storage.Data
 				rootPage.AddObjectInfo(objectRef);
 
 				// Create database table helper and setup object
-			    var table = new DatabaseTable(this)
-			    {
-			        FileGroupId = FileGroupId,
-			        ObjectId = objectRef.ObjectId,
-			        IsNewTable = true
-			    };
+			    var table = ResolveDeviceService<DatabaseTable>();
+			    table.FileGroupId = FileGroupId;
+			    table.ObjectId = objectRef.ObjectId;
+                table.IsNewTable = true;
 
 			    // Create columns
 				table.BeginColumnUpdate();
@@ -1189,12 +1176,10 @@ namespace Zen.Trunk.Storage.Data
 		{
 			var objectId = ObjectId.Zero;
 
-		    var table = new DatabaseTable(this)
-		    {
-		        FileGroupId = FileGroupId,
-		        ObjectId = request.Message.OwnerObjectId,
-		        IsNewTable = false
-		    };
+		    var table = ResolveDeviceService<DatabaseTable>();
+		    table.FileGroupId = FileGroupId;
+		    table.ObjectId = request.Message.OwnerObjectId;
+		    table.IsNewTable = false;
 		    //table.AddIndex
 
 			return Task.FromResult(objectId);

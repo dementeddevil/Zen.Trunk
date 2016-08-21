@@ -340,7 +340,7 @@ namespace Zen.Trunk.Storage.Data
 		{
 			System.Diagnostics.Debug.WriteLine(
 			    $"Allocate page via DistributionPage {VirtualId}");
-			var lm = (IDatabaseLockManager)GetService(typeof(IDatabaseLockManager));
+			var lm = GetService<IDatabaseLockManager>();
 
 			// Ensure we have some kind of lock on the page...
 			if (DistributionLock == ObjectLockType.None)
@@ -561,7 +561,7 @@ namespace Zen.Trunk.Storage.Data
 
 				// Update extent information
 				_extents[extent].IsFull = false;
-				if (!_extents[extent].Pages.Any((pi) => pi.AllocationStatus))
+				if (!_extents[extent].Pages.Any(pi => pi.AllocationStatus))
 				{
 					_extents[extent].IsMixedExtent = false;
 					_extents[extent].ObjectId = ObjectId.Zero;
@@ -670,9 +670,9 @@ namespace Zen.Trunk.Storage.Data
 		#region Protected Methods
 		protected override void PreUpdateTimestamp()
 		{
-			// Acquire distribution page spin lock
-			var lm = (IDatabaseLockManager)GetService(typeof(IDatabaseLockManager));
-			if (lm != null)
+            // Acquire distribution page spin lock
+            var lm = GetService<IDatabaseLockManager>();
+            if (lm != null)
 			{
 				lm.LockDistributionHeader(
 					DataBuffer.PageId,
@@ -691,8 +691,8 @@ namespace Zen.Trunk.Storage.Data
 
 		protected override void PostUpdateTimestamp()
 		{
-			var lm = (IDatabaseLockManager)GetService(typeof(IDatabaseLockManager));
-			if (lm != null)
+            var lm = GetService<IDatabaseLockManager>();
+            if (lm != null)
 			{
 				// Force write of header information to DataBuffer
 				WriteHeader();

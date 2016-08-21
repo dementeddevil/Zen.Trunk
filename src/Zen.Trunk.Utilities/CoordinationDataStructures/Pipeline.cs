@@ -84,7 +84,7 @@ namespace System.Threading
 				Parallel.ForEach(
 					_beginningPipeline.Process(source, cancellationToken),
 					options,
-					(item) => output.Add(_lastStageFunc(item)));
+					item => output.Add(_lastStageFunc(item)));
 			}
 		}
 		#endregion
@@ -166,7 +166,7 @@ namespace System.Threading
 					TaskScheduler = Pipeline.Scheduler
 				};
 
-			Parallel.ForEach(source, options, (item) => output.Add(_stageFunc(item)));
+			Parallel.ForEach(source, options, item => output.Add(_stageFunc(item)));
 		}
 
 		/// <summary>Runs the pipeline and returns an enumerable over the results.</summary>

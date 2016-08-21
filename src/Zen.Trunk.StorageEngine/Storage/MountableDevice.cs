@@ -110,6 +110,12 @@ namespace Zen.Trunk.Storage
 		#endregion
 
 		#region Protected Methods
+
+	    protected void HookupPageSite(Page page)
+	    {
+	        page.SetLifetimeScope(LifetimeScope);
+	    }
+
 		/// <summary>
 		/// Releases managed resources
 		/// </summary>

@@ -20,7 +20,7 @@ namespace Zen.Trunk.Storage.Data
 		#region Internal Objects
 		internal class DatabaseRefInfo : BufferFieldWrapper
 		{
-			private readonly BufferFieldByte _databaseId;
+			private readonly BufferFieldUInt16 _databaseId;
 			private readonly BufferFieldStringFixed _name;
 			private readonly BufferFieldStringFixed _primaryName;
 			private readonly BufferFieldStringFixed _primaryFilePathName;
@@ -28,7 +28,7 @@ namespace Zen.Trunk.Storage.Data
 
 			public DatabaseRefInfo()
 			{
-				_databaseId = new BufferFieldByte();
+				_databaseId = new BufferFieldUInt16();
 				_name = new BufferFieldStringFixed(_databaseId, 32);
 				_primaryName = new BufferFieldStringFixed(_name, 32);
 				_primaryFilePathName = new BufferFieldStringFixed(_primaryName, 128);
@@ -39,15 +39,15 @@ namespace Zen.Trunk.Storage.Data
 
 		    protected override BufferField LastField => _flags;
 
-		    public byte DatabaseId
+		    public DatabaseId DatabaseId
 			{
 				get
 				{
-					return _databaseId.Value;
+					return new DatabaseId(_databaseId.Value);
 				}
 				set
 				{
-					_databaseId.Value = value;
+					_databaseId.Value = value.Value;
 				}
 			}
 
@@ -102,11 +102,12 @@ namespace Zen.Trunk.Storage.Data
 		#endregion
 
 		#region Private Fields
-		internal const ulong DBMasterSignature = 0x2948f3d3a123e502;
-		internal const uint DBMasterSchemaVersion = 0x01000001;
+		internal const ulong DbMasterSignature = 0x2948f3d3a123e502;
+		internal const uint DbMasterSchemaVersion = 0x01000001;
 		private readonly BufferFieldInt32 _databaseCount;
 
-		private readonly Dictionary<byte, DatabaseRefInfo> _databases = new Dictionary<byte, DatabaseRefInfo>();
+		private readonly Dictionary<DatabaseId, DatabaseRefInfo> _databases =
+            new Dictionary<DatabaseId, DatabaseRefInfo>();
 		#endregion
 
 		#region Public Constructors
@@ -122,9 +123,9 @@ namespace Zen.Trunk.Storage.Data
 	    #endregion
 
 		#region Protected Properties
-		protected override ulong RootPageSignature => DBMasterSignature;
+		protected override ulong RootPageSignature => DbMasterSignature;
 
-	    protected override uint RootPageSchemaVersion => DBMasterSchemaVersion;
+	    protected override uint RootPageSchemaVersion => DbMasterSchemaVersion;
 
 	    /// <summary>
 		/// Overridden. Gets the last header field.
@@ -143,39 +144,42 @@ namespace Zen.Trunk.Storage.Data
 			return _databases.Values;
 		}
 
-		internal byte AddDatabase(string databaseName, string primaryName, string primaryFilename)
+		internal DatabaseId AddDatabase(string databaseName, string primaryName, string primaryFilename)
 		{
-			for (byte deviceId = 1; ; ++deviceId)
-			{
-				if (!_databases.ContainsKey(deviceId))
-				{
-					_databases.Add(
-						deviceId,
-						new DatabaseRefInfo
-						{
-							DatabaseId = deviceId,
-							Name = databaseName,
-							PrimaryName = primaryName,
-							PrimaryFilePathName = primaryFilename,
-							IsOnline = true
-						});
-					SetDirty();
-					return deviceId;
-				}
-
-				if (deviceId == 255)
-				{
-					throw new ArgumentException("Maximum number of databases reached.");
-				}
-			}
+		    try
+		    {
+			    for (var deviceId = new DatabaseId(1); ; deviceId = deviceId.Next)
+			    {
+				    if (!_databases.ContainsKey(deviceId))
+				    {
+					    _databases.Add(
+						    deviceId,
+						    new DatabaseRefInfo
+						    {
+							    DatabaseId = deviceId,
+							    Name = databaseName,
+							    PrimaryName = primaryName,
+							    PrimaryFilePathName = primaryFilename,
+							    IsOnline = true
+						    });
+					    SetDirty();
+					    return deviceId;
+				    }
+			    }
+		    }
+		    catch (ArgumentException)
+		    {
+		        throw new InvalidOperationException("Maximum number of databases has been reached.");
+		    }
 		}
 
-		internal void RemoveDatabase(byte databaseId)
+		internal void RemoveDatabase(DatabaseId databaseId)
 		{
-			if (databaseId == 0)
+			if (databaseId == DatabaseId.Zero)
 			{
 				throw new ArgumentException("Cannot remove master database");
 			}
+
 			if (_databases.ContainsKey(databaseId))
 			{
 				_databases.Remove(databaseId);
@@ -188,12 +192,13 @@ namespace Zen.Trunk.Storage.Data
 		/// </summary>
 		/// <param name="databaseId">The database id.</param>
 		/// <param name="isOnline">if set to <c>true</c> [is online].</param>
-		internal void SetDatabaseOnline(byte databaseId, bool isOnline)
+		internal void SetDatabaseOnline(DatabaseId databaseId, bool isOnline)
 		{
-			if (databaseId == 0)
+			if (databaseId == DatabaseId.Zero)
 			{
 				throw new ArgumentException("Cannot change online state of master database.");
 			}
+
 			if (_databases.ContainsKey(databaseId) &&
 				_databases[databaseId].IsOnline != isOnline)
 			{
@@ -240,11 +245,6 @@ namespace Zen.Trunk.Storage.Data
 			{
 				info.Write(streamManager);
 			}
-		}
-
-		protected override void OnInit(EventArgs e)
-		{
-			base.OnInit(e);
 		}
 		#endregion
 	}

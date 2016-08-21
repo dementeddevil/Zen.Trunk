@@ -422,7 +422,7 @@ namespace Zen.Trunk.Storage.Data
 			if (IsLockingEnabled)
 			{
 				// Get instance of lock manager
-				var lm = (IDatabaseLockManager)GetService(typeof(IDatabaseLockManager));
+				var lm = GetService<IDatabaseLockManager>();
 				if (lm != null)
 				{
 					OnLockPage(lm);
@@ -454,9 +454,9 @@ namespace Zen.Trunk.Storage.Data
 		{
 			if (IsLockingEnabled && !HoldLock)
 			{
-				// Get instance of lock manager
-				var lm = (IDatabaseLockManager)GetService(typeof(IDatabaseLockManager));
-				if (lm != null)
+                // Get instance of lock manager
+                var lm = GetService<IDatabaseLockManager>();
+                if (lm != null)
 				{
 					OnUnlockPage(lm);
 				}

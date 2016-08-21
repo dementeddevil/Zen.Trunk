@@ -215,7 +215,7 @@
 				{
 					MaxDegreeOfParallelism = 2
 				},
-				(device) =>
+				device =>
 				{
 					device.OpenAsync();
 				});
@@ -254,7 +254,7 @@
 				{
 					MaxDegreeOfParallelism = 2
 				},
-				(device) =>
+				device =>
 				{
 					device.CloseAsync();
 				});

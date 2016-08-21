@@ -82,7 +82,7 @@
 #endif
 			// Prepare buffer array
 			var buffers = _callbackInfo
-				.Select((item) => item.Buffer)
+				.Select(item => item.Buffer)
 				.ToArray();
 			var bufferSize = buffers[0].BufferSize;
 
@@ -125,7 +125,7 @@
 #endif
 			// Prepare buffer array
 			var buffers = _callbackInfo
-				.Select((item) => item.Buffer)
+				.Select(item => item.Buffer)
 				.ToArray();
 			var bufferSize = buffers[0].BufferSize;
 

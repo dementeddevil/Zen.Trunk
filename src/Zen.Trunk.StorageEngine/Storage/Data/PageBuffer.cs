@@ -454,7 +454,7 @@
 		    public bool CompleteTrigger(PageBufferStateType state)
 			{
 				var result = false;
-				if (_triggers.Any((item) => item == state))
+				if (_triggers.Any(item => item == state))
 				{
 					_task.TrySetResult(null);
 					result = true;
@@ -747,7 +747,7 @@
 
 		private Task WaitForAnyState(params PageBufferStateType[] states)
 		{
-			if (states.Any((item) => item == CurrentStateType))
+			if (states.Any(item => item == CurrentStateType))
 			{
 				return CompletedTask.Default;
 			}

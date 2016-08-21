@@ -4,16 +4,20 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Collections.Specialized;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using Zen.Trunk.Storage.IO;
+using Zen.Trunk.Storage.Locking;
+using Zen.Trunk.Storage.Log;
+using Autofac;
+
 namespace Zen.Trunk.Storage.Data
 {
-	using System;
-	using System.Collections.Generic;
-	using System.Linq;
-	using System.Threading;
-	using System.Threading.Tasks;
-	using Zen.Trunk.Storage.IO;
-	using Zen.Trunk.Storage.Locking;
-	using Zen.Trunk.Storage.Log;
 
 	public class MasterDatabaseDevice : DatabaseDevice
 	{
@@ -23,29 +27,23 @@ namespace Zen.Trunk.Storage.Data
 		#endregion
 
 		#region Private Fields
-		private GlobalLockManager _globalLockManager;
-		private int _nextDatabaseId = 0;
 		private readonly Dictionary<string, DatabaseDevice> _userDatabases =
-			new Dictionary<string, DatabaseDevice>();
+			new Dictionary<string, DatabaseDevice>(StringComparer.OrdinalIgnoreCase);
+		private DatabaseId _nextDatabaseId;
 		private bool _hasAttachedMaster;
-		private IVirtualBufferFactory _bufferFactory;
 		#endregion
 
 		#region Public Constructors
 		/// <summary>
 		/// Initializes a new instance of the <see cref="MasterDatabaseDevice"/> class.
 		/// </summary>
-		public MasterDatabaseDevice()
-			: base(DatabaseId.Zero)
-		{
-		}
-
-		/// <summary>
-		/// Initializes a new instance of the <see cref="MasterDatabaseDevice"/> class.
-		/// </summary>
-		/// <param name="parentServiceProvider">The parent service provider.</param>
-		public MasterDatabaseDevice(IServiceProvider parentServiceProvider)
-			: base(DatabaseId.Zero, parentServiceProvider)
+		/// <param name="parentLifetimeScope">The parent lifetime scope.</param>
+		/// <remarks>
+		/// The parent lifetime scope must be able to resolve the following interfaces;
+		/// 1. IVirtualBufferFactory
+		/// </remarks>
+		public MasterDatabaseDevice(ILifetimeScope parentLifetimeScope)
+			: base(parentLifetimeScope, DatabaseId.Zero)
 		{
 		}
 		#endregion
@@ -86,9 +84,9 @@ namespace Zen.Trunk.Storage.Data
 				}
 
 				// Create new database device
-				// NOTE: This object is the parent service provider
-				var dbId = (ushort)Interlocked.Increment(ref _nextDatabaseId);
-				device = new DatabaseDevice(new DatabaseId(dbId), this);
+				var dbId = _nextDatabaseId = _nextDatabaseId.Next;
+				device = ResolveDeviceService<DatabaseDevice>(
+                    new NamedParameter("dbId", dbId));
 			}
 
 			// Create transaction context for the new database device
@@ -116,62 +114,13 @@ namespace Zen.Trunk.Storage.Data
 			foreach (var fileGroup in request.FileGroups)
 			{
 				DeviceId deviceId = DeviceId.Primary;
-				foreach (var file in fileGroup.Item2)
+			    var primary = fileGroup.Value.FirstOrDefault(f => f.Name == "PRIMARY");
+
+				foreach (var file in fileGroup.Value.Where(f=>f.Name != "PRIMARY"))
 				{
-					// Determine number of pages to use if we are creating devices
-					uint createPageCount = 0;
-					if (request.IsCreate)
-					{
-						createPageCount = (uint)(file.Size / pageSize);
-					}
+					await AttachDatabaseFileGroupDeviceAsync(request, file, pageSize, mountingPrimary, needToCreateMasterFilegroup, device, fileGroup, deviceId);
 
-					if (mountingPrimary)
-					{
-						if (needToCreateMasterFilegroup)
-						{
-							await device
-                                .AddFileGroupDevice(
-                                    new AddFileGroupDeviceParameters(
-								        FileGroupId.Master,
-                                        fileGroup.Item1,
-                                        file.Name,
-                                        file.FileName,
-                                        deviceId,
-                                        createPageCount))
-                                .ConfigureAwait(false);
-						}
-						else
-						{
-							await device
-                                .AddFileGroupDevice(
-                                    new AddFileGroupDeviceParameters(
-								        FileGroupId.Primary,
-                                        fileGroup.Item1,
-                                        file.Name,
-                                        file.FileName,
-                                        deviceId,
-                                        createPageCount))
-                                .ConfigureAwait(false);
-						}
-
-						primaryName = file.Name;
-						primaryFileName = file.FileName;
-					}
-					else
-					{
-						await device
-                            .AddFileGroupDevice(
-                                new AddFileGroupDeviceParameters(
-							        FileGroupId.Invalid,
-                                    fileGroup.Item1,
-                                    file.Name,
-                                    file.FileName,
-                                    deviceId,
-                                    createPageCount))
-                            .ConfigureAwait(false);
-					}
-
-                    // Advance to next device
+				    // Advance to next device
 					deviceId = deviceId.Next;
 					mountingPrimary = needToCreateMasterFilegroup = false;
 				}
@@ -227,7 +176,73 @@ namespace Zen.Trunk.Storage.Data
 			}
 		}
 
-		public Task DetachDatabase(string name)
+	    private static async Task AttachDatabaseFileGroupDeviceAsync(
+            AttachDatabaseParameters request,
+            FileSpec file,
+            uint pageSize,
+	        bool mountingPrimary,
+            bool needToCreateMasterFilegroup,
+            DatabaseDevice device,
+            KeyValuePair<string, IList<FileSpec>> fileGroup,
+	        DeviceId deviceId)
+	    {
+	        string primaryName;
+	        string primaryFileName;
+// Determine number of pages to use if we are creating devices
+	        uint createPageCount = 0;
+	        if (request.IsCreate)
+	        {
+	            createPageCount = (uint) (file.Size/pageSize);
+	        }
+
+	        if (mountingPrimary)
+	        {
+	            if (needToCreateMasterFilegroup)
+	            {
+	                await device
+	                    .AddFileGroupDevice(
+	                        new AddFileGroupDeviceParameters(
+	                            FileGroupId.Master,
+	                            fileGroup.Key,
+	                            file.Name,
+	                            file.FileName,
+	                            deviceId,
+	                            createPageCount))
+	                    .ConfigureAwait(false);
+	            }
+	            else
+	            {
+	                await device
+	                    .AddFileGroupDevice(
+	                        new AddFileGroupDeviceParameters(
+	                            FileGroupId.Primary,
+	                            fileGroup.Key,
+	                            file.Name,
+	                            file.FileName,
+	                            deviceId,
+	                            createPageCount))
+	                    .ConfigureAwait(false);
+	            }
+
+	            primaryName = file.Name;
+	            primaryFileName = file.FileName;
+	        }
+	        else
+	        {
+	            await device
+	                .AddFileGroupDevice(
+	                    new AddFileGroupDeviceParameters(
+	                        FileGroupId.Invalid,
+	                        fileGroup.Key,
+	                        file.Name,
+	                        file.FileName,
+	                        deviceId,
+	                        createPageCount))
+	                .ConfigureAwait(false);
+	        }
+	    }
+
+	    public Task DetachDatabase(string name)
 		{
 			// Check for reserved database names
 			foreach (var reserved in ReservedDatabaseNames)
@@ -293,39 +308,14 @@ namespace Zen.Trunk.Storage.Data
 		#endregion
 
 		#region Protected Methods
-		/// <summary>
-		/// Overridden. Gets the object corresponding to the desired service type.
-		/// </summary>
-		/// <param name="serviceType"></param>
-		/// <returns></returns>
-		/// <remarks>
-		/// Checks for <b>MasterDatabaseDevice</b> service type and delegates
-		/// everything else through the base class.
-		/// </remarks>
-		protected override object GetService(Type serviceType)
-		{
-			if (serviceType == typeof(GlobalLockManager))
-			{
-				if (_globalLockManager == null)
-				{
-					_globalLockManager = new GlobalLockManager();
-				}
-				return _globalLockManager;
-			}
-			if (serviceType == typeof(MasterDatabaseDevice))
-			{
-				return this;
-			}
-			if (serviceType == typeof(IVirtualBufferFactory))
-			{
-				if (_bufferFactory == null)
-				{
-					_bufferFactory = new VirtualBufferFactory(32, 8192);
-				}
-				return _bufferFactory;
-			}
-			return base.GetService(serviceType);
-		}
+
+	    protected override void BuildDeviceLifetimeScope(ContainerBuilder builder)
+	    {
+	        base.BuildDeviceLifetimeScope(builder);
+
+	        builder.RegisterType<GlobalLockManager>().As<IGlobalLockManager>().SingleInstance();
+	        builder.RegisterType<DatabaseDevice>().AsSelf();
+	    }
 
 		/// <summary>
 		/// Performs a device-specific mount operation.
@@ -341,11 +331,13 @@ namespace Zen.Trunk.Storage.Data
 			if (!IsCreate)
 			{
 				// Load the master database primary file-group root page
-				var masterRootPage =
-					new MasterDatabasePrimaryFileGroupRootPage();
-				masterRootPage.RootLock = Locking.RootLockType.Shared;
+			    var masterRootPage =
+			        new MasterDatabasePrimaryFileGroupRootPage
+			        {
+			            RootLock = RootLockType.Shared
+			        };
 
-				// Load page from root device
+			    // Load page from root device
 				await LoadFileGroupPage(
 					new LoadFileGroupPageParameters(null, masterRootPage, true)).ConfigureAwait(false);
 
@@ -353,7 +345,7 @@ namespace Zen.Trunk.Storage.Data
 				// NOTE: We exclude offline devices
 				foreach (var deviceInfo in masterRootPage
 					.GetDatabaseEnumerator()
-					.Where((item) => item.IsOnline))
+					.Where(item => item.IsOnline))
 				{
 					// Create attach request and post - no need to wait...
 					var attach =
@@ -369,7 +361,7 @@ namespace Zen.Trunk.Storage.Data
 							Name = deviceInfo.PrimaryName,
 							FileName = deviceInfo.PrimaryFilePathName
 						});
-					await AttachDatabase(attach);
+					await AttachDatabase(attach).ConfigureAwait(false);
 				}
 			}
 		}
@@ -381,96 +373,74 @@ namespace Zen.Trunk.Storage.Data
 		protected override async Task OnClose()
 		{
 			// TODO: Make sure we close TEMPDB last
+
 			// Close user databases first
-			var subTasks = new List<Task>();
-			foreach (var device in _userDatabases.Values)
-			{
-				subTasks.Add(device.CloseAsync());
-			}
 			await TaskExtra
-				.WhenAllOrEmpty(subTasks.ToArray())
+				.WhenAllOrEmpty(_userDatabases.Values
+                    .Select(device => device.CloseAsync())
+                    .ToArray())
 				.ConfigureAwait(false);
 
 			// Finally close the master device
 			await base.OnClose().ConfigureAwait(false);
-		}
-
-		/// <summary>
-		/// Releases managed resources
-		/// </summary>
-		protected override void DisposeManagedObjects()
-		{
-			// TODO: 
-			// Do base class dispose actions
-			base.DisposeManagedObjects();
-
-			// Finally dispose of the buffer factory
-			if (_bufferFactory != null)
-			{
-				_bufferFactory.Dispose();
-				_bufferFactory = null;
-			}
 		}
 		#endregion
 	}
 
 	public class AttachDatabaseParameters
 	{
-		private readonly IList<Tuple<string, IList<FileSpec>>> _fileGroups =
-			new List<Tuple<string, IList<FileSpec>>>();
-		private readonly IList<FileSpec> _logFiles =
-			new List<FileSpec>();
+		private readonly IDictionary<string, IList<FileSpec>> _fileGroups =
+			new Dictionary<string, IList<FileSpec>>(StringComparer.OrdinalIgnoreCase);
+		private readonly List<FileSpec> _logFiles = new List<FileSpec>();
 
-		public string Name
-		{
-			get;
-			set;
-		}
+		public string Name { get; set; }
 
-		public bool IsCreate
-		{
-			get;
-			set;
-		}
+		public bool IsCreate { get; set; }
 
-		public bool HasPrimaryFileGroup
-		{
-			get
-			{
-				return _fileGroups.Any((item) =>
-					item.Item1.Equals("PRIMARY", StringComparison.OrdinalIgnoreCase));
-			}
-		}
+        public bool HasPrimaryFileGroup => _fileGroups.ContainsKey("PRIMARY");
 
-		public IEnumerable<Tuple<string, IList<FileSpec>>> FileGroups => _fileGroups;
+	    public IDictionary<string, IList<FileSpec>> FileGroups => new ReadOnlyDictionary<string, IList<FileSpec>>(_fileGroups);
 
-	    public IEnumerable<FileSpec> LogFiles => _logFiles;
+	    public ICollection<FileSpec> LogFiles => _logFiles.AsReadOnly();
 
 	    public void AddDataFile(string fileGroup, FileSpec file)
-		{
-			var files = _fileGroups
-				.Where((item) => item.Item1.Equals(fileGroup, StringComparison.OrdinalIgnoreCase))
-				.Select((item) => item.Item2)
-				.FirstOrDefault();
-			if (files == null)
+	    {
+            // Find or create filegroup entry
+	        IList<FileSpec> files;
+	        if (!_fileGroups.TryGetValue(fileGroup, out files))
+	        {
+                files = new List<FileSpec>();
+	            _fileGroups.Add(fileGroup, files);
+	        }
+
+            // Validate files have unique filename
+			if (files.Any(item => string.Equals(item.FileName, file.FileName, StringComparison.OrdinalIgnoreCase)))
 			{
-				files = new List<FileSpec>();
-				_fileGroups.Add(new Tuple<string, IList<FileSpec>>(fileGroup, files));
+				throw new ArgumentException("Data file must have unique filename.");
 			}
 
-			if (files.Any((item) => item.Name == file.Name))
-			{
-				throw new ArgumentException("Data file must have unique logical name.");
-			}
-			files.Add(file);
+            // Validate files have unique name
+            if (files.Any(item => string.Equals(item.Name, file.Name, StringComparison.OrdinalIgnoreCase)))
+            {
+                throw new ArgumentException("Data file must have unique logical name.");
+            }
+
+            files.Add(file);
 		}
 
 		public void AddLogFile(FileSpec file)
 		{
-			if (_logFiles.Any((item) => item.Name == file.Name))
-			{
-				throw new ArgumentException("Log file must have unique logical name.");
-			}
+            // Validate files have unique filename
+            if (_logFiles.Any(item => string.Equals(item.FileName, file.FileName, StringComparison.OrdinalIgnoreCase)))
+            {
+                throw new ArgumentException("Log file must have unique filename.");
+            }
+
+            // Validate files have unique name
+            if (_logFiles.Any(item => string.Equals(item.Name, file.Name, StringComparison.OrdinalIgnoreCase)))
+            {
+                throw new ArgumentException("Log file must have unique logical name.");
+            }
 
 			_logFiles.Add(file);
 		}
@@ -484,15 +454,9 @@ namespace Zen.Trunk.Storage.Data
 			IsOnline = isOnline;
 		}
 
-		public string Name
-		{
-			get; }
+		public string Name { get; }
 
-		public bool IsOnline
-		{
-			get;
-			private set;
-		}
+		public bool IsOnline { get; }
 	}
 
 	public class FileSpec
