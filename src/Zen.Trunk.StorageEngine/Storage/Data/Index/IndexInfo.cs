@@ -63,7 +63,18 @@
 		#endregion
 
 		#region Public Methods
-		/// <summary>
+
+	    public override string ToString()
+	    {
+	        return base.ToString();
+	    }
+
+	    public override int GetHashCode()
+	    {
+	        return base.GetHashCode();
+	    }
+
+	    /// <summary>
 		/// Determines whether the specified <see cref="System.Object"/> is equal to this instance.
 		/// </summary>
 		/// <param name="obj">The <see cref="System.Object"/> to compare with this instance.</param>

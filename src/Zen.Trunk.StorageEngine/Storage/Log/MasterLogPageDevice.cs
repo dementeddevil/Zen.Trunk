@@ -4,6 +4,8 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+using Autofac;
+
 namespace Zen.Trunk.Storage.Log
 {
 	using System;
@@ -71,22 +73,13 @@ namespace Zen.Trunk.Storage.Log
 		#endregion
 
 		#region Public Constructors
-		/// <summary>
-		/// Initializes a new instance of the <see cref="LogPageDevice"/> class.
-		/// </summary>
-		public MasterLogPageDevice(string pathName)
-			: base(DeviceId.Zero, pathName)
-		{
-			Initialise();
-		}
-
 	    /// <summary>
 	    /// Initializes a new instance of the <see cref="LogPageDevice"/> class.
 	    /// </summary>
+	    /// <param name="parentLifetimeScope">The parent service provider.</param>
 	    /// <param name="pathName">Pathname to log file</param>
-	    /// <param name="parentServiceProvider">The parent service provider.</param>
-	    public MasterLogPageDevice(string pathName, IServiceProvider parentServiceProvider)
-			: base(DeviceId.Zero, pathName, parentServiceProvider)
+	    public MasterLogPageDevice(ILifetimeScope parentLifetimeScope, string pathName)
+			: base(parentLifetimeScope, DeviceId.Zero, pathName)
 		{
 			Initialise();
 		}
@@ -380,8 +373,9 @@ namespace Zen.Trunk.Storage.Log
 				{
 					var info = rootPage.GetDeviceByIndex(index);
 
-					var secondaryDevice = new LogPageDevice(
-						info.Id, info.PathName, this);
+					var secondaryDevice = ResolveDeviceService<LogPageDevice>(
+                        new NamedParameter("deviceId", info.Id),
+                        new NamedParameter("pathName", info.PathName));
 					_secondaryDevices.Add(info.Id, secondaryDevice);
 
 					secondaryTasks.Add(secondaryDevice.OpenAsync(false));
@@ -486,8 +480,9 @@ namespace Zen.Trunk.Storage.Log
 			LogPageDevice device;
 			if (!primaryLog)
 			{
-				var secondaryDevice = new LogPageDevice(
-					proposedDeviceId, fullPathName, this);
+                var secondaryDevice = ResolveDeviceService<LogPageDevice>(
+                    new NamedParameter("deviceId", proposedDeviceId),
+                    new NamedParameter("pathName", fullPathName));
 				_secondaryDevices.Add(proposedDeviceId, secondaryDevice);
 
 				masterRootPage.AddDevice(
@@ -841,7 +836,7 @@ namespace Zen.Trunk.Storage.Log
 		/// out of a total of up to three check-point entries.
 		/// </remarks>
 		/// <returns>
-		/// <see cref="Zen.AudioDB.Paging.CheckPointInfo"/> object which
+		/// <see cref="CheckPointInfo"/> object which
 		/// is guarenteed to be valid or null if no valid check-point
 		/// records exist.
 		/// </returns>

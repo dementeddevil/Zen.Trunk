@@ -1,3 +1,5 @@
+using Autofac;
+
 namespace Zen.Trunk.Storage
 {
 	using System;
@@ -61,6 +63,7 @@ namespace Zen.Trunk.Storage
 		private static readonly object DisposedEvent = new object();
 		private EventHandlerList _events;
 
+	    private ILifetimeScope _lifetimeScope;
 		private ISite _site;
 
 		private VirtualPageId _virtualId;
@@ -169,6 +172,17 @@ namespace Zen.Trunk.Storage
 		#endregion
 
 		#region Public Properties
+
+	    public void SetLifetimeScope(ILifetimeScope scope)
+	    {
+	        _lifetimeScope = scope.BeginLifetimeScope(
+	            (builder) =>
+	            {
+	                builder.RegisterInstance(this)
+	                    .As<Page>();
+	            });
+	    }
+
 		/// <summary>
 		/// Gets or sets the <see cref="T:System.ComponentModel.ISite"/> 
 		/// associated with the <see cref="T:Page"/>.

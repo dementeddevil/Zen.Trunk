@@ -1,4 +1,6 @@
-﻿namespace Zen.Trunk.Storage.Data
+﻿using Autofac;
+
+namespace Zen.Trunk.Storage.Data
 {
 	using System;
 	using System.Collections.Generic;
@@ -17,12 +19,12 @@
 		/// <summary>
 		/// Initializes a new instance of the <see cref="DistributionPageDevice"/> class.
 		/// </summary>
-		/// <param name="fileGroupDevice">The file group device.</param>
+		/// <param name="lifetimeScope">The file group device.</param>
 		/// <param name="deviceId">The device id.</param>
-		protected DistributionPageDevice(FileGroupDevice fileGroupDevice, DeviceId deviceId)
-			: base(fileGroupDevice)
+		protected DistributionPageDevice(ILifetimeScope lifetimeScope, DeviceId deviceId)
+			: base(lifetimeScope)
 		{
-			_fileGroupDevice = fileGroupDevice;
+			_fileGroupDevice = lifetimeScope.Resolve<FileGroupDevice>();
 			_deviceId = deviceId;
 		}
 		#endregion
@@ -171,7 +173,7 @@
 				if (IsCreate)
 				{
 					// Get the device size information from the device status msg
-					var bufferDevice = GetService<IMultipleBufferDevice>();
+					var bufferDevice = ResolveDeviceService<IMultipleBufferDevice>();
 					var deviceInfo = bufferDevice.GetDeviceInfo(_deviceId);
 					rootPage.AllocatedPages = deviceInfo.PageCount;
 				}
@@ -223,26 +225,6 @@
 
 				Tracer.WriteVerboseLine("Open completed for device {0}", _deviceId);
 			}
-		}
-
-		/// <summary>
-		/// Gets the service object of the specified type.
-		/// </summary>
-		/// <param name="serviceType">
-		/// An object that specifies the type of service object to get.
-		/// </param>
-		/// <returns>
-		/// A service object of type <paramref name="serviceType"/>.
-		/// -or-
-		/// null if there is no service object of type <paramref name="serviceType"/>.
-		/// </returns>
-		protected override object GetService(Type serviceType)
-		{
-			if (serviceType == typeof(DistributionPageDevice))
-			{
-				return this;
-			}
-			return base.GetService(serviceType);
 		}
 		#endregion
 
@@ -323,7 +305,7 @@
 
 	public class PrimaryDistributionPageDevice : DistributionPageDevice
 	{
-		public PrimaryDistributionPageDevice(FileGroupDevice provider, DeviceId deviceId)
+		public PrimaryDistributionPageDevice(ILifetimeScope provider, DeviceId deviceId)
 			: base(provider, deviceId)
 		{
 		}
@@ -333,7 +315,7 @@
 
 	public class SecondaryDistributionPageDevice : DistributionPageDevice
 	{
-		public SecondaryDistributionPageDevice(FileGroupDevice provider, DeviceId deviceId)
+		public SecondaryDistributionPageDevice(ILifetimeScope provider, DeviceId deviceId)
 			: base(provider, deviceId)
 		{
 			if (deviceId == DeviceId.Zero ||

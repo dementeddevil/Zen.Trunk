@@ -1,3 +1,5 @@
+using Autofac;
+
 namespace Zen.Trunk.Storage.Data
 {
 	using System;
@@ -82,6 +84,7 @@ namespace Zen.Trunk.Storage.Data
 		#endregion
 
 		#region Private Fields
+
 		private readonly DatabaseId _dbId;
 		private ITargetBlock<AddFileGroupDeviceRequest> _addFileGroupDevicePort;
 		private ITargetBlock<RemoveFileGroupDeviceRequest> _removeFileGroupDevicePort;
@@ -115,21 +118,11 @@ namespace Zen.Trunk.Storage.Data
         /// <summary>
         /// Initializes a new instance of the <see cref="DatabaseDevice"/> class.
         /// </summary>
+        /// <param name="parentLifetimeScope">The parent service provider.</param>
         /// <param name="dbId">The database identifier.</param>
-        public DatabaseDevice(DatabaseId dbId)
-		{
-			_dbId = dbId;
-			Initialise();
-		}
-
-		/// <summary>
-		/// Initializes a new instance of the <see cref="DatabaseDevice"/> class.
-		/// </summary>
-		/// <param name="dbId">The database identifier.</param>
-		/// <param name="parentServiceProvider">The parent service provider.</param>
-		public DatabaseDevice(DatabaseId dbId, IServiceProvider parentServiceProvider)
-			: base(parentServiceProvider)
-		{
+        public DatabaseDevice(ILifetimeScope parentLifetimeScope, DatabaseId dbId)
+			: base(parentLifetimeScope)
+        {
 			_dbId = dbId;
 			Initialise();
 		}
@@ -301,48 +294,31 @@ namespace Zen.Trunk.Storage.Data
 		#endregion
 
 		#region Protected Methods
-		/// <summary>
-		/// Overridden. Gets the object corresponding to the desired service type.
-		/// </summary>
-		/// <param name="serviceType"></param>
-		/// <returns></returns>
-		/// <remarks>
-		/// Checks for <b>PageDevice</b> service type and delegates everything
-		/// else through the base class.
-		/// </remarks>
-		protected override object GetService(Type serviceType)
-		{
-			if (serviceType == typeof(DatabaseDevice))
-			{
-				return this;
-			}
-			if (serviceType == typeof(IDatabaseLockManager))
-			{
-				if (_lockManager == null)
-				{
-					_lockManager = new DatabaseLockManager(
-						GetService<GlobalLockManager>(), _dbId);
-				}
-				return _lockManager;
-			}
-			if (serviceType == typeof(LogPageDevice) ||
-				serviceType == typeof(MasterLogPageDevice))
-			{
-				return _logDevice;
-			}
-			if (serviceType == typeof(IBufferDevice) ||
-				serviceType == typeof(IMultipleBufferDevice))
-			{
-				return _bufferDevice;
-			}
-			if (serviceType == typeof(CachingPageBufferDevice))
-			{
-				return _dataBufferDevice;
-			}
 
-			// Delegate everything else
-			return base.GetService(serviceType);
-		}
+	    protected override void BuildDeviceLifetimeScope(ContainerBuilder builder)
+	    {
+	        base.BuildDeviceLifetimeScope(builder);
+
+	        builder
+	            .Register(context =>
+                    new DatabaseLockManager(context.Resolve<GlobalLockManager>(), _dbId))
+	            .As<IDatabaseLockManager>()
+	            .SingleInstance();
+
+	        builder
+	            .Register(context => _logDevice)
+	            .As<LogPageDevice>()
+	            .As<MasterLogPageDevice>();
+
+	        builder
+	            .Register(context => _bufferDevice)
+	            .As<IBufferDevice>()
+	            .As<IMultipleBufferDevice>();
+
+            builder
+                .Register(context => _dataBufferDevice)
+                .As<CachingPageBufferDevice>();
+	    }
 
 		/// <summary>
 		/// Performs a device-specific mount operation.
@@ -393,7 +369,7 @@ namespace Zen.Trunk.Storage.Data
 		/// <returns></returns>
 		protected override async Task OnClose()
 		{
-			TrunkTransactionContext.BeginTransaction(this);
+			TrunkTransactionContext.BeginTransaction(LifetimeScope);
 			var committed = false;
 			try
 			{
@@ -453,10 +429,11 @@ namespace Zen.Trunk.Storage.Data
 		private void Initialise()
 		{
 			// Initialise devices
-			var bufferFactory = GetService<IVirtualBufferFactory>();
+			var bufferFactory = ResolveDeviceService<IVirtualBufferFactory>();
 			_bufferDevice = new MultipleBufferDevice(bufferFactory, true);
 			_dataBufferDevice = new CachingPageBufferDevice(_bufferDevice);
-			_logDevice = new MasterLogPageDevice(string.Empty, this);
+		    _logDevice = ResolveDeviceService<MasterLogPageDevice>(
+		        new NamedParameter("pathName", string.Empty));
 
 			// Setup ports
 			_taskInterleave = new ConcurrentExclusiveSchedulerPair(TaskScheduler.Default);
@@ -552,18 +529,21 @@ namespace Zen.Trunk.Storage.Data
 				// Create new file group device and add to map
 				if (fileGroupId == FileGroupId.Master)
 				{
-					fileGroupDevice = new MasterDatabasePrimaryFileGroupDevice(
-						this, fileGroupId, request.Message.FileGroupName);
+				    fileGroupDevice = ResolveDeviceService<MasterDatabasePrimaryFileGroupDevice>(
+				        new NamedParameter("id", fileGroupId),
+				        new NamedParameter("name", request.Message.FileGroupName));
 				}
 				else if (fileGroupId == FileGroupId.Primary)
 				{
-					fileGroupDevice = new PrimaryFileGroupDevice(
-						this, fileGroupId, request.Message.FileGroupName);
+                    fileGroupDevice = ResolveDeviceService<PrimaryFileGroupDevice>(
+                        new NamedParameter("id", fileGroupId),
+                        new NamedParameter("name", request.Message.FileGroupName));
 				}
 				else
 				{
-					fileGroupDevice = new SecondaryFileGroupDevice(
-						this, fileGroupId, request.Message.FileGroupName);
+                    fileGroupDevice = ResolveDeviceService<SecondaryFileGroupDevice>(
+                        new NamedParameter("id", fileGroupId),
+                        new NamedParameter("name", request.Message.FileGroupName));
 				}
 
 				_fileGroupById.Add(fileGroupId, fileGroupDevice);

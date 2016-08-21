@@ -1,3 +1,5 @@
+using Autofac;
+
 namespace Zen.Trunk.Storage.Log
 {
 	using System;
@@ -38,23 +40,14 @@ namespace Zen.Trunk.Storage.Log
 		#endregion
 
 		#region Public Constructors
-		/// <summary>
-		/// Initializes a new instance of the <see cref="LogPageDevice"/> class.
-		/// </summary>
-		public LogPageDevice(DeviceId deviceId, string pathName)
-		{
-			DeviceId = deviceId;
-			PathName = pathName;
-		}
-
 	    /// <summary>
 	    /// Initializes a new instance of the <see cref="LogPageDevice"/> class.
 	    /// </summary>
+	    /// <param name="lifetimeScope">The parent service provider.</param>
 	    /// <param name="deviceId">The device identifier.</param>
 	    /// <param name="pathName">The log file pathname.</param>
-	    /// <param name="parentServiceProvider">The parent service provider.</param>
-	    public LogPageDevice(DeviceId deviceId, string pathName, IServiceProvider parentServiceProvider)
-			: base(parentServiceProvider)
+	    public LogPageDevice(ILifetimeScope lifetimeScope, DeviceId deviceId, string pathName)
+			: base(lifetimeScope)
 		{
             DeviceId = deviceId;
             PathName = pathName;
@@ -70,8 +63,7 @@ namespace Zen.Trunk.Storage.Log
 		{
 			get
 			{
-				var parent = (DatabaseDevice)GetService(
-					typeof(DatabaseDevice));
+				var parent = ResolveDeviceService<DatabaseDevice>();
 				//return parent.IsReadOnly;
 				return false;
 			}
@@ -81,7 +73,7 @@ namespace Zen.Trunk.Storage.Log
 		{
 			get
 			{
-				var master = GetService<MasterLogPageDevice>();
+				var master = ResolveDeviceService<MasterLogPageDevice>();
 				return master.IsInRecovery;
 			}
 		}
@@ -236,17 +228,6 @@ namespace Zen.Trunk.Storage.Log
 		#endregion
 
 		#region Protected Methods
-		protected override object GetService(Type serviceType)
-		{
-			if (serviceType == typeof(LogPageDevice))
-			{
-				return this;
-			}
-
-			// Delegate everything else
-			return base.GetService(serviceType);
-		}
-
 		protected override Task OnOpen()
 		{
 			if (_rootPage == null)

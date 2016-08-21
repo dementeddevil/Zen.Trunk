@@ -1,4 +1,6 @@
-﻿namespace Zen.Trunk.Storage.Locking
+﻿using Autofac;
+
+namespace Zen.Trunk.Storage.Locking
 {
 	using System;
 	using System.Diagnostics;
@@ -96,24 +98,24 @@
 			}
 		}
 
-		public static void BeginTransaction(IServiceProvider serviceProvider)
+		public static void BeginTransaction(ILifetimeScope lifetimeScope)
 		{
-			BeginTransaction(new TrunkTransaction(serviceProvider));
+			BeginTransaction(new TrunkTransaction(lifetimeScope));
 		}
 
-		public static void BeginTransaction(IServiceProvider serviceProvider, TransactionOptions transactionOptions)
+		public static void BeginTransaction(ILifetimeScope lifetimeScope, TransactionOptions transactionOptions)
 		{
-			BeginTransaction(new TrunkTransaction(serviceProvider, transactionOptions));
+			BeginTransaction(new TrunkTransaction(lifetimeScope, transactionOptions));
 		}
 
-		public static void BeginTransaction(IServiceProvider serviceProvider, TimeSpan timeout)
+		public static void BeginTransaction(ILifetimeScope lifetimeScope, TimeSpan timeout)
 		{
-			BeginTransaction(new TrunkTransaction(serviceProvider, timeout));
+			BeginTransaction(new TrunkTransaction(lifetimeScope, timeout));
 		}
 
-		public static void BeginTransaction(IServiceProvider serviceProvider, IsolationLevel isoLevel, TimeSpan timeout)
+		public static void BeginTransaction(ILifetimeScope lifetimeScope, IsolationLevel isoLevel, TimeSpan timeout)
 		{
-			BeginTransaction(new TrunkTransaction(serviceProvider, isoLevel, timeout));
+			BeginTransaction(new TrunkTransaction(lifetimeScope, isoLevel, timeout));
 		}
 
 		public static async Task Commit()

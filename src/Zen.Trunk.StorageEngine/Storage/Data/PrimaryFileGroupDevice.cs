@@ -1,4 +1,6 @@
-﻿namespace Zen.Trunk.Storage.Data
+﻿using Autofac;
+
+namespace Zen.Trunk.Storage.Data
 {
 	/// <summary>
 	/// <c>PrimaryFileGroupDevice</c> represents a primary file-group.
@@ -9,7 +11,7 @@
 	/// </remarks>
 	public class PrimaryFileGroupDevice : FileGroupDevice
 	{
-		public PrimaryFileGroupDevice(DatabaseDevice owner, FileGroupId id, string name)
+		public PrimaryFileGroupDevice(ILifetimeScope owner, FileGroupId id, string name)
 			: base(owner, id, name)
 		{
 		}

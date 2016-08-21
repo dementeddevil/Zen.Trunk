@@ -1,3 +1,5 @@
+using Autofac;
+
 namespace Zen.Trunk.Storage.Data
 {
 	using System;
@@ -161,7 +163,6 @@ namespace Zen.Trunk.Storage.Data
 
 		#region Private Fields
 		private DatabaseDevice _owner;
-
 		private ITargetBlock<AddDataDeviceRequest> _addDataDevicePort;
 		private ITargetBlock<RemoveDataDeviceRequest> _removeDataDevicePort;
 		private ITargetBlock<InitDataPageRequest> _initDataPagePort;
@@ -182,18 +183,18 @@ namespace Zen.Trunk.Storage.Data
 
 		// Logical id mapping
 		private ILogicalVirtualManager _logicalVirtual;
-		#endregion
+        #endregion
 
-		#region Public Constructors
-		/// <summary>
-		/// Initializes a new instance of the <see cref="FileGroupDevice"/> class.
-		/// </summary>
-		/// <param name="owner">The owner.</param>
-		/// <param name="id">The id.</param>
-		/// <param name="name">The name.</param>
-		public FileGroupDevice(IServiceProvider parentServiceProvider, FileGroupId id, string name)
-			: base(parentServiceProvider)
-		{
+        #region Public Constructors
+        /// <summary>
+        /// Initializes a new instance of the <see cref="FileGroupDevice"/> class.
+        /// </summary>
+        /// <param name="parentLifetimeScope">The parent lifetime scope.</param>
+        /// <param name="id">The id.</param>
+        /// <param name="name">The name.</param>
+        public FileGroupDevice(ILifetimeScope parentLifetimeScope, FileGroupId id, string name)
+			: base(parentLifetimeScope)
+        {
 			FileGroupId = id;
 			FileGroupName = name;
 
@@ -699,11 +700,15 @@ namespace Zen.Trunk.Storage.Data
 			DeviceId deviceId;
 			if (priFileGroupDevice && IsPrimaryFileGroup)
 			{
-				deviceId = await pageBufferDevice.AddDeviceAsync("MASTER", fullPathName, DeviceId.Primary, allocationPages).ConfigureAwait(false);
+				deviceId = await pageBufferDevice
+                    .AddDeviceAsync("MASTER", fullPathName, DeviceId.Primary, allocationPages)
+                    .ConfigureAwait(false);
 			}
 			else
 			{
-				deviceId = await pageBufferDevice.AddDeviceAsync(request.Message.Name, fullPathName, request.Message.DeviceId, allocationPages).ConfigureAwait(false);
+				deviceId = await pageBufferDevice
+                    .AddDeviceAsync(request.Message.Name, fullPathName, request.Message.DeviceId, allocationPages)
+                    .ConfigureAwait(false);
 			}
 			Tracer.WriteVerboseLine("AddDevice -> device id = {0}", deviceId);
 
@@ -712,12 +717,14 @@ namespace Zen.Trunk.Storage.Data
 			if (priFileGroupDevice)
 			{
 				_primaryDeviceId = deviceId;
-				_primaryDevice = new PrimaryDistributionPageDevice(this, deviceId);
+				_primaryDevice = ResolveDeviceService<PrimaryDistributionPageDevice>(
+                    new NamedParameter("deviceId", deviceId));
 				newDevice = _primaryDevice;
 			}
 			else
 			{
-				var device = new SecondaryDistributionPageDevice(this, deviceId);
+				var device = ResolveDeviceService<SecondaryDistributionPageDevice>(
+                    new NamedParameter("deviceId", deviceId));
 				_devices.Add(deviceId, device);
 				newDevice = device;
 			}
@@ -880,8 +887,7 @@ namespace Zen.Trunk.Storage.Data
 		private async Task<bool> CreateDistributionPagesHandler(CreateDistributionPagesRequest request)
 		{
 			// Get distribution page device
-			var pageDevice =
-				GetDistributionPageDevice(request.DeviceId);
+			var pageDevice = GetDistributionPageDevice(request.DeviceId);
 
 			var strideLength = DistributionPage.PageTrackingCount + 1;
 			var distPhyId = pageDevice.DistributionPageOffset;
@@ -1179,7 +1185,7 @@ namespace Zen.Trunk.Storage.Data
 			return objectId;
 		}
 
-		private async Task<ObjectId> AddTableIndexHandler(AddTableIndexRequest request)
+		private Task<ObjectId> AddTableIndexHandler(AddTableIndexRequest request)
 		{
 			var objectId = ObjectId.Zero;
 
@@ -1191,7 +1197,7 @@ namespace Zen.Trunk.Storage.Data
 		    };
 		    //table.AddIndex
 
-			return objectId;
+			return Task.FromResult(objectId);
 		}
 		#endregion
 	}

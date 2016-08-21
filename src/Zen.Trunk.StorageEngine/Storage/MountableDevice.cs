@@ -1,36 +1,33 @@
-﻿namespace Zen.Trunk.Storage
-{
-	using System;
-	using System.Diagnostics;
-	using System.Threading;
-	using System.Threading.Tasks;
+﻿using System;
+using System.Diagnostics;
+using System.Threading;
+using System.Threading.Tasks;
+using Autofac;
+using Autofac.Core;
 
+namespace Zen.Trunk.Storage
+{
 	/// <summary>
 	/// </summary>
 	[CLSCompliant(false)]
-	public abstract class MountableDevice : TraceableObject, IMountableDevice, IServiceProvider, IDisposable
+	public abstract class MountableDevice : TraceableObject, IMountableDevice, IDisposable
 	{
 		#region Private Fields
-		private readonly IServiceProvider _parentServiceProvider;
+		private readonly ILifetimeScope _parentServiceProvider;
 		private int _deviceState = (int)MountableDeviceState.Closed;
 		private bool _disposed;
-		#endregion
+        private ILifetimeScope _lifetimeScope;
+        #endregion
 
-		#region Protected Constructors
-		/// <summary>
-		/// Initializes a new instance of the <see cref="MountableDevice"/> class.
-		/// </summary>
-		protected MountableDevice()
-		{
-		}
-
+        #region Protected Constructors
 		/// <summary>
 		/// Initializes a new instance of the <see cref="MountableDevice"/> class.
 		/// </summary>
 		/// <param name="parentServiceProvider">The parent service provider.</param>
-		protected MountableDevice(IServiceProvider parentServiceProvider)
+		protected MountableDevice(ILifetimeScope parentServiceProvider)
 		{
 			_parentServiceProvider = parentServiceProvider;
+            InitialiseDeviceLifetimeScope(_parentServiceProvider);
 		}
 		#endregion
 
@@ -50,6 +47,8 @@
 		/// </summary>
 		/// <value>The state of the device.</value>
 		public MountableDeviceState DeviceState => (MountableDeviceState)_deviceState;
+
+	    public ILifetimeScope LifetimeScope => _lifetimeScope;
 
 	    #endregion
 
@@ -120,14 +119,17 @@
 				_deviceState == (int)MountableDeviceState.Closed,
 			    $"{GetType().FullName} should be closed prior to dispose.");
 			_disposed = true;
-		}
 
-		/// <summary>
-		/// Creates the tracer.
-		/// </summary>
-		/// <param name="tracerName">Name of the tracer.</param>
-		/// <returns></returns>
-		protected override ITracer CreateTracer(string tracerName)
+            _lifetimeScope?.Dispose();
+            _lifetimeScope = null;
+        }
+
+        /// <summary>
+        /// Creates the tracer.
+        /// </summary>
+        /// <param name="tracerName">Name of the tracer.</param>
+        /// <returns></returns>
+        protected override ITracer CreateTracer(string tracerName)
 		{
 			return TS.CreatePageDeviceTracer(tracerName);
 		}
@@ -164,41 +166,23 @@
 			return CompletedTask.Default;
 		}
 
-		/// <summary>
-		/// Gets the service object of the specified type.
-		/// </summary>
-		/// <param name="serviceType">An object that specifies the type of service object to get.</param>
-		/// <returns>
-		/// A service object of type <paramref name="serviceType"/>.-or- null if there is no service object of type <paramref name="serviceType"/>.
-		/// </returns>
-		protected virtual object GetService(Type serviceType)
-		{
-			if (serviceType == typeof(IMountableDevice))
-			{
-				return this;
-			}
+        protected void InitialiseDeviceLifetimeScope(ILifetimeScope parentLifetimeScope)
+        {
+            _lifetimeScope = parentLifetimeScope.BeginLifetimeScope(BuildDeviceLifetimeScope);
+        }
 
-			if (_parentServiceProvider != null)
-			{
-				return _parentServiceProvider.GetService(serviceType);
-			}
+        protected virtual void BuildDeviceLifetimeScope(ContainerBuilder builder)
+        {
+            builder.RegisterInstance(this)
+                .As<IMountableDevice>()
+                .As(GetType());
+        }
 
-			return null;
-		}
-
-		/// <summary>
-		/// Gets the service object of the specified type.
-		/// </summary>
-		/// <typeparam name="T">Type of service object to get</typeparam>
-		/// <returns>
-		/// A service object of type <typeparamref name="T"/>.
-		/// -or- 
-		/// null if there is no service object of type <typeparamref name="T"/>.
-		/// </returns>
-		protected T GetService<T>()
-		{
-			return (T)GetService(typeof(T));
-		}
+        protected T ResolveDeviceService<T>(params Parameter[] parameters)
+        {
+            CheckDisposed();
+            return _lifetimeScope.Resolve<T>(parameters);
+        }
 		#endregion
 
 		#region Private Methods
@@ -210,20 +194,6 @@
 				throw new InvalidOperationException(
 					"Buffer device is in unexpected state.");
 			}
-		}
-		#endregion
-
-		#region IServiceProvider Members
-		/// <summary>
-		/// Gets the service object of the specified type.
-		/// </summary>
-		/// <param name="serviceType">An object that specifies the type of service object to get.</param>
-		/// <returns>
-		/// A service object of type <paramref name="serviceType"/>.-or- null if there is no service object of type <paramref name="serviceType"/>.
-		/// </returns>
-		object IServiceProvider.GetService(Type serviceType)
-		{
-			return GetService(serviceType);
 		}
 		#endregion
 	}

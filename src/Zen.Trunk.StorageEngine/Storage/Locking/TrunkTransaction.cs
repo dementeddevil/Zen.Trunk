@@ -1,3 +1,5 @@
+using Autofac;
+
 namespace Zen.Trunk.Storage.Locking
 {
 	using System;
@@ -99,7 +101,7 @@ namespace Zen.Trunk.Storage.Locking
 		#endregion
 
 		#region Private Fields
-		private readonly IServiceProvider _serviceProvider;
+		private readonly ILifetimeScope _lifetimeScope;
 		private readonly List<IPageEnlistmentNotification> _subEnlistments = new List<IPageEnlistmentNotification>();
 		private readonly List<TransactionLogEntry> _transactionLogs = new List<TransactionLogEntry>();
 		private TransactionLockOwnerBlock _lockOwner;
@@ -113,48 +115,48 @@ namespace Zen.Trunk.Storage.Locking
 		private bool _isCompleting = false;
 		private bool _isCompleted = false;
 		private readonly ITracer _tracer;
-		#endregion
+        #endregion
 
-		#region Public Constructors
-		/// <summary>
-		/// Initializes a new instance of the <see cref="TrunkTransaction"/> class.
-		/// </summary>
-		/// <param name="serviceProvider">The service provider.</param>
-		internal TrunkTransaction(IServiceProvider serviceProvider)
-			: this(serviceProvider, IsolationLevel.ReadCommitted, TimeSpan.FromSeconds(10))
+        #region Public Constructors
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TrunkTransaction"/> class.
+        /// </summary>
+        /// <param name="lifetimeScope">The service provider.</param>
+        internal TrunkTransaction(ILifetimeScope lifetimeScope)
+			: this(lifetimeScope, IsolationLevel.ReadCommitted, TimeSpan.FromSeconds(10))
 		{
 		}
 
-		/// <summary>
-		/// Initializes a new instance of the <see cref="TrunkTransaction"/> class.
-		/// </summary>
-		/// <param name="serviceProvider">The service provider.</param>
-		/// <param name="timeout">The timeout.</param>
-		internal TrunkTransaction(
-			IServiceProvider serviceProvider, TimeSpan timeout)
-			: this(serviceProvider, IsolationLevel.ReadCommitted, timeout)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TrunkTransaction"/> class.
+        /// </summary>
+        /// <param name="lifetimeScope">The service provider.</param>
+        /// <param name="timeout">The timeout.</param>
+        internal TrunkTransaction(
+			ILifetimeScope lifetimeScope, TimeSpan timeout)
+			: this(lifetimeScope, IsolationLevel.ReadCommitted, timeout)
 		{
 		}
 
-		/// <summary>
-		/// Initializes a new instance of the <see cref="TrunkTransaction"/> class.
-		/// </summary>
-		/// <param name="serviceProvider">The service provider.</param>
-		/// <param name="options">The options.</param>
-		internal TrunkTransaction(
-			IServiceProvider serviceProvider, TransactionOptions options)
-			: this(serviceProvider, options.IsolationLevel, options.Timeout)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TrunkTransaction"/> class.
+        /// </summary>
+        /// <param name="lifetimeScope">The service provider.</param>
+        /// <param name="options">The options.</param>
+        internal TrunkTransaction(
+			ILifetimeScope lifetimeScope, TransactionOptions options)
+			: this(lifetimeScope, options.IsolationLevel, options.Timeout)
 		{
 		}
 
-		/// <summary>
-		/// Initializes a new instance of the <see cref="TrunkTransaction"/> class.
-		/// </summary>
-		/// <param name="serviceProvider">The service provider.</param>
-		/// <param name="isoLevel">The iso level.</param>
-		/// <param name="timeout">The timeout.</param>
-		internal TrunkTransaction(
-			IServiceProvider serviceProvider,
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TrunkTransaction"/> class.
+        /// </summary>
+        /// <param name="lifetimeScope">The service provider.</param>
+        /// <param name="isoLevel">The iso level.</param>
+        /// <param name="timeout">The timeout.</param>
+        internal TrunkTransaction(
+			ILifetimeScope lifetimeScope,
 			IsolationLevel isoLevel,
 			TimeSpan timeout)
 		{
@@ -165,11 +167,13 @@ namespace Zen.Trunk.Storage.Locking
 				timeout = minTimeout;
 			}
 
-			_serviceProvider = serviceProvider;
-			_options = new TransactionOptions();
-			_options.IsolationLevel = isoLevel;
-			_options.Timeout = timeout;
-			_tracer = TS.CreateCoreTracer("DatabaseTransaction");
+            _lifetimeScope = lifetimeScope;
+		    _options = new TransactionOptions
+		    {
+		        IsolationLevel = isoLevel,
+		        Timeout = timeout
+		    };
+		    _tracer = TS.CreateCoreTracer("DatabaseTransaction");
 			EnlistInTransaction();
 		}
 		#endregion
@@ -201,8 +205,7 @@ namespace Zen.Trunk.Storage.Locking
 			{
 				if (_logDevice == null)
 				{
-					_logDevice = (MasterLogPageDevice)
-						_serviceProvider.GetService(typeof(MasterLogPageDevice));
+					_logDevice = _lifetimeScope.Resolve<MasterLogPageDevice>();
 				}
 				return _logDevice;
 			}
@@ -216,8 +219,7 @@ namespace Zen.Trunk.Storage.Locking
 			{
 				if (_lockManager == null)
 				{
-					_lockManager = (IDatabaseLockManager)
-						_serviceProvider.GetService(typeof(IDatabaseLockManager));
+					_lockManager = _lifetimeScope.Resolve<IDatabaseLockManager>();
 				}
 				return _lockManager;
 			}
