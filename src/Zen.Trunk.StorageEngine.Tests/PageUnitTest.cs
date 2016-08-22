@@ -1,18 +1,17 @@
-﻿using Autofac;
+﻿using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using Autofac;
+using Zen.Trunk.Storage;
+using Zen.Trunk.Storage.Data;
+using Zen.Trunk.Storage.IO;
+using Zen.Trunk.Storage.Locking;
+using Xunit;
 
 namespace Zen.Trunk.StorageEngine.Tests
 {
-	using System;
-	using System.Collections.Generic;
-	using System.Threading.Tasks;
-	using System.Threading.Tasks.Dataflow;
-	using Microsoft.VisualStudio.TestTools.UnitTesting;
-	using Zen.Trunk.Storage;
-	using Zen.Trunk.Storage.Data;
-	using Zen.Trunk.Storage.IO;
-	using Zen.Trunk.Storage.Locking;
-
-	[TestClass]
+    [Trait("Subsystem", "Storage Engine")]
+    [Trait("Class", "Page")]
 	public class PageUnitTest
 	{
 		private class MockPageDevice : PageDevice, IMultipleBufferDevice
@@ -117,8 +116,10 @@ namespace Zen.Trunk.StorageEngine.Tests
 			}
 		}
 
-		[TestMethod]
-		[TestCategory("Storage Engine: PageDevice")]
+		[Fact(DisplayName = @"
+Given a distribution page that can store 128 extents with 128 allocated extents
+When the 129th extent is allocated,
+Then the allocation fails.")]
 		public Task DistributionValidExtentNonMixedTest()
 		{
             var builder = new StorageEngineBuilder()
@@ -147,7 +148,7 @@ namespace Zen.Trunk.StorageEngine.Tests
                         new ObjectId(1 + index),
                         ObjectType.Sample,
                         false));
-				Assert.IsTrue(virtualId != 0, "Expected allocation to succeed.");
+				Assert.True(virtualId != 0, "Expected allocation to succeed.");
 			}
 
 			// This allocation must fail
@@ -157,7 +158,7 @@ namespace Zen.Trunk.StorageEngine.Tests
                     new ObjectId(1 + extentsToTest),
                     ObjectType.Sample, 
                     false));
-			Assert.IsTrue(virtualId == 0, "Expected allocation to fail.");
+			Assert.True(virtualId == 0, "Expected allocation to fail.");
 
 			return TrunkTransactionContext.Commit();
 		}

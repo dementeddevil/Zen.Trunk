@@ -1,9 +1,10 @@
 ﻿using System;
 using System.ComponentModel.Design;
 using System.IO;
+using System.Reflection;
 using System.Threading.Tasks;
 using Autofac;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Xunit;
 using Zen.Trunk.Storage;
 using Zen.Trunk.Storage.Data;
 using Zen.Trunk.Storage.Data.Index;
@@ -13,7 +14,8 @@ using Zen.Trunk.Storage.Log;
 
 namespace Zen.Trunk.StorageEngine.Tests
 {
-	[TestClass]
+	[Trait("Subsystem", "Storage Engine")]
+    [Trait("Class", "Index Manager")]
 	public class StorageIndexUnitTest
 	{
 		private class TestIndexManager : IndexManager<RootIndexInfo>
@@ -180,24 +182,16 @@ namespace Zen.Trunk.StorageEngine.Tests
 			}
 		}
 
-		private static TestContext _testContext;
 		private ILifetimeScope _parentServices;
 
-		[ClassInitialize]
-		public static void TestInitialize(TestContext context)
-		{
-			_testContext = context;
-		}
-
-		[TestMethod]
+		[Fact(DisplayName = "")]
 		public async Task IndexTestAddPages()
 		{
-			var dbDevice = CreateDatabaseDevice();
+            var assemblyLocation = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            var dbDevice = CreateDatabaseDevice();
 
-			var masterDataPathName =
-				Path.Combine(_testContext.TestDir, "master.mddf");
-			var masterLogPathName =
-				Path.Combine(_testContext.TestDir, "master.mlf");
+			var masterDataPathName = Path.Combine(assemblyLocation, "master.mddf");
+			var masterLogPathName = Path.Combine(assemblyLocation, "master.mlf");
 
 			dbDevice.BeginTransaction(TimeSpan.FromMinutes(1));
 

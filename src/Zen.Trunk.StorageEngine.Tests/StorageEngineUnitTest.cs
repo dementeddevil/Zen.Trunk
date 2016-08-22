@@ -1,43 +1,38 @@
-﻿using Autofac;
+﻿using System;
+using System.ComponentModel.Design;
+using System.Diagnostics;
+using System.IO;
+using System.Reflection;
+using System.Threading.Tasks;
+using Zen.Trunk.Storage;
+using Zen.Trunk.Storage.Data;
+using Zen.Trunk.Storage.Data.Table;
+using Zen.Trunk.Storage.IO;
+using Zen.Trunk.Storage.Locking;
+using Zen.Trunk.Storage.Log;
+using Autofac;
+using Xunit;
 
 namespace Zen.Trunk.StorageEngine.Tests
 {
-	using System;
-	using System.ComponentModel.Design;
-	using System.Diagnostics;
-	using System.IO;
-	using System.Threading.Tasks;
-	using Microsoft.VisualStudio.TestTools.UnitTesting;
-	using Zen.Trunk.Storage;
-	using Zen.Trunk.Storage.Data;
-	using Zen.Trunk.Storage.Data.Table;
-	using Zen.Trunk.Storage.IO;
-	using Zen.Trunk.Storage.Locking;
-	using Zen.Trunk.Storage.Log;
-
-	[TestClass]
+	[Trait("Subsystem", "Storage Engine")]
 	public class StorageEngineUnitTest
 	{
-		private static TestContext _testContext;
-
 	    private ILifetimeScope _lifetimeScope;
 
-		[ClassInitialize]
-		public static void TestInitialize(TestContext context)
-		{
-			_testContext = context;
-		}
+	    ~StorageEngineUnitTest()
+	    {
+	        _lifetimeScope.Dispose();
+	    }
 
-		[TestMethod]
-		[TestCategory("Storage Engine: Database Device")]
+		[Fact(DisplayName = "")]
 		public async Task DatabaseCreateTxnTest()
 		{
-			var dbDevice = CreateDatabaseDevice();
+            var assemblyLocation = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            var dbDevice = CreateDatabaseDevice();
 
-			var masterDataPathName =
-				Path.Combine(_testContext.TestDir, "master.mddf");
-			var masterLogPathName =
-				Path.Combine(_testContext.TestDir, "master.mlf");
+			var masterDataPathName = Path.Combine(assemblyLocation, "master.mddf");
+			var masterLogPathName = Path.Combine(assemblyLocation, "master.mlf");
 
             dbDevice.BeginTransaction();
 
@@ -70,16 +65,14 @@ namespace Zen.Trunk.StorageEngine.Tests
 			Trace.WriteLine("DatabaseDevice.Close succeeded");
 		}
 
-		[TestMethod]
-		[TestCategory("Storage Engine: Database Device")]
+		[Fact(DisplayName = "")]
 		public async Task DatabaseCreateStreamTxnTest()
 		{
-			var dbDevice = CreateDatabaseDevice();
+            var assemblyLocation = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            var dbDevice = CreateDatabaseDevice();
 
-			var masterDataPathName =
-				Path.Combine(_testContext.TestDir, "master.mddf");
-			var masterLogPathName =
-				Path.Combine(_testContext.TestDir, "master.mlf");
+			var masterDataPathName = Path.Combine(assemblyLocation, "master.mddf");
+			var masterLogPathName = Path.Combine(assemblyLocation, "master.mlf");
 
             dbDevice.BeginTransaction();
 
@@ -109,11 +102,20 @@ namespace Zen.Trunk.StorageEngine.Tests
             dbDevice.BeginTransaction();
 
             // Open a file
-            using (var stream = new FileStream(
-				Path.Combine(_testContext.TestDir,
-				@"..\..\Zen.Trunk.VirtualMemory\Storage\IO\AdvancedFileStream.cs"),	// 83kb plain text
-				FileMode.Open, FileAccess.Read, FileShare.Read))
+            using (var stream = new MemoryStream())
 			{
+                // Write 83k of random stuff
+                var random = new Random();
+			    var buffer = new byte[1024];
+			    for (int index = 0; index < 83; ++index)
+			    {
+			        random.NextBytes(buffer);
+                    stream.Write(buffer, 0, buffer.Length);
+			    }
+                stream.Flush();
+			    stream.Position = 0;
+
+                // Determine page count
 				var byteSize = new ObjectDataPage().DataSize;
 				var pageCount = (int)(stream.Length / byteSize);
 				if ((stream.Length % byteSize) != 0)
@@ -121,7 +123,7 @@ namespace Zen.Trunk.StorageEngine.Tests
 					++pageCount;
 				}
 
-				var buffer = new byte[byteSize];
+				buffer = new byte[byteSize];
 				Debug.WriteLine("Preparing to write {0} pages", pageCount);
 				ObjectDataPage lastPage = null;
 
@@ -182,16 +184,15 @@ namespace Zen.Trunk.StorageEngine.Tests
 			await dbDevice.CloseAsync();
 		}
 
-		[TestMethod]
-		[TestCategory("Storage Engine: Database Device")]
+		[Fact(DisplayName = "")]
 		public async Task DatabaseCreateTableTxnTest()
 		{
-			var dbDevice = CreateDatabaseDevice();
+            var assemblyLocation = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
 
-			var masterDataPathName =
-				Path.Combine(_testContext.TestDir, "master.mddf");
-			var masterLogPathName =
-				Path.Combine(_testContext.TestDir, "master.mlf");
+            var dbDevice = CreateDatabaseDevice();
+
+			var masterDataPathName = Path.Combine(assemblyLocation, "master.mddf");
+			var masterLogPathName = Path.Combine(assemblyLocation, "master.mlf");
 
             dbDevice.BeginTransaction();
 
