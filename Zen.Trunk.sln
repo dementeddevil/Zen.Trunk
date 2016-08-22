@@ -13,6 +13,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Zen.Trunk.VirtualMemory.Tes
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Zen.Trunk.StorageEngine.Tests", "src\Zen.Trunk.StorageEngine.Tests\Zen.Trunk.StorageEngine.Tests.csproj", "{07E7D6A1-141E-45DB-B557-30425540BE14}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "1. Infrastructure", "1. Infrastructure", "{CF8AC350-A45E-4D72-A55D-9FFE355E9E66}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "2. Virtual Memory", "2. Virtual Memory", "{C8483999-6886-47C5-83F3-48C226FE1C8A}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "3. Storage Engine", "3. Storage Engine", "{27A27BFC-3001-48FE-855F-CF8B27D889B9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -64,5 +70,12 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{F7ED3F65-BFE8-4949-8BDE-494F12CC30C6} = {CF8AC350-A45E-4D72-A55D-9FFE355E9E66}
+		{837F9DBD-7E29-4237-ADD9-1BD32FEF964A} = {C8483999-6886-47C5-83F3-48C226FE1C8A}
+		{2F2A3E61-960A-4DA0-A087-D45C89B33099} = {27A27BFC-3001-48FE-855F-CF8B27D889B9}
+		{665652E5-B6F9-42AB-8C93-11B4EE8DDBA5} = {C8483999-6886-47C5-83F3-48C226FE1C8A}
+		{07E7D6A1-141E-45DB-B557-30425540BE14} = {27A27BFC-3001-48FE-855F-CF8B27D889B9}
 	EndGlobalSection
 EndGlobal
