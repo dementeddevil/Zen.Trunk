@@ -81,21 +81,27 @@ namespace Zen.Trunk.Storage.Data
 		private class IssueCheckPointRequest : TransactionContextTaskRequest<bool>
 		{
 		}
+
+	    private class AddLogDeviceRequest : TransactionContextTaskRequest<AddLogDeviceParameters, DeviceId>
+	    {
+	        public AddLogDeviceRequest(AddLogDeviceParameters parameters) : base(parameters)
+	        {
+	        }
+	    }
+
+	    private class RemoveLogDeviceRequest : TransactionContextTaskRequest<RemoveLogDeviceParameters, bool>
+	    {
+	        public RemoveLogDeviceRequest(RemoveLogDeviceParameters parameters) : base(parameters)
+	        {
+	        }
+	    }
 		#endregion
 
 		#region Private Fields
 
 		private readonly DatabaseId _dbId;
-		private ITargetBlock<AddFileGroupDeviceRequest> _addFileGroupDevicePort;
-		private ITargetBlock<RemoveFileGroupDeviceRequest> _removeFileGroupDevicePort;
-		private ITargetBlock<InitFileGroupPageRequest> _initFileGroupPagePort;
-		private ITargetBlock<LoadFileGroupPageRequest> _loadFileGroupPagePort;
-		private ITargetBlock<FlushFileGroupRequest> _flushPageBuffersPort;
-		private ITargetBlock<AddFileGroupTableRequest> _addFileGroupTablePort;
-		private ITargetBlock<IssueCheckPointRequest> _issueCheckPointPort;
-		private ConcurrentExclusiveSchedulerPair _taskInterleave;
 
-		// Underlying page buffer storage
+	    // Underlying page buffer storage
 		private MultipleBufferDevice _bufferDevice;
 		private CachingPageBufferDevice _dataBufferDevice;
 
@@ -107,6 +113,7 @@ namespace Zen.Trunk.Storage.Data
 		private FileGroupId _nextFileGroupId = FileGroupId.Primary.Next;
 
 		// Log device
+	    private MasterLogPageDevice _masterLogPageDevice;
 		private Task _currentCheckPointTask;
         #endregion
 
@@ -119,20 +126,94 @@ namespace Zen.Trunk.Storage.Data
         public DatabaseDevice(ILifetimeScope parentLifetimeScope, DatabaseId dbId)
 			: base(parentLifetimeScope)
         {
-			_dbId = dbId;
-			Initialise();
-		}
-		#endregion
+            _dbId = dbId;
+            // Initialise devices
+            var bufferFactory = ResolveDeviceService<IVirtualBufferFactory>();
+            _bufferDevice = new MultipleBufferDevice(bufferFactory, true);
+            _dataBufferDevice = new CachingPageBufferDevice(_bufferDevice);
 
-		#region Public Properties
-		#endregion
+            // Setup ports
+            var taskInterleave = new ConcurrentExclusiveSchedulerPair(TaskScheduler.Default);
+            InitFileGroupPagePort =
+                new TransactionContextActionBlock<InitFileGroupPageRequest, bool>(
+                    request => InitFileGroupPageHandler(request),
+                    new ExecutionDataflowBlockOptions
+                    {
+                        TaskScheduler = taskInterleave.ConcurrentScheduler
+                    });
+            LoadFileGroupPagePort =
+                new TransactionContextActionBlock<LoadFileGroupPageRequest, bool>(
+                    request => LoadFileGroupPageHandler(request),
+                    new ExecutionDataflowBlockOptions
+                    {
+                        TaskScheduler = taskInterleave.ConcurrentScheduler
+                    });
+            AddFileGroupDevicePort =
+                new TransactionContextActionBlock<AddFileGroupDeviceRequest, DeviceId>(
+                    request => AddFileGroupDataDeviceHandler(request),
+                    new ExecutionDataflowBlockOptions
+                    {
+                        TaskScheduler = taskInterleave.ExclusiveScheduler
+                    });
+            RemoveFileGroupDevicePort =
+                new TransactionContextActionBlock<RemoveFileGroupDeviceRequest, bool>(
+                    request => RemoveFileGroupDeviceHandler(request),
+                    new ExecutionDataflowBlockOptions
+                    {
+                        TaskScheduler = taskInterleave.ExclusiveScheduler
+                    });
 
-		#region Protected Properties
-		/// <summary>
-		/// Gets the name of the tracer.
-		/// </summary>
-		/// <value>The name of the tracer.</value>
-		protected override string TracerName => base.TracerName;
+            FlushPageBuffersPort =
+                new TaskRequestActionBlock<FlushFileGroupRequest, bool>(
+                    request => FlushDeviceBuffersHandler(request),
+                    new ExecutionDataflowBlockOptions
+                    {
+                        TaskScheduler = taskInterleave.ExclusiveScheduler
+                    });
+
+            // Table action ports
+            AddFileGroupTablePort =
+                new TransactionContextActionBlock<AddFileGroupTableRequest, ObjectId>(
+                    request => AddFileGroupTableHandler(request),
+                    new ExecutionDataflowBlockOptions
+                    {
+                        TaskScheduler = taskInterleave.ExclusiveScheduler
+                    });
+
+            IssueCheckPointPort =
+                new TransactionContextActionBlock<IssueCheckPointRequest, bool>(
+                    request => IssueCheckPointHandler(request),
+                    new ExecutionDataflowBlockOptions
+                    {
+                        TaskScheduler = taskInterleave.ExclusiveScheduler
+                    });
+
+            AddLogDevicePort =
+                new TransactionContextActionBlock<AddLogDeviceRequest, DeviceId>(
+                    request => AddLogDeviceHandler(request),
+                    new ExecutionDataflowBlockOptions
+                    {
+                        TaskScheduler = taskInterleave.ExclusiveScheduler
+                    });
+            RemoveLogDevicePort =
+                new TransactionContextActionBlock<RemoveLogDeviceRequest, bool>(
+                    request => RemoveLogDeviceHandler(request),
+                    new ExecutionDataflowBlockOptions
+                    {
+                        TaskScheduler = taskInterleave.ExclusiveScheduler
+                    });
+        }
+        #endregion
+
+        #region Public Properties
+        #endregion
+
+        #region Protected Properties
+        /// <summary>
+        /// Gets the name of the tracer.
+        /// </summary>
+        /// <value>The name of the tracer.</value>
+        protected override string TracerName => base.TracerName;
 
 	    /// <summary>
 		/// Gets the primary file group id.
@@ -147,43 +228,47 @@ namespace Zen.Trunk.Storage.Data
 		/// Gets the add file group data device port.
 		/// </summary>
 		/// <value>The add file group data device port.</value>
-		private ITargetBlock<AddFileGroupDeviceRequest> AddFileGroupDevicePort => _addFileGroupDevicePort;
+		private ITargetBlock<AddFileGroupDeviceRequest> AddFileGroupDevicePort { get; }
 
 	    /// <summary>
 		/// Gets the remove file group device port.
 		/// </summary>
 		/// <value>The remove file group device port.</value>
-		private ITargetBlock<RemoveFileGroupDeviceRequest> RemoveFileGroupDevicePort => _removeFileGroupDevicePort;
+		private ITargetBlock<RemoveFileGroupDeviceRequest> RemoveFileGroupDevicePort { get; }
 
 	    /// <summary>
 		/// Gets the init file group page port.
 		/// </summary>
 		/// <value>The init file group page port.</value>
-		private ITargetBlock<InitFileGroupPageRequest> InitFileGroupPagePort => _initFileGroupPagePort;
+		private ITargetBlock<InitFileGroupPageRequest> InitFileGroupPagePort { get; }
 
 	    /// <summary>
 		/// Gets the load file group page port.
 		/// </summary>
 		/// <value>The load file group page port.</value>
-		private ITargetBlock<LoadFileGroupPageRequest> LoadFileGroupPagePort => _loadFileGroupPagePort;
+		private ITargetBlock<LoadFileGroupPageRequest> LoadFileGroupPagePort { get; }
 
 	    /// <summary>
 		/// Gets the flush device buffers port.
 		/// </summary>
 		/// <value>The flush device buffers port.</value>
-		private ITargetBlock<FlushFileGroupRequest> FlushPageBuffersPort => _flushPageBuffersPort;
+		private ITargetBlock<FlushFileGroupRequest> FlushPageBuffersPort { get; }
 
 	    /// <summary>
 		/// Gets the add file group table port.
 		/// </summary>
 		/// <value>The add file group table port.</value>
-		private ITargetBlock<AddFileGroupTableRequest> AddFileGroupTablePort => _addFileGroupTablePort;
+		private ITargetBlock<AddFileGroupTableRequest> AddFileGroupTablePort { get; }
 
 	    /// <summary>
 		/// Gets the issue check point port.
 		/// </summary>
 		/// <value>The issue check point port.</value>
-		private ITargetBlock<IssueCheckPointRequest> IssueCheckPointPort => _issueCheckPointPort;
+		private ITargetBlock<IssueCheckPointRequest> IssueCheckPointPort { get; }
+
+	    private ITargetBlock<AddLogDeviceRequest> AddLogDevicePort { get; }
+
+	    private ITargetBlock<RemoveLogDeviceRequest> RemoveLogDevicePort { get; }
 
 	    #endregion
 
@@ -280,18 +365,28 @@ namespace Zen.Trunk.Storage.Data
 
 		public Task<DeviceId> AddLogDevice(AddLogDeviceParameters deviceParams)
 		{
-			return ResolveDeviceService<MasterLogPageDevice>().AddDevice(deviceParams);
+		    var request = new AddLogDeviceRequest(deviceParams);
+		    if (!AddLogDevicePort.Post(request))
+		    {
+		        throw new BufferDeviceShuttingDownException();
+		    }
+		    return request.Task;
 		}
 
 		public Task RemoveLogDevice(RemoveLogDeviceParameters deviceParams)
 		{
-			return ResolveDeviceService<MasterLogPageDevice>().RemoveDevice(deviceParams);
-		}
-		#endregion
+            var request = new RemoveLogDeviceRequest(deviceParams);
+            if (!RemoveLogDevicePort.Post(request))
+            {
+                throw new BufferDeviceShuttingDownException();
+            }
+            return request.Task;
+        }
+        #endregion
 
-		#region Protected Methods
+        #region Protected Methods
 
-	    protected override void BuildDeviceLifetimeScope(ContainerBuilder builder)
+        protected override void BuildDeviceLifetimeScope(ContainerBuilder builder)
 	    {
 	        base.BuildDeviceLifetimeScope(builder);
 
@@ -302,8 +397,7 @@ namespace Zen.Trunk.Storage.Data
 	            .SingleInstance();
 
 	        builder
-                .RegisterType<MasterLogPageDevice>()
-                .WithParameter("pathName", string.Empty)
+                .Register(context => _masterLogPageDevice)
 	            .As<LogPageDevice>()
 	            .As<MasterLogPageDevice>();
 
@@ -396,7 +490,7 @@ namespace Zen.Trunk.Storage.Data
 			// Close all secondary file-groups in parallel
 			var secondaryDeviceTasks = _fileGroupByName.Values
 				.Where(item => !item.IsPrimaryFileGroup)
-				.Select(item => Task.Run(() => item.CloseAsync()))
+				.Select(item => Task.Run(item.CloseAsync))
 				.ToArray();
 			await TaskExtra
 				.WhenAllOrEmpty(secondaryDeviceTasks)
@@ -426,70 +520,6 @@ namespace Zen.Trunk.Storage.Data
 		#endregion
 
 		#region Private Methods
-		private void Initialise()
-		{
-			// Initialise devices
-			var bufferFactory = ResolveDeviceService<IVirtualBufferFactory>();
-			_bufferDevice = new MultipleBufferDevice(bufferFactory, true);
-			_dataBufferDevice = new CachingPageBufferDevice(_bufferDevice);
-
-			// Setup ports
-			_taskInterleave = new ConcurrentExclusiveSchedulerPair(TaskScheduler.Default);
-			_initFileGroupPagePort =
-				new TransactionContextActionBlock<InitFileGroupPageRequest, bool>(
-					request => InitFileGroupPageHandler(request),
-					new ExecutionDataflowBlockOptions
-					{
-						TaskScheduler = _taskInterleave.ConcurrentScheduler
-					});
-			_loadFileGroupPagePort =
-				new TransactionContextActionBlock<LoadFileGroupPageRequest, bool>(
-					request => LoadFileGroupPageHandler(request),
-					new ExecutionDataflowBlockOptions
-					{
-						TaskScheduler = _taskInterleave.ConcurrentScheduler
-					});
-			_addFileGroupDevicePort =
-				new TransactionContextActionBlock<AddFileGroupDeviceRequest, DeviceId>(
-					request => AddFileGroupDataDeviceHandler(request),
-					new ExecutionDataflowBlockOptions
-					{
-						TaskScheduler = _taskInterleave.ExclusiveScheduler
-					});
-			_removeFileGroupDevicePort =
-				new TransactionContextActionBlock<RemoveFileGroupDeviceRequest, bool>(
-					request => RemoveFileGroupDeviceHandler(request),
-					new ExecutionDataflowBlockOptions
-					{
-						TaskScheduler = _taskInterleave.ExclusiveScheduler
-					});
-
-			_flushPageBuffersPort =
-				new TaskRequestActionBlock<FlushFileGroupRequest, bool>(
-					request => FlushDeviceBuffersHandler(request),
-					new ExecutionDataflowBlockOptions
-					{
-						TaskScheduler = _taskInterleave.ExclusiveScheduler
-					});
-
-			// Table action ports
-			_addFileGroupTablePort =
-				new TransactionContextActionBlock<AddFileGroupTableRequest, ObjectId>(
-					request => AddFileGroupTableHandler(request),
-					new ExecutionDataflowBlockOptions
-					{
-						TaskScheduler = _taskInterleave.ExclusiveScheduler
-					});
-
-			_issueCheckPointPort =
-				new TransactionContextActionBlock<IssueCheckPointRequest, bool>(
-					request => IssueCheckPointHandler(request),
-					new ExecutionDataflowBlockOptions
-					{
-						TaskScheduler = _taskInterleave.ExclusiveScheduler
-					});
-		}
-
 		private async Task<DeviceId> AddFileGroupDataDeviceHandler(AddFileGroupDeviceRequest request)
 		{
 			// Create valid file group ID as needed
@@ -573,6 +603,31 @@ namespace Zen.Trunk.Storage.Data
 			await fileGroupDevice.RemoveDataDevice(request.Message).ConfigureAwait(false);
 			return true;
 		}
+
+	    private async Task<DeviceId> AddLogDeviceHandler(AddLogDeviceRequest request)
+	    {
+	        if (_masterLogPageDevice == null)
+	        {
+	            _masterLogPageDevice = new MasterLogPageDevice(LifetimeScope, string.Empty);
+	        }
+
+            return await _masterLogPageDevice.AddDevice(request.Message).ConfigureAwait(false);
+	    }
+
+	    private async Task<bool> RemoveLogDeviceHandler(RemoveLogDeviceRequest request)
+	    {
+	        if (_masterLogPageDevice != null)
+	        {
+	            if (request.Message.DeviceIdValid && request.Message.DeviceId == DeviceId.Primary)
+	            {
+	                throw new InvalidOperationException();
+	            }
+
+	            await _masterLogPageDevice.RemoveDevice(request.Message).ConfigureAwait(false);
+	            return true;
+	        }
+	        return false;
+	    }
 
 		private async Task<bool> InitFileGroupPageHandler(InitFileGroupPageRequest request)
 		{

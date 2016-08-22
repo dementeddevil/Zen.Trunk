@@ -25,7 +25,6 @@ namespace Zen.Trunk.Storage.Locking
 	{
 		#region Private Fields
 		private readonly IDatabaseLockManager _lockManager;
-		private uint _transactionId;
 		private readonly ConcurrentDictionary<FileGroupId, RootLock> _rootLocks;
 		private readonly ConcurrentDictionary<ObjectId, SchemaLock> _schemaLocks;
 		private readonly ConcurrentDictionary<VirtualPageId, DistributionLockOwnerBlock> _distributionOwnerBlocks;
@@ -39,10 +38,9 @@ namespace Zen.Trunk.Storage.Locking
 		/// </summary>
 		/// <param name="lockManager">Lock Manager</param>
 		/// <param name="transactionId">Transaction ID</param>
-		public TransactionLockOwnerBlock(IDatabaseLockManager lockManager, uint transactionId)
+		public TransactionLockOwnerBlock(IDatabaseLockManager lockManager)
 		{
 			_lockManager = lockManager;
-			_transactionId = transactionId;
 			_rootLocks = new ConcurrentDictionary<FileGroupId, RootLock>();
 			_schemaLocks = new ConcurrentDictionary<ObjectId, SchemaLock>();
 			_distributionOwnerBlocks = new ConcurrentDictionary<VirtualPageId, DistributionLockOwnerBlock>();

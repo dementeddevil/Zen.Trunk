@@ -39,7 +39,7 @@ namespace Zen.Trunk.StorageEngine.Tests
 			var masterLogPathName =
 				Path.Combine(_testContext.TestDir, "master.mlf");
 
-            //dbDevice.BeginTransaction();
+            dbDevice.BeginTransaction();
 
 			var addFgDevice =
 				new AddFileGroupDeviceParameters(
@@ -63,7 +63,7 @@ namespace Zen.Trunk.StorageEngine.Tests
 			await dbDevice.OpenAsync(true);
 			Trace.WriteLine("DatabaseDevice.Open succeeded");
 
-			//await TrunkTransactionContext.Commit();
+			await TrunkTransactionContext.Commit();
 			Trace.WriteLine("Transaction commit succeeded");
 
 			await dbDevice.CloseAsync();

@@ -1,14 +1,13 @@
+using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Transactions;
 using Autofac;
+using Zen.Trunk.Storage.Log;
 
 namespace Zen.Trunk.Storage.Locking
 {
-	using System;
-	using System.Collections.Generic;
-	using System.Threading;
-	using System.Threading.Tasks;
-	using System.Transactions;
-	using Zen.Trunk.Storage.Log;
-
     /// <summary>
     /// The <b>TrunkTransaction</b> object maintains the context of a
     /// transaction within the database. To achieve this the transaction
@@ -107,9 +106,8 @@ namespace Zen.Trunk.Storage.Locking
 		private TransactionLockOwnerBlock _lockOwner;
 		private TransactionOptions _options;
 		private bool _isBeginLogWritten = false;
-		private uint _transactionId = 0;
+		private uint _transactionId = 1;
 		private int _transactionCount = 1;
-		private IDatabaseLockManager _lockManager = null;
 		private MasterLogPageDevice _logDevice = null;
 		private bool _nestedRollbackTriggered = false;
 		private bool _isCompleting = false;
@@ -174,7 +172,9 @@ namespace Zen.Trunk.Storage.Locking
 		        Timeout = timeout
 		    };
 		    _tracer = TS.CreateCoreTracer("DatabaseTransaction");
-			EnlistInTransaction();
+
+            LockManager = _lifetimeScope.Resolve<IDatabaseLockManager>();
+            TransactionLocks = new TransactionLockOwnerBlock(LockManager);
 		}
 		#endregion
 
@@ -205,25 +205,18 @@ namespace Zen.Trunk.Storage.Locking
 			{
 				if (_logDevice == null)
 				{
-					_logDevice = _lifetimeScope.Resolve<MasterLogPageDevice>();
+				    if (_lifetimeScope.TryResolve<MasterLogPageDevice>(out _logDevice))
+				    {
+				        _transactionId = _logDevice.GetNextTransactionId();
+				    }
 				}
 				return _logDevice;
 			}
 		}
 
-		public TransactionLockOwnerBlock TransactionLocks => _lockOwner;
+		public TransactionLockOwnerBlock TransactionLocks { get; }
 
-	    public IDatabaseLockManager LockManager
-		{
-			get
-			{
-				if (_lockManager == null)
-				{
-					_lockManager = _lifetimeScope.Resolve<IDatabaseLockManager>();
-				}
-				return _lockManager;
-			}
-		}
+	    public IDatabaseLockManager LockManager { get; }
 
 		public bool IsCompleted => _isCompleted;
 
@@ -615,29 +608,12 @@ namespace Zen.Trunk.Storage.Locking
 
 			// Throw away transaction context
 			_transactionId = 0;
-			_lockManager = null;
+			//LockManager = null;
 			_logDevice = null;
 
 			// Perform final state update
 			_isCompleted = true;
 			_isCompleting = false;
-		}
-
-		private void EnlistInTransaction()
-		{
-			// Ensure we have a transaction ID and create our transaction context
-			if (LoggingDevice != null)
-			{
-				_transactionId = LoggingDevice.GetNextTransactionId();
-			}
-			else
-			{
-				_transactionId = 1;
-			}
-
-			// Create transaction lock owner block
-			_lockOwner = new TransactionLockOwnerBlock(
-				LockManager, _transactionId);
 		}
 
 		private async Task WriteBeginXact()
