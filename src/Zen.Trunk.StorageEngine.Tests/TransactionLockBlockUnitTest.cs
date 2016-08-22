@@ -17,7 +17,10 @@ namespace Zen.Trunk.StorageEngine.Tests
 		/// <summary>
 		/// Test transaction escalation with lock owner blocks.
 		/// </summary>
-		[Fact(DisplayName = "")]
+		[Fact(DisplayName = @"
+Given two transactions holding shared locks to the same resource
+When one transaction upgrades to an update lock the operation succeeds but when trying for an exclusive lock
+Then the attempt to gain an exclusive lock fails.")]
 		public void LockOwnerBlockTryGetExclusiveTest()
 		{
 			// Setup minimal service container we need to get trunk transactions to work

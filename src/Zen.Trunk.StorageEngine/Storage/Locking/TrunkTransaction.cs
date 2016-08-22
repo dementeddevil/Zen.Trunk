@@ -175,6 +175,7 @@ namespace Zen.Trunk.Storage.Locking
 
             LockManager = _lifetimeScope.Resolve<IDatabaseLockManager>();
             TransactionLocks = new TransactionLockOwnerBlock(LockManager);
+            TryEnlistInTransaction();
 		}
 		#endregion
 
@@ -205,16 +206,21 @@ namespace Zen.Trunk.Storage.Locking
 			{
 				if (_logDevice == null)
 				{
-				    if (_lifetimeScope.TryResolve<MasterLogPageDevice>(out _logDevice))
-				    {
-				        _transactionId = _logDevice.GetNextTransactionId();
-				    }
+				    TryEnlistInTransaction();
 				}
 				return _logDevice;
 			}
 		}
 
-		public TransactionLockOwnerBlock TransactionLocks { get; }
+        private void TryEnlistInTransaction()
+        {
+            if (_lifetimeScope.TryResolve<MasterLogPageDevice>(out _logDevice))
+            {
+                _transactionId = _logDevice.GetNextTransactionId();
+            }
+        }
+
+        public TransactionLockOwnerBlock TransactionLocks { get; }
 
 	    public IDatabaseLockManager LockManager { get; }
 
