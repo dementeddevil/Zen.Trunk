@@ -128,8 +128,8 @@ namespace Zen.Trunk.Storage.IO
 		public async Task OptimisedFlushAsync()
 		{
 			CoalesceIfNeeded();
-			await FlushIfNeeded();
-			await ScavengeIfNeeded();
+			await FlushIfNeeded().ConfigureAwait(false);
+			await ScavengeIfNeeded().ConfigureAwait(false);
 		}
 		#endregion
 

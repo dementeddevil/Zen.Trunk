@@ -1,14 +1,12 @@
-﻿namespace Zen.Trunk.Storage.IO
-{
-	using System;
-	using System.Collections.Generic;
-	using System.Diagnostics;
-	using System.IO;
-	using System.Linq;
-	using System.Threading;
-	using System.Threading.Tasks;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 
-	public class ScatterGatherRequestArray
+namespace Zen.Trunk.Storage.IO
+{
+    public class ScatterGatherRequestArray
 	{
 		private readonly DateTime _createdDate;
 		private readonly List<ScatterGatherRequest> _callbackInfo = new List<ScatterGatherRequest>();
