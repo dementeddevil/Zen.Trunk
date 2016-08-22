@@ -1,109 +1,121 @@
-﻿namespace Zen.Trunk.VirtualMemory.Tests
+﻿using System.Collections.Generic;
+using System.IO;
+using System.Reflection;
+using System.Threading.Tasks;
+using Zen.Trunk.Storage;
+using Zen.Trunk.Storage.IO;
+using Xunit;
+
+namespace Zen.Trunk.VirtualMemory.Tests
 {
-	using System.Collections.Generic;
-	using System.IO;
-	using System.Threading.Tasks;
-	using Microsoft.VisualStudio.TestTools.UnitTesting;
-	using Zen.Trunk.Storage;
-	using Zen.Trunk.Storage.IO;
 
-	/// <summary>
-	/// Summary description for Multiple Device Unit Test suite
-	/// </summary>
-	[TestClass]
-	public class MultipleDeviceUnitTest
-	{
-		private static TestContext _testContext;
-		private IVirtualBufferFactory _bufferFactory;
+    /// <summary>
+    /// Summary description for Multiple Device Unit Test suite
+    /// </summary>
+    [Trait("Subsystem", "Virtual Memory")]
+    [Trait("Class", "Multiple Device")]
+    public class MultipleDeviceUnitTest
+    {
+        private const int BufferSize = 8192;
+        private IVirtualBufferFactory _bufferFactory = new VirtualBufferFactory(32, BufferSize);
 
-		[ClassInitialize()]
-		public static void ClassInitialize(TestContext testContext)
-		{
-			_testContext = testContext;
-		}
+        ~MultipleDeviceUnitTest()
+        {
+            _bufferFactory.Dispose();
+            _bufferFactory = null;
+        }
 
-		[TestInitialize]
-		public void PreTestInitialize()
-		{
-			_bufferFactory = new VirtualBufferFactory(32, 8192);
-		}
+        [Fact(DisplayName = @"
+Given a newly created multi-device with 4 sub-files
+When 7 buffers are written to each sub-file and then read into separate buffers
+Then the buffer contents are the same")]
+        public async Task CreateMultipleDeviceTest()
+        {
+            // Create multiple device and add our child devices
+            var assemblyLocation = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            var testFiles = new List<string>();
+            var device = new MultipleBufferDevice(_bufferFactory, true);
+            var deviceIds = new List<DeviceId>();
+            foreach (var filename in GetChildDeviceList())
+            {
+                var pathName = Path.Combine(assemblyLocation, filename);
+                testFiles.Add(pathName);
+                deviceIds.Add(await device.AddDeviceAsync(filename, pathName, DeviceId.Zero, 128).ConfigureAwait(true));
+            }
+            await device.OpenAsync().ConfigureAwait(true);
+            try
+            {
+                // Write a load of buffers across the group of devices
+                var subTasks = new List<Task>();
+                var saveBuffers = new List<VirtualBuffer>();
+                foreach (var deviceId in deviceIds)
+                {
+                    for (var index = 0; index < 7; ++index)
+                    {
+                        var buffer = _bufferFactory.AllocateAndFill((byte)index);
+                        saveBuffers.Add(buffer);
+                        subTasks.Add(device.SaveBufferAsync(
+                            new VirtualPageId(deviceId, (uint)index), buffer));
+                    }
+                }
+                await device.FlushBuffersAsync(true, true).ConfigureAwait(true);
+                await Task.WhenAll(subTasks.ToArray()).ConfigureAwait(true);
 
-		[TestCleanup]
-		public void PostTestCleanup()
-		{
-			_bufferFactory.Dispose();
-		}
+                subTasks.Clear();
+                var loadBuffers = new List<VirtualBuffer>();
+                foreach (var deviceId in deviceIds)
+                {
+                    for (var index = 0; index < 7; ++index)
+                    {
+                        var buffer = _bufferFactory.AllocateBuffer();
+                        loadBuffers.Add(buffer);
+                        subTasks.Add(device.LoadBufferAsync(
+                            new VirtualPageId(deviceId, (uint)index), buffer));
+                    }
+                }
+                await device.FlushBuffersAsync(true, true).ConfigureAwait(true);
+                await Task.WhenAll(subTasks.ToArray()).ConfigureAwait(true);
 
-		[TestMethod]
-		[TestCategory("Virtual Memory: Multiple Device")]
-		public async Task CreateMultipleDeviceTest()
-		{
-			// Create multiple device and add our child devices
-			IMultipleBufferDevice device = new MultipleBufferDevice(
-				_bufferFactory, true);
-			var deviceIds = new List<DeviceId>();
-			foreach (var filename in GetChildDeviceList())
-			{
-				var pathName = Path.Combine(_testContext.TestDir, filename);
-				deviceIds.Add(await device.AddDeviceAsync(filename, pathName, DeviceId.Zero, 128));
-			}
-			await device.OpenAsync();
+                // Close the device
+                await device.CloseAsync().ConfigureAwait(true);
 
-			// Write a load of buffers across the group of devices
-			var bufferTasks = new List<Task>();
-			var buffers = new List<VirtualBuffer>();
-			foreach (var deviceId in deviceIds)
-			{
-				for (var index = 0; index < 7; ++index)
-				{
-					var buffer = AllocateAndFill((byte)index);
-					buffers.Add(buffer);
-					bufferTasks.Add(device.SaveBufferAsync(
-						new VirtualPageId(deviceId, (uint)index), buffer));
-				}
-			}
+                // Walk buffers and check contents are the same
+                for (var index = 0; index < saveBuffers.Count; ++index)
+                {
+                    var lhs = saveBuffers[index];
+                    var rhs = loadBuffers[index];
+                    Assert.True(lhs.Compare(rhs) == 0, "Buffer mismatch");
+                }
 
-			// Flush all buffers to disk
-			await device.FlushBuffersAsync(true, true);
+                DisposeBuffers(saveBuffers);
+                DisposeBuffers(loadBuffers);
+            }
+            finally
+            {
+                foreach (var testFile in testFiles)
+                {
+                    File.Delete(testFile);
+                }
+            }
+        }
 
-			// Close the device
-			await device.CloseAsync();
+        private void DisposeBuffers(IEnumerable<VirtualBuffer> buffers)
+        {
+            foreach (var buffer in buffers)
+            {
+                buffer.Dispose();
+            }
+        }
 
-			// TODO: Devise method to determine whether flush/action has succeeded
-
-			foreach (var buffer in buffers)
-			{
-				buffer.Dispose();
-			}
-		}
-
-		private string[] GetChildDeviceList()
-		{
-			return new string[]
-				{
-					"Device1.bin",
-					"Device2.bin",
-					"Device3.bin",
-					"Device4.bin",
-				};
-		}
-
-		private VirtualBuffer AllocateAndFill(byte value)
-		{
-			var buffer = _bufferFactory.AllocateBuffer();
-			FillBuffer(buffer, value);
-			return buffer;
-		}
-
-		private void FillBuffer(VirtualBuffer buffer, byte value)
-		{
-			using (var stream = buffer.GetBufferStream(0, _bufferFactory.BufferSize, true))
-			{
-				for (var index = 0; index < _bufferFactory.BufferSize; ++index)
-				{
-					stream.WriteByte(value);
-				}
-			}
-		}
-	}
+        private string[] GetChildDeviceList()
+        {
+            return new string[]
+                {
+                    "Device1.bin",
+                    "Device2.bin",
+                    "Device3.bin",
+                    "Device4.bin",
+                };
+        }
+    }
 }
