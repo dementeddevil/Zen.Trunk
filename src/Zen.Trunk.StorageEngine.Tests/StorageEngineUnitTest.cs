@@ -29,247 +29,305 @@ namespace Zen.Trunk.StorageEngine.Tests
 		public async Task DatabaseCreateTxnTest()
 		{
             var assemblyLocation = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-            var dbDevice = CreateDatabaseDevice();
+            var masterDataPathName = Path.Combine(assemblyLocation, "master.mddf");
+            var masterLogPathName = Path.Combine(assemblyLocation, "master.mlf");
+            try
+            {
+                var dbDevice = CreateDatabaseDevice();
+                try
+                {
+                    dbDevice.BeginTransaction();
 
-			var masterDataPathName = Path.Combine(assemblyLocation, "master.mddf");
-			var masterLogPathName = Path.Combine(assemblyLocation, "master.mlf");
+			        var addFgDevice =
+				        new AddFileGroupDeviceParameters(
+					        FileGroupId.Primary,
+					        "PRIMARY",
+					        "master",
+					        masterDataPathName,
+                            DeviceId.Zero,
+					        128,
+					        true);
+			        await dbDevice.AddFileGroupDevice(addFgDevice);
 
-            dbDevice.BeginTransaction();
+			        var addLogDevice =
+				        new AddLogDeviceParameters(
+					        "MASTER_LOG",
+					        masterLogPathName,
+                            DeviceId.Zero,
+					        2);
+			        await dbDevice.AddLogDevice(addLogDevice);
 
-			var addFgDevice =
-				new AddFileGroupDeviceParameters(
-					FileGroupId.Primary,
-					"PRIMARY",
-					"master",
-					masterDataPathName,
-                    DeviceId.Zero,
-					128,
-					true);
-			await dbDevice.AddFileGroupDevice(addFgDevice);
+			        await dbDevice.OpenAsync(true);
+			        Trace.WriteLine("DatabaseDevice.Open succeeded");
 
-			var addLogDevice =
-				new AddLogDeviceParameters(
-					"MASTER_LOG",
-					masterLogPathName,
-                    DeviceId.Zero,
-					2);
-			await dbDevice.AddLogDevice(addLogDevice);
+			        await TrunkTransactionContext.Commit();
+			        Trace.WriteLine("Transaction commit succeeded");
 
-			await dbDevice.OpenAsync(true);
-			Trace.WriteLine("DatabaseDevice.Open succeeded");
-
-			await TrunkTransactionContext.Commit();
-			Trace.WriteLine("Transaction commit succeeded");
-
-			await dbDevice.CloseAsync();
-			Trace.WriteLine("DatabaseDevice.Close succeeded");
+			        await dbDevice.CloseAsync();
+			        Trace.WriteLine("DatabaseDevice.Close succeeded");
+                }
+		        finally
+		        {
+		            await dbDevice.CloseAsync().ConfigureAwait(true);
+                    dbDevice.Dispose();
+		            dbDevice = null;
+		        }
+            }
+		    finally
+		    {
+		        if (File.Exists(masterDataPathName))
+		        {
+		            File.Delete(masterDataPathName);
+		        }
+		        if (File.Exists(masterLogPathName))
+		        {
+		            File.Delete(masterLogPathName);
+		        }
+		    }
 		}
 
 		[Fact(DisplayName = "")]
 		public async Task DatabaseCreateStreamTxnTest()
 		{
             var assemblyLocation = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-            var dbDevice = CreateDatabaseDevice();
+            var masterDataPathName = Path.Combine(assemblyLocation, "master.mddf");
+            var masterLogPathName = Path.Combine(assemblyLocation, "master.mlf");
+            try
+            {
+                var dbDevice = CreateDatabaseDevice();
+                try
+                {
+                    dbDevice.BeginTransaction();
 
-			var masterDataPathName = Path.Combine(assemblyLocation, "master.mddf");
-			var masterLogPathName = Path.Combine(assemblyLocation, "master.mlf");
+                    var addFgDevice =
+				        new AddFileGroupDeviceParameters(
+					        FileGroupId.Primary,
+					        "PRIMARY",
+					        "master",
+					        masterDataPathName,
+                            DeviceId.Zero,
+					        128,
+					        true);
+			        await dbDevice.AddFileGroupDevice(addFgDevice).ConfigureAwait(true);
 
-            dbDevice.BeginTransaction();
+			        var addLogDevice =
+				        new AddLogDeviceParameters(
+					        "MASTER_LOG",
+					        masterLogPathName,
+                            DeviceId.Zero,
+					        2);
+			        await dbDevice.AddLogDevice(addLogDevice).ConfigureAwait(true);
 
-            var addFgDevice =
-				new AddFileGroupDeviceParameters(
-					FileGroupId.Primary,
-					"PRIMARY",
-					"master",
-					masterDataPathName,
-                    DeviceId.Zero,
-					128,
-					true);
-			await dbDevice.AddFileGroupDevice(addFgDevice);
+			        await dbDevice.OpenAsync(true).ConfigureAwait(true);
 
-			var addLogDevice =
-				new AddLogDeviceParameters(
-					"MASTER_LOG",
-					masterLogPathName,
-                    DeviceId.Zero,
-					2);
-			await dbDevice.AddLogDevice(addLogDevice);
+			        await TrunkTransactionContext.Commit().ConfigureAwait(true);
 
-			await dbDevice.OpenAsync(true);
+                    dbDevice.BeginTransaction();
 
-			await TrunkTransactionContext.Commit();
+                    // Open a file
+                    using (var stream = new MemoryStream())
+			        {
+                        // Write 83k of random stuff
+                        var random = new Random();
+			            var buffer = new byte[1024];
+			            for (int index = 0; index < 83; ++index)
+			            {
+			                random.NextBytes(buffer);
+                            stream.Write(buffer, 0, buffer.Length);
+			            }
+                        stream.Flush();
+			            stream.Position = 0;
 
-            dbDevice.BeginTransaction();
+                        // Determine page count
+				        var byteSize = new ObjectDataPage().DataSize;
+				        var pageCount = (int)(stream.Length / byteSize);
+				        if ((stream.Length % byteSize) != 0)
+				        {
+					        ++pageCount;
+				        }
 
-            // Open a file
-            using (var stream = new MemoryStream())
-			{
-                // Write 83k of random stuff
-                var random = new Random();
-			    var buffer = new byte[1024];
-			    for (int index = 0; index < 83; ++index)
-			    {
-			        random.NextBytes(buffer);
-                    stream.Write(buffer, 0, buffer.Length);
-			    }
-                stream.Flush();
-			    stream.Position = 0;
+				        buffer = new byte[byteSize];
+				        Debug.WriteLine("Preparing to write {0} pages", pageCount);
+				        ObjectDataPage lastPage = null;
 
-                // Determine page count
-				var byteSize = new ObjectDataPage().DataSize;
-				var pageCount = (int)(stream.Length / byteSize);
-				if ((stream.Length % byteSize) != 0)
-				{
-					++pageCount;
-				}
+				        var complete = false;
+				        for (var pageIndex = 0; !complete; ++pageIndex)
+				        {
+					        Debug.WriteLine("Writing object page {0}", pageIndex);
 
-				buffer = new byte[byteSize];
-				Debug.WriteLine("Preparing to write {0} pages", pageCount);
-				ObjectDataPage lastPage = null;
+					        // Create object data page
+					        var objectPage = new ObjectDataPage();
+					        objectPage.IsManagedData = false;
+					        objectPage.ReadOnly = false;
+					        objectPage.ObjectId = new ObjectId(1);
+					        objectPage.ObjectLock = ObjectLockType.IntentExclusive;
+					        objectPage.PageLock = DataLockType.Exclusive;
+					        objectPage.FileGroupId = FileGroupId.Primary;
 
-				var complete = false;
-				for (var pageIndex = 0; !complete; ++pageIndex)
-				{
-					Debug.WriteLine("Writing object page {0}", pageIndex);
+					        // Create storage in database for new page
+					        var initPageParams =
+						        new InitFileGroupPageParameters(
+							        null, objectPage, true, true, true, true);
+					        await dbDevice.InitFileGroupPage(initPageParams).ConfigureAwait(true);
 
-					// Create object data page
-					var objectPage = new ObjectDataPage();
-					objectPage.IsManagedData = false;
-					objectPage.ReadOnly = false;
-					objectPage.ObjectId = new ObjectId(1);
-					objectPage.ObjectLock = ObjectLockType.IntentExclusive;
-					objectPage.PageLock = DataLockType.Exclusive;
-					objectPage.FileGroupId = FileGroupId.Primary;
+					        // Update prev/next references
+					        if (lastPage != null)
+					        {
+						        lastPage.NextLogicalId = objectPage.LogicalId;
+						        objectPage.PrevLogicalId = lastPage.LogicalId;
+					        }
+					        lastPage = objectPage;
 
-					// Create storage in database for new page
-					var initPageParams =
-						new InitFileGroupPageParameters(
-							null, objectPage, true, true, true, true);
-					await dbDevice.InitFileGroupPage(initPageParams);
+					        // Determine size of the data page and write blob
+					        using (var pageStream = objectPage.CreateDataStream(false))
+					        {
+						        var bytesRead = stream.Read(buffer, 0, (int)byteSize);
+						        if (bytesRead > 0)
+						        {
+							        pageStream.Write(buffer, 0, bytesRead);
+						        }
+						        else
+						        {
+							        complete = true;
+						        }
 
-					// Update prev/next references
-					if (lastPage != null)
-					{
-						lastPage.NextLogicalId = objectPage.LogicalId;
-						objectPage.PrevLogicalId = lastPage.LogicalId;
-					}
-					lastPage = objectPage;
+						        if (bytesRead < byteSize)
+						        {
+							        complete = true;
+						        }
+					        }
 
-					// Determine size of the data page and write blob
-					using (var pageStream = objectPage.CreateDataStream(false))
-					{
-						var bytesRead = stream.Read(buffer, 0, (int)byteSize);
-						if (bytesRead > 0)
-						{
-							pageStream.Write(buffer, 0, bytesRead);
-						}
-						else
-						{
-							complete = true;
-						}
+					        objectPage.SetDirtyState();
+					        objectPage.Save();
+				        }
+			        }
 
-						if (bytesRead < byteSize)
-						{
-							complete = true;
-						}
-					}
+			        await TrunkTransactionContext.Commit().ConfigureAwait(true);
+                }
+                finally
+                {
+                    await dbDevice.CloseAsync().ConfigureAwait(true);
+                    dbDevice.Dispose();
+                    dbDevice = null;
+                }
+            }
+            finally
+            {
+                if (File.Exists(masterDataPathName))
+                {
+                    File.Delete(masterDataPathName);
+                }
+                if (File.Exists(masterLogPathName))
+                {
+                    File.Delete(masterLogPathName);
+                }
+            }
+        }
 
-					objectPage.SetDirtyState();
-					objectPage.Save();
-				}
-			}
-
-			await TrunkTransactionContext.Commit();
-
-			await dbDevice.CloseAsync();
-		}
-
-		[Fact(DisplayName = "")]
+        [Fact(DisplayName = "")]
 		public async Task DatabaseCreateTableTxnTest()
 		{
             var assemblyLocation = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-
-            var dbDevice = CreateDatabaseDevice();
-
 			var masterDataPathName = Path.Combine(assemblyLocation, "master.mddf");
 			var masterLogPathName = Path.Combine(assemblyLocation, "master.mlf");
+		    try
+		    {
+                var dbDevice = CreateDatabaseDevice();
+		        try
+		        {
+                    dbDevice.BeginTransaction();
 
-            dbDevice.BeginTransaction();
+                    var addFgDevice =
+				        new AddFileGroupDeviceParameters(
+					        FileGroupId.Primary,
+					        "PRIMARY",
+					        "master",
+					        masterDataPathName,
+                            DeviceId.Zero,
+					        128,
+					        true);
+			        await dbDevice.AddFileGroupDevice(addFgDevice).ConfigureAwait(true);
 
-            var addFgDevice =
-				new AddFileGroupDeviceParameters(
-					FileGroupId.Primary,
-					"PRIMARY",
-					"master",
-					masterDataPathName,
-                    DeviceId.Zero,
-					128,
-					true);
-			await dbDevice.AddFileGroupDevice(addFgDevice);
+			        var addLogDevice =
+				        new AddLogDeviceParameters(
+					        "MASTER_LOG",
+					        masterLogPathName,
+                            DeviceId.Zero,
+					        2);
+			        await dbDevice.AddLogDevice(addLogDevice).ConfigureAwait(true);
 
-			var addLogDevice =
-				new AddLogDeviceParameters(
-					"MASTER_LOG",
-					masterLogPathName,
-                    DeviceId.Zero,
-					2);
-			await dbDevice.AddLogDevice(addLogDevice);
+			        await dbDevice.OpenAsync(true).ConfigureAwait(true);
 
-			await dbDevice.OpenAsync(true);
+			        await TrunkTransactionContext.Commit().ConfigureAwait(true);
 
-			await TrunkTransactionContext.Commit();
+                    dbDevice.BeginTransaction();
 
-            dbDevice.BeginTransaction();
+                    var param =
+				        new AddFileGroupTableParameters(
+					        addFgDevice.FileGroupId,
+					        addFgDevice.FileGroupName,
+					        "Test",
+					        new TableColumnInfo(
+						        "Id",
+						        TableColumnDataType.Int,
+						        false,
+						        0,
+						        1,
+						        1),
+					        new TableColumnInfo(
+						        "Name",
+						        TableColumnDataType.NVarChar,
+						        false,
+						        50),
+					        new TableColumnInfo(
+						        "SequenceIndex",
+						        TableColumnDataType.Int,
+						        false),
+					        new TableColumnInfo(
+						        "CreatedDate",
+						        TableColumnDataType.DateTime,
+						        false));
+			        await dbDevice.AddFileGroupTable(param).ConfigureAwait(true);
 
-            var param =
-				new AddFileGroupTableParameters(
-					addFgDevice.FileGroupId,
-					addFgDevice.FileGroupName,
-					"Test",
-					new TableColumnInfo(
-						"Id",
-						TableColumnDataType.Int,
-						false,
-						0,
-						1,
-						1),
-					new TableColumnInfo(
-						"Name",
-						TableColumnDataType.NVarChar,
-						false,
-						50),
-					new TableColumnInfo(
-						"SequenceIndex",
-						TableColumnDataType.Int,
-						false),
-					new TableColumnInfo(
-						"CreatedDate",
-						TableColumnDataType.DateTime,
-						false));
-			await dbDevice.AddFileGroupTable(param);
+			        /*table.AddIndex(
+				        new RootTableIndexInfo
+				        {
+					        IndexFileGroupId = FileGroupDevice.Primary,
+					        IndexSubType = TableIndexSubType.Primary | TableIndexSubType.Unique,
+					        Name = "PK_Test",
+					        OwnerObjectId = 12,
+					        ColumnIDs = new byte[] { 1 }
+				        });*/
 
-			/*table.AddIndex(
-				new RootTableIndexInfo
-				{
-					IndexFileGroupId = FileGroupDevice.Primary,
-					IndexSubType = TableIndexSubType.Primary | TableIndexSubType.Unique,
-					Name = "PK_Test",
-					OwnerObjectId = 12,
-					ColumnIDs = new byte[] { 1 }
-				});*/
+			        //table.EndColumnUpdate().Wait();
 
-			//table.EndColumnUpdate().Wait();
+			        await TrunkTransactionContext.Commit().ConfigureAwait(true);
 
-			await TrunkTransactionContext.Commit();
-
-			// Insert some data
-			/*TrunkTransactionContext.BeginTransaction(dbDevice, TimeSpan.FromMinutes(5));
+			        // Insert some data
+			        /*TrunkTransactionContext.BeginTransaction(dbDevice, TimeSpan.FromMinutes(5));
 
 
 
-			TrunkTransactionContext.Commit();*/
-
-			await dbDevice.CloseAsync();
+			        TrunkTransactionContext.Commit();*/
+		        }
+		        finally
+		        {
+		            await dbDevice.CloseAsync().ConfigureAwait(true);
+		            dbDevice.Dispose();
+		            dbDevice = null;
+		        }
+		    }
+		    finally
+		    {
+		        if (File.Exists(masterDataPathName))
+		        {
+		            File.Delete(masterDataPathName);
+		        }
+		        if (File.Exists(masterLogPathName))
+		        {
+		            File.Delete(masterLogPathName);
+		        }
+		    }
 		}
 
 		private DatabaseDevice CreateDatabaseDevice()
