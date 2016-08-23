@@ -1,10 +1,10 @@
-﻿namespace Zen.Trunk.Storage.Data
-{
-	using System;
-	using System.Threading.Tasks;
-	using System.Threading.Tasks.Dataflow;
-	using Zen.Trunk.Storage.Locking;
+﻿using System;
+using System.Threading.Tasks;
+using System.Threading.Tasks.Dataflow;
+using Zen.Trunk.Storage.Locking;
 
+namespace Zen.Trunk.Storage.Data
+{
 	public interface ITransactionContextTaskRequest
 	{
 		ITrunkTransaction TransactionContext
@@ -118,7 +118,7 @@
 			var scope = TrunkTransactionContext.SwitchTransactionContext(request.TransactionContext);
 			try
 			{
-				return await action(request);
+				return await action(request).ConfigureAwait(false);
 			}
 			finally
 			{
@@ -184,7 +184,7 @@
 			var scope = TrunkTransactionContext.SwitchTransactionContext(request.TransactionContext);
 			try
 			{
-				return await action(request);
+				return await action(request).ConfigureAwait(false);
 			}
 			finally
 			{
