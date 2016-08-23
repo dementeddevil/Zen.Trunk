@@ -301,16 +301,14 @@
         {
             if (IsScatterGatherIOEnabled)
             {
-                await _scatterGatherHelper
-                    .Flush()
-                    .ConfigureAwait(false);
+                await _scatterGatherHelper.Flush().ConfigureAwait(false);
                 _scatterGatherStream.Flush();
                 _scatterGatherStream.Close();
                 _scatterGatherStream = null;
             }
             else
             {
-                _fileStream.Flush();
+                await _fileStream.FlushAsync().ConfigureAwait(false);
                 _fileStream.Close();
                 _fileStream = null;
             }

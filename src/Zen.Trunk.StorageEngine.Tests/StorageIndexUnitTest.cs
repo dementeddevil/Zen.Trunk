@@ -184,57 +184,62 @@ namespace Zen.Trunk.StorageEngine.Tests
 
         private ILifetimeScope _parentServices;
 
-        [Fact(DisplayName = "")]
+        [Fact(DisplayName = "Index test add pages")]
         public async Task IndexTestAddPages()
         {
             var assemblyLocation = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-            var dbDevice = CreateDatabaseDevice();
 
             var masterDataPathName = Path.Combine(assemblyLocation, "master.mddf");
             var masterLogPathName = Path.Combine(assemblyLocation, "master.mlf");
             try
             {
-                dbDevice.BeginTransaction(TimeSpan.FromMinutes(1));
-
-                var addFgDevice =
-                    new AddFileGroupDeviceParameters(
-                        FileGroupId.Primary,
-                        "PRIMARY",
-                        "master",
-                        masterDataPathName,
-                        DeviceId.Zero,
-                        128,
-                        true);
-                await dbDevice.AddFileGroupDevice(addFgDevice);
-
-                var addLogDevice =
-                    new AddLogDeviceParameters(
-                        "MASTER_LOG",
-                        masterLogPathName,
-                        DeviceId.Zero,
-                        2);
-                await dbDevice.AddLogDevice(addLogDevice);
-
-                await dbDevice.OpenAsync(true);
-
-                await TrunkTransactionContext.Commit();
-
-                dbDevice.BeginTransaction(TimeSpan.FromMinutes(5));
-
-                var manager = new TestIndexManager(_parentServices);
-                var indexInfo = new RootIndexInfo
+                var dbDevice = CreateDatabaseDevice();
+                try
                 {
-                    Name = "PK_Test",
-                    OwnerObjectId = new ObjectId(100),
-                    RootIndexDepth = 0,
-                    IndexFileGroupId = addFgDevice.FileGroupId,
-                };
-                manager.CreateIndex(indexInfo);
-                //manager.
+                    dbDevice.BeginTransaction(TimeSpan.FromMinutes(1));
 
-                await TrunkTransactionContext.Commit();
+                    var addFgDevice =
+                        new AddFileGroupDeviceParameters(
+                            FileGroupId.Primary,
+                            "PRIMARY",
+                            "master",
+                            masterDataPathName,
+                            DeviceId.Zero,
+                            128,
+                            true);
+                    await dbDevice.AddFileGroupDevice(addFgDevice);
 
-                await dbDevice.CloseAsync().ConfigureAwait(true);
+                    var addLogDevice =
+                        new AddLogDeviceParameters(
+                            "MASTER_LOG",
+                            masterLogPathName,
+                            DeviceId.Zero,
+                            2);
+                    await dbDevice.AddLogDevice(addLogDevice);
+
+                    await dbDevice.OpenAsync(true);
+
+                    await TrunkTransactionContext.Commit();
+
+                    dbDevice.BeginTransaction(TimeSpan.FromMinutes(5));
+
+                    var manager = new TestIndexManager(_parentServices);
+                    var indexInfo = new RootIndexInfo
+                    {
+                        Name = "PK_Test",
+                        OwnerObjectId = new ObjectId(100),
+                        RootIndexDepth = 0,
+                        IndexFileGroupId = addFgDevice.FileGroupId,
+                    };
+                    manager.CreateIndex(indexInfo);
+                    //manager.
+
+                    await TrunkTransactionContext.Commit();
+                }
+                finally
+                {
+                    await dbDevice.CloseAsync().ConfigureAwait(true);
+                }
             }
             finally
             {

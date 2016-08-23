@@ -53,13 +53,7 @@ namespace Zen.Trunk.Storage.Log
 		#endregion
 
 		#region Private Fields
-		private ConcurrentExclusiveSchedulerPair _taskInterleave;
-		private ITargetBlock<AddLogDeviceRequest> _addLogDevicePort;
-		private ITargetBlock<RemoveLogDeviceRequest> _removeLogDevicePort;
-		private ITargetBlock<WriteLogEntryRequest> _writeLogEntryPort;
-		private ITargetBlock<PerformRecoveryRequest> _performRecoveryPort;
-
-		private readonly Dictionary<DeviceId, LogPageDevice> _secondaryDevices =
+	    private readonly Dictionary<DeviceId, LogPageDevice> _secondaryDevices =
 			new Dictionary<DeviceId, LogPageDevice>();
 
 		private VirtualLogFileStream _currentStream;
@@ -68,7 +62,7 @@ namespace Zen.Trunk.Storage.Log
 		private int _nextTransactionId = 1;
 		private DeviceId _nextLogDeviceId;
 
-		private readonly bool _trucateLog = false;
+		private bool _trucateLog = false;
 		private bool _isInRecovery = false;
 		#endregion
 
@@ -81,12 +75,36 @@ namespace Zen.Trunk.Storage.Log
 	    public MasterLogPageDevice(ILifetimeScope parentLifetimeScope, string pathName)
 			: base(parentLifetimeScope, DeviceId.Zero, pathName)
 		{
-			Initialise();
-		}
-		#endregion
+	        var taskInterleave = new ConcurrentExclusiveSchedulerPair(TaskScheduler.Default);
+            AddLogDevicePort = new TaskRequestActionBlock<AddLogDeviceRequest, DeviceId>(
+                request => AddLogDeviceHandler(request),
+                new ExecutionDataflowBlockOptions
+                {
+                    TaskScheduler = taskInterleave.ExclusiveScheduler
+                });
+            RemoveLogDevicePort = new TaskRequestActionBlock<RemoveLogDeviceRequest, bool>(
+                request => RemoveLogDeviceHandler(request),
+                new ExecutionDataflowBlockOptions
+                {
+                    TaskScheduler = taskInterleave.ExclusiveScheduler
+                });
+            WriteLogEntryPort = new TaskRequestActionBlock<WriteLogEntryRequest, bool>(
+                request => WriteLogEntryHandler(request),
+                new ExecutionDataflowBlockOptions
+                {
+                    TaskScheduler = taskInterleave.ExclusiveScheduler
+                });
+            PerformRecoveryPort = new ActionBlock<PerformRecoveryRequest>(
+                request => PerformRecoveryHandler(request),
+                new ExecutionDataflowBlockOptions
+                {
+                    TaskScheduler = taskInterleave.ExclusiveScheduler
+                });
+        }
+        #endregion
 
-		#region Public Properties
-		public uint CurrentLogFileId => _currentStream.FileId;
+        #region Public Properties
+        public uint CurrentLogFileId => _currentStream.FileId;
 
 	    public uint CurrentLogFileOffset => (uint)_currentStream.Position;
 
@@ -137,13 +155,13 @@ namespace Zen.Trunk.Storage.Log
 	    #endregion
 
 		#region Private Properties
-		private ITargetBlock<AddLogDeviceRequest> AddLogDevicePort => _addLogDevicePort;
+		private ITargetBlock<AddLogDeviceRequest> AddLogDevicePort { get; }
 
-	    private ITargetBlock<RemoveLogDeviceRequest> RemoveLogDevicePort => _removeLogDevicePort;
+	    private ITargetBlock<RemoveLogDeviceRequest> RemoveLogDevicePort { get; }
 
-	    private ITargetBlock<WriteLogEntryRequest> WriteLogEntryPort => _writeLogEntryPort;
+	    private ITargetBlock<WriteLogEntryRequest> WriteLogEntryPort { get; }
 
-	    private ITargetBlock<PerformRecoveryRequest> PerformRecoveryPort => _performRecoveryPort;
+	    private ITargetBlock<PerformRecoveryRequest> PerformRecoveryPort { get; }
 
 	    #endregion
 
@@ -378,42 +396,24 @@ namespace Zen.Trunk.Storage.Log
 			}
 		}
 
-		protected override LogRootPage CreateRootPage()
+	    protected override async Task OnClose()
+	    {
+
+            // Close secondary devices first
+	        foreach (var secondaryDevice in _secondaryDevices.Values)
+	        {
+	            await secondaryDevice.CloseAsync().ConfigureAwait(false);
+	        }
+	        await base.OnClose().ConfigureAwait(false);
+	    }
+
+	    protected override LogRootPage CreateRootPage()
 		{
 			return new MasterLogRootPage();
 		}
 		#endregion
 
 		#region Private Methods
-		private void Initialise()
-		{
-			_taskInterleave = new ConcurrentExclusiveSchedulerPair(TaskScheduler.Default);
-			_addLogDevicePort = new TaskRequestActionBlock<AddLogDeviceRequest, DeviceId>(
-				request => AddLogDeviceHandler(request),
-				new ExecutionDataflowBlockOptions
-				{
-					TaskScheduler = _taskInterleave.ExclusiveScheduler
-				});
-			_removeLogDevicePort = new TaskRequestActionBlock<RemoveLogDeviceRequest, bool>(
-				request => RemoveLogDeviceHandler(request),
-				new ExecutionDataflowBlockOptions
-				{
-					TaskScheduler = _taskInterleave.ExclusiveScheduler
-				});
-			_writeLogEntryPort = new TaskRequestActionBlock<WriteLogEntryRequest, bool>(
-				request => WriteLogEntryHandler(request),
-				new ExecutionDataflowBlockOptions
-				{
-					TaskScheduler = _taskInterleave.ExclusiveScheduler
-				});
-			_performRecoveryPort = new ActionBlock<PerformRecoveryRequest>(
-				request => PerformRecoveryHandler(request),
-				new ExecutionDataflowBlockOptions
-				{
-					TaskScheduler = _taskInterleave.ExclusiveScheduler
-				});
-		}
-
 		private async Task<DeviceId> AddLogDeviceHandler(AddLogDeviceRequest request)
 		{
 			var masterRootPage = GetRootPage<MasterLogRootPage>();
