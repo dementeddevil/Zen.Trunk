@@ -140,11 +140,14 @@
     <Compile Include="TaskSchedulers\SynchronizationContextTaskScheduler.cs" />
     <Compile Include="TaskSchedulers\ThreadPerTaskkScheduler.cs" />
     <Compile Include="TaskSchedulers\WorkStealingTaskScheduler.cs" />
+    <Compile Include="Utils\ITaskRequest.cs" />
     <Compile Include="Utils\RandomizeExtension.cs" />
+    <Compile Include="Utils\TargetBlockExtensions.cs" />
     <Compile Include="Utils\TargetBlockSet.cs" />
     <Compile Include="Utils\SortedTopN.cs" />
     <Compile Include="Utils\TaskExtra.cs" />
     <Compile Include="Utils\TaskRequest.cs" />
+    <Compile Include="Utils\TaskRequestActionBlock.cs" />
     <Compile Include="Utils\TimeoutHelper.cs" />
   </ItemGroup>
   <ItemGroup>
