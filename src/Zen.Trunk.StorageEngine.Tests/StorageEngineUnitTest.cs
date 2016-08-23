@@ -16,6 +16,7 @@ using Xunit;
 namespace Zen.Trunk.StorageEngine.Tests
 {
 	[Trait("Subsystem", "Storage Engine")]
+    [Trait("Class", "Database Device")]
 	public class StorageEngineUnitTest
 	{
 	    private ILifetimeScope _lifetimeScope;
@@ -25,7 +26,7 @@ namespace Zen.Trunk.StorageEngine.Tests
 	        _lifetimeScope.Dispose();
 	    }
 
-		[Fact(DisplayName = "")]
+		[Fact(DisplayName = "Validate create database under transaction works as expected")]
 		public async Task DatabaseCreateTxnTest()
 		{
             var assemblyLocation = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
@@ -47,7 +48,7 @@ namespace Zen.Trunk.StorageEngine.Tests
                             DeviceId.Zero,
 					        128,
 					        true);
-			        await dbDevice.AddFileGroupDevice(addFgDevice);
+			        await dbDevice.AddFileGroupDevice(addFgDevice).ConfigureAwait(true);
 
 			        var addLogDevice =
 				        new AddLogDeviceParameters(
@@ -55,20 +56,19 @@ namespace Zen.Trunk.StorageEngine.Tests
 					        masterLogPathName,
                             DeviceId.Zero,
 					        2);
-			        await dbDevice.AddLogDevice(addLogDevice);
+			        await dbDevice.AddLogDevice(addLogDevice).ConfigureAwait(true);
 
-			        await dbDevice.OpenAsync(true);
-			        Trace.WriteLine("DatabaseDevice.Open succeeded");
+                    await dbDevice.OpenAsync(true).ConfigureAwait(true);
+                    Trace.WriteLine("DatabaseDevice.Open succeeded");
 
-			        await TrunkTransactionContext.Commit();
-			        Trace.WriteLine("Transaction commit succeeded");
-
-			        await dbDevice.CloseAsync();
-			        Trace.WriteLine("DatabaseDevice.Close succeeded");
+			        await TrunkTransactionContext.Commit().ConfigureAwait(true);
+                    Trace.WriteLine("Transaction commit succeeded");
                 }
 		        finally
 		        {
 		            await dbDevice.CloseAsync().ConfigureAwait(true);
+                    Trace.WriteLine("DatabaseDevice.Close succeeded");
+
                     dbDevice.Dispose();
 		            dbDevice = null;
 		        }
@@ -86,8 +86,8 @@ namespace Zen.Trunk.StorageEngine.Tests
 		    }
 		}
 
-		[Fact(DisplayName = "")]
-		public async Task DatabaseCreateStreamTxnTest()
+        [Fact(DisplayName = "Validate create database and streaming data into several pages under transaction works as expected")]
+        public async Task DatabaseCreateStreamTxnTest()
 		{
             var assemblyLocation = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
             var masterDataPathName = Path.Combine(assemblyLocation, "master.mddf");
@@ -224,7 +224,7 @@ namespace Zen.Trunk.StorageEngine.Tests
             }
         }
 
-        [Fact(DisplayName = "")]
+        [Fact(DisplayName = "Validate that creating database table under transaction works as expected.")]
 		public async Task DatabaseCreateTableTxnTest()
 		{
             var assemblyLocation = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
