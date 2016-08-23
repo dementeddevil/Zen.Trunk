@@ -17,8 +17,8 @@ namespace Zen.Trunk.StorageEngine.Tests
 		/// <summary>
 		/// Test transaction escalation with lock owner blocks.
 		/// </summary>
-		[Fact(DisplayName = @"
-Given two transactions holding shared locks to the same resource
+		[Fact(DisplayName = 
+            @"Given two transactions holding shared locks to the same resource
 When one transaction upgrades to an update lock the operation succeeds but when trying for an exclusive lock
 Then the attempt to gain an exclusive lock fails.")]
 		public void LockOwnerBlockTryGetExclusiveTest()
@@ -30,7 +30,7 @@ Then the attempt to gain an exclusive lock fails.")]
 			// Create two transaction objects
 			ITrunkTransaction firstTransaction = new TrunkTransaction(container, IsolationLevel.ReadCommitted, TimeSpan.FromSeconds(10));
 			ITrunkTransaction secondTransaction = new TrunkTransaction(container, IsolationLevel.ReadCommitted, TimeSpan.FromSeconds(10));
-			Assert.NotSame(firstTransaction.TransactionId, secondTransaction.TransactionId);
+			Assert.NotEqual(firstTransaction.TransactionId, secondTransaction.TransactionId);
 
 			// We need access to the Lock Owner Block (LOB) for each transaction
 			var firstTransactionLOB = ((ITrunkTransactionPrivate)firstTransaction).TransactionLocks;
@@ -68,7 +68,7 @@ Then the attempt to gain an exclusive lock fails.")]
 		/// <summary>
 		/// Test transaction escalation with lock owner blocks.
 		/// </summary>
-		[Fact(DisplayName = "")]
+		[Fact(DisplayName = "Verify no page lock escalation occurs on txn 2 once shared page lock has escalated to object lock on txn 1")]
 		public void LockOwnerBlockTryEscalateLock()
 		{
 			// Setup minimal service container we need to get trunk transactions to work
@@ -78,7 +78,7 @@ Then the attempt to gain an exclusive lock fails.")]
             // Create two transaction objects
             ITrunkTransaction firstTransaction = new TrunkTransaction(container, IsolationLevel.ReadCommitted, TimeSpan.FromSeconds(10));
 			ITrunkTransaction secondTransaction = new TrunkTransaction(container, IsolationLevel.ReadCommitted, TimeSpan.FromSeconds(10));
-			Assert.NotSame(firstTransaction.TransactionId, secondTransaction.TransactionId);
+			Assert.NotEqual(firstTransaction.TransactionId, secondTransaction.TransactionId);
 
 			// We need access to the Lock Owner Block (LOB) for each transaction
 			var firstTransactionLOB = ((ITrunkTransactionPrivate)firstTransaction).TransactionLocks;
@@ -108,23 +108,26 @@ Then the attempt to gain an exclusive lock fails.")]
 				Assert.True(dlob.HasItemLock(new LogicalPageId(1), DataLockType.Shared), "Second transaction should have shared lock on logical page 1");
 			}
 
-		    Assert.Throws<TimeoutException>(
-		        () =>
-		        {
-			        // Attempt to get exclusive lock on txn 2 (both update and exclusive fails)
-			        //	both fail because the original lock on txn 1 was escalated to a full object lock
-			        //	the update lock would succeed only if the original locks on txn 1 did not cause
-			        //	an object-level escalation.
-			        using (var disp = TrunkTransactionContext.SwitchTransactionContext(secondTransaction))
-			        {
-				        var dlob = secondTransactionLOB.GetOrCreateDataLockOwnerBlock(new ObjectId(1), 5);
-				        dlob.LockItem(new LogicalPageId(1), DataLockType.Update, TimeSpan.FromSeconds(5));
+			// Attempt to get exclusive lock on txn 2 (both update and exclusive fails)
+			//	both fail because the original lock on txn 1 was escalated to a full object lock
+			//	the update lock would succeed only if the original locks on txn 1 did not cause
+			//	an object-level escalation.
+			using (var disp = TrunkTransactionContext.SwitchTransactionContext(secondTransaction))
+			{
+				var dlob = secondTransactionLOB.GetOrCreateDataLockOwnerBlock(new ObjectId(1), 5);
+                Assert.Throws<TimeoutException>(
+                    () =>
+                    {
+                        dlob.LockItem(new LogicalPageId(1), DataLockType.Update, TimeSpan.FromSeconds(5));
 				        Assert.True(dlob.HasItemLock(new LogicalPageId(1), DataLockType.Update), "Second transaction should have update lock on logical page 1");
-
+                    });
+                Assert.Throws<TimeoutException>(
+                    () =>
+                    {
 				        dlob.LockItem(new LogicalPageId(1), DataLockType.Exclusive, TimeSpan.FromSeconds(5));
 				        Assert.True(dlob.HasItemLock(new LogicalPageId(1), DataLockType.Exclusive), "Second transaction should not have exclusive lock on logical page 1");
-			        }
-		        });
+                    });
+			}
 		}
 
 		private void VerifyDataLockHeld(IDatabaseLockManager dlm, uint objectId, ulong logicalId, DataLockType lockType, string message)

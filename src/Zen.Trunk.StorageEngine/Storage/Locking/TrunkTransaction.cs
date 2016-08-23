@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Transactions;
 using Autofac;
+using Autofac.Core;
 using Zen.Trunk.Storage.Log;
 
 namespace Zen.Trunk.Storage.Locking
@@ -214,9 +215,15 @@ namespace Zen.Trunk.Storage.Locking
 
         private void TryEnlistInTransaction()
         {
-            if (_lifetimeScope.TryResolve<MasterLogPageDevice>(out _logDevice))
+            try
             {
-                _transactionId = _logDevice.GetNextTransactionId();
+                if (_lifetimeScope.TryResolve<MasterLogPageDevice>(out _logDevice))
+                {
+                    _transactionId = _logDevice.GetNextTransactionId();
+                }
+            }
+            catch (DependencyResolutionException)
+            {
             }
         }
 
