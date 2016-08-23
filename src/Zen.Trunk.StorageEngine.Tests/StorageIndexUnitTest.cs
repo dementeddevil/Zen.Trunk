@@ -187,16 +187,15 @@ namespace Zen.Trunk.StorageEngine.Tests
         [Fact(DisplayName = "Index test add pages")]
         public async Task IndexTestAddPages()
         {
-            var assemblyLocation = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-
-            var masterDataPathName = Path.Combine(assemblyLocation, "master.mddf");
-            var masterLogPathName = Path.Combine(assemblyLocation, "master.mlf");
-            try
+            using (var fileTracker = new TempFileTracker())
             {
+                var masterDataPathName = fileTracker.Get("master.mddf");
+                var masterLogPathName = fileTracker.Get("master.mlf");
+
                 var dbDevice = CreateDatabaseDevice();
                 try
                 {
-                    dbDevice.BeginTransaction(TimeSpan.FromMinutes(1));
+                    dbDevice.BeginTransaction(TimeSpan.FromMinutes(10));
 
                     var addFgDevice =
                         new AddFileGroupDeviceParameters(
@@ -221,7 +220,7 @@ namespace Zen.Trunk.StorageEngine.Tests
 
                     await TrunkTransactionContext.Commit();
 
-                    dbDevice.BeginTransaction(TimeSpan.FromMinutes(5));
+                    dbDevice.BeginTransaction(TimeSpan.FromMinutes(10));
 
                     var manager = new TestIndexManager(_parentServices);
                     var indexInfo = new RootIndexInfo
@@ -239,17 +238,6 @@ namespace Zen.Trunk.StorageEngine.Tests
                 finally
                 {
                     await dbDevice.CloseAsync().ConfigureAwait(true);
-                }
-            }
-            finally
-            {
-                if (File.Exists(masterDataPathName))
-                {
-                    File.Delete(masterDataPathName);
-                }
-                if (File.Exists(masterLogPathName))
-                {
-                    File.Delete(masterLogPathName);
                 }
             }
         }

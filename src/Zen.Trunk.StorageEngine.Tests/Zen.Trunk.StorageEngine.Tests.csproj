@@ -96,6 +96,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="StorageEngineBuilder.cs" />
+    <Compile Include="TempFileTracker.cs" />
     <Compile Include="TransactionLockBlockUnitTest.cs" />
     <Compile Include="PageUnitTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
