@@ -1,3 +1,5 @@
+using System.Diagnostics;
+
 namespace System.Threading.Tasks.Dataflow
 {
     /// <summary>
@@ -6,6 +8,7 @@ namespace System.Threading.Tasks.Dataflow
     /// </summary>
     /// <typeparam name="TRequest">The type of the request.</typeparam>
     /// <typeparam name="TResult">The type of the result.</typeparam>
+    [DebuggerStepThrough]
     public class TaskRequestActionBlock<TRequest, TResult> : ITargetBlock<TRequest>
         where TRequest : TaskRequest<TResult>
     {

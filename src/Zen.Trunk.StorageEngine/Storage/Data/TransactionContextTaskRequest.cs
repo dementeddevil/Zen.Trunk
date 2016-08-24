@@ -1,25 +1,18 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 using Zen.Trunk.Storage.Locking;
 
 namespace Zen.Trunk.Storage.Data
 {
-	public interface ITransactionContextTaskRequest
-	{
-		ITrunkTransaction TransactionContext
-		{
-			get;
-			set;
-		}
-	}
-
-	/// <summary>
-	/// TransactionContextTaskRequest is a specialisation of TaskRequest that
-	/// flows the active transaction context with the request.
-	/// </summary>
-	/// <typeparam name="TResult"></typeparam>
-	public class TransactionContextTaskRequest<TResult> :
+    /// <summary>
+    /// TransactionContextTaskRequest is a specialisation of TaskRequest that
+    /// flows the active transaction context with the request.
+    /// </summary>
+    /// <typeparam name="TResult"></typeparam>
+    [DebuggerStepThrough]
+    public class TransactionContextTaskRequest<TResult> :
 		TaskRequest<TResult>,
 		ITransactionContextTaskRequest
 	{
@@ -35,11 +28,12 @@ namespace Zen.Trunk.Storage.Data
 		}
 	}
 
-	/// <summary>
-	/// TransactionContextTaskRequest is a specialisation of TaskRequest that
-	/// flows the active transaction context with the request.
-	/// </summary>
-	public class TransactionContextTaskRequest<TMessage, TResult> :
+    /// <summary>
+    /// TransactionContextTaskRequest is a specialisation of TaskRequest that
+    /// flows the active transaction context with the request.
+    /// </summary>
+    [DebuggerStepThrough]
+    public class TransactionContextTaskRequest<TMessage, TResult> :
 		TaskRequest<TMessage, TResult>,
 		ITransactionContextTaskRequest
 	{
@@ -61,7 +55,8 @@ namespace Zen.Trunk.Storage.Data
 		}
 	}
 
-	public class TransactionContextActionBlock<TRequest, TResult> : TaskRequestActionBlock<TRequest, TResult>
+    [DebuggerStepThrough]
+    public class TransactionContextActionBlock<TRequest, TResult> : TaskRequestActionBlock<TRequest, TResult>
 		where TRequest : TaskRequest<TResult>, ITransactionContextTaskRequest
 	{
 		public TransactionContextActionBlock(Func<TRequest, TResult> action)
@@ -127,7 +122,8 @@ namespace Zen.Trunk.Storage.Data
 		}
 	}
 
-	public class TransactionContextActionBlock<TRequest, TMessage, TResult> : TaskRequestActionBlock<TRequest, TResult>
+    [DebuggerStepThrough]
+    public class TransactionContextActionBlock<TRequest, TMessage, TResult> : TaskRequestActionBlock<TRequest, TResult>
 		where TRequest : TaskRequest<TMessage, TResult>, ITransactionContextTaskRequest
 	{
 		public TransactionContextActionBlock(Func<TRequest, TResult> action)

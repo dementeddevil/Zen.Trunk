@@ -1,10 +1,9 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Diagnostics;
 
 namespace System.Threading.Tasks.Dataflow
 {
-    //[CLSCompliant(false)]
-	public class TaskRequest<TResult> : TaskCompletionSource<TResult>, ITaskRequest
+    [DebuggerStepThrough]
+    public class TaskRequest<TResult> : TaskCompletionSource<TResult>, ITaskRequest
 	{
 		public TaskRequest()
 		{
@@ -18,8 +17,8 @@ namespace System.Threading.Tasks.Dataflow
 		Task ITaskRequest.Task => Task;
 	}
 
-	//[CLSCompliant(false)]
-	public class TaskRequest<TMessage, TResult> : TaskRequest<TResult>
+    [DebuggerStepThrough]
+    public class TaskRequest<TMessage, TResult> : TaskRequest<TResult>
 	{
 		public TaskRequest()
 		{
