@@ -1,5 +1,8 @@
-﻿namespace System.Threading.Tasks
+﻿using System.Diagnostics;
+
+namespace System.Threading.Tasks
 {
+    [DebuggerStepThrough]
 	public static class TaskExtra
 	{
 		public static Task WhenAllOrEmpty(params Task[] tasks)

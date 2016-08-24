@@ -54,7 +54,7 @@
 
 		public DataflowMessageStatus OfferMessage(DataflowMessageHeader message, object value, ISourceBlock<object> source, bool consumeToAccept)
 		{
-			if (typeof(T0).IsInstanceOfType(value))
+			if (value is T0)
 			{
 				return _t0.OfferMessage(
 					message,
@@ -62,7 +62,7 @@
 					(ISourceBlock<T0>)source,
 					consumeToAccept);
 			}
-			if (typeof(T1).IsInstanceOfType(value))
+			if (value is T1)
 			{
 				return _t1.OfferMessage(
 					message,
@@ -125,7 +125,7 @@
 
 		public DataflowMessageStatus OfferMessage(DataflowMessageHeader message, object value, ISourceBlock<object> source, bool consumeToAccept)
 		{
-			if (typeof(T0).IsInstanceOfType(value))
+			if (value is T0)
 			{
 				return _t0.OfferMessage(
 					message,
@@ -133,7 +133,7 @@
 					(ISourceBlock<T0>)source,
 					consumeToAccept);
 			}
-			if (typeof(T1).IsInstanceOfType(value))
+			if (value is T1)
 			{
 				return _t1.OfferMessage(
 					message,
@@ -141,7 +141,7 @@
 					(ISourceBlock<T1>)source,
 					consumeToAccept);
 			}
-			if (typeof(T2).IsInstanceOfType(value))
+			if (value is T2)
 			{
 				return _t2.OfferMessage(
 					message,
@@ -210,7 +210,7 @@
 
 		public DataflowMessageStatus OfferMessage(DataflowMessageHeader message, object value, ISourceBlock<object> source, bool consumeToAccept)
 		{
-			if (typeof(T0).IsInstanceOfType(value))
+			if (value is T0)
 			{
 				return _t0.OfferMessage(
 					message,
@@ -218,7 +218,7 @@
 					(ISourceBlock<T0>)source,
 					consumeToAccept);
 			}
-			if (typeof(T1).IsInstanceOfType(value))
+			if (value is T1)
 			{
 				return _t1.OfferMessage(
 					message,
@@ -226,7 +226,7 @@
 					(ISourceBlock<T1>)source,
 					consumeToAccept);
 			}
-			if (typeof(T2).IsInstanceOfType(value))
+			if (value is T2)
 			{
 				return _t2.OfferMessage(
 					message,
@@ -234,7 +234,7 @@
 					(ISourceBlock<T2>)source,
 					consumeToAccept);
 			}
-			if (typeof(T3).IsInstanceOfType(value))
+			if (value is T3)
 			{
 				return _t3.OfferMessage(
 					message,
@@ -309,7 +309,7 @@
 
 		public DataflowMessageStatus OfferMessage(DataflowMessageHeader message, object value, ISourceBlock<object> source, bool consumeToAccept)
 		{
-			if (typeof(T0).IsInstanceOfType(value))
+			if (value is T0)
 			{
 				return _t0.OfferMessage(
 					message,
@@ -317,7 +317,7 @@
 					(ISourceBlock<T0>)source,
 					consumeToAccept);
 			}
-			if (typeof(T1).IsInstanceOfType(value))
+			if (value is T1)
 			{
 				return _t1.OfferMessage(
 					message,
@@ -325,7 +325,7 @@
 					(ISourceBlock<T1>)source,
 					consumeToAccept);
 			}
-			if (typeof(T2).IsInstanceOfType(value))
+			if (value is T2)
 			{
 				return _t2.OfferMessage(
 					message,
@@ -333,7 +333,7 @@
 					(ISourceBlock<T2>)source,
 					consumeToAccept);
 			}
-			if (typeof(T3).IsInstanceOfType(value))
+			if (value is T3)
 			{
 				return _t3.OfferMessage(
 					message,
@@ -341,7 +341,7 @@
 					(ISourceBlock<T3>)source,
 					consumeToAccept);
 			}
-			if (typeof(T4).IsInstanceOfType(value))
+			if (value is T4)
 			{
 				return _t4.OfferMessage(
 					message,
@@ -422,7 +422,7 @@
 
 		public DataflowMessageStatus OfferMessage(DataflowMessageHeader message, object value, ISourceBlock<object> source, bool consumeToAccept)
 		{
-			if (typeof(T0).IsInstanceOfType(value))
+			if (value is T0)
 			{
 				return _t0.OfferMessage(
 					message,
@@ -430,7 +430,7 @@
 					(ISourceBlock<T0>)source,
 					consumeToAccept);
 			}
-			if (typeof(T1).IsInstanceOfType(value))
+			if (value is T1)
 			{
 				return _t1.OfferMessage(
 					message,
@@ -438,7 +438,7 @@
 					(ISourceBlock<T1>)source,
 					consumeToAccept);
 			}
-			if (typeof(T2).IsInstanceOfType(value))
+			if (value is T2)
 			{
 				return _t2.OfferMessage(
 					message,
@@ -446,7 +446,7 @@
 					(ISourceBlock<T2>)source,
 					consumeToAccept);
 			}
-			if (typeof(T3).IsInstanceOfType(value))
+			if (value is T3)
 			{
 				return _t3.OfferMessage(
 					message,
@@ -454,7 +454,7 @@
 					(ISourceBlock<T3>)source,
 					consumeToAccept);
 			}
-			if (typeof(T4).IsInstanceOfType(value))
+			if (value is T4)
 			{
 				return _t4.OfferMessage(
 					message,
@@ -462,7 +462,7 @@
 					(ISourceBlock<T4>)source,
 					consumeToAccept);
 			}
-			if (typeof(T5).IsInstanceOfType(value))
+			if (value is T5)
 			{
 				return _t5.OfferMessage(
 					message,
@@ -549,7 +549,7 @@
 
 		public DataflowMessageStatus OfferMessage(DataflowMessageHeader message, object value, ISourceBlock<object> source, bool consumeToAccept)
 		{
-			if (typeof(T0).IsInstanceOfType(value))
+			if (value is T0)
 			{
 				return _t0.OfferMessage(
 					message,
@@ -557,7 +557,7 @@
 					(ISourceBlock<T0>)source,
 					consumeToAccept);
 			}
-			if (typeof(T1).IsInstanceOfType(value))
+			if (value is T1)
 			{
 				return _t1.OfferMessage(
 					message,
@@ -565,7 +565,7 @@
 					(ISourceBlock<T1>)source,
 					consumeToAccept);
 			}
-			if (typeof(T2).IsInstanceOfType(value))
+			if (value is T2)
 			{
 				return _t2.OfferMessage(
 					message,
@@ -573,7 +573,7 @@
 					(ISourceBlock<T2>)source,
 					consumeToAccept);
 			}
-			if (typeof(T3).IsInstanceOfType(value))
+			if (value is T3)
 			{
 				return _t3.OfferMessage(
 					message,
@@ -581,7 +581,7 @@
 					(ISourceBlock<T3>)source,
 					consumeToAccept);
 			}
-			if (typeof(T4).IsInstanceOfType(value))
+			if (value is T4)
 			{
 				return _t4.OfferMessage(
 					message,
@@ -589,7 +589,7 @@
 					(ISourceBlock<T4>)source,
 					consumeToAccept);
 			}
-			if (typeof(T5).IsInstanceOfType(value))
+			if (value is T5)
 			{
 				return _t5.OfferMessage(
 					message,
@@ -597,7 +597,7 @@
 					(ISourceBlock<T5>)source,
 					consumeToAccept);
 			}
-			if (typeof(T6).IsInstanceOfType(value))
+			if (value is T6)
 			{
 				return _t6.OfferMessage(
 					message,
@@ -690,7 +690,7 @@
 
 		public DataflowMessageStatus OfferMessage(DataflowMessageHeader message, object value, ISourceBlock<object> source, bool consumeToAccept)
 		{
-			if (typeof(T0).IsInstanceOfType(value))
+			if (value is T0)
 			{
 				return _t0.OfferMessage(
 					message,
@@ -698,7 +698,7 @@
 					(ISourceBlock<T0>)source,
 					consumeToAccept);
 			}
-			if (typeof(T1).IsInstanceOfType(value))
+			if (value is T1)
 			{
 				return _t1.OfferMessage(
 					message,
@@ -706,7 +706,7 @@
 					(ISourceBlock<T1>)source,
 					consumeToAccept);
 			}
-			if (typeof(T2).IsInstanceOfType(value))
+			if (value is T2)
 			{
 				return _t2.OfferMessage(
 					message,
@@ -714,7 +714,7 @@
 					(ISourceBlock<T2>)source,
 					consumeToAccept);
 			}
-			if (typeof(T3).IsInstanceOfType(value))
+			if (value is T3)
 			{
 				return _t3.OfferMessage(
 					message,
@@ -722,7 +722,7 @@
 					(ISourceBlock<T3>)source,
 					consumeToAccept);
 			}
-			if (typeof(T4).IsInstanceOfType(value))
+			if (value is T4)
 			{
 				return _t4.OfferMessage(
 					message,
@@ -730,7 +730,7 @@
 					(ISourceBlock<T4>)source,
 					consumeToAccept);
 			}
-			if (typeof(T5).IsInstanceOfType(value))
+			if (value is T5)
 			{
 				return _t5.OfferMessage(
 					message,
@@ -738,7 +738,7 @@
 					(ISourceBlock<T5>)source,
 					consumeToAccept);
 			}
-			if (typeof(T6).IsInstanceOfType(value))
+			if (value is T6)
 			{
 				return _t6.OfferMessage(
 					message,
@@ -746,7 +746,7 @@
 					(ISourceBlock<T6>)source,
 					consumeToAccept);
 			}
-			if (typeof(T7).IsInstanceOfType(value))
+			if (value is T7)
 			{
 				return _t7.OfferMessage(
 					message,
@@ -845,71 +845,71 @@
 
 		public DataflowMessageStatus OfferMessage(DataflowMessageHeader message, object value, ISourceBlock<object> source, bool consumeToAccept)
 		{
-			if (typeof(T0).IsInstanceOfType(value))
-			{
-				return _t0.OfferMessage(
-					message,
-					(T0)value,
-					(ISourceBlock<T0>)source,
-					consumeToAccept);
-			}
-			if (typeof(T1).IsInstanceOfType(value))
-			{
-				return _t1.OfferMessage(
-					message,
-					(T1)value,
-					(ISourceBlock<T1>)source,
-					consumeToAccept);
-			}
-			if (typeof(T2).IsInstanceOfType(value))
-			{
-				return _t2.OfferMessage(
-					message,
-					(T2)value,
-					(ISourceBlock<T2>)source,
-					consumeToAccept);
-			}
-			if (typeof(T3).IsInstanceOfType(value))
-			{
-				return _t3.OfferMessage(
-					message,
-					(T3)value,
-					(ISourceBlock<T3>)source,
-					consumeToAccept);
-			}
-			if (typeof(T4).IsInstanceOfType(value))
-			{
-				return _t4.OfferMessage(
-					message,
-					(T4)value,
-					(ISourceBlock<T4>)source,
-					consumeToAccept);
-			}
-			if (typeof(T5).IsInstanceOfType(value))
-			{
-				return _t5.OfferMessage(
-					message,
-					(T5)value,
-					(ISourceBlock<T5>)source,
-					consumeToAccept);
-			}
-			if (typeof(T6).IsInstanceOfType(value))
-			{
-				return _t6.OfferMessage(
-					message,
-					(T6)value,
-					(ISourceBlock<T6>)source,
-					consumeToAccept);
-			}
-			if (typeof(T7).IsInstanceOfType(value))
-			{
-				return _t7.OfferMessage(
-					message,
-					(T7)value,
-					(ISourceBlock<T7>)source,
-					consumeToAccept);
-			}
-			if (typeof(T8).IsInstanceOfType(value))
+            if (value is T0)
+            {
+                return _t0.OfferMessage(
+                    message,
+                    (T0)value,
+                    (ISourceBlock<T0>)source,
+                    consumeToAccept);
+            }
+            if (value is T1)
+            {
+                return _t1.OfferMessage(
+                    message,
+                    (T1)value,
+                    (ISourceBlock<T1>)source,
+                    consumeToAccept);
+            }
+            if (value is T2)
+            {
+                return _t2.OfferMessage(
+                    message,
+                    (T2)value,
+                    (ISourceBlock<T2>)source,
+                    consumeToAccept);
+            }
+            if (value is T3)
+            {
+                return _t3.OfferMessage(
+                    message,
+                    (T3)value,
+                    (ISourceBlock<T3>)source,
+                    consumeToAccept);
+            }
+            if (value is T4)
+            {
+                return _t4.OfferMessage(
+                    message,
+                    (T4)value,
+                    (ISourceBlock<T4>)source,
+                    consumeToAccept);
+            }
+            if (value is T5)
+            {
+                return _t5.OfferMessage(
+                    message,
+                    (T5)value,
+                    (ISourceBlock<T5>)source,
+                    consumeToAccept);
+            }
+            if (value is T6)
+            {
+                return _t6.OfferMessage(
+                    message,
+                    (T6)value,
+                    (ISourceBlock<T6>)source,
+                    consumeToAccept);
+            }
+            if (value is T7)
+            {
+                return _t7.OfferMessage(
+                    message,
+                    (T7)value,
+                    (ISourceBlock<T7>)source,
+                    consumeToAccept);
+            }
+            if (value is T8)
 			{
 				return _t8.OfferMessage(
 					message,
@@ -1014,71 +1014,71 @@
 
 		public DataflowMessageStatus OfferMessage(DataflowMessageHeader message, object value, ISourceBlock<object> source, bool consumeToAccept)
 		{
-			if (typeof(T0).IsInstanceOfType(value))
-			{
-				return _t0.OfferMessage(
-					message,
-					(T0)value,
-					(ISourceBlock<T0>)source,
-					consumeToAccept);
-			}
-			if (typeof(T1).IsInstanceOfType(value))
-			{
-				return _t1.OfferMessage(
-					message,
-					(T1)value,
-					(ISourceBlock<T1>)source,
-					consumeToAccept);
-			}
-			if (typeof(T2).IsInstanceOfType(value))
-			{
-				return _t2.OfferMessage(
-					message,
-					(T2)value,
-					(ISourceBlock<T2>)source,
-					consumeToAccept);
-			}
-			if (typeof(T3).IsInstanceOfType(value))
-			{
-				return _t3.OfferMessage(
-					message,
-					(T3)value,
-					(ISourceBlock<T3>)source,
-					consumeToAccept);
-			}
-			if (typeof(T4).IsInstanceOfType(value))
-			{
-				return _t4.OfferMessage(
-					message,
-					(T4)value,
-					(ISourceBlock<T4>)source,
-					consumeToAccept);
-			}
-			if (typeof(T5).IsInstanceOfType(value))
-			{
-				return _t5.OfferMessage(
-					message,
-					(T5)value,
-					(ISourceBlock<T5>)source,
-					consumeToAccept);
-			}
-			if (typeof(T6).IsInstanceOfType(value))
-			{
-				return _t6.OfferMessage(
-					message,
-					(T6)value,
-					(ISourceBlock<T6>)source,
-					consumeToAccept);
-			}
-			if (typeof(T7).IsInstanceOfType(value))
-			{
-				return _t7.OfferMessage(
-					message,
-					(T7)value,
-					(ISourceBlock<T7>)source,
-					consumeToAccept);
-			}
-			if (typeof(T8).IsInstanceOfType(value))
+            if (value is T0)
+            {
+                return _t0.OfferMessage(
+                    message,
+                    (T0)value,
+                    (ISourceBlock<T0>)source,
+                    consumeToAccept);
+            }
+            if (value is T1)
+            {
+                return _t1.OfferMessage(
+                    message,
+                    (T1)value,
+                    (ISourceBlock<T1>)source,
+                    consumeToAccept);
+            }
+            if (value is T2)
+            {
+                return _t2.OfferMessage(
+                    message,
+                    (T2)value,
+                    (ISourceBlock<T2>)source,
+                    consumeToAccept);
+            }
+            if (value is T3)
+            {
+                return _t3.OfferMessage(
+                    message,
+                    (T3)value,
+                    (ISourceBlock<T3>)source,
+                    consumeToAccept);
+            }
+            if (value is T4)
+            {
+                return _t4.OfferMessage(
+                    message,
+                    (T4)value,
+                    (ISourceBlock<T4>)source,
+                    consumeToAccept);
+            }
+            if (value is T5)
+            {
+                return _t5.OfferMessage(
+                    message,
+                    (T5)value,
+                    (ISourceBlock<T5>)source,
+                    consumeToAccept);
+            }
+            if (value is T6)
+            {
+                return _t6.OfferMessage(
+                    message,
+                    (T6)value,
+                    (ISourceBlock<T6>)source,
+                    consumeToAccept);
+            }
+            if (value is T7)
+            {
+                return _t7.OfferMessage(
+                    message,
+                    (T7)value,
+                    (ISourceBlock<T7>)source,
+                    consumeToAccept);
+            }
+            if (value is T8)
 			{
 				return _t8.OfferMessage(
 					message,
@@ -1086,7 +1086,7 @@
 					(ISourceBlock<T8>)source,
 					consumeToAccept);
 			}
-			if (typeof(T9).IsInstanceOfType(value))
+			if (value is T9)
 			{
 				return _t9.OfferMessage(
 					message,
@@ -1197,87 +1197,87 @@
 
 		public DataflowMessageStatus OfferMessage(DataflowMessageHeader message, object value, ISourceBlock<object> source, bool consumeToAccept)
 		{
-			if (typeof(T0).IsInstanceOfType(value))
-			{
-				return _t0.OfferMessage(
-					message,
-					(T0)value,
-					(ISourceBlock<T0>)source,
-					consumeToAccept);
-			}
-			if (typeof(T1).IsInstanceOfType(value))
-			{
-				return _t1.OfferMessage(
-					message,
-					(T1)value,
-					(ISourceBlock<T1>)source,
-					consumeToAccept);
-			}
-			if (typeof(T2).IsInstanceOfType(value))
-			{
-				return _t2.OfferMessage(
-					message,
-					(T2)value,
-					(ISourceBlock<T2>)source,
-					consumeToAccept);
-			}
-			if (typeof(T3).IsInstanceOfType(value))
-			{
-				return _t3.OfferMessage(
-					message,
-					(T3)value,
-					(ISourceBlock<T3>)source,
-					consumeToAccept);
-			}
-			if (typeof(T4).IsInstanceOfType(value))
-			{
-				return _t4.OfferMessage(
-					message,
-					(T4)value,
-					(ISourceBlock<T4>)source,
-					consumeToAccept);
-			}
-			if (typeof(T5).IsInstanceOfType(value))
-			{
-				return _t5.OfferMessage(
-					message,
-					(T5)value,
-					(ISourceBlock<T5>)source,
-					consumeToAccept);
-			}
-			if (typeof(T6).IsInstanceOfType(value))
-			{
-				return _t6.OfferMessage(
-					message,
-					(T6)value,
-					(ISourceBlock<T6>)source,
-					consumeToAccept);
-			}
-			if (typeof(T7).IsInstanceOfType(value))
-			{
-				return _t7.OfferMessage(
-					message,
-					(T7)value,
-					(ISourceBlock<T7>)source,
-					consumeToAccept);
-			}
-			if (typeof(T8).IsInstanceOfType(value))
-			{
-				return _t8.OfferMessage(
-					message,
-					(T8)value,
-					(ISourceBlock<T8>)source,
-					consumeToAccept);
-			}
-			if (typeof(T9).IsInstanceOfType(value))
-			{
-				return _t9.OfferMessage(
-					message,
-					(T9)value,
-					(ISourceBlock<T9>)source,
-					consumeToAccept);
-			}
-			if (typeof(T10).IsInstanceOfType(value))
+            if (value is T0)
+            {
+                return _t0.OfferMessage(
+                    message,
+                    (T0)value,
+                    (ISourceBlock<T0>)source,
+                    consumeToAccept);
+            }
+            if (value is T1)
+            {
+                return _t1.OfferMessage(
+                    message,
+                    (T1)value,
+                    (ISourceBlock<T1>)source,
+                    consumeToAccept);
+            }
+            if (value is T2)
+            {
+                return _t2.OfferMessage(
+                    message,
+                    (T2)value,
+                    (ISourceBlock<T2>)source,
+                    consumeToAccept);
+            }
+            if (value is T3)
+            {
+                return _t3.OfferMessage(
+                    message,
+                    (T3)value,
+                    (ISourceBlock<T3>)source,
+                    consumeToAccept);
+            }
+            if (value is T4)
+            {
+                return _t4.OfferMessage(
+                    message,
+                    (T4)value,
+                    (ISourceBlock<T4>)source,
+                    consumeToAccept);
+            }
+            if (value is T5)
+            {
+                return _t5.OfferMessage(
+                    message,
+                    (T5)value,
+                    (ISourceBlock<T5>)source,
+                    consumeToAccept);
+            }
+            if (value is T6)
+            {
+                return _t6.OfferMessage(
+                    message,
+                    (T6)value,
+                    (ISourceBlock<T6>)source,
+                    consumeToAccept);
+            }
+            if (value is T7)
+            {
+                return _t7.OfferMessage(
+                    message,
+                    (T7)value,
+                    (ISourceBlock<T7>)source,
+                    consumeToAccept);
+            }
+            if (value is T8)
+            {
+                return _t8.OfferMessage(
+                    message,
+                    (T8)value,
+                    (ISourceBlock<T8>)source,
+                    consumeToAccept);
+            }
+            if (value is T9)
+            {
+                return _t9.OfferMessage(
+                    message,
+                    (T9)value,
+                    (ISourceBlock<T9>)source,
+                    consumeToAccept);
+            }
+            if (value is T10)
 			{
 				return _t10.OfferMessage(
 					message,
@@ -1394,87 +1394,87 @@
 
 		public DataflowMessageStatus OfferMessage(DataflowMessageHeader message, object value, ISourceBlock<object> source, bool consumeToAccept)
 		{
-			if (typeof(T0).IsInstanceOfType(value))
-			{
-				return _t0.OfferMessage(
-					message,
-					(T0)value,
-					(ISourceBlock<T0>)source,
-					consumeToAccept);
-			}
-			if (typeof(T1).IsInstanceOfType(value))
-			{
-				return _t1.OfferMessage(
-					message,
-					(T1)value,
-					(ISourceBlock<T1>)source,
-					consumeToAccept);
-			}
-			if (typeof(T2).IsInstanceOfType(value))
-			{
-				return _t2.OfferMessage(
-					message,
-					(T2)value,
-					(ISourceBlock<T2>)source,
-					consumeToAccept);
-			}
-			if (typeof(T3).IsInstanceOfType(value))
-			{
-				return _t3.OfferMessage(
-					message,
-					(T3)value,
-					(ISourceBlock<T3>)source,
-					consumeToAccept);
-			}
-			if (typeof(T4).IsInstanceOfType(value))
-			{
-				return _t4.OfferMessage(
-					message,
-					(T4)value,
-					(ISourceBlock<T4>)source,
-					consumeToAccept);
-			}
-			if (typeof(T5).IsInstanceOfType(value))
-			{
-				return _t5.OfferMessage(
-					message,
-					(T5)value,
-					(ISourceBlock<T5>)source,
-					consumeToAccept);
-			}
-			if (typeof(T6).IsInstanceOfType(value))
-			{
-				return _t6.OfferMessage(
-					message,
-					(T6)value,
-					(ISourceBlock<T6>)source,
-					consumeToAccept);
-			}
-			if (typeof(T7).IsInstanceOfType(value))
-			{
-				return _t7.OfferMessage(
-					message,
-					(T7)value,
-					(ISourceBlock<T7>)source,
-					consumeToAccept);
-			}
-			if (typeof(T8).IsInstanceOfType(value))
-			{
-				return _t8.OfferMessage(
-					message,
-					(T8)value,
-					(ISourceBlock<T8>)source,
-					consumeToAccept);
-			}
-			if (typeof(T9).IsInstanceOfType(value))
-			{
-				return _t9.OfferMessage(
-					message,
-					(T9)value,
-					(ISourceBlock<T9>)source,
-					consumeToAccept);
-			}
-			if (typeof(T10).IsInstanceOfType(value))
+            if (value is T0)
+            {
+                return _t0.OfferMessage(
+                    message,
+                    (T0)value,
+                    (ISourceBlock<T0>)source,
+                    consumeToAccept);
+            }
+            if (value is T1)
+            {
+                return _t1.OfferMessage(
+                    message,
+                    (T1)value,
+                    (ISourceBlock<T1>)source,
+                    consumeToAccept);
+            }
+            if (value is T2)
+            {
+                return _t2.OfferMessage(
+                    message,
+                    (T2)value,
+                    (ISourceBlock<T2>)source,
+                    consumeToAccept);
+            }
+            if (value is T3)
+            {
+                return _t3.OfferMessage(
+                    message,
+                    (T3)value,
+                    (ISourceBlock<T3>)source,
+                    consumeToAccept);
+            }
+            if (value is T4)
+            {
+                return _t4.OfferMessage(
+                    message,
+                    (T4)value,
+                    (ISourceBlock<T4>)source,
+                    consumeToAccept);
+            }
+            if (value is T5)
+            {
+                return _t5.OfferMessage(
+                    message,
+                    (T5)value,
+                    (ISourceBlock<T5>)source,
+                    consumeToAccept);
+            }
+            if (value is T6)
+            {
+                return _t6.OfferMessage(
+                    message,
+                    (T6)value,
+                    (ISourceBlock<T6>)source,
+                    consumeToAccept);
+            }
+            if (value is T7)
+            {
+                return _t7.OfferMessage(
+                    message,
+                    (T7)value,
+                    (ISourceBlock<T7>)source,
+                    consumeToAccept);
+            }
+            if (value is T8)
+            {
+                return _t8.OfferMessage(
+                    message,
+                    (T8)value,
+                    (ISourceBlock<T8>)source,
+                    consumeToAccept);
+            }
+            if (value is T9)
+            {
+                return _t9.OfferMessage(
+                    message,
+                    (T9)value,
+                    (ISourceBlock<T9>)source,
+                    consumeToAccept);
+            }
+            if (value is T10)
 			{
 				return _t10.OfferMessage(
 					message,
@@ -1482,7 +1482,7 @@
 					(ISourceBlock<T10>)source,
 					consumeToAccept);
 			}
-			if (typeof(T11).IsInstanceOfType(value))
+			if (value is T11)
 			{
 				return _t11.OfferMessage(
 					message,

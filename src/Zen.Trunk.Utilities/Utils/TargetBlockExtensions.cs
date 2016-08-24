@@ -1,7 +1,9 @@
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace System.Threading.Tasks.Dataflow
 {
+    [DebuggerStepThrough]
     public static class TargetBlockExtensions
     {
         public static Task PostAndWaitAsync(this ITargetBlockSet port, ITaskRequest request)

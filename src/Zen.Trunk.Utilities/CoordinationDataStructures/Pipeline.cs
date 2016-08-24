@@ -16,7 +16,7 @@ namespace System.Threading
 	/// <summary>Provides support for pipelined data processing.</summary>
 	public static class Pipeline
 	{
-		internal readonly static TaskScheduler Scheduler = new ThreadPerTaskScheduler();
+		internal static readonly TaskScheduler Scheduler = new ThreadPerTaskScheduler();
 
 		/// <summary>Creates a new pipeline, with the specified function as the sole stage.</summary>
 		/// <typeparam name="TInput">Specifies the type of the input data to the pipeline.</typeparam>

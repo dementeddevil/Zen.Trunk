@@ -1,14 +1,13 @@
-﻿using Autofac;
+﻿using System;
+using System.Diagnostics;
+using System.Runtime.Remoting.Messaging;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Transactions;
+using Autofac;
 
 namespace Zen.Trunk.Storage.Locking
 {
-	using System;
-	using System.Diagnostics;
-	using System.Runtime.Remoting.Messaging;
-	using System.Threading;
-	using System.Threading.Tasks;
-	using System.Transactions;
-
 	/// <summary>
 	/// <c>TrunkTransactionContext</c> is a object that tracks the current
 	/// transaction for the current execution context.
@@ -28,7 +27,9 @@ namespace Zen.Trunk.Storage.Locking
 	/// </remarks>
 	public static class TrunkTransactionContext
 	{
-		public class TrunkTransactionScope : IDisposable
+	    private const string LogicalContextName = "TrunkTransactionContext";
+
+	    private class TrunkTransactionScope : IDisposable
 		{
 			private ITrunkTransaction _oldContext;
 			private bool _disposed;
@@ -38,13 +39,10 @@ namespace Zen.Trunk.Storage.Locking
 				_oldContext = TrunkTransactionContext.Current;
 				TrunkTransactionContext.Current = newContext;
 
-				Trace.TraceInformation("Enter transaction scope on thread {0} switching transaction from {1} to {2}",
-					Thread.CurrentThread.ManagedThreadId,
-					(_oldContext != null) ? _oldContext.TransactionId.ToString() : "N/A",
-					TrunkTransactionContext.Current.TransactionId);
+                TraceTransaction("Enter", _oldContext, TrunkTransactionContext.Current);
 			}
 
-			public void Dispose()
+            public void Dispose()
 			{
 				DisposeManagedObjects();
 			}
@@ -58,28 +56,33 @@ namespace Zen.Trunk.Storage.Locking
 					var prevContext = TrunkTransactionContext.Current;
 					TrunkTransactionContext.Current = _oldContext;
 
-					Trace.TraceInformation("Leave transaction scope on thread {0} switching transaction from {1} to {2}",
-						Thread.CurrentThread.ManagedThreadId,
-						(prevContext != null) ? prevContext.TransactionId.ToString() : "N/A",
-						(_oldContext != null) ? _oldContext.TransactionId.ToString() : "N/A");
+				    TraceTransaction("Leave", prevContext, TrunkTransactionContext.Current);
 				}
 
 				_oldContext = null;
 			}
+
+		    private void TraceTransaction(string action, ITrunkTransaction prev, ITrunkTransaction next)
+		    {
+		        var threadId = Thread.CurrentThread.ManagedThreadId;
+		        var prevTransactionId = prev != null ? prev.TransactionId.ToString() : "N/A";
+                var nextTransactionId = next != null ? next.TransactionId.ToString() : "N/A";
+		        Trace.TraceInformation(
+		            $"{action} transaction scope on thread {threadId} switching transaction from {prevTransactionId} to {nextTransactionId}");
+		    }
 		}
 
 		public static ITrunkTransaction Current
 		{
 			get
 			{
-				var transaction =
-					(ITrunkTransaction)CallContext.LogicalGetData("TrunkTransactionContext");
+				var transaction = (ITrunkTransaction)CallContext.LogicalGetData(LogicalContextName);
 				if (transaction != null)
 				{
 					var priv = transaction as ITrunkTransactionPrivate;
 					if (priv != null && priv.IsCompleted)
 					{
-						CallContext.FreeNamedDataSlot("TrunkTransactionContext");
+						CallContext.FreeNamedDataSlot(LogicalContextName);
 						return null;
 					}
 				}
@@ -89,11 +92,11 @@ namespace Zen.Trunk.Storage.Locking
 			{
 				if (value != null)
 				{
-					CallContext.LogicalSetData("TrunkTransactionContext", value);
+					CallContext.LogicalSetData(LogicalContextName, value);
 				}
 				else
 				{
-					CallContext.FreeNamedDataSlot("TrunkTransactionContext");
+					CallContext.FreeNamedDataSlot(LogicalContextName);
 				}
 			}
 		}
@@ -120,13 +123,10 @@ namespace Zen.Trunk.Storage.Locking
 
 		public static async Task Commit()
 		{
-			var txn =
-				Current as ITrunkTransactionPrivate;
+			var txn = Current as ITrunkTransactionPrivate;
 			if (txn != null)
 			{
-				var result = await txn
-					.Commit()
-					.WithTimeout(txn.Timeout);
+				var result = await txn.Commit().WithTimeout(txn.Timeout);
 				if (result)
 				{
 					Current = null;
@@ -136,13 +136,10 @@ namespace Zen.Trunk.Storage.Locking
 
 		public static async Task Rollback()
 		{
-			var txn =
-				Current as ITrunkTransactionPrivate;
+			var txn = Current as ITrunkTransactionPrivate;
 			if (txn != null)
 			{
-				var result = await txn
-					.Rollback()
-					.WithTimeout(txn.Timeout);
+				var result = await txn.Rollback().WithTimeout(txn.Timeout);
 				if (result)
 				{
 					Current = null;
@@ -159,10 +156,7 @@ namespace Zen.Trunk.Storage.Locking
 			else
 			{
 				var priv = Current as ITrunkTransactionPrivate;
-				if (priv != null)
-				{
-					priv.BeginNestedTransaction();
-				}
+			    priv?.BeginNestedTransaction();
 			}
 		}
 
