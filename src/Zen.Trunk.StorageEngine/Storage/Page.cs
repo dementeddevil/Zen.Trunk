@@ -72,7 +72,7 @@ namespace Zen.Trunk.Storage
 		private bool _managedData = true;
 		private bool _headerDirty;
 		private bool _dataDirty;
-		private bool _readOnly = true;
+		private bool _readOnly = false;
 		private bool _suppressDirty = true;
 		private bool _disposed;
 		#endregion
@@ -234,7 +234,7 @@ namespace Zen.Trunk.Storage
 			set
 			{
 				CheckReadOnly();
-				if (this.PageType != PageType.Index)
+				if (this.PageType != PageType.New && this.PageType != PageType.Index)
 				{
 					throw new InvalidOperationException("Not valid for non-index pages.");
 				}
