@@ -17,10 +17,24 @@ namespace Zen.Trunk.StorageEngine.Tests
 
         public TempFileTracker([CallerMemberName] string methodName = null)
         {
-            //_basePath = Path.GetDirectoryName(
-            //    Assembly.GetExecutingAssembly().Location);
-            _basePath = @"D:\Projects\ZenDesignSoftware\Zen.Trunk\TestResults";
+            var assembly = Assembly.GetExecutingAssembly();
+
+            // Get path to executing assembly
+            _basePath = Path.GetDirectoryName(assembly
+                .CodeBase
+                .Replace("file:///", string.Empty));
+
+            // Get to the solution root folder
+            _basePath = new DirectoryInfo(_basePath).Parent.Parent.Parent.Parent.Parent.FullName;
+
+            // Setup test results and assembly folder
+            _basePath = Path.Combine(_basePath, "TestResults");
+            _basePath = Path.Combine(_basePath, assembly.GetName().Name.Replace(".", string.Empty));
+
+            // Setup folder for caller test class
             _testFolder = Path.Combine(_basePath, methodName ?? Guid.NewGuid().ToString("N"));
+
+            // Create if it doesn't exist
             if (Directory.Exists(_testFolder))
             {
                 Directory.Delete(_testFolder, true);
