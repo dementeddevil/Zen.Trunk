@@ -249,9 +249,12 @@ namespace Zen.Trunk.StorageEngine.Tests
                 .WithGlobalLockManager();
             //builder.RegisterType<MasterLogPageDevice>()
             //    .WithParameter("pathName", string.Empty);
+            builder.RegisterType<DatabaseDevice>()
+                .WithParameter("dbId", DatabaseId.Zero)
+                .SingleInstance();
             _parentServices = builder.Build();
 
-            return new DatabaseDevice(_parentServices, DatabaseId.Zero);
+            return _parentServices.Resolve<DatabaseDevice>();
         }
     }
 }
