@@ -305,6 +305,21 @@ namespace Zen.Trunk.Storage.Data
 			//	the master database.
 			return CompletedTask.Default;
 		}
+
+	    public DatabaseDevice GetDatabaseDevice(string databaseName)
+	    {
+	        if (string.Equals(databaseName, "master", StringComparison.OrdinalIgnoreCase))
+	        {
+	            return this;
+	        }
+
+	        if (!_userDatabases.ContainsKey(databaseName))
+	        {
+	            throw new ArgumentException("Database not found", nameof(databaseName));
+	        }
+
+	        return _userDatabases[databaseName];
+	    }
 		#endregion
 
 		#region Protected Methods
