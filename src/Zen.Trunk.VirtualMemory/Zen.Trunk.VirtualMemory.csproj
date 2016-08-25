@@ -70,6 +70,10 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Autofac, Version=4.0.1.0, Culture=neutral, PublicKeyToken=17863af14b0044da, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Autofac.4.0.1\lib\net45\Autofac.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Threading" />
@@ -82,9 +86,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Storage\BufferDevice.cs" />
+    <Compile Include="Storage\BufferDeviceFactory.cs" />
     <Compile Include="Storage\BufferDeviceMessages.cs" />
     <Compile Include="Storage\BufferDeviceShuttingDownException.cs" />
+    <Compile Include="Storage\ContainerBuilderExtensions.cs" />
     <Compile Include="Storage\DeviceId.cs" />
+    <Compile Include="Storage\IBufferDeviceFactory.cs" />
     <Compile Include="Storage\VirtualPageId.cs" />
     <Compile Include="Storage\IBufferDevice.cs" />
     <Compile Include="Storage\IMultipleBufferDevice.cs" />
@@ -137,6 +144,9 @@
       <Project>{f7ed3f65-bfe8-4949-8bde-494f12cc30c6}</Project>
       <Name>Zen.Trunk.Utilities</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
