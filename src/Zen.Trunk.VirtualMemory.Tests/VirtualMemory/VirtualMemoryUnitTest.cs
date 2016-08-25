@@ -5,27 +5,23 @@ using System.IO;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using Autofac;
+using Xunit;
 using Zen.Trunk.Storage;
 using Zen.Trunk.Storage.IO;
-using Xunit;
 
-namespace Zen.Trunk.VirtualMemory.Tests
+namespace Zen.Trunk.VirtualMemory
 {
     /// <summary>
     /// Summary description for Virtual Memory Unit Test suite
     /// </summary>
     [Trait("Subsystem", "Virtual Memory")]
     [Trait("Class", "Single Device")]
-    public class VirtualMemoryUnitTest
+    public class VirtualMemoryUnitTest : VirtualMemoryFactoryUnitTest
     {
         private const int BufferSize = 8192;
-        private IVirtualBufferFactory _bufferFactory = new VirtualBufferFactory(32, BufferSize);
 
-        ~VirtualMemoryUnitTest()
-        {
-            _bufferFactory.Dispose();
-            _bufferFactory = null;
-        }
+        public IVirtualBufferFactory BufferFactory => Scope.Resolve<IVirtualBufferFactory>();
 
         [Fact(DisplayName = @"
 Given a virtual buffer factory,
@@ -44,7 +40,7 @@ Then no corruption or deadlocks occur")]
                         {
                             for (var index = 0; index < 1000; ++index)
                             {
-                                bufferList.Add(_bufferFactory.AllocateBuffer());
+                                bufferList.Add(BufferFactory.AllocateBuffer());
                             }
                         }
                         catch (OutOfMemoryException)
@@ -59,8 +55,6 @@ Then no corruption or deadlocks occur")]
                     }));
             }
             Task.WaitAll(parallelRequests.ToArray());
-
-            _bufferFactory.Dispose();
         }
 
         [Fact(DisplayName = @"
@@ -69,10 +63,9 @@ When buffers are written,
 Then scatter/gather I/O operations occur as appropriate")]
         public async Task ScatterGatherWriteTest()
         {
-            var assemblyLocation = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-            var testFile = Path.Combine(assemblyLocation, "SGWT.bin");
-            try
+            using (var tracker = new TempFileTracker())
             {
+                var testFile = tracker.Get("SGWT.bin");
                 using (var stream = new AdvancedFileStream(
                     testFile, FileMode.Create, FileAccess.ReadWrite, FileShare.None, 8192,
                     FileOptions.Asynchronous | FileOptions.RandomAccess | FileOptions.WriteThrough, true))
@@ -81,24 +74,20 @@ Then scatter/gather I/O operations occur as appropriate")]
 
                     using (var transfer = new ScatterGatherReaderWriter(stream))
                     {
-                        await transfer.WriteBufferAsync(0, _bufferFactory.AllocateAndFill(0)).ConfigureAwait(true);
-                        await transfer.WriteBufferAsync(1, _bufferFactory.AllocateAndFill(1)).ConfigureAwait(true);
-                        await transfer.WriteBufferAsync(2, _bufferFactory.AllocateAndFill(2)).ConfigureAwait(true);
-                        await transfer.WriteBufferAsync(3, _bufferFactory.AllocateAndFill(3)).ConfigureAwait(true);
+                        await transfer.WriteBufferAsync(0, BufferFactory.AllocateAndFill(0)).ConfigureAwait(true);
+                        await transfer.WriteBufferAsync(1, BufferFactory.AllocateAndFill(1)).ConfigureAwait(true);
+                        await transfer.WriteBufferAsync(2, BufferFactory.AllocateAndFill(2)).ConfigureAwait(true);
+                        await transfer.WriteBufferAsync(3, BufferFactory.AllocateAndFill(3)).ConfigureAwait(true);
 
-                        await transfer.WriteBufferAsync(10, _bufferFactory.AllocateAndFill(0)).ConfigureAwait(true);
-                        await transfer.WriteBufferAsync(11, _bufferFactory.AllocateAndFill(1)).ConfigureAwait(true);
-                        await transfer.WriteBufferAsync(12, _bufferFactory.AllocateAndFill(2)).ConfigureAwait(true);
-                        await transfer.WriteBufferAsync(13, _bufferFactory.AllocateAndFill(3)).ConfigureAwait(true);
+                        await transfer.WriteBufferAsync(10, BufferFactory.AllocateAndFill(0)).ConfigureAwait(true);
+                        await transfer.WriteBufferAsync(11, BufferFactory.AllocateAndFill(1)).ConfigureAwait(true);
+                        await transfer.WriteBufferAsync(12, BufferFactory.AllocateAndFill(2)).ConfigureAwait(true);
+                        await transfer.WriteBufferAsync(13, BufferFactory.AllocateAndFill(3)).ConfigureAwait(true);
 
-                        await transfer.WriteBufferAsync(6, _bufferFactory.AllocateAndFill(6)).ConfigureAwait(true);
-                        await transfer.WriteBufferAsync(7, _bufferFactory.AllocateAndFill(7)).ConfigureAwait(true);
+                        await transfer.WriteBufferAsync(6, BufferFactory.AllocateAndFill(6)).ConfigureAwait(true);
+                        await transfer.WriteBufferAsync(7, BufferFactory.AllocateAndFill(7)).ConfigureAwait(true);
                     }
                 }
-            }
-            finally
-            {
-                File.Delete(testFile);
             }
         }
     }

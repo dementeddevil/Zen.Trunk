@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Autofac;
+﻿using Autofac;
 using Zen.Trunk.Storage.IO;
 
 namespace Zen.Trunk.Storage
@@ -11,11 +6,11 @@ namespace Zen.Trunk.Storage
     public static class ContainerBuilderExtensions
     {
         public static ContainerBuilder WithVirtualBufferFactory(
-            this ContainerBuilder builder, int reservationMB = 32, int bufferSize = 8192)
+            this ContainerBuilder builder, int bufferSize = 8192, int reservationMB = 32)
         {
             builder.RegisterType<VirtualBufferFactory>()
-                .WithParameter("reservationMB", reservationMB)
                 .WithParameter("bufferSize", bufferSize)
+                .WithParameter("reservationMB", reservationMB)
                 .As<IVirtualBufferFactory>()
                 .SingleInstance();
             return builder;

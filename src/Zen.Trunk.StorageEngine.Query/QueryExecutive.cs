@@ -13,10 +13,9 @@ using Zen.Trunk.Storage.Locking;
 
 namespace Zen.Trunk.Storage.Query
 {
-    [CLSCompliant(false)]
 	public class QueryExecutive
 	{
-		private MasterDatabaseDevice _masterDevice;
+		private readonly MasterDatabaseDevice _masterDevice;
 
 		public QueryExecutive(MasterDatabaseDevice masterDevice)
 		{

@@ -2,11 +2,11 @@
 using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
+using Xunit;
 using Zen.Trunk.Storage;
 using Zen.Trunk.Storage.IO;
-using Xunit;
 
-namespace Zen.Trunk.VirtualMemory.Tests
+namespace Zen.Trunk.VirtualMemory
 {
 
     /// <summary>

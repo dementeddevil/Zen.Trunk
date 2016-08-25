@@ -1,9 +1,8 @@
-﻿
-using System;
+﻿using System;
 using Xunit;
 using Zen.Trunk.Storage.Locking;
 
-namespace Zen.Trunk.StorageEngine.Tests
+namespace Zen.Trunk.Storage
 {
 	[Trait("Subsystem", "Storage Engine")]
     [Trait("Class", "Transaction Lock Object")]

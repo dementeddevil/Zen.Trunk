@@ -1,14 +1,13 @@
 ﻿using System;
 using System.IO;
+using System.Reflection;
 using System.Transactions;
-using Zen.Trunk.Storage.Locking;
-using Zen.Trunk.Storage.Log;
 using Autofac;
 using Xunit;
-using Zen.Trunk.Storage;
-using System.Reflection;
+using Zen.Trunk.Storage.Locking;
+using Zen.Trunk.Storage.Log;
 
-namespace Zen.Trunk.StorageEngine.Tests
+namespace Zen.Trunk.Storage
 {
 	[Trait("Subsystem", "Storage Engine")]
     [Trait("Class", "Transaction Lock Block")]

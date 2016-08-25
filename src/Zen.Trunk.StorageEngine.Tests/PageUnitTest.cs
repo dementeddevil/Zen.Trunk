@@ -2,13 +2,12 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Autofac;
-using Zen.Trunk.Storage;
+using Xunit;
 using Zen.Trunk.Storage.Data;
 using Zen.Trunk.Storage.IO;
 using Zen.Trunk.Storage.Locking;
-using Xunit;
 
-namespace Zen.Trunk.StorageEngine.Tests
+namespace Zen.Trunk.Storage
 {
     [Trait("Subsystem", "Storage Engine")]
     [Trait("Class", "Page")]

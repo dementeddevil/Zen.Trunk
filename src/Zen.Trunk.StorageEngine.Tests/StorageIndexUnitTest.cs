@@ -1,18 +1,14 @@
 ﻿using System;
-using System.ComponentModel.Design;
-using System.IO;
-using System.Reflection;
 using System.Threading.Tasks;
 using Autofac;
 using Xunit;
-using Zen.Trunk.Storage;
 using Zen.Trunk.Storage.Data;
 using Zen.Trunk.Storage.Data.Index;
 using Zen.Trunk.Storage.IO;
 using Zen.Trunk.Storage.Locking;
 using Zen.Trunk.Storage.Log;
 
-namespace Zen.Trunk.StorageEngine.Tests
+namespace Zen.Trunk.Storage
 {
     [Trait("Subsystem", "Storage Engine")]
     [Trait("Class", "Index Manager")]

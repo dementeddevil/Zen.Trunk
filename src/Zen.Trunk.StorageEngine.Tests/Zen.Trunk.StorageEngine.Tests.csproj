@@ -9,7 +9,7 @@
     <ProjectGuid>{07E7D6A1-141E-45DB-B557-30425540BE14}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Zen.Trunk.StorageEngine.Tests</RootNamespace>
+    <RootNamespace>Zen.Trunk.Storage</RootNamespace>
     <AssemblyName>Zen.Trunk.StorageEngine.Tests</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
@@ -94,7 +94,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="StorageEngineBuilder.cs" />
-    <Compile Include="TempFileTracker.cs" />
     <Compile Include="TransactionLockBlockUnitTest.cs" />
     <Compile Include="PageUnitTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -110,6 +109,10 @@
     <ProjectReference Include="..\Zen.Trunk.Utilities\Zen.Trunk.Utilities.csproj">
       <Project>{f7ed3f65-bfe8-4949-8bde-494f12cc30c6}</Project>
       <Name>Zen.Trunk.Utilities</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Zen.Trunk.VirtualMemory.Tests\Zen.Trunk.VirtualMemory.Tests.csproj">
+      <Project>{665652e5-b6f9-42ab-8c93-11b4ee8ddba5}</Project>
+      <Name>Zen.Trunk.VirtualMemory.Tests</Name>
     </ProjectReference>
     <ProjectReference Include="..\Zen.Trunk.VirtualMemory\Zen.Trunk.VirtualMemory.csproj">
       <Project>{837f9dbd-7e29-4237-add9-1bd32fef964a}</Project>

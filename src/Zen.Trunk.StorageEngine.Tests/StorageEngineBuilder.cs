@@ -1,14 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Autofac;
-using Zen.Trunk.Storage;
+﻿using Autofac;
 using Zen.Trunk.Storage.IO;
 using Zen.Trunk.Storage.Locking;
 
-namespace Zen.Trunk.StorageEngine.Tests
+namespace Zen.Trunk.Storage
 {
     public class StorageEngineBuilder : ContainerBuilder
     {

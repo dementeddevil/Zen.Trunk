@@ -98,6 +98,10 @@
       <Project>{f7ed3f65-bfe8-4949-8bde-494f12cc30c6}</Project>
       <Name>Zen.Trunk.Utilities</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Zen.Trunk.VirtualMemory.Tests\Zen.Trunk.VirtualMemory.Tests.csproj">
+      <Project>{665652e5-b6f9-42ab-8c93-11b4ee8ddba5}</Project>
+      <Name>Zen.Trunk.VirtualMemory.Tests</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Zen.Trunk.VirtualMemory\Zen.Trunk.VirtualMemory.csproj">
       <Project>{837f9dbd-7e29-4237-add9-1bd32fef964a}</Project>
       <Name>Zen.Trunk.VirtualMemory</Name>
