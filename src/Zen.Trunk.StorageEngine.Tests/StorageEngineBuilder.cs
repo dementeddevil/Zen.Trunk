@@ -4,32 +4,24 @@ using Zen.Trunk.Storage.Locking;
 
 namespace Zen.Trunk.Storage
 {
-    public class StorageEngineBuilder : ContainerBuilder
+    public static class ContainerBuilderExtensions
     {
-        public StorageEngineBuilder WithVirtualBufferFactory(int reservationMB = 32, int bufferSize = 8192)
+        public static ContainerBuilder RegisterGlobalLockManager(
+            this ContainerBuilder builder)
         {
-            this.RegisterType<VirtualBufferFactory>()
-                .WithParameter("reservationMB", reservationMB)
-                .WithParameter("bufferSize", bufferSize)
-                .As<IVirtualBufferFactory>()
-                .SingleInstance();
-            return this;
-        }
-
-        public StorageEngineBuilder WithGlobalLockManager()
-        {
-            this.RegisterType<GlobalLockManager>()
+            builder.RegisterType<GlobalLockManager>()
                 .As<IGlobalLockManager>()
                 .SingleInstance();
-            return this;
+            return builder;
         }
 
-        public StorageEngineBuilder WithDatabaseLockManager(DatabaseId dbId)
+        public static ContainerBuilder WithDatabaseLockManager(
+            this ContainerBuilder builder, DatabaseId dbId)
         {
-            this.RegisterType<DatabaseLockManager>()
+            builder.RegisterType<DatabaseLockManager>()
                 .WithParameter("dbId", dbId)
                 .As<IDatabaseLockManager>();
-            return this;
+            return builder;
         }
     }
 }

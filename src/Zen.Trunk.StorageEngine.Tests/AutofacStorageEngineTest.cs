@@ -1,9 +1,14 @@
-﻿using Autofac;
-using Zen.Trunk.Storage;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using Autofac;
+using Zen.Trunk.VirtualMemory;
 
-namespace Zen.Trunk.VirtualMemory
+namespace Zen.Trunk.Storage
 {
-    public class VirtualMemoryFactoryUnitTest : AutofacContainerUnitTest
+    public class AutofacStorageEngineUnitTests : AutofacVirtualMemoryUnitTests
     {
         protected override void InitializeContainerBuilder(ContainerBuilder builder)
         {

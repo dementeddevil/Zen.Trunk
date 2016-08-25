@@ -17,7 +17,7 @@ namespace Zen.Trunk.VirtualMemory
     /// </summary>
     [Trait("Subsystem", "Virtual Memory")]
     [Trait("Class", "Single Device")]
-    public class VirtualMemoryUnitTest : VirtualMemoryFactoryUnitTest
+    public class VirtualMemoryUnitTests : AutofacVirtualMemoryUnitTests
     {
         private const int BufferSize = 8192;
 

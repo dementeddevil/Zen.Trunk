@@ -6,7 +6,7 @@
     <ProjectGuid>{20A4DC8B-3068-416B-B581-94C243072740}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Zen.Trunk.StorageEngine.Query.Tests</RootNamespace>
+    <RootNamespace>Zen.Trunk.Storage</RootNamespace>
     <AssemblyName>Zen.Trunk.StorageEngine.Query.Tests</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>

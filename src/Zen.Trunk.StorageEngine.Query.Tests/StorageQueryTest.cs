@@ -4,7 +4,6 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
-using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using Xunit;
@@ -12,13 +11,13 @@ using Zen.Trunk.Storage.Data;
 using Zen.Trunk.Storage.Locking;
 using Zen.Trunk.Storage.Query;
 
-namespace Zen.Trunk.StorageEngine.Tests
+namespace Zen.Trunk.Storage
 {
     /// <summary>
     /// TODO: Update summary.
     /// </summary>
     [Trait("Subsystem", "Storage Engine Query")]
-    public class StorageQueryTest
+    public class StorageQueryTest : StorageEngineUnitTest
     {
         [Fact(DisplayName = "Create master device")]
         public async Task CreateMasterDeviceTest()

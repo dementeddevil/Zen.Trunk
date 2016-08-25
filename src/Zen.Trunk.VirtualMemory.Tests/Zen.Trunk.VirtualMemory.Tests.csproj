@@ -99,7 +99,7 @@
     <Compile Include="AutofacContainerUnitTest.cs" />
     <Compile Include="TempFileTracker.cs" />
     <Compile Include="VirtualMemory\VirtualBufferFactoryExtensions.cs" />
-    <Compile Include="VirtualMemory\VirtualMemoryFactoryUnitTest.cs" />
+    <Compile Include="VirtualMemory\AutofacVirtualMemoryUnitTests.cs" />
     <Compile Include="VirtualMemory\VirtualMemoryUnitTest.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -3,14 +3,14 @@ using Autofac;
 
 namespace Zen.Trunk
 {
-    public class AutofacContainerUnitTest : IDisposable
+    public class AutofacContainerUnitTests : IDisposable
     {
-        protected AutofacContainerUnitTest()
+        protected AutofacContainerUnitTests()
         {
             InitializeScope();
         }
 
-        ~AutofacContainerUnitTest()
+        ~AutofacContainerUnitTests()
         {
             Dispose(false);
         }
