@@ -9,9 +9,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("Zen Trunk VirtualMemory")]
 [assembly: AssemblyDescription("Trunk virtual memory management framework")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Zen Design Corp")]
+[assembly: AssemblyCompany("Zen Design Software")]
 [assembly: AssemblyProduct("Zen Trunk")]
-[assembly: AssemblyCopyright("Copyright © Zen Design Corp 2010 - 2013")]
+[assembly: AssemblyCopyright("Copyright © Zen Design Software 2010 - 2016")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -19,21 +19,12 @@ using System.Runtime.InteropServices;
 // to COM components.  If you need to access a type in this assembly from 
 // COM, set the ComVisible attribute to true on that type.
 [assembly: ComVisible(false)]
+[assembly: CLSCompliant(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
 [assembly: Guid("560e1726-6ab6-4fb6-bf0e-d0518d2b300f")]
 
-// Version information for an assembly consists of the following four values:
-//
-//      Major Version
-//      Minor Version 
-//      Build Number
-//      Revision
-//
-// You can specify all the values or you can default the Build and Revision Numbers 
-// by using the '*' as shown below:
-// [assembly: AssemblyVersion("1.0.*")]
+// Version information
 [assembly: AssemblyVersion("1.0.0.0")]
 [assembly: AssemblyFileVersion("1.0.0.0")]
-[assembly: CLSCompliant(true)]
 [assembly: InternalsVisibleTo("Zen.Trunk.VirtualMemory.Tests")]

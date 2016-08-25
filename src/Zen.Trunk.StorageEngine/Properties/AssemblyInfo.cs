@@ -9,9 +9,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("Zen Trunk StorageEngine")]
 [assembly: AssemblyDescription("Trunk database engine")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Zen Design Corp")]
+[assembly: AssemblyCompany("Zen Design Software")]
 [assembly: AssemblyProduct("Zen Trunk")]
-[assembly: AssemblyCopyright("Copyright © Zen Design Corp 2010 - 2013")]
+[assembly: AssemblyCopyright("Copyright © Zen Design Software 2010 - 2016")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -24,16 +24,7 @@ using System.Runtime.InteropServices;
 // The following GUID is for the ID of the typelib if this project is exposed to COM
 [assembly: Guid("50be2537-9c38-4940-b523-b90b4ac9de18")]
 
-// Version information for an assembly consists of the following four values:
-//
-//      Major Version
-//      Minor Version 
-//      Build Number
-//      Revision
-//
-// You can specify all the values or you can default the Build and Revision Numbers 
-// by using the '*' as shown below:
-// [assembly: AssemblyVersion("1.0.*")]
+// Version information
 [assembly: AssemblyVersion("1.0.0.0")]
 [assembly: AssemblyFileVersion("1.0.0.0")]
 [assembly: InternalsVisibleTo("Zen.Trunk.StorageEngine.Tests")]
