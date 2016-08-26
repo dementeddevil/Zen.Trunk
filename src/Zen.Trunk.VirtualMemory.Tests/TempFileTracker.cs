@@ -15,7 +15,7 @@ namespace Zen.Trunk
 
         public TempFileTracker([CallerMemberName] string methodName = null)
         {
-            var assembly = Assembly.GetExecutingAssembly();
+            var assembly = Assembly.GetCallingAssembly();
 
             // Get path to executing assembly
             _basePath = Path.GetDirectoryName(assembly
@@ -69,7 +69,13 @@ namespace Zen.Trunk
                     }
                 }
 
-                Directory.Delete(_testFolder, true);
+                try
+                {
+                    Directory.Delete(_testFolder, true);
+                }
+                catch
+                {
+                }
             }
         }
     }

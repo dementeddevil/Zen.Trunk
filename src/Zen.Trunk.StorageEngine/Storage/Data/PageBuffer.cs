@@ -636,7 +636,7 @@ namespace Zen.Trunk.Storage.Data
 			}*/
 
             // Get transaction ID
-            TransactionId transactionId = TransactionId.Zero;
+            var transactionId = TransactionId.Zero;
 			var isReadUncommittedTxn = false;
 			if (TrunkTransactionContext.Current != null)
 			{

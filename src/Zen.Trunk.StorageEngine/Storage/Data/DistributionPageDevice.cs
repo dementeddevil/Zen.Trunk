@@ -103,7 +103,7 @@ namespace Zen.Trunk.Storage.Data
 				{
 					rootPage.RootLock = RootLockType.Shared;
 
-					// On this device loop through all distribution pages
+					// On this device, loop through all distribution pages
 					var maxDistPage =
 						(
 						(rootPage.AllocatedPages - DistributionPageOffset) /
@@ -126,9 +126,9 @@ namespace Zen.Trunk.Storage.Data
 
 								// Ask distribution page to allocate for object
 								var virtualId = distPage.AllocatePage(allocParams);
-								if (virtualId > 0)
+								if (virtualId.Value > 0)
 								{
-									return new VirtualPageId(virtualId);
+									return virtualId;
 								}
 							}
 							catch (Exception)

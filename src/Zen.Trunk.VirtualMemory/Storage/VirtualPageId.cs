@@ -8,6 +8,8 @@ namespace Zen.Trunk.Storage
 	[Serializable]
 	public struct VirtualPageId : IComparable, ICloneable
 	{
+        public static readonly VirtualPageId Zero = new VirtualPageId(0);
+
 		#region Public Constructors
 		/// <summary>
 		/// Initializes a new instance of the <see cref="VirtualPageId"/> struct.
@@ -106,14 +108,26 @@ namespace Zen.Trunk.Storage
 				return new VirtualPageId(DeviceId, PhysicalPageId + 1);
 			}
 		}
-		#endregion
+        #endregion
 
-		#region Public Methods
-		/// <summary>
-		/// Overridden. Gets a string representation of the type.
-		/// </summary>
-		/// <returns></returns>
-		public override string ToString()
+        #region Public Methods
+        /// <summary>
+        /// Gets a <see cref="VirtualPageId"/> that is offset from 
+        /// the current object by the specified number of physical pages
+        /// </summary>
+        /// <param name="offsetIndex"></param>
+        /// <returns></returns>
+        public VirtualPageId Offset(int offsetIndex)
+        {
+            return new VirtualPageId(
+                DeviceId, (uint)((int)PhysicalPageId + offsetIndex));
+        }
+
+        /// <summary>
+        /// Overridden. Gets a string representation of the type.
+        /// </summary>
+        /// <returns></returns>
+        public override string ToString()
 		{
 			return $"VirtualPageId[DI:{DeviceId.Value:X4},PPI:{PhysicalPageId:X8}]";
 		}
@@ -237,6 +251,6 @@ namespace Zen.Trunk.Storage
 		{
 			return ((VirtualPageId)this).Clone();
 		}
-		#endregion
-	}
+        #endregion
+    }
 }

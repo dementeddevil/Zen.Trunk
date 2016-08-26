@@ -12,14 +12,14 @@ namespace Zen.Trunk.Storage.Data
     public class ObjectRefInfo : BufferFieldWrapper
     {
         private readonly BufferFieldObjectId _objectId;
-        private readonly BufferFieldByte _objectType;
+        private readonly BufferFieldObjectType _objectType;
         private readonly BufferFieldStringFixed _name;
         private readonly BufferFieldLogicalPageId _firstPageId;
 
         public ObjectRefInfo()
         {
             _objectId = new BufferFieldObjectId();
-            _objectType = new BufferFieldByte(_objectId);
+            _objectType = new BufferFieldObjectType(_objectId);
             _name = new BufferFieldStringFixed(_objectType, 32);
             _firstPageId = new BufferFieldLogicalPageId(_name);
         }
@@ -70,11 +70,11 @@ namespace Zen.Trunk.Storage.Data
         {
             get
             {
-                return new ObjectType(_objectType.Value);
+                return _objectType.Value;
             }
             set
             {
-                _objectType.Value = value.Value;
+                _objectType.Value = value;
             }
         }
 

@@ -15,7 +15,6 @@ using Zen.Trunk.Storage.Log;
 
 namespace Zen.Trunk.Storage.Data
 {
-
     public class MasterDatabaseDevice : DatabaseDevice
 	{
 		#region Public Fields
@@ -110,7 +109,7 @@ namespace Zen.Trunk.Storage.Data
 			var needToCreateMasterFilegroup = mountingMaster;
 			foreach (var fileGroup in request.FileGroups)
 			{
-				DeviceId deviceId = DeviceId.Primary;
+				var deviceId = DeviceId.Primary;
 			    var primary = fileGroup.Value.FirstOrDefault(f => f.Name == "PRIMARY");
 
 				foreach (var file in fileGroup.Value.Where(f=>f.Name != "PRIMARY"))

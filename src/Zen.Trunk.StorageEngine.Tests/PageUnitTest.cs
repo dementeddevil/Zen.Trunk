@@ -132,7 +132,7 @@ Then the allocation fails.")]
 			// We should be able to allocate 128 exclusive extents for 128 
 			//	objects
 			uint extentsToTest = 16;
-			ulong virtualId;
+			VirtualPageId virtualId;
 			for (uint index = 0; index < extentsToTest; ++index)
 			{
 				// This allocation must succeed
@@ -142,7 +142,7 @@ Then the allocation fails.")]
                         new ObjectId(1 + index),
                         ObjectType.Sample,
                         false));
-				Assert.True(virtualId != 0, "Expected allocation to succeed.");
+				Assert.True(virtualId != VirtualPageId.Zero, "Expected allocation to succeed.");
 			}
 
 			// This allocation must fail
@@ -152,7 +152,7 @@ Then the allocation fails.")]
                     new ObjectId(1 + extentsToTest),
                     ObjectType.Sample, 
                     false));
-			Assert.True(virtualId == 0, "Expected allocation to fail.");
+			Assert.True(virtualId == VirtualPageId.Zero, "Expected allocation to fail.");
 
 			return TrunkTransactionContext.Commit();
 		}

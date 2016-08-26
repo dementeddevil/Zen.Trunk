@@ -1145,7 +1145,7 @@ namespace Zen.Trunk.Storage
 	public class BufferFieldLogFileId : SimpleBufferField<LogFileId>
 	{
 		public BufferFieldLogFileId()
-			: this(0)
+			: this(LogFileId.Zero)
 		{
 		}
 
@@ -1154,18 +1154,13 @@ namespace Zen.Trunk.Storage
         {
         }
 
-        public BufferFieldLogFileId(uint value)
-			: base(new LogFileId(value))
-		{
-		}
-
 		public BufferFieldLogFileId(BufferField prev)
-			: this(prev, 0)
+			: this(prev, LogFileId.Zero)
 		{
 		}
 
-		public BufferFieldLogFileId(BufferField prev, uint value)
-			: base(prev, new LogFileId(value))
+		public BufferFieldLogFileId(BufferField prev, LogFileId value)
+			: base(prev, value)
 		{
 		}
 
@@ -1253,6 +1248,44 @@ namespace Zen.Trunk.Storage
         protected override void OnRead(BufferReaderWriter streamManager)
         {
             Value = new LogicalPageId(streamManager.ReadUInt64());
+        }
+
+        protected override void OnWrite(BufferReaderWriter streamManager)
+        {
+            streamManager.Write(Value.Value);
+        }
+    }
+
+    public class BufferFieldObjectType : SimpleBufferField<ObjectType>
+    {
+        public BufferFieldObjectType()
+            : this(ObjectType.Unknown)
+        {
+        }
+
+        public BufferFieldObjectType(ObjectType value)
+            : base(value)
+        {
+        }
+
+        public BufferFieldObjectType(BufferField prev)
+            : this(prev, ObjectType.Unknown)
+        {
+        }
+
+        public BufferFieldObjectType(BufferField prev, ObjectType value)
+            : base(prev, value)
+        {
+        }
+
+        #region Public Properties
+        public override int DataSize => 1;
+
+        #endregion
+
+        protected override void OnRead(BufferReaderWriter streamManager)
+        {
+            Value = new ObjectType(streamManager.ReadByte());
         }
 
         protected override void OnWrite(BufferReaderWriter streamManager)

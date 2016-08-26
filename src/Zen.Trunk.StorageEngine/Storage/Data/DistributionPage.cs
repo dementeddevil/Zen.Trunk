@@ -1,15 +1,12 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Zen.Trunk.Storage.IO;
+using Zen.Trunk.Storage.Locking;
+
 namespace Zen.Trunk.Storage.Data
 {
-	using System;
-	using System.Collections.Generic;
-	using System.IO;
-	using System.Linq;
-	using System.Threading.Tasks;
-	using System.Threading.Tasks.Dataflow;
-	using Zen.Trunk.Storage;
-	using Zen.Trunk.Storage.IO;
-	using Zen.Trunk.Storage.Locking;
-
 	/// <summary>
 	/// Distribution pages track the allocation status of 512 pages across a
 	/// total of 64 extents.
@@ -151,14 +148,14 @@ namespace Zen.Trunk.Storage.Data
 		{
 			private readonly BufferFieldLogicalPageId _logicalId;
 			private readonly BufferFieldObjectId _objectId;
-			private readonly BufferFieldByte _objectType;
+			private readonly BufferFieldObjectType _objectType;
 			private readonly BufferFieldByte _allocationStatus;
 
 			public PageInfo()
 			{
 				_logicalId = new BufferFieldLogicalPageId();
 				_objectId = new BufferFieldObjectId(_logicalId);
-				_objectType = new BufferFieldByte(_objectId);
+				_objectType = new BufferFieldObjectType(_objectId);
 				_allocationStatus = new BufferFieldByte(_objectType);
 			}
 
@@ -207,11 +204,11 @@ namespace Zen.Trunk.Storage.Data
 			{
 				get
 				{
-					return new ObjectType(_objectType.Value);
+					return _objectType.Value;
 				}
 				set
 				{
-					_objectType.Value = value.Value;
+					_objectType.Value = value;
 				}
 			}
 
@@ -349,14 +346,13 @@ namespace Zen.Trunk.Storage.Data
 			//   Phase #2: Look for a free extent we can use for this object
 			bool hasAcquiredLock = false, useExtent = false;
 			uint extent;
-		    if (TryFindUsableExistingExtent(allocParams, out extent) ||
-		        TryFindUsableFreeExtent(allocParams, out extent))
+		    if (TryFindUsableExistingExtent(allocParams, out hasAcquiredLock, out extent) ||
+		        TryFindUsableFreeExtent(allocParams, out hasAcquiredLock, out extent))
 		    {
 		        useExtent = true;
 		    }
 
 			// If we don't have a suitable extent
-			ulong virtPageId = 0;
 		    if (!useExtent)
 		    {
 		        return new VirtualPageId(0);
@@ -400,11 +396,11 @@ namespace Zen.Trunk.Storage.Data
 		    var info = _extents[extent];
 		    if (info.IsFull || !info.IsUsable)
 		    {
-		        return 0;
-		    }
+                return new VirtualPageId(0);
+            }
 
-		    // Setup the extent info
-		    if (info.IsFree)
+            // Setup the extent info
+            if (info.IsFree)
 		    {
 		        _extents[extent].IsMixedExtent = allocParams.MixedExtent;
 		        if (!allocParams.MixedExtent)
@@ -414,6 +410,7 @@ namespace Zen.Trunk.Storage.Data
 		    }
 
 		    // Find a free page in this extent
+			var virtPageId = new VirtualPageId(0);
 		    for (uint index = 0; index < PagesPerExtent; ++index)
 		    {
 		        if (!info.Pages[index].AllocationStatus)
@@ -425,7 +422,7 @@ namespace Zen.Trunk.Storage.Data
 
 		            // Determine the virtual id for this page
 		            var pageIndex = (extent * PagesPerExtent) + index;
-		            virtPageId = VirtualId.Value + pageIndex + 1;
+		            virtPageId = VirtualId.Offset((int)(pageIndex + 1));
 		            break;
 		        }
 		    }
@@ -442,6 +439,7 @@ namespace Zen.Trunk.Storage.Data
 		    }
 		    info.IsFull = extentFull;
 
+            // Mark this instance as dirty and force save to underlying page buffer
 		    SetDirty();
 		    Save();
 		    //WriteData();
@@ -449,96 +447,6 @@ namespace Zen.Trunk.Storage.Data
 
 		    return virtPageId;
 		}
-
-	    private bool TryFindUsableExistingExtent(AllocateDataPageParameters allocParams, out uint extent)
-	    {
-            bool hasAcquiredLock = false, useExtent = false;
-            extent = 0;
-            for (uint index = 0; !useExtent && index < ExtentTrackingCount; ++index)
-            {
-                try
-                {
-                    // Get the extent information
-                    var info = GetLatestExtentInfoWithLock(LockManager, index, out hasAcquiredLock);
-
-                    // If this extent is unusable then stop as we have reached
-                    //	the end of the device...
-                    if (!info.IsUsable)
-                    {
-                        break;
-                    }
-
-                    // Skip extents that are full
-                    if (info.IsFull)
-                    {
-                        continue;
-                    }
-
-                    // Determine whether this is an extent we can use
-                    if ((allocParams.MixedExtent && info.IsMixedExtent) ||
-                        (!allocParams.MixedExtent && !info.IsMixedExtent && info.ObjectId == allocParams.ObjectId))
-                    {
-                        extent = index;
-                        useExtent = true;
-                    }
-                }
-                catch (LockException)
-                {
-                }
-                finally
-                {
-                    // If we are not using this extent and we have a lock then
-                    //	release the extent lock now.
-                    if (!useExtent && hasAcquiredLock)
-                    {
-                        UnlockExtent(index);
-                    }
-                }
-            }
-
-	        return useExtent;
-	    }
-
-	    private bool TryFindUsableFreeExtent(AllocateDataPageParameters allocParams, out uint extent)
-	    {
-            bool hasAcquiredLock = false, useExtent = false;
-            extent = 0;
-            for (uint index = 0; !useExtent && index < ExtentTrackingCount; ++index)
-            {
-                try
-                {
-                    // Get the extent information
-                    var info = GetLatestExtentInfoWithLock(LockManager, index, out hasAcquiredLock);
-
-                    // If this extent is unusable then stop as we have reached
-                    //	the end of the device...
-                    if (!info.IsUsable)
-                    {
-                        break;
-                    }
-
-                    // If extent is free then we will use it
-                    if (info.IsFree)
-                    {
-                        extent = index;
-                        useExtent = true;
-                    }
-                }
-                catch (LockException)
-                {
-                }
-                finally
-                {
-                    // If we are not using this extent and we have a lock then
-                    //	release the extent lock now.
-                    if (!useExtent && hasAcquiredLock)
-                    {
-                        UnlockExtent(index);
-                    }
-                }
-            }
-            return useExtent;
-        }
 
         public void FreePage(uint offset, TimeSpan timeout)
 		{
@@ -848,21 +756,111 @@ namespace Zen.Trunk.Storage.Data
 				base.OnUnlockPage(lm);
 			}
 		}
-		#endregion
+        #endregion
 
-		#region Private Methods
-		private ExtentInfo GetLatestExtentInfoWithLock(
+        #region Private Methods
+        private bool TryFindUsableExistingExtent(AllocateDataPageParameters allocParams, out bool hasAcquiredLock, out uint extent)
+        {
+            hasAcquiredLock = false;
+            extent = 0;
+
+            var useExtent = false;
+            for (uint index = 0; !useExtent && index < ExtentTrackingCount; ++index)
+            {
+                try
+                {
+                    // Get the extent information
+                    var info = GetLatestExtentInfoWithLock(LockManager, index, out hasAcquiredLock);
+
+                    // If this extent is unusable then stop as we have reached
+                    //	the end of the device...
+                    if (!info.IsUsable)
+                    {
+                        break;
+                    }
+
+                    // Skip extents that are full
+                    if (info.IsFull)
+                    {
+                        continue;
+                    }
+
+                    // Determine whether this is an extent we can use
+                    if ((allocParams.MixedExtent && info.IsMixedExtent) ||
+                        (!allocParams.MixedExtent && !info.IsMixedExtent && info.ObjectId == allocParams.ObjectId))
+                    {
+                        extent = index;
+                        useExtent = true;
+                    }
+                }
+                catch (LockException)
+                {
+                }
+                finally
+                {
+                    // If we are not using this extent and we have a lock then
+                    //	release the extent lock now.
+                    if (!useExtent && hasAcquiredLock)
+                    {
+                        UnlockExtent(index);
+                    }
+                }
+            }
+
+            return useExtent;
+        }
+
+        private bool TryFindUsableFreeExtent(AllocateDataPageParameters allocParams, out bool hasAcquiredLock, out uint extent)
+        {
+            hasAcquiredLock = false;
+            extent = 0;
+
+            var useExtent = false;
+            for (uint index = 0; !useExtent && index < ExtentTrackingCount; ++index)
+            {
+                try
+                {
+                    // Get the extent information
+                    var info = GetLatestExtentInfoWithLock(LockManager, index, out hasAcquiredLock);
+
+                    // If this extent is unusable then stop as we have reached
+                    //	the end of the device...
+                    if (!info.IsUsable)
+                    {
+                        break;
+                    }
+
+                    // If extent is free then we will use it
+                    if (info.IsFree)
+                    {
+                        extent = index;
+                        useExtent = true;
+                    }
+                }
+                catch (LockException)
+                {
+                }
+                finally
+                {
+                    // If we are not using this extent and we have a lock then
+                    //	release the extent lock now.
+                    if (!useExtent && hasAcquiredLock)
+                    {
+                        UnlockExtent(index);
+                    }
+                }
+            }
+            return useExtent;
+        }
+
+        private ExtentInfo GetLatestExtentInfoWithLock(
 			IDatabaseLockManager lm, uint extentIndex, out bool hasAcquiredLock)
 		{
 			hasAcquiredLock = false;
-			var alreadyHasLock = false;
 
-			// Check whether we already have this extent locked
-			//	in case we are allocating more than once in the same txn
-			if (_lockedExtents != null && _lockedExtents.Contains(extentIndex))
-			{
-				alreadyHasLock = true;
-			}
+            // Check whether we already have this extent locked
+            //	in case we are allocating more than once in the same txn
+            var alreadyHasLock = _lockedExtents != null && _lockedExtents.Contains(extentIndex);
 
 			// Check whether the active transaction has an extent lock
 			//	in this case we must not lock otherwise we will 
@@ -881,12 +879,11 @@ namespace Zen.Trunk.Storage.Data
 				hasAcquiredLock = true;
 			}
 
-			// Re-read extent information (it may have changed)
 			var info = _extents[extentIndex];
 
-			// Do not re-read extent if we already held the lock
-			//	as we will overwrite previous changes unless lock was acquired
-			//	from a different page object...
+            // Re-read extent information as it may have changed but do not
+            // do so if we already held the lock as we will overwrite previous
+            //  changes unless lock was acquired from a different page object...
 			if (!alreadyHasLock ||
 				_lockedExtents == null ||
 				!_lockedExtents.Contains(extentIndex))

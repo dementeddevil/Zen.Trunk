@@ -4,19 +4,18 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Threading.Tasks.Dataflow;
 using Autofac;
+using Zen.Trunk.Storage.Data;
 
 namespace Zen.Trunk.Storage.Log
 {
-	using System;
-	using System.Collections.Generic;
-	using System.IO;
-	using System.Linq;
-	using System.Threading;
-	using System.Threading.Tasks;
-	using System.Threading.Tasks.Dataflow;
-	using Zen.Trunk.Storage.Data;
-
 	/// <summary>
 	/// TODO: Update summary.
 	/// </summary>
@@ -419,7 +418,7 @@ namespace Zen.Trunk.Storage.Log
 			var masterRootPage = GetRootPage<MasterLogRootPage>();
 
             // Determine file-extension for LOG
-            DeviceId proposedDeviceId = DeviceId.Zero;
+            var proposedDeviceId = DeviceId.Zero;
 			var proposedDeviceIdValid = false;
 
 			var primaryLog = false;

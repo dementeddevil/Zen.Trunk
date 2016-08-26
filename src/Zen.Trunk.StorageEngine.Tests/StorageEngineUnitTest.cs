@@ -12,56 +12,13 @@ using Zen.Trunk.Storage.Log;
 
 namespace Zen.Trunk.Storage
 {
-	[Trait("Subsystem", "Storage Engine")]
+    [Trait("Subsystem", "Storage Engine")]
     [Trait("Class", "Database Device")]
-	public class StorageEngineUnitTest : AutofacStorageEngineUnitTests
-	{
-		[Fact(DisplayName = "Validate create database under transaction works as expected")]
-		public async Task DatabaseCreateTxnTest()
-		{
-		    using (var tracker = new TempFileTracker())
-		    {
-                var masterDataPathName = tracker.Get("master.mddf");
-                var masterLogPathName = tracker.Get("master.mlf");
-
-		        using (var dbDevice = new DatabaseDevice(Scope, DatabaseId.Zero))
-		        {
-		            dbDevice.BeginTransaction();
-
-		            var addFgDevice =
-		                new AddFileGroupDeviceParameters(
-		                    FileGroupId.Primary,
-		                    "PRIMARY",
-		                    "master",
-		                    masterDataPathName,
-		                    DeviceId.Zero,
-		                    128,
-		                    true);
-		            await dbDevice.AddFileGroupDevice(addFgDevice).ConfigureAwait(true);
-
-		            var addLogDevice =
-		                new AddLogDeviceParameters(
-		                    "MASTER_LOG",
-		                    masterLogPathName,
-		                    DeviceId.Zero,
-		                    2);
-		            await dbDevice.AddLogDevice(addLogDevice).ConfigureAwait(true);
-
-		            await dbDevice.OpenAsync(true).ConfigureAwait(true);
-		            Trace.WriteLine("DatabaseDevice.Open succeeded");
-
-		            await TrunkTransactionContext.Commit().ConfigureAwait(true);
-		            Trace.WriteLine("Transaction commit succeeded");
-
-		            await dbDevice.CloseAsync().ConfigureAwait(true);
-		            Trace.WriteLine("DatabaseDevice.Close succeeded");
-		        }
- 		    }
-		}
-
-        [Fact(DisplayName = "Validate create database and streaming data into several pages under transaction works as expected")]
-        public async Task DatabaseCreateStreamTxnTest()
-		{
+    public class StorageEngineUnitTest : AutofacStorageEngineUnitTests
+    {
+        [Fact(DisplayName = "Validate create database under transaction works as expected")]
+        public async Task DatabaseCreateTxnTest()
+        {
             using (var tracker = new TempFileTracker())
             {
                 var masterDataPathName = tracker.Get("master.mddf");
@@ -72,117 +29,175 @@ namespace Zen.Trunk.Storage
                     dbDevice.BeginTransaction();
 
                     var addFgDevice =
-				        new AddFileGroupDeviceParameters(
-					        FileGroupId.Primary,
-					        "PRIMARY",
-					        "master",
-					        masterDataPathName,
+                        new AddFileGroupDeviceParameters(
+                            FileGroupId.Primary,
+                            "PRIMARY",
+                            "master",
+                            masterDataPathName,
                             DeviceId.Zero,
-					        128,
-					        true);
-			        await dbDevice.AddFileGroupDevice(addFgDevice).ConfigureAwait(true);
+                            128,
+                            true);
+                    await dbDevice.AddFileGroupDevice(addFgDevice).ConfigureAwait(true);
 
-			        var addLogDevice =
-				        new AddLogDeviceParameters(
-					        "MASTER_LOG",
-					        masterLogPathName,
+                    var addLogDevice =
+                        new AddLogDeviceParameters(
+                            "MASTER_LOG",
+                            masterLogPathName,
                             DeviceId.Zero,
-					        2);
-			        await dbDevice.AddLogDevice(addLogDevice).ConfigureAwait(true);
+                            2);
+                    await dbDevice.AddLogDevice(addLogDevice).ConfigureAwait(true);
 
-			        await dbDevice.OpenAsync(true).ConfigureAwait(true);
+                    await dbDevice.OpenAsync(true).ConfigureAwait(true);
+                    Trace.WriteLine("DatabaseDevice.Open succeeded");
 
-			        await TrunkTransactionContext.Commit().ConfigureAwait(true);
+                    await TrunkTransactionContext.Commit().ConfigureAwait(true);
+                    Trace.WriteLine("Transaction commit succeeded");
 
+                    await dbDevice.CloseAsync().ConfigureAwait(true);
+                    Trace.WriteLine("DatabaseDevice.Close succeeded");
+                }
+            }
+        }
+
+        [Fact(DisplayName = "Validate create database and streaming data into several pages under transaction works as expected")]
+        public async Task DatabaseCreateStreamTxnTest()
+        {
+            using (var tracker = new TempFileTracker())
+            {
+                var masterDataPathName = tracker.Get("master.mddf");
+                var masterLogPathName = tracker.Get("master.mlf");
+
+                using (var dbDevice = new DatabaseDevice(Scope, DatabaseId.Zero))
+                {
                     dbDevice.BeginTransaction();
+                    bool rollback = false;
+                    try
+                    {
+                        var addFgDevice =
+                            new AddFileGroupDeviceParameters(
+                                FileGroupId.Primary,
+                                "PRIMARY",
+                                "master",
+                                masterDataPathName,
+                                DeviceId.Zero,
+                                128,
+                                true);
+                        await dbDevice.AddFileGroupDevice(addFgDevice).ConfigureAwait(true);
 
-                    // Open a file
-                    using (var stream = new MemoryStream())
-			        {
-                        // Write 83k of random stuff
-                        var random = new Random();
-			            var buffer = new byte[1024];
-			            for (int index = 0; index < 83; ++index)
-			            {
-			                random.NextBytes(buffer);
-                            stream.Write(buffer, 0, buffer.Length);
-			            }
-                        stream.Flush();
-			            stream.Position = 0;
+                        var addLogDevice =
+                            new AddLogDeviceParameters(
+                                "MASTER_LOG",
+                                masterLogPathName,
+                                DeviceId.Zero,
+                                2);
+                        await dbDevice.AddLogDevice(addLogDevice).ConfigureAwait(true);
 
-                        // Determine page count
-				        var byteSize = new ObjectDataPage().DataSize;
-				        var pageCount = (int)(stream.Length / byteSize);
-				        if ((stream.Length % byteSize) != 0)
-				        {
-					        ++pageCount;
-				        }
+                        await dbDevice.OpenAsync(true).ConfigureAwait(true);
 
-				        buffer = new byte[byteSize];
-				        Debug.WriteLine("Preparing to write {0} pages", pageCount);
-				        ObjectDataPage lastPage = null;
+                        await TrunkTransactionContext.Commit().ConfigureAwait(true);
 
-				        var complete = false;
-				        for (var pageIndex = 0; !complete; ++pageIndex)
-				        {
-					        Debug.WriteLine("Writing object page {0}", pageIndex);
+                        dbDevice.BeginTransaction();
 
-					        // Create object data page
-					        var objectPage = new ObjectDataPage();
-					        objectPage.IsManagedData = false;
-					        objectPage.ReadOnly = false;
-					        objectPage.ObjectId = new ObjectId(1);
-					        objectPage.ObjectLock = ObjectLockType.IntentExclusive;
-					        objectPage.PageLock = DataLockType.Exclusive;
-					        objectPage.FileGroupId = FileGroupId.Primary;
+                        // Open a file
+                        using (var stream = new MemoryStream())
+                        {
+                            // Write 83k of random stuff
+                            var random = new Random();
+                            var buffer = new byte[1024];
+                            for (int index = 0; index < 83; ++index)
+                            {
+                                random.NextBytes(buffer);
+                                stream.Write(buffer, 0, buffer.Length);
+                            }
+                            stream.Flush();
+                            stream.Position = 0;
 
-					        // Create storage in database for new page
-					        var initPageParams =
-						        new InitFileGroupPageParameters(
-							        null, objectPage, true, true, true, true);
-					        await dbDevice.InitFileGroupPage(initPageParams).ConfigureAwait(true);
+                            // Determine page count
+                            var byteSize = new ObjectDataPage().DataSize;
+                            var pageCount = (int)(stream.Length / byteSize);
+                            if ((stream.Length % byteSize) != 0)
+                            {
+                                ++pageCount;
+                            }
 
-					        // Update prev/next references
-					        if (lastPage != null)
-					        {
-						        lastPage.NextLogicalId = objectPage.LogicalId;
-						        objectPage.PrevLogicalId = lastPage.LogicalId;
-					        }
-					        lastPage = objectPage;
+                            buffer = new byte[byteSize];
+                            Debug.WriteLine("Preparing to write {0} pages", pageCount);
+                            ObjectDataPage lastPage = null;
 
-					        // Determine size of the data page and write blob
-					        using (var pageStream = objectPage.CreateDataStream(false))
-					        {
-						        var bytesRead = stream.Read(buffer, 0, (int)byteSize);
-						        if (bytesRead > 0)
-						        {
-							        pageStream.Write(buffer, 0, bytesRead);
-						        }
-						        else
-						        {
-							        complete = true;
-						        }
+                            var complete = false;
+                            for (var pageIndex = 0; !complete; ++pageIndex)
+                            {
+                                Debug.WriteLine("Writing object page {0}", pageIndex);
 
-						        if (bytesRead < byteSize)
-						        {
-							        complete = true;
-						        }
-					        }
+                                // Create object data page
+                                var objectPage = new ObjectDataPage();
+                                objectPage.IsManagedData = false;
+                                objectPage.ReadOnly = false;
+                                objectPage.ObjectId = new ObjectId(1);
+                                objectPage.ObjectLock = ObjectLockType.IntentExclusive;
+                                objectPage.PageLock = DataLockType.Exclusive;
+                                objectPage.FileGroupId = FileGroupId.Primary;
 
-					        objectPage.SetDirtyState();
-					        objectPage.Save();
-				        }
-			        }
+                                // Create storage in database for new page
+                                var initPageParams =
+                                    new InitFileGroupPageParameters(
+                                        null, objectPage, true, true, true, true);
+                                await dbDevice.InitFileGroupPage(initPageParams).ConfigureAwait(true);
 
-			        await TrunkTransactionContext.Commit().ConfigureAwait(true);
+                                // Update prev/next references
+                                if (lastPage != null)
+                                {
+                                    lastPage.NextLogicalId = objectPage.LogicalId;
+                                    objectPage.PrevLogicalId = lastPage.LogicalId;
+                                }
+                                lastPage = objectPage;
+
+                                // Determine size of the data page and write blob
+                                using (var pageStream = objectPage.CreateDataStream(false))
+                                {
+                                    var bytesRead = stream.Read(buffer, 0, (int)byteSize);
+                                    if (bytesRead > 0)
+                                    {
+                                        pageStream.Write(buffer, 0, bytesRead);
+                                    }
+                                    else
+                                    {
+                                        complete = true;
+                                    }
+
+                                    if (bytesRead < byteSize)
+                                    {
+                                        complete = true;
+                                    }
+                                }
+
+                                objectPage.SetDirtyState();
+                                objectPage.Save();
+                            }
+                        }
+                    }
+                    catch
+                    {
+                        rollback = true;
+                    }
+
+                    if (rollback)
+                    {
+                        await TrunkTransactionContext.Rollback().ConfigureAwait(true);
+                    }
+                    else
+                    {
+                        await TrunkTransactionContext.Commit().ConfigureAwait(true);
+                    }
+
                     await dbDevice.CloseAsync().ConfigureAwait(true);
                 }
             }
         }
 
         [Fact(DisplayName = "Validate that creating database table under transaction works as expected.")]
-		public async Task DatabaseCreateTableTxnTest()
-		{
+        public async Task DatabaseCreateTableTxnTest()
+        {
             using (var tracker = new TempFileTracker())
             {
                 var masterDataPathName = tracker.Get("master.mddf");
@@ -193,58 +208,58 @@ namespace Zen.Trunk.Storage
                     dbDevice.BeginTransaction();
 
                     var addFgDevice =
-				        new AddFileGroupDeviceParameters(
-					        FileGroupId.Primary,
-					        "PRIMARY",
-					        "master",
-					        masterDataPathName,
+                        new AddFileGroupDeviceParameters(
+                            FileGroupId.Primary,
+                            "PRIMARY",
+                            "master",
+                            masterDataPathName,
                             DeviceId.Zero,
-					        128,
-					        true);
-			        await dbDevice.AddFileGroupDevice(addFgDevice).ConfigureAwait(true);
+                            128,
+                            true);
+                    await dbDevice.AddFileGroupDevice(addFgDevice).ConfigureAwait(true);
 
-			        var addLogDevice =
-				        new AddLogDeviceParameters(
-					        "MASTER_LOG",
-					        masterLogPathName,
+                    var addLogDevice =
+                        new AddLogDeviceParameters(
+                            "MASTER_LOG",
+                            masterLogPathName,
                             DeviceId.Zero,
-					        2);
-			        await dbDevice.AddLogDevice(addLogDevice).ConfigureAwait(true);
+                            2);
+                    await dbDevice.AddLogDevice(addLogDevice).ConfigureAwait(true);
 
-			        await dbDevice.OpenAsync(true).ConfigureAwait(true);
+                    await dbDevice.OpenAsync(true).ConfigureAwait(true);
 
-			        await TrunkTransactionContext.Commit().ConfigureAwait(true);
+                    await TrunkTransactionContext.Commit().ConfigureAwait(true);
 
                     dbDevice.BeginTransaction();
 
                     var param =
-				        new AddFileGroupTableParameters(
-					        addFgDevice.FileGroupId,
-					        addFgDevice.FileGroupName,
-					        "Test",
-					        new TableColumnInfo(
-						        "Id",
-						        TableColumnDataType.Int,
-						        false,
-						        0,
-						        1,
-						        1),
-					        new TableColumnInfo(
-						        "Name",
-						        TableColumnDataType.NVarChar,
-						        false,
-						        50),
-					        new TableColumnInfo(
-						        "SequenceIndex",
-						        TableColumnDataType.Int,
-						        false),
-					        new TableColumnInfo(
-						        "CreatedDate",
-						        TableColumnDataType.DateTime,
-						        false));
-			        await dbDevice.AddFileGroupTable(param).ConfigureAwait(true);
+                        new AddFileGroupTableParameters(
+                            addFgDevice.FileGroupId,
+                            addFgDevice.FileGroupName,
+                            "Test",
+                            new TableColumnInfo(
+                                "Id",
+                                TableColumnDataType.Int,
+                                false,
+                                0,
+                                1,
+                                1),
+                            new TableColumnInfo(
+                                "Name",
+                                TableColumnDataType.NVarChar,
+                                false,
+                                50),
+                            new TableColumnInfo(
+                                "SequenceIndex",
+                                TableColumnDataType.Int,
+                                false),
+                            new TableColumnInfo(
+                                "CreatedDate",
+                                TableColumnDataType.DateTime,
+                                false));
+                    await dbDevice.AddFileGroupTable(param).ConfigureAwait(true);
 
-			        /*table.AddIndex(
+                    /*table.AddIndex(
 				        new RootTableIndexInfo
 				        {
 					        IndexFileGroupId = FileGroupDevice.Primary,
@@ -254,19 +269,19 @@ namespace Zen.Trunk.Storage
 					        ColumnIDs = new byte[] { 1 }
 				        });*/
 
-			        //table.EndColumnUpdate().Wait();
+                    //table.EndColumnUpdate().Wait();
 
-			        await TrunkTransactionContext.Commit().ConfigureAwait(true);
+                    await TrunkTransactionContext.Commit().ConfigureAwait(true);
 
-			        // Insert some data
-			        /*TrunkTransactionContext.BeginTransaction(dbDevice, TimeSpan.FromMinutes(5));
+                    // Insert some data
+                    /*TrunkTransactionContext.BeginTransaction(dbDevice, TimeSpan.FromMinutes(5));
 
 
 
 			        TrunkTransactionContext.Commit();*/
-		            await dbDevice.CloseAsync().ConfigureAwait(true);
-		        }
-		    }
-		}
-	}
+                    await dbDevice.CloseAsync().ConfigureAwait(true);
+                }
+            }
+        }
+    }
 }

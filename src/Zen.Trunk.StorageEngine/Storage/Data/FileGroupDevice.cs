@@ -1,18 +1,16 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Threading.Tasks.Dataflow;
 using Autofac;
+using Zen.Trunk.Storage.Data.Table;
+using Zen.Trunk.Storage.Locking;
+using Zen.Trunk.Utils;
 
 namespace Zen.Trunk.Storage.Data
 {
-	using System;
-	using System.Collections.Generic;
-	using System.IO;
-	using System.Linq;
-	using System.Threading.Tasks;
-	using System.Threading.Tasks.Dataflow;
-	using Zen.Trunk.Storage;
-	using Zen.Trunk.Storage.Data.Table;
-	using Zen.Trunk.Storage.Locking;
-	using Zen.Trunk.Utils;
-
 	/// <summary>
 	/// Represents a group of related physical devices.
 	/// </summary>
@@ -655,7 +653,7 @@ namespace Zen.Trunk.Storage.Data
 			// When the dist device is opened
 
 			// Determine whether this is the first device in a file-group
-			bool priFileGroupDevice = _devices.Count == 0;
+			var priFileGroupDevice = _devices.Count == 0;
 
 			// Determine file-extension for DBF
 			var extn = ".sdf";

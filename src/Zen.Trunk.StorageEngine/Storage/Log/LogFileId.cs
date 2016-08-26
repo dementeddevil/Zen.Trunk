@@ -8,6 +8,8 @@ namespace Zen.Trunk.Storage.Log
 	[Serializable]
 	public class LogFileId : IComparable, ICloneable
 	{
+        public static readonly LogFileId Zero = new LogFileId(0);
+
 		#region Public Constructors
 		public LogFileId (uint fileId)
 		{
