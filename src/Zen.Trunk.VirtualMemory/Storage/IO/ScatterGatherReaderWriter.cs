@@ -16,7 +16,7 @@ namespace Zen.Trunk.Storage.IO
 		private AdvancedFileStream _stream;
 		private readonly StreamScatterGatherHelper _readBuffers;
 		private readonly StreamScatterGatherHelper _writeBuffers;
-		private CancellationTokenSource _shutdown;
+		private readonly CancellationTokenSource _shutdown;
 		private readonly Task _cleanupTask;
 		#endregion
 
@@ -83,21 +83,12 @@ namespace Zen.Trunk.Storage.IO
 		}
 
 		/// <summary>
-		/// Flushes all outstanding read and write requests to the underlying 
-		/// stream.
-		/// </summary>
-		public Task Flush()
-		{
-			return Flush(true, true);
-		}
-
-		/// <summary>
 		/// Flushes all outstanding read and write requests to the underlying
 		/// stream.
 		/// </summary>
 		/// <param name="flushReads">if set to <c>true</c> then flush reads.</param>
 		/// <param name="flushWrites">if set to <c>true</c> then flush writes.</param>
-		public Task Flush(bool flushReads, bool flushWrites)
+		public Task Flush(bool flushReads = true, bool flushWrites = true)
 		{
 			var tasks = new List<Task>();
 			if (flushReads)
@@ -123,8 +114,7 @@ namespace Zen.Trunk.Storage.IO
 
 				// Cleanup cancellation object
 				_shutdown.Dispose();
-				_shutdown = null;
-
+				
 				// Force final flush
 				Flush();
 			}

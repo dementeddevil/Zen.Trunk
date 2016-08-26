@@ -1,14 +1,14 @@
-﻿namespace Zen.Trunk.Storage.Data
-{
-	using System;
-	using System.Collections.Concurrent;
-	using System.IO;
-	using System.Linq;
-	using System.Threading.Tasks;
-	using Zen.Trunk.Storage.IO;
-	using Zen.Trunk.Storage.Locking;
-	using Zen.Trunk.Storage.Log;
+﻿using System;
+using System.Collections.Concurrent;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
+using Zen.Trunk.Storage.IO;
+using Zen.Trunk.Storage.Locking;
+using Zen.Trunk.Storage.Log;
 
+namespace Zen.Trunk.Storage.Data
+{
 	/// <summary>
 	/// <c>PageBuffer</c> extends <see cref="StatefulBuffer"/> to provide state
 	/// management for database pages.
@@ -21,8 +21,7 @@
 	/// </remarks>
 	public sealed class PageBuffer : StatefulBuffer, IPageEnlistmentNotification
 	{
-		#region Internal Types
-		private enum PageBufferStateType
+		public enum PageBufferStateType
 		{
 			/// <summary>
 			/// Buffer is free.
@@ -139,35 +138,43 @@
 			AllocatedWritable,
 		}
 
+		#region Internal Types
 		private static class PageBufferStateFactory
 		{
-			private static readonly Lazy<State> _freeState = new Lazy<State>(() => new FreeState(), true);
-			private static readonly Lazy<State> _loadState = new Lazy<State>(() => new LoadState(), true);
-			private static readonly Lazy<State> _pendingLoadState = new Lazy<State>(() => new PendingLoadState(), true);
-			private static readonly Lazy<State> _allocatedState = new Lazy<State>(() => new AllocatedState(), true);
-			private static readonly Lazy<State> _dirtyState = new Lazy<State>(() => new DirtyState(), true);
-			private static readonly Lazy<State> _logState = new Lazy<State>(() => new LogState(), true);
-			private static readonly Lazy<State> _allocatedWritableState = new Lazy<State>(() => new AllocatedWritableState(), true);
+			private static readonly State FreeStateObject = new FreeState();
+			private static readonly State LoadStateObject = new LoadState();
+			private static readonly State PendingLoadStateObject = new PendingLoadState();
+			private static readonly State AllocatedStateObject = new AllocatedState();
+			private static readonly State DirtyStateObject = new DirtyState();
+			private static readonly State LogStateObject = new LogState();
+			private static readonly State AllocatedWritableStateObject = new AllocatedWritableState();
 
 			public static State GetState(PageBufferStateType state)
 			{
 				switch (state)
 				{
 					case PageBufferStateType.Free:
-						return _freeState.Value;
-					case PageBufferStateType.Load:
-						return _loadState.Value;
-					case PageBufferStateType.PendingLoad:
-						return _pendingLoadState.Value;
-					case PageBufferStateType.Allocated:
-						return _allocatedState.Value;
-					case PageBufferStateType.Dirty:
-						return _dirtyState.Value;
-					case PageBufferStateType.Log:
-						return _logState.Value;
-					case PageBufferStateType.AllocatedWritable:
-						return _allocatedWritableState.Value;
-					default:
+						return FreeStateObject;
+
+                    case PageBufferStateType.Load:
+						return LoadStateObject;
+
+                    case PageBufferStateType.PendingLoad:
+						return PendingLoadStateObject;
+
+                    case PageBufferStateType.Allocated:
+						return AllocatedStateObject;
+
+                    case PageBufferStateType.Dirty:
+						return DirtyStateObject;
+
+                    case PageBufferStateType.Log:
+						return LogStateObject;
+
+                    case PageBufferStateType.AllocatedWritable:
+						return AllocatedWritableStateObject;
+
+                    default:
 						throw new InvalidOperationException("Unknown page buffer state.");
 				}
 			}
@@ -550,13 +557,16 @@
 				_timestamp = value;
 			}
 		}
+
+        /// <summary>
+        /// Gets the current page buffer state type.
+        /// </summary>
+		public PageBufferStateType CurrentStateType => CurrentPageBufferState.StateType;
 		#endregion
 
 		#region Private Properties
-		private PageBufferStateType CurrentStateType => CurrentPageBufferState.StateType;
 
 	    private PageBufferState CurrentPageBufferState => (PageBufferState)CurrentState;
-
 	    #endregion
 
 		#region Public Methods
@@ -570,10 +580,7 @@
 			}
 
 			var priv = TrunkTransactionContext.Current as ITrunkTransactionPrivate;
-			if (priv != null)
-			{
-				priv.Enlist(this);
-			}
+		    priv?.Enlist(this);
 		}
 
 		public Task InitAsync(VirtualPageId pageId, LogicalPageId logicalId)
@@ -597,12 +604,29 @@
 		}
 
 		/// <summary>
-		/// Called internally by page objects to retrieve their backing stream.
+		/// Gets a backing stream that can be used to access the contents of
+		/// this page buffer object.
 		/// </summary>
-		/// <param name="offset"></param>
-		/// <param name="count"></param>
-		/// <param name="readOnly"></param>
-		/// <returns></returns>
+		/// <param name="offset">
+		/// Byte offset into the page for where the stream should start.
+		/// </param>
+		/// <param name="count">
+		/// Number of bytes to be returned in the stream.
+		/// </param>
+		/// <param name="writable">
+		/// Set to <c>true</c> to return a writable stream;
+		/// otherwise <c>false</c>.
+		/// </param>
+		/// <returns>
+		/// A <see cref="Stream"/> corresponding to the desired byte range.
+		/// </returns>
+		/// <remarks>
+		/// If there is no active transaction context <see cref="TrunkTransactionContext.Current"/>
+		/// then the calling thread is assumed to own the buffer.
+		/// If a writable stream is desired then internally the code will
+		/// make a copy of the current buffer. This supports both rollback
+		/// and simultaneous access from other threads.
+		/// </remarks>
 		public override Stream GetBufferStream(int offset, int count, bool writable)
 		{
 			/*// Throw if state marks buffer as locked

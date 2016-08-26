@@ -1,13 +1,13 @@
-﻿namespace Zen.Trunk.Storage.Data
-{
-	using System;
-	using System.Collections.Concurrent;
-	using System.Collections.Concurrent.Partitioners;
-	using System.Collections.Generic;
-	using System.Threading;
-	using System.Threading.Tasks;
-	using System.Threading.Tasks.Dataflow;
+﻿using System;
+using System.Collections.Concurrent;
+using System.Collections.Concurrent.Partitioners;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Threading.Tasks.Dataflow;
 
+namespace Zen.Trunk.Storage.Data
+{
 	public sealed class CachingPageBufferDevice : IDisposable
 	{
 		#region Private Types
