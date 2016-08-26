@@ -1,48 +1,24 @@
+using System;
+using System.Collections.Specialized;
+using System.IO;
+using Zen.Trunk.Storage.IO;
+using Zen.Trunk.Storage.Log;
+
 namespace Zen.Trunk.Storage
 {
-	using System;
-	using System.Collections.Specialized;
-	using System.IO;
-	using Zen.Trunk.Storage.IO;
-	using Zen.Trunk.Storage.Log;
-
 	public class BufferFieldChangingEventArgs : EventArgs
 	{
-		private readonly object _oldValue;
-		private object _newValue;
-		private bool _cancel;
-
-		public BufferFieldChangingEventArgs(object oldValue, object newValue)
+	    public BufferFieldChangingEventArgs(object oldValue, object newValue)
 		{
-			_oldValue = oldValue;
-			_newValue = newValue;
+			OldValue = oldValue;
+			NewValue = newValue;
 		}
 
-		public object OldValue => _oldValue;
+		public object OldValue { get; }
 
-	    public object NewValue
-		{
-			get
-			{
-				return _newValue;
-			}
-			set
-			{
-				_newValue = value;
-			}
-		}
+	    public object NewValue { get; set; }
 
-		public bool Cancel
-		{
-			get
-			{
-				return _cancel;
-			}
-			set
-			{
-				_cancel = value;
-			}
-		}
+	    public bool Cancel { get; set; }
 	}
 
 	/// <summary>

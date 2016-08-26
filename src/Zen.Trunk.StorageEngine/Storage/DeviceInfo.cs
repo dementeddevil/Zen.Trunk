@@ -1,7 +1,7 @@
+using System;
+
 namespace Zen.Trunk.Storage
 {
-	using System;
-
 	/// <summary>
 	/// <b>DeviceInfo</b> contains base device definition data.
 	/// </summary>
@@ -97,10 +97,6 @@ namespace Zen.Trunk.Storage
 		protected override BufferField FirstField => _id;
 
 	    protected override BufferField LastField => _pathName;
-
 	    #endregion
-
-		#region Protected Methods
-		#endregion
 	}
 }

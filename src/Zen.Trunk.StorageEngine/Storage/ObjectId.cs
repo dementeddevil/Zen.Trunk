@@ -12,9 +12,6 @@ namespace Zen.Trunk.Storage
         public static readonly ObjectId Zero = new ObjectId(0);
         #endregion
 
-        #region Private Fields
-        #endregion
-
         #region Public Constructors
         /// <summary>
         /// Initializes a new instance of the <see cref="ObjectId"/> struct.
@@ -42,7 +39,7 @@ namespace Zen.Trunk.Storage
         /// <returns></returns>
         public override string ToString()
         {
-            return $"ObjectId{Value:X8}";
+            return $"ObjectId[{Value:X8}]";
         }
 
         /// <summary>

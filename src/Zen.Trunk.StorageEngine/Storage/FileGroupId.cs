@@ -14,15 +14,11 @@ namespace Zen.Trunk.Storage
         public static readonly FileGroupId Primary = new FileGroupId(2);
         #endregion
 
-        #region Private Fields
-        #endregion
-
         #region Public Constructors
         /// <summary>
         /// Initializes a new instance of the <see cref="FileGroupId"/> struct.
         /// </summary>
         /// <param name="fileGroupId">The file-group id.</param>
-        [CLSCompliant(false)]
         public FileGroupId(byte fileGroupId)
         {
             Value = fileGroupId;
@@ -33,7 +29,6 @@ namespace Zen.Trunk.Storage
         /// <summary>
         /// Gets/sets the logical page ID.
         /// </summary>
-        [CLSCompliant(false)]
         public byte Value { get; }
 
         public FileGroupId Next
@@ -46,15 +41,13 @@ namespace Zen.Trunk.Storage
         #endregion
 
         #region Public Methods
-
-
         /// <summary>
         /// Overridden. Gets a string representation of the type.
         /// </summary>
         /// <returns></returns>
         public override string ToString()
         {
-            return $"FileGroupId{Value:X2}";
+            return $"FileGroupId[{Value:X2}]";
         }
 
         /// <summary>

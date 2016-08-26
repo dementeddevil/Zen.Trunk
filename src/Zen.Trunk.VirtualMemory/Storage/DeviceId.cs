@@ -14,15 +14,11 @@ namespace Zen.Trunk.Storage
         public static readonly DeviceId FirstSecondary = new DeviceId(2);
         #endregion
 
-        #region Private Fields
-        #endregion
-
         #region Public Constructors
         /// <summary>
         /// Initializes a new instance of the <see cref="DeviceId"/> struct.
         /// </summary>
         /// <param name="deviceId">The device id.</param>
-        [CLSCompliant(false)]
         public DeviceId(ushort deviceId)
         {
             Value = deviceId;
@@ -60,7 +56,7 @@ namespace Zen.Trunk.Storage
         /// <returns></returns>
         public override string ToString()
         {
-            return $"DeviceId{Value:X4}";
+            return $"DeviceId[{Value:X4}]";
         }
 
         /// <summary>

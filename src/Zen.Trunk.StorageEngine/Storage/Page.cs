@@ -64,8 +64,7 @@ namespace Zen.Trunk.Storage
 
 	    private ILifetimeScope _lifetimeScope;
 
-		private VirtualPageId _virtualId;
-		private readonly BufferFieldBitVector32 _status;
+	    private readonly BufferFieldBitVector32 _status;
 		private readonly NewPageInterceptorField _newPageField;
 		private BitVector32.Section _pageType;
 		private BitVector32.Section _indexType;
@@ -73,8 +72,7 @@ namespace Zen.Trunk.Storage
 		private bool _headerDirty;
 		private bool _dataDirty;
 		private bool _readOnly = false;
-		private bool _suppressDirty = true;
-		private bool _disposed;
+	    private bool _disposed;
 		#endregion
 
 		#region Public Events
@@ -154,11 +152,11 @@ namespace Zen.Trunk.Storage
 		}
 		#endregion
 
-		#region Public Constructors
+		#region Protected Constructors
 		/// <summary>
 		/// Initializes a new instance of the <see cref="Page"/> class.
 		/// </summary>
-		public Page()
+		protected Page()
 		{
 			Tracer.WriteVerboseLine("{0}.ctor", GetType().Name);
 
@@ -170,16 +168,6 @@ namespace Zen.Trunk.Storage
 		#endregion
 
 		#region Public Properties
-
-	    public void SetLifetimeScope(ILifetimeScope scope)
-	    {
-	        _lifetimeScope = scope.BeginLifetimeScope(
-	            builder =>
-	            {
-	                builder.RegisterInstance(this).As(GetType(), typeof(Page));
-	            });
-	    }
-
 		/// <summary>
 		/// Gets the minimum number of bytes required for the header block.
 		/// </summary>
@@ -380,36 +368,16 @@ namespace Zen.Trunk.Storage
 		/// <summary>
 		/// Gets/sets the virtual page ID.
 		/// </summary>
-		public virtual VirtualPageId VirtualId
-		{
-			get
-			{
-				return _virtualId;
-			}
-			set
-			{
-				_virtualId = value;
-			}
-		}
-		#endregion
+		public virtual VirtualPageId VirtualId { get; set; }
+	    #endregion
 
 		#region Internal Properties
 		/// <summary>
 		/// Suppresses calls to <see cref="M:SetHeaderDirty"/> and
 		/// <see cref="M:SetDataDirty"/> methods.
 		/// </summary>
-		internal bool SuppressDirty
-		{
-			get
-			{
-				return _suppressDirty;
-			}
-			set
-			{
-				_suppressDirty = value;
-			}
-		}
-		#endregion
+		internal bool SuppressDirty { get; set; } = true;
+	    #endregion
 
 		#region Protected Properties
 		/// <summary>
@@ -419,12 +387,8 @@ namespace Zen.Trunk.Storage
 		{
 			get
 			{
-				CheckDisposed();
-				if (_events == null)
-				{
-					_events = new EventHandlerList();
-				}
-				return _events;
+			    CheckDisposed();
+			    return _events ?? (_events = new EventHandlerList());
 			}
 		}
 
@@ -433,7 +397,6 @@ namespace Zen.Trunk.Storage
 	    protected virtual BufferField FirstHeaderField => _status;
 
 	    protected virtual BufferField LastHeaderField => _newPageField;
-
 	    #endregion
 
 		#region Public Methods
@@ -468,10 +431,19 @@ namespace Zen.Trunk.Storage
 				_dataDirty = false;
 			}
 		}
-		#endregion
 
-		#region Internal Methods
-		internal void PreInitInternal()
+        public void SetLifetimeScope(ILifetimeScope scope)
+        {
+            _lifetimeScope = scope.BeginLifetimeScope(
+                builder =>
+                {
+                    builder.RegisterInstance(this).As(GetType(), typeof(Page));
+                });
+        }
+        #endregion
+
+        #region Internal Methods
+        internal void PreInitInternal()
 		{
 			OnPreInit(EventArgs.Empty);
 		}
@@ -484,7 +456,7 @@ namespace Zen.Trunk.Storage
 			ReadOnly = false;
 
 			// Ensure page is marked as dirty
-			_suppressDirty = false;
+			SuppressDirty = false;
 			_headerDirty = _dataDirty = false;
 			//OnDirty(EventArgs.Empty);
 		}
@@ -502,7 +474,7 @@ namespace Zen.Trunk.Storage
 				ReadData();
 			}
 
-			_suppressDirty = false;
+			SuppressDirty = false;
 			_headerDirty = _dataDirty = false;
 			OnPostLoad(EventArgs.Empty);
 		}
@@ -813,7 +785,7 @@ namespace Zen.Trunk.Storage
 
 		private void SetDirtyCore(bool headerDirty, bool dataDirty)
 		{
-			if (!_suppressDirty)
+			if (!SuppressDirty)
 			{
 				var alreadyDirty = _headerDirty | _dataDirty;
 				var canFire = false;

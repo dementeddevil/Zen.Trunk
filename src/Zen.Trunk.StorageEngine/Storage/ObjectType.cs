@@ -19,15 +19,11 @@ namespace Zen.Trunk.Storage
         public static readonly ObjectType View = new ObjectType(3);
         #endregion
 
-        #region Private Fields
-        #endregion
-
         #region Public Constructors
         /// <summary>
         /// Initializes a new instance of the <see cref="ObjectType"/> struct.
         /// </summary>
         /// <param name="objectType">The object type.</param>
-        [CLSCompliant(false)]
         public ObjectType(byte objectType)
         {
             Value = objectType;
@@ -38,7 +34,6 @@ namespace Zen.Trunk.Storage
         /// <summary>
         /// Gets the object type value.
         /// </summary>
-        [CLSCompliant(false)]
         public byte Value { get; }
         #endregion
 
@@ -49,7 +44,7 @@ namespace Zen.Trunk.Storage
         /// <returns></returns>
         public override string ToString()
         {
-            return $"ObjectType{Value:X2}";
+            return $"ObjectType[{Value:X2}]";
         }
 
         /// <summary>

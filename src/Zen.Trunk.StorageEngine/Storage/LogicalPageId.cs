@@ -13,9 +13,6 @@ namespace Zen.Trunk.Storage
         public static readonly LogicalPageId Zero = new LogicalPageId(0);
         #endregion
 
-        #region Private Fields
-        #endregion
-
         #region Public Constructors
         /// <summary>
         /// Initializes a new instance of the <see cref="LogicalPageId"/> struct.
@@ -43,7 +40,7 @@ namespace Zen.Trunk.Storage
         /// <returns></returns>
         public override string ToString()
         {
-            return $"LogicalPageId{Value:X8}";
+            return $"LogicalPageId[{Value:X16}]";
         }
 
         /// <summary>

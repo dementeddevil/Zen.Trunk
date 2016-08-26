@@ -44,7 +44,7 @@ namespace Zen.Trunk.Storage
         /// <returns></returns>
         public override string ToString()
         {
-            return $"DatabaseId{Value:X4}";
+            return $"DatabaseId[{Value:X4}]";
         }
 
         /// <summary>
