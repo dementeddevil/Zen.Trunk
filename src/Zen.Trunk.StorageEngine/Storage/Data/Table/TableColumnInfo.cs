@@ -213,7 +213,7 @@
 					throw new ArgumentException("Name cannot be empty.");
 				}
 				value = value.Trim();
-				if (value.IndexOfAny(new char[] { ' ', '\t', '.' }) != -1)
+				if (value.IndexOfAny(new[] { ' ', '\t', '.' }) != -1)
 				{
 					throw new ArgumentException("Name contains illegal characters.");
 				}

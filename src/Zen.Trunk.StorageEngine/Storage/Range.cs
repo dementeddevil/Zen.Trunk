@@ -94,7 +94,7 @@
 
 		public override string ToString()
 		{
-			return string.Concat(new string[]
+			return string.Concat(new[]
 				{
 					"{Min=", this.Min.ToString (CultureInfo.CurrentCulture),
 					",Max=", this.Max.ToString (CultureInfo.CurrentCulture),
@@ -233,7 +233,7 @@
 
 		public override string ToString()
 		{
-			return string.Concat(new string[]
+			return string.Concat(new[]
 				{
 					"{Min=", this.Min.ToString (CultureInfo.CurrentCulture),
 					",Max=", this.Max.ToString (CultureInfo.CurrentCulture),

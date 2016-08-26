@@ -145,7 +145,7 @@
 		/// <summary>
 		/// Creates an index link to the first entry in this index page
 		/// </summary>
-		/// <param name="link"></param>
+		/// <param name="page"></param>
 		protected override TableIndexInfo CreateLinkToPage(
 			IndexPage<TableIndexInfo, RootTableIndexInfo> page)
 		{

@@ -1,8 +1,5 @@
 namespace Zen.Trunk.Storage.Data
 {
-	using System;
-	using System.Threading;
-
 	/// <summary>
 	/// <c>LogicalPage</c> extends <see cref="DataPage"/> by exposing a logical
 	/// ID for a given page and providing pointers to previous and next pages.

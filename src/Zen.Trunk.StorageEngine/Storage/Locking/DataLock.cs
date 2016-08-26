@@ -1,3 +1,5 @@
+using System;
+
 namespace Zen.Trunk.Storage.Locking
 {
 	/// <summary>
@@ -44,62 +46,62 @@ namespace Zen.Trunk.Storage.Locking
 				return lockType == DataLockType.Exclusive;
 			}
 		}
-		protected class NoneState : DataLockState
+
+        protected class NoneState : DataLockState
 		{
 			public override DataLockType Lock => DataLockType.None;
 
-		    public override DataLockType[] CompatableLocks => new DataLockType[]
-		    {
-		        DataLockType.Shared,
-		        DataLockType.Update,
-		        DataLockType.Exclusive,
-		    };
+		    public override DataLockType[] CompatableLocks =>
+                new[]
+		        {
+		            DataLockType.Shared,
+		            DataLockType.Update,
+		            DataLockType.Exclusive,
+		        };
 		}
-		protected class SharedState : DataLockState
+
+        protected class SharedState : DataLockState
 		{
 			public override DataLockType Lock => DataLockType.Shared;
 
-		    public override DataLockType[] CompatableLocks => new DataLockType[]
-		    {
-		        DataLockType.Shared,
-		        DataLockType.Update,
-		    };
+		    public override DataLockType[] CompatableLocks =>
+                new[]
+		        {
+		            DataLockType.Shared,
+		            DataLockType.Update,
+		        };
 		}
-		protected class UpdateState : DataLockState
+
+        protected class UpdateState : DataLockState
 		{
 			public override DataLockType Lock => DataLockType.Update;
 
-		    public override DataLockType[] CompatableLocks => new DataLockType[] 
-		    {
-		        DataLockType.Shared,
-		    };
+		    public override DataLockType[] CompatableLocks =>
+                new[] 
+		        {
+		            DataLockType.Shared,
+		        };
 
 		    public override bool CanEnterExclusiveLock => true;
 		}
-		protected class ExclusiveState : DataLockState
+
+        protected class ExclusiveState : DataLockState
 		{
 			public override DataLockType Lock => DataLockType.Exclusive;
 
-		    public override DataLockType[] CompatableLocks => new DataLockType[0];
+		    public override DataLockType[] CompatableLocks =>
+                new DataLockType[0];
 		}
 		#endregion
 
 		#region Private Fields
-		private static readonly NoneState noneState;
-		private static readonly SharedState sharedState;
-		private static readonly UpdateState updateState;
-		private static readonly ExclusiveState exclusiveState;
+		private static readonly NoneState NoneStateObject = new NoneState();
+		private static readonly SharedState SharedStateObject = new SharedState();
+		private static readonly UpdateState UpdateStateObject = new UpdateState();
+		private static readonly ExclusiveState ExclusiveStateObject = new ExclusiveState();
 		#endregion
 
 		#region Public Constructors
-		static DataLock()
-		{
-			noneState = new NoneState();
-			sharedState = new SharedState();
-			updateState = new UpdateState();
-			exclusiveState = new ExclusiveState();
-		}
-
 		public DataLock()
 		{
 		}
@@ -107,29 +109,28 @@ namespace Zen.Trunk.Storage.Locking
 
 		#region Protected Properties
 		protected override DataLockType NoneLockType => DataLockType.None;
-
 	    #endregion
 
 		#region Protected Methods
 		protected override State GetStateFromType(DataLockType lockType)
 		{
-			State state = null;
 			switch (lockType)
 			{
 				case DataLockType.None:
-					state = noneState;
-					break;
+					return NoneStateObject;
+
 				case DataLockType.Shared:
-					state = sharedState;
-					break;
+					return SharedStateObject;
+
 				case DataLockType.Update:
-					state = updateState;
-					break;
+					return UpdateStateObject;
+
 				case DataLockType.Exclusive:
-					state = exclusiveState;
-					break;
+					return ExclusiveStateObject;
+
+                default:
+			        throw new InvalidOperationException();
 			}
-			return state;
 		}
 		#endregion
 	}

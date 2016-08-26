@@ -35,10 +35,10 @@ namespace Zen.Trunk.Storage.Locking
 	public class DatabaseLock : TransactionLock<DatabaseLockType>
 	{
 		#region Private Fields
-		private static readonly NoneState noneState;
-		private static readonly SharedState sharedState;
-		private static readonly UpdateState updateState;
-		private static readonly ExclusiveState exclusiveState;
+		private static readonly NoneState NoneStateObject = new NoneState();
+		private static readonly SharedState SharedStateObject = new SharedState();
+		private static readonly UpdateState UpdateStateObject = new UpdateState();
+		private static readonly ExclusiveState ExclusiveStateObject = new ExclusiveState();
 		#endregion
 
 		#region Database Lock State
@@ -49,90 +49,86 @@ namespace Zen.Trunk.Storage.Locking
 				return lockType == DatabaseLockType.Exclusive;
 			}
 		}
+
 		protected class NoneState : DatabaseLockState
 		{
 			public override DatabaseLockType Lock => DatabaseLockType.None;
 
-		    public override DatabaseLockType[] CompatableLocks => new DatabaseLockType[] 
-		    {
-		        DatabaseLockType.Shared,
-		        DatabaseLockType.Update
-		    };
+		    public override DatabaseLockType[] CompatableLocks =>
+                new[] 
+		        {
+		            DatabaseLockType.Shared,
+		            DatabaseLockType.Update
+		        };
 
 		    public override bool CanAcquireLock(
 				TransactionLock<DatabaseLockType> owner,
-				TransactionLock<DatabaseLockType>.AcquireLock request)
+				AcquireLock request)
 			{
 				return true;
 			}
 		}
+
 		protected class SharedState : DatabaseLockState
 		{
 			public override DatabaseLockType Lock => DatabaseLockType.Shared;
 
-		    public override DatabaseLockType[] CompatableLocks => new DatabaseLockType[2] 
-		    {
-		        DatabaseLockType.Shared,
-		        DatabaseLockType.Update,
-		    };
+		    public override DatabaseLockType[] CompatableLocks =>
+                new[] 
+		        {
+		            DatabaseLockType.Shared,
+		            DatabaseLockType.Update,
+		        };
 		}
+
 		protected class UpdateState : DatabaseLockState
 		{
 			public override DatabaseLockType Lock => DatabaseLockType.Update;
 
-		    public override DatabaseLockType[] CompatableLocks => new DatabaseLockType[] 
-		    {
-		        DatabaseLockType.Shared
-		    };
+		    public override DatabaseLockType[] CompatableLocks =>
+                new[] 
+		        {
+		            DatabaseLockType.Shared
+		        };
 
 		    public override bool CanEnterExclusiveLock => true;
 		}
+
 		protected class ExclusiveState : DatabaseLockState
 		{
 			public override DatabaseLockType Lock => DatabaseLockType.Exclusive;
 
-		    public override DatabaseLockType[] CompatableLocks => new DatabaseLockType[0];
+		    public override DatabaseLockType[] CompatableLocks =>
+                new DatabaseLockType[0];
 		}
 		#endregion
 
 		#region Public Constructors
-		static DatabaseLock()
-		{
-			noneState = new NoneState();
-			sharedState = new SharedState();
-			updateState = new UpdateState();
-			exclusiveState = new ExclusiveState();
-		}
-
 		public DatabaseLock()
 		{
 		}
 		#endregion
 
-		#region Public Properties
-		#endregion
-
 		#region Protected Properties
 		protected override DatabaseLockType NoneLockType => DatabaseLockType.None;
-
 	    #endregion
 
 		#region Protected Methods
-		protected override TransactionLock<DatabaseLockType>.State GetStateFromType(DatabaseLockType lockType)
+		protected override State GetStateFromType(DatabaseLockType lockType)
 		{
 			switch (lockType)
 			{
 				case DatabaseLockType.None:
-					return noneState;
+					return NoneStateObject;
 
 				case DatabaseLockType.Shared:
-					return sharedState;
+					return SharedStateObject;
 
 				case DatabaseLockType.Update:
-					return updateState;
+					return UpdateStateObject;
 
 				case DatabaseLockType.Exclusive:
-					return exclusiveState;
+					return ExclusiveStateObject;
 
 				default:
 					throw new InvalidOperationException();

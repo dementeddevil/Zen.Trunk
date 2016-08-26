@@ -8,7 +8,7 @@ namespace Zen.Trunk.Storage.Data
 	/// </summary>
 	/// <remarks>
 	/// <para>
-	/// Owned objects are associated with a <see cref="System.Int32"/> value.
+	/// Owned objects are associated with a <see cref="ObjectId"/> value.
 	/// These objects are tracked by distribution pages and the system object
 	/// table.
 	/// </para>
@@ -104,13 +104,9 @@ namespace Zen.Trunk.Storage.Data
 
 				// If we have no transaction locks then we should be in dispose
 				var txnLocks = TrunkTransactionContext.TransactionLocks;
-				if (txnLocks == null)
-				{
-					return null;
-				}
 
-				// Return the lock-owner block for this object instance
-				return txnLocks.GetOrCreateDataLockOwnerBlock(ObjectId);
+			    // Return the lock-owner block for this object instance
+				return txnLocks?.GetOrCreateDataLockOwnerBlock(ObjectId);
 			}
 		}
 		#endregion
@@ -121,7 +117,6 @@ namespace Zen.Trunk.Storage.Data
 		/// </summary>
 		/// <value>The last header field.</value>
 		protected override BufferField LastHeaderField => _objectId;
-
 	    #endregion
 
 		#region Protected Methods

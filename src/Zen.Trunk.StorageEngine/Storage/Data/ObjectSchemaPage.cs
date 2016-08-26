@@ -68,13 +68,9 @@ namespace Zen.Trunk.Storage.Data
 
 				// If we have no transaction locks then we should be in dispose
 				var txnLocks = TrunkTransactionContext.TransactionLocks;
-				if (txnLocks == null)
-				{
-					return null;
-				}
 
-				// Return the lock-owner block for this object instance
-				return txnLocks.GetOrCreateSchemaLock(ObjectId);
+			    // Return the lock-owner block for this object instance
+				return txnLocks?.GetOrCreateSchemaLock(ObjectId);
 			}
 		}
 		#endregion

@@ -1,15 +1,15 @@
-﻿namespace Zen.Trunk.Storage.Data
-{
-	using System;
-	using System.Collections.Generic;
-	using System.Threading;
-	using System.Threading.Tasks;
-	using System.Threading.Tasks.Dataflow;
+﻿using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Threading.Tasks.Dataflow;
 
+namespace Zen.Trunk.Storage.Data
+{
     /// <summary>
 	/// Implements the logical-virtual lookup service
 	/// </summary>
-	public sealed class LogicalVirtualManager : IDisposable, ILogicalVirtualManager
+	public sealed class LogicalVirtualManager : ILogicalVirtualManager
     {
 		#region Private Types
 		private class GetNewLogicalRequest : TaskRequest<LogicalPageId>
@@ -58,8 +58,7 @@
 
 		#region Private Fields
 		private readonly CancellationTokenSource _shutdownToken;
-		private readonly ConcurrentExclusiveSchedulerPair _taskInterleave;
-		private readonly ITargetBlock<GetNewLogicalRequest> _getNewLogicalPort;
+        private readonly ITargetBlock<GetNewLogicalRequest> _getNewLogicalPort;
 		private readonly ITargetBlock<AddLookupRequest> _addLookupPort;
 		private readonly ITargetBlock<GetLogicalRequest> _getLogicalPort;
 		private readonly ITargetBlock<GetVirtualRequest> _getVirtualPort;
@@ -77,8 +76,8 @@
 		/// </summary>
 		public LogicalVirtualManager()
 		{
-			_shutdownToken = new CancellationTokenSource();
-			_taskInterleave = new ConcurrentExclusiveSchedulerPair();
+		    _shutdownToken = new CancellationTokenSource();
+			var taskInterleave = new ConcurrentExclusiveSchedulerPair();
 			_getNewLogicalPort = new ActionBlock<GetNewLogicalRequest>(
 				request =>
 				{
@@ -95,7 +94,7 @@
 				},
 				new ExecutionDataflowBlockOptions
 				{
-					TaskScheduler = _taskInterleave.ExclusiveScheduler,
+					TaskScheduler = taskInterleave.ExclusiveScheduler,
 					MaxMessagesPerTask = 1,
 					MaxDegreeOfParallelism = 1,
 					CancellationToken = _shutdownToken.Token
@@ -124,7 +123,7 @@
 				},
 				new ExecutionDataflowBlockOptions
 				{
-					TaskScheduler = _taskInterleave.ExclusiveScheduler,
+					TaskScheduler = taskInterleave.ExclusiveScheduler,
 					MaxMessagesPerTask = 1,
 					MaxDegreeOfParallelism = 1,
 					CancellationToken = _shutdownToken.Token
@@ -148,7 +147,7 @@
 				},
 				new ExecutionDataflowBlockOptions
 				{
-					TaskScheduler = _taskInterleave.ConcurrentScheduler,
+					TaskScheduler = taskInterleave.ConcurrentScheduler,
 					MaxMessagesPerTask = 4,
 					MaxDegreeOfParallelism = 4,
 					CancellationToken = _shutdownToken.Token
@@ -174,7 +173,7 @@
 				},
 				new ExecutionDataflowBlockOptions
 				{
-					TaskScheduler = _taskInterleave.ConcurrentScheduler,
+					TaskScheduler = taskInterleave.ConcurrentScheduler,
 					MaxMessagesPerTask = 4,
 					MaxDegreeOfParallelism = 4,
 					CancellationToken = _shutdownToken.Token

@@ -103,8 +103,8 @@ namespace Zen.Trunk.Storage.Data
 		#endregion
 
 		#region Private Fields
-		internal const ulong DBSignature = 0x2948f3d3a123e500;
-		internal const uint DBSchemaVersion = 0x01000001;
+		internal const ulong DbSignature = 0x2948f3d3a123e500;
+		internal const uint DbSchemaVersion = 0x01000001;
 
 		private readonly BufferFieldInt32 _deviceCount;
 		private readonly BufferFieldInt32 _indexCount;
@@ -133,9 +133,9 @@ namespace Zen.Trunk.Storage.Data
 	    #endregion
 
 		#region Protected Properties
-		protected override ulong RootPageSignature => DBSignature;
+		protected override ulong RootPageSignature => DbSignature;
 
-	    protected override uint RootPageSchemaVersion => DBSchemaVersion;
+	    protected override uint RootPageSchemaVersion => DbSchemaVersion;
 
 	    /// <summary>
 		/// Overridden. Gets the last header field.

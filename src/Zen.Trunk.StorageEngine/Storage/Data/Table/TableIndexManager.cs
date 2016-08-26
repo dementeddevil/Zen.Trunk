@@ -60,11 +60,10 @@ namespace Zen.Trunk.Storage.Data.Table
 
 		#region Private Fields
 		private readonly DatabaseTable _ownerTable;
-		private ConcurrentExclusiveSchedulerPair _taskInterleave;
-		private ITargetBlock<CreateTableIndex> _createIndexPort;
-		private ITargetBlock<SplitTableIndexPage> _splitPagePort;
-		private ITargetBlock<FindTableIndex> _findIndexPort;
-		private ITargetBlock<EnumerateIndexEntries> _enumerateIndexEntriesPort;
+	    private readonly ITargetBlock<CreateTableIndex> _createIndexPort;
+		private readonly ITargetBlock<SplitTableIndexPage> _splitPagePort;
+		private readonly ITargetBlock<FindTableIndex> _findIndexPort;
+		private readonly ITargetBlock<EnumerateIndexEntries> _enumerateIndexEntriesPort;
 		#endregion
 
 		#region Public Constructors
@@ -75,39 +74,62 @@ namespace Zen.Trunk.Storage.Data.Table
 		public TableIndexManager(ILifetimeScope parentLifetimeScope)
 			: base(parentLifetimeScope)
 		{
-			_ownerTable = parentLifetimeScope.Resolve<DatabaseTable>();
-			Initialise();
-		}
-		#endregion
+		    _ownerTable = parentLifetimeScope.Resolve<DatabaseTable>();
+            var taskInterleave = new ConcurrentExclusiveSchedulerPair();
+            _createIndexPort = new TransactionContextActionBlock<CreateTableIndex, bool>(
+                request => CreateIndexHandler(request),
+                new ExecutionDataflowBlockOptions
+                {
+                    TaskScheduler = taskInterleave.ExclusiveScheduler,
+                });
+            _splitPagePort = new TransactionContextActionBlock<SplitTableIndexPage, bool>(
+                request => SplitPageHandler(request),
+                new ExecutionDataflowBlockOptions
+                {
+                    TaskScheduler = taskInterleave.ConcurrentScheduler,
+                });
+            _findIndexPort = new TransactionContextActionBlock<FindTableIndex, FindTableIndexResult>(
+                request => FindIndexHandler(request),
+                new ExecutionDataflowBlockOptions
+                {
+                    TaskScheduler = taskInterleave.ConcurrentScheduler,
+                });
+            _enumerateIndexEntriesPort = new TransactionContextActionBlock<EnumerateIndexEntries, bool>(
+                request => EnumerateIndexEntriesHandler(request),
+                new ExecutionDataflowBlockOptions
+                {
+                    TaskScheduler = taskInterleave.ConcurrentScheduler,
+                });
+        }
+        #endregion
 
-		#region Public Properties
-		public TimeSpan Timeout => TimeSpan.FromSeconds(1);
-
+        #region Public Properties
+        public TimeSpan Timeout => TimeSpan.FromSeconds(1);
 	    #endregion
 
 		#region Public Methods
-		public Task<bool> CreateIndex(RootTableIndexInfo rootInfo)
+		public Task<bool> CreateIndexAsync(RootTableIndexInfo rootInfo)
 		{
 			var request = new CreateTableIndex(rootInfo);
 			_createIndexPort.Post(request);
 			return request.Task;
 		}
 
-		public Task<bool> SplitPage(SplitTableIndexPageParameters parameters)
+		public Task<bool> SplitPageAsync(SplitTableIndexPageParameters parameters)
 		{
 			var request = new SplitTableIndexPage(parameters);
 			_splitPagePort.Post(request);
 			return request.Task;
 		}
 
-		public Task<FindTableIndexResult> FindIndex(FindTableIndexParameters parameters)
+		public Task<FindTableIndexResult> FindIndexAsync(FindTableIndexParameters parameters)
 		{
 			var findLeaf = new FindTableIndex(parameters);
 			_findIndexPort.Post(findLeaf);
 			return findLeaf.Task;
 		}
 
-		public Task<bool> EnumerateIndex(EnumerateIndexEntriesParameters parameters)
+		public Task<bool> EnumerateIndexAsync(EnumerateIndexEntriesParameters parameters)
 		{
 			var iter = new EnumerateIndexEntries(parameters);
 			_enumerateIndexEntriesPort.Post(iter);
@@ -116,37 +138,6 @@ namespace Zen.Trunk.Storage.Data.Table
 		#endregion
 
 		#region Private Methods
-		private void Initialise()
-		{
-			//base.Init();
-
-			_taskInterleave = new ConcurrentExclusiveSchedulerPair();
-			_createIndexPort = new TransactionContextActionBlock<CreateTableIndex, bool>(
-				request => CreateIndexHandler(request),
-				new ExecutionDataflowBlockOptions
-				{
-					TaskScheduler = _taskInterleave.ExclusiveScheduler,
-				});
-			_splitPagePort = new TransactionContextActionBlock<SplitTableIndexPage, bool>(
-				request => SplitPageHandler(request),
-				new ExecutionDataflowBlockOptions
-				{
-					TaskScheduler = _taskInterleave.ConcurrentScheduler,
-				});
-			_findIndexPort = new TransactionContextActionBlock<FindTableIndex, FindTableIndexResult>(
-				request => FindIndexHandler(request),
-				new ExecutionDataflowBlockOptions
-				{
-					TaskScheduler = _taskInterleave.ConcurrentScheduler,
-				});
-			_enumerateIndexEntriesPort = new TransactionContextActionBlock<EnumerateIndexEntries, bool>(
-				request => EnumerateIndexEntriesHandler(request),
-				new ExecutionDataflowBlockOptions
-				{
-					TaskScheduler = _taskInterleave.ConcurrentScheduler,
-				});
-		}
-
 		private async Task<bool> CreateIndexHandler(CreateTableIndex request)
 		{
 			// Sanity checks
@@ -182,12 +173,16 @@ namespace Zen.Trunk.Storage.Data.Table
 			}
 
 			// Create the root index page
-			var rootPage = new TableIndexPage();
-			rootPage.FileGroupId = request.Message.IndexFileGroupId;
-			rootPage.ObjectId = request.Message.OwnerObjectId;
-			rootPage.IndexType = IndexType.Root | IndexType.Leaf;
-			await Database.InitFileGroupPage(
-				new InitFileGroupPageParameters(null, rootPage, true, false, true)).ConfigureAwait(false);
+		    var rootPage = new TableIndexPage
+		    {
+		        FileGroupId = request.Message.IndexFileGroupId,
+		        ObjectId = request.Message.OwnerObjectId,
+		        IndexType = IndexType.Root | IndexType.Leaf
+		    };
+		    await Database
+                .InitFileGroupPage(new InitFileGroupPageParameters(
+                    null, rootPage, true, false, true))
+                .ConfigureAwait(false);
 
 			// Setup root index page
 			rootPage.SetHeaderDirty();
@@ -220,8 +215,11 @@ namespace Zen.Trunk.Storage.Data.Table
 				        FileGroupId = _ownerTable.FileGroupId,
 				        PageLock = DataLockType.Shared
 				    };
-				    await Database.LoadFileGroupPage(
-						new LoadFileGroupPageParameters(null, dataPage, false, true)).ConfigureAwait(false);
+				    await Database
+                        .LoadFileGroupPage(
+						    new LoadFileGroupPageParameters(
+                                null, dataPage, false, true))
+                        .ConfigureAwait(false);
 
 					// Walk the table rows
 					for (uint rowIndex = 0; rowIndex < dataPage.RowCount; ++rowIndex)
@@ -301,7 +299,7 @@ namespace Zen.Trunk.Storage.Data.Table
 
 						// Enumerate index entries
 						//	we want the last valid position
-						if(await EnumerateIndex(iterParams))
+						if(await EnumerateIndexAsync(iterParams))
 						{
 							// 
 							//_ownerTable.S
@@ -489,7 +487,7 @@ namespace Zen.Trunk.Storage.Data.Table
 						var newPage = new TableIndexPage();
 						var split = new SplitTableIndexPageParameters(parentPage, indexPage,
 							newPage);
-						splitTask = SplitPage(split);
+						splitTask = SplitPageAsync(split);
 					}
 				}
 
@@ -620,7 +618,7 @@ namespace Zen.Trunk.Storage.Data.Table
 			var find = new FindTableIndexParameters(
 				request.Message.Index,
 				request.Message.FromKeys);
-			var result = await FindIndex(find);
+			var result = await FindIndexAsync(find);
 			if (result != null)
 			{
 				var indexPage = result.Page;
@@ -638,11 +636,13 @@ namespace Zen.Trunk.Storage.Data.Table
 						}
 
 						// Load the next page
-						var nextPage = new TableIndexPage();
-						nextPage.FileGroupId = indexPage.FileGroupId;
-						nextPage.ObjectId = indexPage.ObjectId;
-						nextPage.LogicalId = indexPage.NextLogicalId;
-						var loadParams = new LoadFileGroupPageParameters(null, nextPage, false, true, false);
+					    var nextPage = new TableIndexPage
+					    {
+					        FileGroupId = indexPage.FileGroupId,
+					        ObjectId = indexPage.ObjectId,
+					        LogicalId = indexPage.NextLogicalId
+					    };
+					    var loadParams = new LoadFileGroupPageParameters(null, nextPage, false, true, false);
 						await Database.LoadFileGroupPage(loadParams).ConfigureAwait(false);
 
 						// Switch pages

@@ -7,23 +7,20 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Collections.Specialized;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
-using Zen.Trunk.Storage.IO;
+using Autofac;
 using Zen.Trunk.Storage.Locking;
 using Zen.Trunk.Storage.Log;
-using Autofac;
 
 namespace Zen.Trunk.Storage.Data
 {
 
-	public class MasterDatabaseDevice : DatabaseDevice
+    public class MasterDatabaseDevice : DatabaseDevice
 	{
 		#region Public Fields
 		public static readonly string[] ReservedDatabaseNames =
-			new string[] { "MASTER", "TEMPDB" };
+			new[] { "MASTER", "TEMPDB" };
 		#endregion
 
 		#region Private Fields

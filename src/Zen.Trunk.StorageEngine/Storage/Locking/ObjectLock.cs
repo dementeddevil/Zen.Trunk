@@ -1,3 +1,5 @@
+using System;
+
 namespace Zen.Trunk.Storage.Locking
 {
 	/// <summary>
@@ -53,90 +55,92 @@ namespace Zen.Trunk.Storage.Locking
 				return lockType == ObjectLockType.Exclusive;
 			}
 		}
-		protected class NoneState : ObjectLockState
+
+        protected class NoneState : ObjectLockState
 		{
 			public override ObjectLockType Lock => ObjectLockType.None;
 
-		    public override ObjectLockType[] CompatableLocks => new ObjectLockType[] 
-		    {
-		        ObjectLockType.IntentShared,
-		        ObjectLockType.Shared,
-		        ObjectLockType.IntentExclusive,
-		        ObjectLockType.SharedIntentExclusive,
-		        ObjectLockType.Exclusive,
-		    };
+		    public override ObjectLockType[] CompatableLocks =>
+                new[] 
+		        {
+		            ObjectLockType.IntentShared,
+		            ObjectLockType.Shared,
+		            ObjectLockType.IntentExclusive,
+		            ObjectLockType.SharedIntentExclusive,
+		            ObjectLockType.Exclusive,
+		        };
 		}
-		protected class IntentSharedState : ObjectLockState
+
+        protected class IntentSharedState : ObjectLockState
 		{
 			public override ObjectLockType Lock => ObjectLockType.IntentShared;
 
-		    public override ObjectLockType[] CompatableLocks => new ObjectLockType[]
-		    {
-		        ObjectLockType.IntentShared,
-		        ObjectLockType.Shared,
-		        ObjectLockType.IntentExclusive,
-		        ObjectLockType.SharedIntentExclusive,
-		    };
+		    public override ObjectLockType[] CompatableLocks =>
+                new[]
+		        {
+		            ObjectLockType.IntentShared,
+		            ObjectLockType.Shared,
+		            ObjectLockType.IntentExclusive,
+		            ObjectLockType.SharedIntentExclusive,
+		        };
 		}
-		protected class SharedState : ObjectLockState
+
+        protected class SharedState : ObjectLockState
 		{
 			public override ObjectLockType Lock => ObjectLockType.Shared;
 
-		    public override ObjectLockType[] CompatableLocks => new ObjectLockType[] 
-		    {
-		        ObjectLockType.IntentShared,
-		        ObjectLockType.Shared,
-		    };
+		    public override ObjectLockType[] CompatableLocks => 
+                new[]
+		        {
+		            ObjectLockType.IntentShared,
+		            ObjectLockType.Shared,
+		        };
 		}
-		protected class IntentExclusiveState : ObjectLockState
+
+        protected class IntentExclusiveState : ObjectLockState
 		{
 			public override ObjectLockType Lock => ObjectLockType.IntentExclusive;
 
-		    public override ObjectLockType[] CompatableLocks => new ObjectLockType[] 
-		    {
-		        ObjectLockType.IntentShared,
-		        ObjectLockType.IntentExclusive,
-		    };
+		    public override ObjectLockType[] CompatableLocks =>
+                new[] 
+		        {
+		            ObjectLockType.IntentShared,
+		            ObjectLockType.IntentExclusive,
+		        };
 
 		    public override bool CanEnterExclusiveLock => true;
 		}
-		protected class SharedIntentExclusiveState : ObjectLockState
+
+        protected class SharedIntentExclusiveState : ObjectLockState
 		{
 			public override ObjectLockType Lock => ObjectLockType.SharedIntentExclusive;
 
-		    public override ObjectLockType[] CompatableLocks => new ObjectLockType[]
-		    {
-		        ObjectLockType.IntentShared,
-		    };
+		    public override ObjectLockType[] CompatableLocks =>
+                new[]
+		        {
+		            ObjectLockType.IntentShared,
+		        };
 		}
-		protected class ExclusiveState : ObjectLockState
+
+        protected class ExclusiveState : ObjectLockState
 		{
 			public override ObjectLockType Lock => ObjectLockType.Exclusive;
 
-		    public override ObjectLockType[] CompatableLocks => new ObjectLockType[0];
+		    public override ObjectLockType[] CompatableLocks =>
+                new ObjectLockType[0];
 		}
 		#endregion
 
 		#region Private Fields
-		private static readonly NoneState noneState;
-		private static readonly IntentSharedState intentSharedState;
-		private static readonly SharedState sharedState;
-		private static readonly IntentExclusiveState intentExclusiveState;
-		private static readonly SharedIntentExclusiveState sharedIntentExclusiveState;
-		private static readonly ExclusiveState exclusiveState;
+		private static readonly NoneState NoneStateObject = new NoneState();
+		private static readonly IntentSharedState IntentSharedStateObject = new IntentSharedState();
+		private static readonly SharedState SharedStateObject = new SharedState();
+		private static readonly IntentExclusiveState IntentExclusiveStateObject = new IntentExclusiveState();
+		private static readonly SharedIntentExclusiveState SharedIntentExclusiveStateObject = new SharedIntentExclusiveState();
+		private static readonly ExclusiveState ExclusiveStateObject = new ExclusiveState();
 		#endregion
 
 		#region Public Constructors
-		static ObjectLock()
-		{
-			noneState = new NoneState();
-			intentSharedState = new IntentSharedState();
-			sharedState = new SharedState();
-			intentExclusiveState = new IntentExclusiveState();
-			sharedIntentExclusiveState = new SharedIntentExclusiveState();
-			exclusiveState = new ExclusiveState();
-		}
-
 		public ObjectLock()
 		{
 		}
@@ -144,35 +148,34 @@ namespace Zen.Trunk.Storage.Locking
 
 		#region Protected Properties
 		protected override ObjectLockType NoneLockType => ObjectLockType.None;
-
 	    #endregion
 
 		#region Protected Methods
 		protected override State GetStateFromType(ObjectLockType objectLockType)
 		{
-			State state = null;
 			switch (objectLockType)
 			{
 				case ObjectLockType.None:
-					state = noneState;
-					break;
+					return NoneStateObject;
+
 				case ObjectLockType.IntentShared:
-					state = intentSharedState;
-					break;
+                    return IntentSharedStateObject;
+
 				case ObjectLockType.Shared:
-					state = sharedState;
-					break;
+                    return SharedStateObject;
+
 				case ObjectLockType.IntentExclusive:
-					state = intentExclusiveState;
-					break;
+                    return IntentExclusiveStateObject;
+
 				case ObjectLockType.SharedIntentExclusive:
-					state = sharedIntentExclusiveState;
-					break;
+                    return SharedIntentExclusiveStateObject;
+
 				case ObjectLockType.Exclusive:
-					state = exclusiveState;
-					break;
-			}
-			return state;
+                    return ExclusiveStateObject;
+
+                default:
+                    throw new InvalidOperationException();
+            }
 		}
 		#endregion
 	}
