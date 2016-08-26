@@ -22,25 +22,18 @@ namespace Zen.Trunk.Storage.Data
 	public class DataPage : Page
 	{
 		#region Private Fields
-		private TimeSpan _lockTimeout = TimeSpan.FromSeconds(10);
-		private PageBuffer _buffer;
+
+	    private PageBuffer _buffer;
 		private readonly SpinLockClass _syncTimestamp = new SpinLockClass();
 		private readonly BufferFieldInt64 _timestamp;
 		#endregion
 
 		#region Public Constructors
 		/// <summary>
-		/// Initializes a new instance of the <see cref="DatabasePage"/> class.
+		/// Initializes a new instance of the <see cref="DataPage"/> class.
 		/// </summary>
-		/// <param name="owner">The owner.</param>
 		public DataPage()
 		{
-			// TODO Assert trust permissions here
-			/*_database = owner;
-			if (_database != null)
-			{
-				ReadOnly = _database.IsReadOnly;
-			}*/
 			_timestamp = new BufferFieldInt64(base.LastHeaderField, 0);
 		}
 		#endregion
@@ -54,6 +47,9 @@ namespace Zen.Trunk.Storage.Data
 		/// The setting of this property is only supported prior to initialising
 		/// the underlying buffer object.
 		/// </remarks>
+		/// <exception cref="InvalidOperationException">
+		/// Thrown if the setter is called after the page has been initialised.
+		/// </exception>
 		public override VirtualPageId VirtualId
 		{
 			get
@@ -76,7 +72,7 @@ namespace Zen.Trunk.Storage.Data
 
 		/// <summary>
 		/// Overridden. Gets a value indicating whether this page is attached to a new
-		/// <see cref="T:BufferBase"/> object.
+		/// <see cref="PageBuffer"/> object.
 		/// </summary>
 		/// <value></value>
 		public override bool IsNewPage
@@ -95,32 +91,18 @@ namespace Zen.Trunk.Storage.Data
 		/// Gets/sets the lock timeout duration.
 		/// </summary>
 		/// <value>Lock time-span value</value>
-		public TimeSpan LockTimeout
-		{
-			get
-			{
-				return _lockTimeout;
-			}
-			set
-			{
-				_lockTimeout = value;
-			}
-		}
+		public TimeSpan LockTimeout { get; set; } = TimeSpan.FromSeconds(10);
 
-		/// <summary>
-		/// Gets/sets a boolean that indicates whether locks are held until
-		/// the current transaction is committed.
-		/// </summary>
-		/// <value>
-		/// A boolean value indicating whether to hold locks.
-		/// If true locks are held until the end of the transaction
-		/// If false locks are held until the page has been read from storage.
-		/// </value>
-		public bool HoldLock
-		{
-			get;
-			set;
-		}
+        /// <summary>
+        /// Gets/sets a boolean that indicates whether locks are held until
+        /// the current transaction is committed.
+        /// </summary>
+        /// <value>
+        /// A boolean value indicating whether to hold locks.
+        /// If <c>true</c> locks are held until the end of the transaction
+        /// If <c>false</c> locks are held until the page has been read from storage.
+        /// </value>
+        public bool HoldLock { get; set; }
 
 		/// <summary>
 		/// Overridden. Gets the header size - 192 bytes
@@ -145,11 +127,7 @@ namespace Zen.Trunk.Storage.Data
 	    /// <summary>
 		/// Gets/sets the page file-group ID.
 		/// </summary>
-		public FileGroupId FileGroupId
-		{
-			get;
-			set;
-		}
+		public FileGroupId FileGroupId { get; set; }
 		#endregion
 
 		#region Internal Properties
@@ -167,30 +145,12 @@ namespace Zen.Trunk.Storage.Data
 			{
 				if (_buffer != value)
 				{
-					if (_buffer != null)
-					{
-						_buffer.Release();
-					}
-					_buffer = value;
-					if (_buffer != null)
-					{
-						_buffer.AddRef();
-					}
-				}
-			}
-		}
+				    _buffer?.Release();
 
-		internal TransactionLockOwnerBlock TransactionLocks
-		{
-			get
-			{
-				TransactionLockOwnerBlock result = null;
-				var privTxn = TrunkTransactionContext.Current as ITrunkTransactionPrivate;
-				if (privTxn != null)
-				{
-					result = privTxn.TransactionLocks;
+				    _buffer = value;
+
+				    _buffer?.AddRef();
 				}
-				return result;
 			}
 		}
 		#endregion
@@ -213,7 +173,6 @@ namespace Zen.Trunk.Storage.Data
 		/// </summary>
 		/// <value>The last header field.</value>
 		protected override BufferField LastHeaderField => _timestamp;
-
 	    #endregion
 
 		#region Protected Methods
@@ -226,7 +185,6 @@ namespace Zen.Trunk.Storage.Data
 			{
 				Save();
 			}
-			//UnlockPage();
 
 			// Release our buffer (if it is dirty then it will be managed
 			//	by the transaction logic)
@@ -305,9 +263,14 @@ namespace Zen.Trunk.Storage.Data
 		/// Overrides to this method must set their desired lock prior to 
 		/// calling the base class.
 		/// The base class method will enable the locking primitives and call
-		/// LockPage.
+		/// <see cref="LockPage"/> as necessary.
 		/// This mechanism ensures that all lock states have been set prior to
 		/// the first call to LockPage.
+		/// When the current isolation level is uncommitted read then <see cref="LockPage"/>
+		/// will not be called.
+		/// When the current isolation level is repeatable read or serializable
+		/// then the <see cref="HoldLock"/> will be set to <c>true</c> prior to
+		/// calling <see cref="LockPage"/>.
 		/// </remarks>
 		protected override void OnPreLoad(EventArgs e)
 		{
@@ -478,9 +441,6 @@ namespace Zen.Trunk.Storage.Data
 			DataBuffer.EnlistInTransaction();
 			base.OnDirty(e);
 		}
-		#endregion
-
-		#region Private Methods
 		#endregion
 	}
 }

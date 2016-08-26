@@ -67,7 +67,7 @@ namespace Zen.Trunk.Storage.Data
 				}
 
 				// If we have no transaction locks then we should be in dispose
-				var txnLocks = TransactionLocks;
+				var txnLocks = TrunkTransactionContext.TransactionLocks;
 				if (txnLocks == null)
 				{
 					return null;

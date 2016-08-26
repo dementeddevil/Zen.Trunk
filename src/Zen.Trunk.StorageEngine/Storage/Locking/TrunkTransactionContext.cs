@@ -101,7 +101,16 @@ namespace Zen.Trunk.Storage.Locking
 			}
 		}
 
-		public static void BeginTransaction(ILifetimeScope lifetimeScope)
+        internal static TransactionLockOwnerBlock TransactionLocks
+        {
+            get
+            {
+                var privTxn = TrunkTransactionContext.Current as ITrunkTransactionPrivate;
+                return privTxn?.TransactionLocks;
+            }
+        }
+
+        public static void BeginTransaction(ILifetimeScope lifetimeScope)
 		{
 			BeginTransaction(new TrunkTransaction(lifetimeScope));
 		}
