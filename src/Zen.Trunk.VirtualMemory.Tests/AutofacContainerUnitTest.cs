@@ -5,6 +5,8 @@ namespace Zen.Trunk
 {
     public class AutofacContainerUnitTests : IDisposable
     {
+        private TempFileTracker _globalTracker;
+
         protected AutofacContainerUnitTests()
         {
             InitializeScope();
@@ -16,6 +18,18 @@ namespace Zen.Trunk
         }
 
         protected ILifetimeScope Scope { get; private set; }
+
+        protected TempFileTracker GlobalTracker
+        {
+            get
+            {
+                if (_globalTracker == null)
+                {
+                    _globalTracker = new TempFileTracker();
+                }
+                return _globalTracker;
+            }
+        }
 
         public void Dispose()
         {
@@ -39,9 +53,11 @@ namespace Zen.Trunk
             if (disposing)
             {
                 Scope?.Dispose();
+                _globalTracker?.Dispose();
             }
 
             Scope = null;
+            _globalTracker = null;
         }
     }
 }

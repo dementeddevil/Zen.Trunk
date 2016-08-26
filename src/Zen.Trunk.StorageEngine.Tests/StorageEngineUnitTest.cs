@@ -14,85 +14,60 @@ namespace Zen.Trunk.Storage
 {
 	[Trait("Subsystem", "Storage Engine")]
     [Trait("Class", "Database Device")]
-	public class StorageEngineUnitTest
+	public class StorageEngineUnitTest : AutofacStorageEngineUnitTests
 	{
-	    private ILifetimeScope _lifetimeScope;
-
-	    ~StorageEngineUnitTest()
-	    {
-	        _lifetimeScope.Dispose();
-	    }
-
 		[Fact(DisplayName = "Validate create database under transaction works as expected")]
 		public async Task DatabaseCreateTxnTest()
 		{
-            var assemblyLocation = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-            var masterDataPathName = Path.Combine(assemblyLocation, "master.mddf");
-            var masterLogPathName = Path.Combine(assemblyLocation, "master.mlf");
-            try
-            {
-                var dbDevice = CreateDatabaseDevice();
-                try
-                {
-                    dbDevice.BeginTransaction();
-
-			        var addFgDevice =
-				        new AddFileGroupDeviceParameters(
-					        FileGroupId.Primary,
-					        "PRIMARY",
-					        "master",
-					        masterDataPathName,
-                            DeviceId.Zero,
-					        128,
-					        true);
-			        await dbDevice.AddFileGroupDevice(addFgDevice).ConfigureAwait(true);
-
-			        var addLogDevice =
-				        new AddLogDeviceParameters(
-					        "MASTER_LOG",
-					        masterLogPathName,
-                            DeviceId.Zero,
-					        2);
-			        await dbDevice.AddLogDevice(addLogDevice).ConfigureAwait(true);
-
-                    await dbDevice.OpenAsync(true).ConfigureAwait(true);
-                    Trace.WriteLine("DatabaseDevice.Open succeeded");
-
-			        await TrunkTransactionContext.Commit().ConfigureAwait(true);
-                    Trace.WriteLine("Transaction commit succeeded");
-                }
-		        finally
-		        {
-		            await dbDevice.CloseAsync().ConfigureAwait(true);
-                    Trace.WriteLine("DatabaseDevice.Close succeeded");
-
-                    dbDevice.Dispose();
-		            dbDevice = null;
-		        }
-            }
-		    finally
+		    using (var tracker = new TempFileTracker())
 		    {
-		        if (File.Exists(masterDataPathName))
+                var masterDataPathName = tracker.Get("master.mddf");
+                var masterLogPathName = tracker.Get("master.mlf");
+
+		        using (var dbDevice = new DatabaseDevice(Scope, DatabaseId.Zero))
 		        {
-		            File.Delete(masterDataPathName);
+		            dbDevice.BeginTransaction();
+
+		            var addFgDevice =
+		                new AddFileGroupDeviceParameters(
+		                    FileGroupId.Primary,
+		                    "PRIMARY",
+		                    "master",
+		                    masterDataPathName,
+		                    DeviceId.Zero,
+		                    128,
+		                    true);
+		            await dbDevice.AddFileGroupDevice(addFgDevice).ConfigureAwait(true);
+
+		            var addLogDevice =
+		                new AddLogDeviceParameters(
+		                    "MASTER_LOG",
+		                    masterLogPathName,
+		                    DeviceId.Zero,
+		                    2);
+		            await dbDevice.AddLogDevice(addLogDevice).ConfigureAwait(true);
+
+		            await dbDevice.OpenAsync(true).ConfigureAwait(true);
+		            Trace.WriteLine("DatabaseDevice.Open succeeded");
+
+		            await TrunkTransactionContext.Commit().ConfigureAwait(true);
+		            Trace.WriteLine("Transaction commit succeeded");
+
+		            await dbDevice.CloseAsync().ConfigureAwait(true);
+		            Trace.WriteLine("DatabaseDevice.Close succeeded");
 		        }
-		        if (File.Exists(masterLogPathName))
-		        {
-		            File.Delete(masterLogPathName);
-		        }
-		    }
+ 		    }
 		}
 
         [Fact(DisplayName = "Validate create database and streaming data into several pages under transaction works as expected")]
         public async Task DatabaseCreateStreamTxnTest()
 		{
-            var assemblyLocation = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-            var masterDataPathName = Path.Combine(assemblyLocation, "master.mddf");
-            var masterLogPathName = Path.Combine(assemblyLocation, "master.mlf");
-            try
+            using (var tracker = new TempFileTracker())
             {
-                var dbDevice = CreateDatabaseDevice();
-                try
+                var masterDataPathName = tracker.Get("master.mddf");
+                var masterLogPathName = tracker.Get("master.mlf");
+
+                using (var dbDevice = new DatabaseDevice(Scope, DatabaseId.Zero))
                 {
                     dbDevice.BeginTransaction();
 
@@ -200,23 +175,7 @@ namespace Zen.Trunk.Storage
 			        }
 
 			        await TrunkTransactionContext.Commit().ConfigureAwait(true);
-                }
-                finally
-                {
                     await dbDevice.CloseAsync().ConfigureAwait(true);
-                    dbDevice.Dispose();
-                    dbDevice = null;
-                }
-            }
-            finally
-            {
-                if (File.Exists(masterDataPathName))
-                {
-                    File.Delete(masterDataPathName);
-                }
-                if (File.Exists(masterLogPathName))
-                {
-                    File.Delete(masterLogPathName);
                 }
             }
         }
@@ -224,14 +183,13 @@ namespace Zen.Trunk.Storage
         [Fact(DisplayName = "Validate that creating database table under transaction works as expected.")]
 		public async Task DatabaseCreateTableTxnTest()
 		{
-            var assemblyLocation = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-			var masterDataPathName = Path.Combine(assemblyLocation, "master.mddf");
-			var masterLogPathName = Path.Combine(assemblyLocation, "master.mlf");
-		    try
-		    {
-                var dbDevice = CreateDatabaseDevice();
-		        try
-		        {
+            using (var tracker = new TempFileTracker())
+            {
+                var masterDataPathName = tracker.Get("master.mddf");
+                var masterLogPathName = tracker.Get("master.mlf");
+
+                using (var dbDevice = new DatabaseDevice(Scope, DatabaseId.Zero))
+                {
                     dbDevice.BeginTransaction();
 
                     var addFgDevice =
@@ -306,35 +264,9 @@ namespace Zen.Trunk.Storage
 
 
 			        TrunkTransactionContext.Commit();*/
-		        }
-		        finally
-		        {
 		            await dbDevice.CloseAsync().ConfigureAwait(true);
-		            dbDevice.Dispose();
-		            dbDevice = null;
 		        }
 		    }
-		    finally
-		    {
-		        if (File.Exists(masterDataPathName))
-		        {
-		            File.Delete(masterDataPathName);
-		        }
-		        if (File.Exists(masterLogPathName))
-		        {
-		            File.Delete(masterLogPathName);
-		        }
-		    }
-		}
-
-		private DatabaseDevice CreateDatabaseDevice()
-		{
-            var builder = new StorageEngineBuilder()
-                .WithVirtualBufferFactory()
-                .WithGlobalLockManager();
-		    _lifetimeScope = builder.Build();
-
-			return new DatabaseDevice(_lifetimeScope, DatabaseId.Zero);
 		}
 	}
 }

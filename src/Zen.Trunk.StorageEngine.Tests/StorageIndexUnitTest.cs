@@ -12,7 +12,7 @@ namespace Zen.Trunk.Storage
 {
     [Trait("Subsystem", "Storage Engine")]
     [Trait("Class", "Index Manager")]
-    public class StorageIndexUnitTest
+    public class StorageIndexUnitTest : AutofacStorageEngineUnitTests
     {
         private class TestIndexManager : IndexManager<RootIndexInfo>
         {
@@ -178,8 +178,6 @@ namespace Zen.Trunk.Storage
             }
         }
 
-        private ILifetimeScope _parentServices;
-
         [Fact(DisplayName = "Index test add pages")]
         public async Task IndexTestAddPages()
         {
@@ -218,7 +216,7 @@ namespace Zen.Trunk.Storage
 
                     dbDevice.BeginTransaction(TimeSpan.FromMinutes(10));
 
-                    var manager = new TestIndexManager(_parentServices);
+                    var manager = new TestIndexManager(Scope);
                     var indexInfo = new RootIndexInfo
                     {
                         Name = "PK_Test",
@@ -238,18 +236,18 @@ namespace Zen.Trunk.Storage
             }
         }
 
-        private DatabaseDevice CreateDatabaseDevice(){
-            var builder = new StorageEngineBuilder()
-                .WithVirtualBufferFactory()
-                .WithGlobalLockManager();
-            //builder.RegisterType<MasterLogPageDevice>()
-            //    .WithParameter("pathName", string.Empty);
+        protected override void InitializeContainerBuilder(ContainerBuilder builder)
+        {
+            base.InitializeContainerBuilder(builder);
+
             builder.RegisterType<DatabaseDevice>()
                 .WithParameter("dbId", DatabaseId.Zero)
                 .SingleInstance();
-            _parentServices = builder.Build();
+        }
 
-            return _parentServices.Resolve<DatabaseDevice>();
+        private DatabaseDevice CreateDatabaseDevice()
+        {
+            return Scope.Resolve<DatabaseDevice>();
         }
     }
 }
