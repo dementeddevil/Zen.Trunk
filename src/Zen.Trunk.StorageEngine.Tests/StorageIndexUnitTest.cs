@@ -238,8 +238,7 @@ namespace Zen.Trunk.Storage
             }
         }
 
-        private DatabaseDevice CreateDatabaseDevice()
-        {
+        private DatabaseDevice CreateDatabaseDevice(){
             var builder = new StorageEngineBuilder()
                 .WithVirtualBufferFactory()
                 .WithGlobalLockManager();

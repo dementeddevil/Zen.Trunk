@@ -11,7 +11,7 @@ namespace Zen.Trunk.Storage
 {
     [Trait("Subsystem", "Storage Engine")]
     [Trait("Class", "Page")]
-	public class PageUnitTest
+	public class PageUnitTest : AutofacStorageEngineUnitTests
 	{
 		private class MockPageDevice : PageDevice, IMultipleBufferDevice
 		{
@@ -121,12 +121,7 @@ When the 129th extent is allocated,
 Then the allocation fails.")]
 		public Task DistributionValidExtentNonMixedTest()
 		{
-            var builder = new StorageEngineBuilder()
-                .WithVirtualBufferFactory()
-                .WithGlobalLockManager()
-                .WithDatabaseLockManager(new DatabaseId(1));
-		    var lifetimeScope = builder.Build();
-			var pageDevice = new MockPageDevice(lifetimeScope);
+			var pageDevice = new MockPageDevice(Scope);
 
 			pageDevice.BeginTransaction();
 

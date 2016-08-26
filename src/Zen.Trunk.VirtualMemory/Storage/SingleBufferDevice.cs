@@ -24,30 +24,12 @@
         /// <param name="name">The name.</param>
         /// <param name="pathName">Name of the path.</param>
         /// <param name="enableScatterGatherIo">if set to <c>true</c> then scatter-gather I/O will be enabled.</param>
-        public SingleBufferDevice(
-            IVirtualBufferFactory bufferFactory,
-            bool isPrimary,
-            string name,
-            string pathName,
-            bool enableScatterGatherIo)
-        {
-            _bufferFactory = bufferFactory;
-            IsPrimary = isPrimary;
-            Name = name;
-            PathName = pathName;
-            IsScatterGatherIOEnabled = enableScatterGatherIo;
-            RequiresCreate = false;
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="SingleBufferDevice" /> class.
-        /// </summary>
-        /// <param name="bufferFactory">The buffer factory.</param>
-        /// <param name="isPrimary">if set to <c>true</c> [is primary].</param>
-        /// <param name="name">The name.</param>
-        /// <param name="pathName">Name of the path.</param>
-        /// <param name="enableScatterGatherIo">if set to <c>true</c> then scatter-gather I/O will be enabled.</param>
         /// <param name="createPageCount">The create page count.</param>
+        /// <remarks>
+        /// If the createPageCount > 0 then the underlying file will be created during the open call
+        /// and initialised to a length equal to the buffer size reported by the buffer factory
+        /// multiplied by the createPageCount value.
+        /// </remarks>
         public SingleBufferDevice(
             IVirtualBufferFactory bufferFactory,
             bool isPrimary,
@@ -61,7 +43,7 @@
             Name = name;
             PathName = pathName;
             IsScatterGatherIOEnabled = enableScatterGatherIo;
-            RequiresCreate = true;
+            RequiresCreate = createPageCount > 0;
             PageCount = createPageCount;
         }
         #endregion

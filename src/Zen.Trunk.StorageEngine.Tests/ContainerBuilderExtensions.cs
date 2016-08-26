@@ -6,7 +6,7 @@ namespace Zen.Trunk.Storage
 {
     public static class ContainerBuilderExtensions
     {
-        public static ContainerBuilder RegisterGlobalLockManager(
+        public static ContainerBuilder WithGlobalLockManager(
             this ContainerBuilder builder)
         {
             builder.RegisterType<GlobalLockManager>()

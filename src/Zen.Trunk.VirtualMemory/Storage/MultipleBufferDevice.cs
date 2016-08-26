@@ -32,15 +32,19 @@
 		private readonly bool _scatterGatherIoEnabled;
 		private readonly ConcurrentDictionary<DeviceId, ISingleBufferDevice> _devices =
 			new ConcurrentDictionary<DeviceId, ISingleBufferDevice>();
-		#endregion
+
+	    private readonly IBufferDeviceFactory _bufferDeviceFactory;
+
+	    #endregion
 
 		#region Public Constructors
 		/// <summary>
 		/// Initializes a new instance of the <see cref="MultipleBufferDevice"/> class.
 		/// </summary>
-		public MultipleBufferDevice(IVirtualBufferFactory bufferFactory, bool scatterGatherIoEnabled)
+		public MultipleBufferDevice(IVirtualBufferFactory bufferFactory, IBufferDeviceFactory bufferDeviceFactory, bool scatterGatherIoEnabled)
 		{
-			_bufferFactory = bufferFactory;
+		    _bufferFactory = bufferFactory;
+		    _bufferDeviceFactory = bufferDeviceFactory;
 			_scatterGatherIoEnabled = scatterGatherIoEnabled;
 		}
 		#endregion
@@ -74,26 +78,13 @@
             }
 
 			// Create device
-			ISingleBufferDevice childDevice;
-			if (createPageCount > 0)
-			{
-				childDevice = new SingleBufferDevice(
-					_bufferFactory,
-					isPrimary,
-					name,
-					pathName,
-					_scatterGatherIoEnabled,
-					createPageCount);
-			}
-			else
-			{
-				childDevice = new SingleBufferDevice(
-					_bufferFactory,
-					isPrimary,
-					name,
-					pathName,
-					_scatterGatherIoEnabled);
-			}
+			var childDevice = new SingleBufferDevice(
+				_bufferFactory,
+				isPrimary,
+				name,
+				pathName,
+				_scatterGatherIoEnabled,
+				createPageCount);
 
 			// Add child device with suitable device id
 			if (deviceId == DeviceId.Zero)

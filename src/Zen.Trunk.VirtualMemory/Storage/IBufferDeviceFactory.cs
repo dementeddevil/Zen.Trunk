@@ -4,6 +4,6 @@
     {
         IMultipleBufferDevice CreateMultipleBufferDevice(bool enableScatterGatherIo);
 
-        ISingleBufferDevice CreateSingleBufferDevice(string name, string pathname, bool isPrimary, bool enableScatterGatherIo);
+        ISingleBufferDevice CreateSingleBufferDevice(string name, string pathname, bool isPrimary, bool enableScatterGatherIo, uint createPageCount);
     }
 }

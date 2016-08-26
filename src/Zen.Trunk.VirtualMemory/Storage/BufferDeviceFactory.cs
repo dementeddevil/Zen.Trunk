@@ -16,15 +16,15 @@ namespace Zen.Trunk.Storage
         }
 
         public ISingleBufferDevice CreateSingleBufferDevice(
-            string name, string pathname, bool isPrimary, bool enableScatterGatherIo)
+            string name, string pathname, bool isPrimary, bool enableScatterGatherIo, uint createPageCount)
         {
             return new SingleBufferDevice(
-                _bufferFactory, isPrimary, name, pathname, enableScatterGatherIo);
+                _bufferFactory, isPrimary, name, pathname, enableScatterGatherIo, createPageCount);
         }
 
         public IMultipleBufferDevice CreateMultipleBufferDevice(bool enableScatterGatherIo)
         {
-            return new MultipleBufferDevice(_bufferFactory, enableScatterGatherIo);
+            return new MultipleBufferDevice(_bufferFactory, this, enableScatterGatherIo);
         }
     }
 }

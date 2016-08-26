@@ -14,70 +14,61 @@ namespace Zen.Trunk.VirtualMemory
     /// </summary>
     [Trait("Subsystem", "Virtual Memory")]
     [Trait("Class", "Multiple Device")]
-    public class MultipleDeviceUnitTest
+    public class MultipleDeviceUnitTest : AutofacVirtualMemoryUnitTests
     {
-        private const int BufferSize = 8192;
-        private IVirtualBufferFactory _bufferFactory = new VirtualBufferFactory(32, BufferSize);
-
-        ~MultipleDeviceUnitTest()
-        {
-            _bufferFactory.Dispose();
-            _bufferFactory = null;
-        }
-
         [Fact(DisplayName = @"
 Given a newly created multi-device with 4 sub-files
 When 7 buffers are written to each sub-file and then read into separate buffers
 Then the buffer contents are the same")]
         public async Task CreateMultipleDeviceTest()
         {
-            // Create multiple device and add our child devices
-            var assemblyLocation = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-            var testFiles = new List<string>();
-            var device = new MultipleBufferDevice(_bufferFactory, true);
-            var deviceIds = new List<DeviceId>();
-            foreach (var filename in GetChildDeviceList())
+            using (var tracker = new TempFileTracker())
             {
-                var pathName = Path.Combine(assemblyLocation, filename);
-                testFiles.Add(pathName);
-                deviceIds.Add(await device.AddDeviceAsync(filename, pathName, DeviceId.Zero, 128).ConfigureAwait(true));
-            }
-            await device.OpenAsync().ConfigureAwait(true);
-            try
-            {
-                // Write a load of buffers across the group of devices
-                var subTasks = new List<Task>();
                 var saveBuffers = new List<VirtualBuffer>();
-                foreach (var deviceId in deviceIds)
-                {
-                    for (var index = 0; index < 7; ++index)
-                    {
-                        var buffer = _bufferFactory.AllocateAndFill((byte)index);
-                        saveBuffers.Add(buffer);
-                        subTasks.Add(device.SaveBufferAsync(
-                            new VirtualPageId(deviceId, (uint)index), buffer));
-                    }
-                }
-                await device.FlushBuffersAsync(true, true).ConfigureAwait(true);
-                await Task.WhenAll(subTasks.ToArray()).ConfigureAwait(true);
-
-                subTasks.Clear();
                 var loadBuffers = new List<VirtualBuffer>();
-                foreach (var deviceId in deviceIds)
+                using (var device = BufferDeviceFactory.CreateMultipleBufferDevice(true))
                 {
-                    for (var index = 0; index < 7; ++index)
+                    var deviceIds = new List<DeviceId>();
+                    foreach (var filename in GetChildDeviceList())
                     {
-                        var buffer = _bufferFactory.AllocateBuffer();
-                        loadBuffers.Add(buffer);
-                        subTasks.Add(device.LoadBufferAsync(
-                            new VirtualPageId(deviceId, (uint)index), buffer));
+                        var pathName = tracker.Get(filename);
+                        deviceIds.Add(await device.AddDeviceAsync(filename, pathName, DeviceId.Zero, 128).ConfigureAwait(true));
                     }
-                }
-                await device.FlushBuffersAsync(true, true).ConfigureAwait(true);
-                await Task.WhenAll(subTasks.ToArray()).ConfigureAwait(true);
+                   
+                    await device.OpenAsync().ConfigureAwait(true);
 
-                // Close the device
-                await device.CloseAsync().ConfigureAwait(true);
+                    // Write a load of buffers across the group of devices
+                    var subTasks = new List<Task>();
+                    foreach (var deviceId in deviceIds)
+                    {
+                        for (var index = 0; index < 7; ++index)
+                        {
+                            var buffer = BufferFactory.AllocateAndFill((byte)index);
+                            saveBuffers.Add(buffer);
+                            subTasks.Add(device.SaveBufferAsync(
+                                new VirtualPageId(deviceId, (uint)index), buffer));
+                        }
+                    }
+                    await device.FlushBuffersAsync(true, true).ConfigureAwait(true);
+                    await Task.WhenAll(subTasks.ToArray()).ConfigureAwait(true);
+
+                    subTasks.Clear();
+                    foreach (var deviceId in deviceIds)
+                    {
+                        for (var index = 0; index < 7; ++index)
+                        {
+                            var buffer = BufferFactory.AllocateBuffer();
+                            loadBuffers.Add(buffer);
+                            subTasks.Add(device.LoadBufferAsync(
+                                new VirtualPageId(deviceId, (uint)index), buffer));
+                        }
+                    }
+                    await device.FlushBuffersAsync(true, true).ConfigureAwait(true);
+                    await Task.WhenAll(subTasks.ToArray()).ConfigureAwait(true);
+
+                    // Close the device
+                    await device.CloseAsync().ConfigureAwait(true);
+                }
 
                 // Walk buffers and check contents are the same
                 for (var index = 0; index < saveBuffers.Count; ++index)
@@ -89,13 +80,6 @@ Then the buffer contents are the same")]
 
                 DisposeBuffers(saveBuffers);
                 DisposeBuffers(loadBuffers);
-            }
-            finally
-            {
-                foreach (var testFile in testFiles)
-                {
-                    File.Delete(testFile);
-                }
             }
         }
 
@@ -109,7 +93,7 @@ Then the buffer contents are the same")]
 
         private string[] GetChildDeviceList()
         {
-            return new string[]
+            return new[]
                 {
                     "Device1.bin",
                     "Device2.bin",

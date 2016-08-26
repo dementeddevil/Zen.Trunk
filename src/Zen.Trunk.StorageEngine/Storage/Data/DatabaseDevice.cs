@@ -102,7 +102,7 @@ namespace Zen.Trunk.Storage.Data
 		private readonly DatabaseId _dbId;
 
 	    // Underlying page buffer storage
-		private MultipleBufferDevice _bufferDevice;
+		private IMultipleBufferDevice _bufferDevice;
 		private CachingPageBufferDevice _dataBufferDevice;
 
 		// File-group mapping
@@ -128,8 +128,8 @@ namespace Zen.Trunk.Storage.Data
         {
             _dbId = dbId;
             // Initialise devices
-            var bufferFactory = ResolveDeviceService<IVirtualBufferFactory>();
-            _bufferDevice = new MultipleBufferDevice(bufferFactory, true);
+            var deviceFactory = ResolveDeviceService<IBufferDeviceFactory>();
+            _bufferDevice = deviceFactory.CreateMultipleBufferDevice(true);
             _dataBufferDevice = new CachingPageBufferDevice(_bufferDevice);
 
             // Setup ports

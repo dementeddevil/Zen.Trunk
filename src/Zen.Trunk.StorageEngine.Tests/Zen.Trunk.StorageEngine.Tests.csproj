@@ -93,8 +93,8 @@
     </CodeAnalysisDependentAssemblyPaths>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AutofacStorageEngineTest.cs" />
-    <Compile Include="StorageEngineBuilder.cs" />
+    <Compile Include="AutofacStorageEngineUnitTests.cs" />
+    <Compile Include="ContainerBuilderExtensions.cs" />
     <Compile Include="TransactionLockBlockUnitTest.cs" />
     <Compile Include="PageUnitTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

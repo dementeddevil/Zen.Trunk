@@ -19,10 +19,6 @@ namespace Zen.Trunk.VirtualMemory
     [Trait("Class", "Single Device")]
     public class VirtualMemoryUnitTests : AutofacVirtualMemoryUnitTests
     {
-        private const int BufferSize = 8192;
-
-        public IVirtualBufferFactory BufferFactory => Scope.Resolve<IVirtualBufferFactory>();
-
         [Fact(DisplayName = @"
 Given a virtual buffer factory,
 When 9 threads allocate and deallocate 1000 buffers simultaneously,
