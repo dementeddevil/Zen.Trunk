@@ -252,7 +252,7 @@ namespace Zen.Trunk.Storage.Data
 		#region Private Fields
 		private readonly ExtentInfo[] _extents;
 		private List<uint> _lockedExtents;
-
+	    private IDatabaseLockManager _lockManager;
 		private ObjectLockType _distributionLock = ObjectLockType.IntentShared;
 		#endregion
 
@@ -297,11 +297,12 @@ namespace Zen.Trunk.Storage.Data
 		}
 
 		public override PageType PageType => PageType.Distribution;
-
 	    #endregion
 
-		#region Internal Properties
-		internal DistributionLockOwnerBlock LockBlock
+		#region Private Properties
+	    private IDatabaseLockManager LockManager => _lockManager ?? (_lockManager = GetService<IDatabaseLockManager>());
+
+	    private DistributionLockOwnerBlock LockBlock
 		{
 			get
 			{
@@ -312,13 +313,9 @@ namespace Zen.Trunk.Storage.Data
 
 				// If we have no transaction locks then we should be in dispose
 				var txnLocks = TrunkTransactionContext.TransactionLocks;
-				if (txnLocks == null)
-				{
-					return null;
-				}
 
-				// Return the lock-owner block for this object instance
-				return txnLocks.GetOrCreateDistributionLockOwnerBlock(VirtualId);
+			    // Return the lock-owner block for this object instance
+				return txnLocks?.GetOrCreateDistributionLockOwnerBlock(VirtualId);
 			}
 		}
 		#endregion
@@ -336,11 +333,10 @@ namespace Zen.Trunk.Storage.Data
 		/// This method will lock and unlock extents whilst searching
 		/// using the default lock timeout for the page.
 		/// </remarks>
-		public ulong AllocatePage(AllocateDataPageParameters allocParams)
+		public VirtualPageId AllocatePage(AllocateDataPageParameters allocParams)
 		{
 			System.Diagnostics.Debug.WriteLine(
 			    $"Allocate page via DistributionPage {VirtualId}");
-			var lm = GetService<IDatabaseLockManager>();
 
 			// Ensure we have some kind of lock on the page...
 			if (DistributionLock == ObjectLockType.None)
@@ -348,183 +344,203 @@ namespace Zen.Trunk.Storage.Data
 				DistributionLock = ObjectLockType.IntentShared;
 			}
 
-			// Phase #1: Look for existing extent we can use for this object
+            // Look for extent we can use;
+			//   Phase #1: Look for existing extent we can use for this object
+			//   Phase #2: Look for a free extent we can use for this object
 			bool hasAcquiredLock = false, useExtent = false;
-			uint extent = 0;
-			for (uint index = 0; !useExtent && index < ExtentTrackingCount; ++index)
-			{
-				try
-				{
-					// Get the extent information
-					var info = GetLatestExtentInfoWithLock(lm, index, out hasAcquiredLock);
+			uint extent;
+		    if (TryFindUsableExistingExtent(allocParams, out extent) ||
+		        TryFindUsableFreeExtent(allocParams, out extent))
+		    {
+		        useExtent = true;
+		    }
 
-					// If this extent is unusable then stop as we have reached
-					//	the end of the device...
-					if (!info.IsUsable)
-					{
-						break;
-					}
-
-					// Skip extents that are full
-					if (info.IsFull)
-					{
-						continue;
-					}
-
-					// Determine whether this is an extent we can use
-					if ((allocParams.MixedExtent && info.IsMixedExtent) ||
-						(!allocParams.MixedExtent && !info.IsMixedExtent && info.ObjectId == allocParams.ObjectId))
-					{
-						extent = index;
-						useExtent = true;
-					}
-				}
-				catch (LockException)
-				{
-				}
-				finally
-				{
-					// If we are not using this extent and we have a lock then
-					//	release the extent lock now.
-					if (!useExtent && hasAcquiredLock)
-					{
-						UnlockExtent(index);
-					}
-				}
-			}
-
-			// Phase #2: Look for a free extent we can use for this object
-			if (!useExtent)
-			{
-				for (uint index = 0; !useExtent && index < ExtentTrackingCount; ++index)
-				{
-					try
-					{
-						// Get the extent information
-						var info = GetLatestExtentInfoWithLock(lm, index, out hasAcquiredLock);
-
-						// If this extent is unusable then stop as we have reached
-						//	the end of the device...
-						if (!info.IsUsable)
-						{
-							break;
-						}
-
-						// If extent is free then we will use it
-						if (info.IsFree)
-						{
-							extent = index;
-							useExtent = true;
-						}
-					}
-					catch (LockException)
-					{
-					}
-					finally
-					{
-						// If we are not using this extent and we have a lock then
-						//	release the extent lock now.
-						if (!useExtent && hasAcquiredLock)
-						{
-							UnlockExtent(index);
-						}
-					}
-				}
-			}
-
-			// If we have a suitable extent
+			// If we don't have a suitable extent
 			ulong virtPageId = 0;
-			if (useExtent)
-			{
-				// Escalate locks
-				try
-				{
-					// Escalate the distribution lock if necessary
-					if (DistributionLock != ObjectLockType.IntentExclusive &&
-						DistributionLock != ObjectLockType.Exclusive)
-					{
-						DistributionLock = ObjectLockType.IntentExclusive;
-					}
+		    if (!useExtent)
+		    {
+		        return new VirtualPageId(0);
+		    }
 
-					// Escalate the extent lock if necessary
-					if (DistributionLock != ObjectLockType.Exclusive)
-					{
-						var extentLock = lm.GetExtentLock(VirtualId, extent);
-						if (!extentLock.HasLock(DataLockType.Exclusive))
-						{
-							LockExtent(extent, DataLockType.Update);
-							LockExtent(extent, DataLockType.Exclusive);
-						}
-					}
-				}
-				catch (Exception e)
-				{
-					// If we acquired the lock in this method then release
-					//	before throwing...
-					if (hasAcquiredLock)
-					{
-						UnlockExtent(extent);
-					}
-					throw e;
-				}
+		    // Escalate locks
+		    try
+		    {
+		        // Escalate the distribution lock if necessary
+		        if (DistributionLock != ObjectLockType.IntentExclusive &&
+		            DistributionLock != ObjectLockType.Exclusive)
+		        {
+		            DistributionLock = ObjectLockType.IntentExclusive;
+		        }
 
-				// Check extent is still available and usable
-				// NOTE: We do not need to reload since we've had (at a minimum)
-				//	a shared read lock since identifying the extent...
-				var info = _extents[extent];
-				if (info.IsFull || !info.IsUsable)
-				{
-					return 0;
-				}
+		        // Escalate the extent lock if necessary
+		        if (DistributionLock != ObjectLockType.Exclusive)
+		        {
+		            var extentLock = LockManager.GetExtentLock(VirtualId, extent);
+		            if (!extentLock.HasLock(DataLockType.Exclusive))
+		            {
+		                LockExtent(extent, DataLockType.Update);
+		                LockExtent(extent, DataLockType.Exclusive);
+		            }
+		        }
+		    }
+		    catch
+		    {
+		        // If we acquired the lock in this method then release
+		        //	before throwing...
+		        if (hasAcquiredLock)
+		        {
+		            UnlockExtent(extent);
+		        }
+		        throw;
+		    }
 
-				// Setup the extent info
-				if (info.IsFree)
-				{
-					_extents[extent].IsMixedExtent = allocParams.MixedExtent;
-					if (!allocParams.MixedExtent)
-					{
-						_extents[extent].ObjectId = allocParams.ObjectId;
-					}
-				}
+		    // Check extent is still available and usable
+		    // NOTE: We do not need to reload since we've had (at a minimum)
+		    //	a shared read lock since identifying the extent...
+		    var info = _extents[extent];
+		    if (info.IsFull || !info.IsUsable)
+		    {
+		        return 0;
+		    }
 
-				// Find a free page in this extent
-				for (uint index = 0; index < PagesPerExtent; ++index)
-				{
-					if (!info.Pages[index].AllocationStatus)
-					{
-						info.Pages[index].AllocationStatus = true;
-						info.Pages[index].LogicalId = allocParams.LogicalId;
-						info.Pages[index].ObjectId = allocParams.ObjectId;
-						info.Pages[index].ObjectType = allocParams.ObjectType;
+		    // Setup the extent info
+		    if (info.IsFree)
+		    {
+		        _extents[extent].IsMixedExtent = allocParams.MixedExtent;
+		        if (!allocParams.MixedExtent)
+		        {
+		            _extents[extent].ObjectId = allocParams.ObjectId;
+		        }
+		    }
 
-						// Determine the virtual id for this page
-						var pageIndex = (extent * PagesPerExtent) + index;
-						virtPageId = VirtualId.Value + pageIndex + 1;
-						break;
-					}
-				}
+		    // Find a free page in this extent
+		    for (uint index = 0; index < PagesPerExtent; ++index)
+		    {
+		        if (!info.Pages[index].AllocationStatus)
+		        {
+		            info.Pages[index].AllocationStatus = true;
+		            info.Pages[index].LogicalId = allocParams.LogicalId;
+		            info.Pages[index].ObjectId = allocParams.ObjectId;
+		            info.Pages[index].ObjectType = allocParams.ObjectType;
 
-				// Check whether the extent is now full
-				var extentFull = true;
-				for (var index = 0; extentFull && index < PagesPerExtent; ++index)
-				{
-					if (!info.Pages[index].AllocationStatus)
-					{
-						extentFull = false;
-						break;
-					}
-				}
-				info.IsFull = extentFull;
+		            // Determine the virtual id for this page
+		            var pageIndex = (extent * PagesPerExtent) + index;
+		            virtPageId = VirtualId.Value + pageIndex + 1;
+		            break;
+		        }
+		    }
 
-				SetDirty();
-				Save();
-				//WriteData();
-				//SetHeaderDirty();
-			}
-			return virtPageId;
+		    // Check whether the extent is now full
+		    var extentFull = true;
+		    for (var index = 0; extentFull && index < PagesPerExtent; ++index)
+		    {
+		        if (!info.Pages[index].AllocationStatus)
+		        {
+		            extentFull = false;
+		            break;
+		        }
+		    }
+		    info.IsFull = extentFull;
+
+		    SetDirty();
+		    Save();
+		    //WriteData();
+		    //SetHeaderDirty();
+
+		    return virtPageId;
 		}
 
-		public void FreePage(uint offset, TimeSpan timeout)
+	    private bool TryFindUsableExistingExtent(AllocateDataPageParameters allocParams, out uint extent)
+	    {
+            bool hasAcquiredLock = false, useExtent = false;
+            extent = 0;
+            for (uint index = 0; !useExtent && index < ExtentTrackingCount; ++index)
+            {
+                try
+                {
+                    // Get the extent information
+                    var info = GetLatestExtentInfoWithLock(LockManager, index, out hasAcquiredLock);
+
+                    // If this extent is unusable then stop as we have reached
+                    //	the end of the device...
+                    if (!info.IsUsable)
+                    {
+                        break;
+                    }
+
+                    // Skip extents that are full
+                    if (info.IsFull)
+                    {
+                        continue;
+                    }
+
+                    // Determine whether this is an extent we can use
+                    if ((allocParams.MixedExtent && info.IsMixedExtent) ||
+                        (!allocParams.MixedExtent && !info.IsMixedExtent && info.ObjectId == allocParams.ObjectId))
+                    {
+                        extent = index;
+                        useExtent = true;
+                    }
+                }
+                catch (LockException)
+                {
+                }
+                finally
+                {
+                    // If we are not using this extent and we have a lock then
+                    //	release the extent lock now.
+                    if (!useExtent && hasAcquiredLock)
+                    {
+                        UnlockExtent(index);
+                    }
+                }
+            }
+
+	        return useExtent;
+	    }
+
+	    private bool TryFindUsableFreeExtent(AllocateDataPageParameters allocParams, out uint extent)
+	    {
+            bool hasAcquiredLock = false, useExtent = false;
+            extent = 0;
+            for (uint index = 0; !useExtent && index < ExtentTrackingCount; ++index)
+            {
+                try
+                {
+                    // Get the extent information
+                    var info = GetLatestExtentInfoWithLock(LockManager, index, out hasAcquiredLock);
+
+                    // If this extent is unusable then stop as we have reached
+                    //	the end of the device...
+                    if (!info.IsUsable)
+                    {
+                        break;
+                    }
+
+                    // If extent is free then we will use it
+                    if (info.IsFree)
+                    {
+                        extent = index;
+                        useExtent = true;
+                    }
+                }
+                catch (LockException)
+                {
+                }
+                finally
+                {
+                    // If we are not using this extent and we have a lock then
+                    //	release the extent lock now.
+                    if (!useExtent && hasAcquiredLock)
+                    {
+                        UnlockExtent(index);
+                    }
+                }
+            }
+            return useExtent;
+        }
+
+        public void FreePage(uint offset, TimeSpan timeout)
 		{
 			// Sanity checks
 			if (offset >= PageTrackingCount)
