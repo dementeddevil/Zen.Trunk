@@ -1149,7 +1149,12 @@ namespace Zen.Trunk.Storage
 		{
 		}
 
-		public BufferFieldLogFileId(uint value)
+        public BufferFieldLogFileId(LogFileId value)
+            : base(value)
+        {
+        }
+
+        public BufferFieldLogFileId(uint value)
 			: base(new LogFileId(value))
 		{
 		}
@@ -1179,4 +1184,80 @@ namespace Zen.Trunk.Storage
 			streamManager.Write(Value.FileId);
 		}
 	}
+
+    public class BufferFieldObjectId : SimpleBufferField<ObjectId>
+    {
+        public BufferFieldObjectId()
+            : this(ObjectId.Zero)
+        {
+        }
+
+        public BufferFieldObjectId(ObjectId value)
+            : base(value)
+        {
+        }
+
+        public BufferFieldObjectId(BufferField prev)
+            : this(prev, ObjectId.Zero)
+        {
+        }
+
+        public BufferFieldObjectId(BufferField prev, ObjectId value)
+            : base(prev, value)
+        {
+        }
+
+        #region Public Properties
+        public override int DataSize => 4;
+
+        #endregion
+
+        protected override void OnRead(BufferReaderWriter streamManager)
+        {
+            Value = new ObjectId(streamManager.ReadUInt32());
+        }
+
+        protected override void OnWrite(BufferReaderWriter streamManager)
+        {
+            streamManager.Write(Value.Value);
+        }
+    }
+
+    public class BufferFieldLogicalPageId : SimpleBufferField<LogicalPageId>
+    {
+        public BufferFieldLogicalPageId()
+            : this(LogicalPageId.Zero)
+        {
+        }
+
+        public BufferFieldLogicalPageId(LogicalPageId value)
+            : base(value)
+        {
+        }
+
+        public BufferFieldLogicalPageId(BufferField prev)
+            : this(prev, LogicalPageId.Zero)
+        {
+        }
+
+        public BufferFieldLogicalPageId(BufferField prev, LogicalPageId value)
+            : base(prev, value)
+        {
+        }
+
+        #region Public Properties
+        public override int DataSize => 8;
+
+        #endregion
+
+        protected override void OnRead(BufferReaderWriter streamManager)
+        {
+            Value = new LogicalPageId(streamManager.ReadUInt64());
+        }
+
+        protected override void OnWrite(BufferReaderWriter streamManager)
+        {
+            streamManager.Write(Value.Value);
+        }
+    }
 }

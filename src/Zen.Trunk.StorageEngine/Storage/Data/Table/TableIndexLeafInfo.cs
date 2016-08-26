@@ -49,7 +49,7 @@
 	public class TableIndexNormalOrClusteredLeafInfo : TableIndexLeafInfo
 	{
 		#region Private Fields
-		private readonly BufferFieldUInt64 _logicalId;
+		private readonly BufferFieldLogicalPageId _logicalId;
 		private readonly BufferFieldUInt16 _rowId;
 		#endregion
 
@@ -61,30 +61,20 @@
 		public TableIndexNormalOrClusteredLeafInfo(int keySize)
 			: base(keySize)
 		{
-			_logicalId = new BufferFieldUInt64(base.LastField);
+			_logicalId = new BufferFieldLogicalPageId(base.LastField);
 			_rowId = new BufferFieldUInt16(_logicalId);
 		}
 
-		/// <summary>
-		/// Initializes a new instance of the <see cref="TableIndexLeafInfo"/> class.
-		/// </summary>
-		/// <param name="keys">The keys.</param>
-		/// <param name="logicalId">The logical identifier.</param>
-		public TableIndexNormalOrClusteredLeafInfo(object[] keys, uint logicalId)
-			: this(keys, logicalId, 0)
-		{
-		}
-
-		/// <summary>
+	    /// <summary>
 		/// Initializes a new instance of the <see cref="TableIndexLeafInfo"/> class.
 		/// </summary>
 		/// <param name="keys">The keys.</param>
 		/// <param name="logicalId">The logical identifier.</param>
 		/// <param name="rowId">The row identifier.</param>
-		public TableIndexNormalOrClusteredLeafInfo(object[] keys, uint logicalId, ushort rowId)
+		public TableIndexNormalOrClusteredLeafInfo(object[] keys, LogicalPageId logicalId, ushort rowId = 0)
 			: base(keys)
 		{
-			_logicalId = new BufferFieldUInt64(base.LastField, logicalId);
+			_logicalId = new BufferFieldLogicalPageId(base.LastField, logicalId);
 			_rowId = new BufferFieldUInt16(_logicalId, rowId);
 		}
 		#endregion
@@ -96,7 +86,7 @@
 		/// <value>
 		/// The logical identifier.
 		/// </value>
-		public ulong LogicalId
+		public LogicalPageId LogicalId
 		{
 			get
 			{
@@ -135,7 +125,6 @@
 		/// A <see cref="T:BufferField" /> object.
 		/// </value>
 		protected override BufferField LastField => _rowId;
-
 	    #endregion
 	}
 

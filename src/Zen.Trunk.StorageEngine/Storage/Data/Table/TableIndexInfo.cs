@@ -181,7 +181,7 @@
 	public class TableIndexLogicalInfo : TableIndexInfo
 	{
 		#region Private Fields
-		private readonly BufferFieldUInt64 _logicalId;
+		private readonly BufferFieldLogicalPageId _logicalId;
 		#endregion
 
 		#region Public Constructors
@@ -192,7 +192,7 @@
 		public TableIndexLogicalInfo(int keySize)
 			: base(keySize)
 		{
-			_logicalId = new BufferFieldUInt64(0);
+			_logicalId = new BufferFieldLogicalPageId(LogicalPageId.Zero);
 		}
 
 		/// <summary>
@@ -202,8 +202,8 @@
 		public TableIndexLogicalInfo(object[] keys)
 			: base(keys)
 		{
-			_logicalId = new BufferFieldUInt64(0);
-		}
+			_logicalId = new BufferFieldLogicalPageId(LogicalPageId.Zero);
+        }
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="IndexInfo" /> class.
@@ -213,7 +213,7 @@
 		public TableIndexLogicalInfo(int keySize, LogicalPageId logicalId)
 			: base(keySize)
 		{
-			_logicalId = new BufferFieldUInt64(logicalId.Value);
+			_logicalId = new BufferFieldLogicalPageId(logicalId);
 		}
 
 		/// <summary>
@@ -224,8 +224,8 @@
 		public TableIndexLogicalInfo(object[] keys, LogicalPageId logicalId)
 			: base(keys)
 		{
-			_logicalId = new BufferFieldUInt64(logicalId.Value);
-		}
+			_logicalId = new BufferFieldLogicalPageId(logicalId);
+        }
 		#endregion
 
 		#region Public Properties
@@ -238,11 +238,11 @@
 		{
 			get
 			{
-				return new LogicalPageId(_logicalId.Value);
+				return _logicalId.Value;
 			}
 			set
 			{
-				_logicalId.Value = value.Value;
+				_logicalId.Value = value;
 			}
 		}
 		#endregion

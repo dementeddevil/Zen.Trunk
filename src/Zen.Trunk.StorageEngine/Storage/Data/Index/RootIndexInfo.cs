@@ -7,10 +7,10 @@
 	{
 		#region Private Fields
 		private FileGroupId _indexFileGroupId;	// not serialized
-		private readonly BufferFieldUInt32 _ObjectId;
-		private readonly BufferFieldUInt32 _ownerObjectId;
+		private readonly BufferFieldObjectId _objectId;
+		private readonly BufferFieldObjectId _ownerObjectId;
 		private readonly BufferFieldStringFixed _name;
-		private readonly BufferFieldUInt64 _rootLogicalId;
+		private readonly BufferFieldLogicalPageId _rootLogicalId;
 		private readonly BufferFieldByte _rootIndexDepth;
 		#endregion
 
@@ -19,20 +19,20 @@
 		/// Initializes a new instance of the <see cref="RootIndexInfo"/> class.
 		/// </summary>
 		public RootIndexInfo()
-			: this(0)
+			: this(ObjectId.Zero)
 		{
 		}
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="RootIndexInfo"/> class.
 		/// </summary>
-		/// <param name="ObjectId">The index id.</param>
-		public RootIndexInfo(uint ObjectId)
+		/// <param name="objectId">The object id.</param>
+		public RootIndexInfo(ObjectId objectId)
 		{
-			_ObjectId = new BufferFieldUInt32(ObjectId);
-			_ownerObjectId = new BufferFieldUInt32(_ObjectId);
+			_objectId = new BufferFieldObjectId(objectId);
+			_ownerObjectId = new BufferFieldObjectId(_objectId);
 			_name = new BufferFieldStringFixed(_ownerObjectId, 16);
-			_rootLogicalId = new BufferFieldUInt64(_name);
+			_rootLogicalId = new BufferFieldLogicalPageId(_name);
 			_rootIndexDepth = new BufferFieldByte(_rootLogicalId);
 		}
 		#endregion
@@ -42,7 +42,7 @@
 		/// Gets the index id.
 		/// </summary>
 		/// <value>The index id.</value>
-		public ObjectId ObjectId => new ObjectId(_ObjectId.Value);
+		public ObjectId ObjectId => _objectId.Value;
 
 	    /// <summary>
 		/// Gets or sets the owner object id.
@@ -52,11 +52,11 @@
 		{
 			get
 			{
-				return new ObjectId(_ownerObjectId.Value);
+				return _ownerObjectId.Value;
 			}
 			set
 			{
-				_ownerObjectId.Value = value.Value;
+				_ownerObjectId.Value = value;
 			}
 		}
 
@@ -100,11 +100,11 @@
 		{
 			get
 			{
-				return new LogicalPageId(_rootLogicalId.Value);
+				return _rootLogicalId.Value;
 			}
 			set
 			{
-				_rootLogicalId.Value = value.Value;
+				_rootLogicalId.Value = value;
 			}
 		}
 
@@ -130,14 +130,13 @@
 		/// Gets the first buffer field object.
 		/// </summary>
 		/// <value>A <see cref="T:BufferField"/> object.</value>
-		protected override BufferField FirstField => _ObjectId;
+		protected override BufferField FirstField => _objectId;
 
 	    /// <summary>
 		/// Gets the last buffer field object.
 		/// </summary>
 		/// <value>A <see cref="T:BufferField"/> object.</value>
 		protected override BufferField LastField => _rootIndexDepth;
-
 	    #endregion
 	}
 }

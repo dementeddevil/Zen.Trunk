@@ -11,17 +11,17 @@ namespace Zen.Trunk.Storage.Data
     /// </summary>
     public class ObjectRefInfo : BufferFieldWrapper
     {
-        private readonly BufferFieldUInt32 _objectId;
+        private readonly BufferFieldObjectId _objectId;
         private readonly BufferFieldByte _objectType;
         private readonly BufferFieldStringFixed _name;
-        private readonly BufferFieldUInt64 _firstPageId;
+        private readonly BufferFieldLogicalPageId _firstPageId;
 
         public ObjectRefInfo()
         {
-            _objectId = new BufferFieldUInt32();
+            _objectId = new BufferFieldObjectId();
             _objectType = new BufferFieldByte(_objectId);
             _name = new BufferFieldStringFixed(_objectType, 32);
-            _firstPageId = new BufferFieldUInt64(_name);
+            _firstPageId = new BufferFieldLogicalPageId(_name);
         }
 
         protected override BufferField FirstField => _objectId;
@@ -58,11 +58,11 @@ namespace Zen.Trunk.Storage.Data
         {
             get
             {
-                return new ObjectId(_objectId.Value);
+                return _objectId.Value;
             }
             set
             {
-                _objectId.Value = value.Value;
+                _objectId.Value = value;
             }
         }
 
@@ -94,11 +94,11 @@ namespace Zen.Trunk.Storage.Data
         {
             get
             {
-                return new LogicalPageId(_firstPageId.Value);
+                return _firstPageId.Value;
             }
             set
             {
-                _firstPageId.Value = value.Value;
+                _firstPageId.Value = value;
             }
         }
     }
