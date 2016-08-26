@@ -229,10 +229,10 @@ namespace Zen.Trunk.Storage.Log
 			_transactionId = new BufferFieldUInt32(base.LastField);
 		}
 
-		public TransactionLogEntry(LogEntryType logType, uint transactionId)
+		public TransactionLogEntry(LogEntryType logType, TransactionId transactionId)
 			: base(logType)
 		{
-			_transactionId = new BufferFieldUInt32(base.LastField, transactionId);
+			_transactionId = new BufferFieldUInt32(base.LastField, transactionId.Value);
 		}
 		protected TransactionLogEntry()
 		{
@@ -241,8 +241,7 @@ namespace Zen.Trunk.Storage.Log
 		#endregion
 
 		#region Public Properties
-		public uint TransactionId => _transactionId.Value;
-
+		public TransactionId TransactionId => new TransactionId(_transactionId.Value);
 	    #endregion
 
 		#region Protected Properties
@@ -251,9 +250,9 @@ namespace Zen.Trunk.Storage.Log
 	    #endregion
 
 		#region Internal Methods
-		internal void RewriteTransactionId(uint transactionId)
+		internal void RewriteTransactionId(TransactionId transactionId)
 		{
-			_transactionId.Value = transactionId;
+			_transactionId.Value = transactionId.Value;
 		}
 		#endregion
 	}
@@ -434,7 +433,7 @@ namespace Zen.Trunk.Storage.Log
 	[Serializable]
 	public class BeginTransactionLogEntry : TransactionLogEntry
 	{
-		public BeginTransactionLogEntry(uint transactionId)
+		public BeginTransactionLogEntry(TransactionId transactionId)
 			: base(LogEntryType.BeginXact, transactionId)
 		{
 		}
@@ -449,7 +448,7 @@ namespace Zen.Trunk.Storage.Log
 	[Serializable]
 	public class CommitTransactionLogEntry : TransactionLogEntry
 	{
-		public CommitTransactionLogEntry(uint transactionId)
+		public CommitTransactionLogEntry(TransactionId transactionId)
 			: base(LogEntryType.CommitXact, transactionId)
 		{
 		}
@@ -464,7 +463,7 @@ namespace Zen.Trunk.Storage.Log
 	[Serializable]
 	public class RollbackTransactionLogEntry : TransactionLogEntry
 	{
-		public RollbackTransactionLogEntry(uint transactionId)
+		public RollbackTransactionLogEntry(TransactionId transactionId)
 			: base(LogEntryType.RollbackXact, transactionId)
 		{
 		}

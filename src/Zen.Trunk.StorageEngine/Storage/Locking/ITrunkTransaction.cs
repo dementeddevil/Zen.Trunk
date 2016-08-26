@@ -7,7 +7,7 @@
 
 	public interface ITrunkTransaction : IDisposable
 	{
-		uint TransactionId
+		TransactionId TransactionId
 		{
 			get;
 		}

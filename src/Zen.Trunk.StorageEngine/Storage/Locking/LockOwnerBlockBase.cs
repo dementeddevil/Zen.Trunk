@@ -23,12 +23,12 @@ namespace Zen.Trunk.Storage.Locking
 	/// on the owner lock object.
 	/// </para>
 	/// </remarks>
-	internal abstract class LockOwnerBlockBase<ItemLockIdType> : TraceableObject, IDisposable
+	internal abstract class LockOwnerBlockBase<TItemLockIdType> : TraceableObject, IDisposable
 	{
 		#region Private Types
-		private class ItemLockDictionary : Dictionary<ItemLockIdType, DataLock>
+		private class ItemLockDictionary : Dictionary<TItemLockIdType, DataLock>
 		{
-			public bool TryReleaseLock(ItemLockIdType key)
+			public bool TryReleaseLock(TItemLockIdType key)
 			{
 				var removed = false;
 				if (ContainsKey(key))
@@ -54,11 +54,11 @@ namespace Zen.Trunk.Storage.Locking
 						lockObject.Unlock();
 						lockObject.ReleaseRefLock();
 					}
-					else if (nullLockAction != null)
+					else
 					{
-						nullLockAction();
+					    nullLockAction?.Invoke();
 					}
-					Remove(key);
+				    Remove(key);
 				}
 			}
 		}
@@ -77,7 +77,7 @@ namespace Zen.Trunk.Storage.Locking
 
 		#region Public Constructors
 		/// <summary>
-		/// Initializes a new instance of the <see cref="LockOwnerBlockBase{ItemLockIdType}" /> class.
+		/// Initializes a new instance of the <see cref="LockOwnerBlockBase{TItemLockIdType}" /> class.
 		/// </summary>
 		/// <param name="manager">The database lock manager.</param>
 		/// <param name="maxItemLocks">The maximum item locks before lock escalation occurs.</param>
@@ -101,7 +101,6 @@ namespace Zen.Trunk.Storage.Locking
 		/// The lock manager.
 		/// </value>
 		protected IDatabaseLockManager LockManager => _manager;
-
 	    #endregion
 
 		#region Public Methods
@@ -132,7 +131,7 @@ namespace Zen.Trunk.Storage.Locking
 		/// <param name="key">The key.</param>
 		/// <param name="lockType">Type of the lock.</param>
 		/// <param name="timeout">The timeout.</param>
-		public void LockItem(ItemLockIdType key, DataLockType lockType, TimeSpan timeout)
+		public void LockItem(TItemLockIdType key, DataLockType lockType, TimeSpan timeout)
 		{
 			ThrowIfDisposed();
 
@@ -183,7 +182,7 @@ namespace Zen.Trunk.Storage.Locking
 		/// <param name="key">The key.</param>
 		/// <param name="lockType">Type of the lock.</param>
 		/// <returns></returns>
-		public bool HasItemLock(ItemLockIdType key, DataLockType lockType)
+		public bool HasItemLock(TItemLockIdType key, DataLockType lockType)
 		{
 			switch (lockType)
 			{
@@ -235,7 +234,7 @@ namespace Zen.Trunk.Storage.Locking
 		/// Unlocks the item.
 		/// </summary>
 		/// <param name="key">The key.</param>
-		public void UnlockItem(ItemLockIdType key)
+		public void UnlockItem(TItemLockIdType key)
 		{
 			ThrowIfDisposed();
 
@@ -337,11 +336,11 @@ namespace Zen.Trunk.Storage.Locking
 		/// <returns>
 		/// An <see cref="DataLock"/> instance.
 		/// </returns>
-		protected abstract DataLock GetItemLock(ItemLockIdType key);
+		protected abstract DataLock GetItemLock(TItemLockIdType key);
 		#endregion
 
 		#region Private Methods
-		private void LockItemShared(ItemLockIdType key, TimeSpan timeout)
+		private void LockItemShared(TItemLockIdType key, TimeSpan timeout)
 		{
 			if (_ownerLock.HasLock(ObjectLockType.Shared) ||
 				_ownerLock.HasLock(ObjectLockType.Exclusive))
@@ -414,7 +413,7 @@ namespace Zen.Trunk.Storage.Locking
 			}
 		}
 
-		private void LockItemUpdate(ItemLockIdType key, TimeSpan timeout)
+		private void LockItemUpdate(TItemLockIdType key, TimeSpan timeout)
 		{
 			if (_ownerLock.HasLock(ObjectLockType.Exclusive))
 			{
@@ -477,7 +476,7 @@ namespace Zen.Trunk.Storage.Locking
 			_updateLocks.Add(key, lockObj);
 		}
 
-		private void LockItemExclusive(ItemLockIdType key, TimeSpan timeout)
+		private void LockItemExclusive(TItemLockIdType key, TimeSpan timeout)
 		{
 			if (_ownerLock.HasLock(ObjectLockType.Exclusive))
 			{

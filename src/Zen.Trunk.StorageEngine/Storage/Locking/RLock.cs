@@ -6,10 +6,10 @@ namespace Zen.Trunk.Storage.Locking
 	public class RLock
 	{
 		#region Private Fields
-		private readonly object readLock = new object();
-		private int readCount = 0;
-		private readonly object writeLock = new object();
-		private int lockCount = 0;
+		private readonly object _readLock = new object();
+		private readonly object _writeLock = new object();
+		private int _readCount;
+		private int _lockCount;
 		#endregion
 
 		#region Public Constructors
@@ -19,62 +19,61 @@ namespace Zen.Trunk.Storage.Locking
 		#endregion
 
 		#region Public Properties
-		public int LockCount => lockCount;
-
+		public int LockCount => _lockCount;
 	    #endregion
 
 		#region Public Methods
-		public void Lock(TimeSpan timeout, bool writable)
+		public void Lock(bool writable, TimeSpan timeout)
 		{
-			Interlocked.Increment(ref lockCount);
+			Interlocked.Increment(ref _lockCount);
 			try
 			{
-				var start = DateTime.Now;
+				var start = DateTime.UtcNow;
 				if (!writable)
 				{
 					// If we can lock read then we are in
-					if (!Monitor.TryEnter(readLock, timeout))
+					if (!Monitor.TryEnter(_readLock, timeout))
 					{
 						throw new LockException("Failed to acquire read lock on RLock.");
 					}
 
 					// Increment number of readers and exit
-					Interlocked.Increment(ref readCount);
-					Monitor.Exit(readLock);
+					Interlocked.Increment(ref _readCount);
+					Monitor.Exit(_readLock);
 				}
 				else
 				{
 					// Get read lock first - to block new readers
-					if (!Monitor.TryEnter(readLock, timeout))
+					if (!Monitor.TryEnter(_readLock, timeout))
 					{
 						throw new LockException("Failed to acquire read lock on RLock.");
 					}
 
 					// Wait for read count to fall to zero
-					while (readCount > 0)
+					while (_readCount > 0)
 					{
-						if ((DateTime.Now - start) < timeout)
+						if ((DateTime.UtcNow - start) < timeout)
 						{
 							Thread.Sleep(50);
 						}
 						else
 						{
-							Monitor.Exit(readLock);
+							Monitor.Exit(_readLock);
 							throw new LockException("Timeout acquiring write lock while waiting for concurrent readers to release RLock.");
 						}
 					}
 
 					// Get write lock second
-					if (!Monitor.TryEnter(writeLock, timeout))
+					if (!Monitor.TryEnter(_writeLock, timeout))
 					{
-						Monitor.Exit(readLock);
+						Monitor.Exit(_readLock);
 						throw new LockException("Failed to acquire write lock on RLock.");
 					}
 				}
 			}
 			catch
 			{
-				Interlocked.Decrement(ref lockCount);
+				Interlocked.Decrement(ref _lockCount);
 				throw;
 			}
 		}
@@ -83,14 +82,14 @@ namespace Zen.Trunk.Storage.Locking
 		{
 			if (!writable)
 			{
-				Interlocked.Decrement(ref readCount);
+				Interlocked.Decrement(ref _readCount);
 			}
 			else
 			{
-				Monitor.Exit(writeLock);
-				Monitor.Exit(readLock);
+				Monitor.Exit(_writeLock);
+				Monitor.Exit(_readLock);
 			}
-			return Interlocked.Decrement(ref lockCount) == 0;
+			return Interlocked.Decrement(ref _lockCount) == 0;
 		}
 		#endregion
 	}

@@ -118,6 +118,7 @@
     <Compile Include="Storage\Locking\DistributionLockOwnerBlock.cs" />
     <Compile Include="Storage\Locking\IDatabaseLockManager.cs" />
     <Compile Include="Storage\Locking\IGlobalLockManager.cs" />
+    <Compile Include="Storage\Locking\IRLockHandler.cs" />
     <Compile Include="Storage\Locking\ITrunkTransaction.cs" />
     <Compile Include="Storage\Locking\LockIdent.cs" />
     <Compile Include="Storage\Locking\LockOwnerBlockBase.cs" />
@@ -173,6 +174,7 @@
     <Compile Include="Storage\PageExceptions.cs" />
     <Compile Include="Storage\StatefulBuffer.cs" />
     <Compile Include="Storage\Data\TransactionContextTaskRequest.cs" />
+    <Compile Include="Storage\TransactionId.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Zen.Trunk.Utilities\Zen.Trunk.Utilities.csproj">

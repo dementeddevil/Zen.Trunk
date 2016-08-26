@@ -108,7 +108,7 @@ namespace Zen.Trunk.Storage.Locking
         private TransactionLockOwnerBlock _lockOwner;
         private TransactionOptions _options;
         private bool _isBeginLogWritten = false;
-        private uint _transactionId = 1;
+        private TransactionId _transactionId = new TransactionId(1);
         private int _transactionCount = 1;
         private MasterLogPageDevice _logDevice = null;
         private bool _nestedRollbackTriggered = false;
@@ -185,7 +185,7 @@ namespace Zen.Trunk.Storage.Locking
         /// <summary>
         /// Gets the database transaction ID for this transaction.
         /// </summary>
-        public uint TransactionId => _transactionId;
+        public TransactionId TransactionId => _transactionId;
 
         /// <summary>
         /// Gets the isolation level.
@@ -621,7 +621,7 @@ namespace Zen.Trunk.Storage.Locking
             _subEnlistments.Clear();
 
             // Throw away transaction context
-            _transactionId = 0;
+            _transactionId = TransactionId.Zero;
             //LockManager = null;
             _logDevice = null;
 

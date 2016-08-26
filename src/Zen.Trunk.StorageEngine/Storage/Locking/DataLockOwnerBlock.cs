@@ -1,24 +1,28 @@
 namespace Zen.Trunk.Storage.Locking
 {
-	/// <summary>
-	/// Lock owner blocks track the locks for a given table or sample on
-	/// behalf of a transaction.
-	/// </summary>
-	/// <remarks>
-	/// <para>
-	/// This object is required in order to implement lock escalation. When
-	/// a LOB is created the current number of pages owned by the ObjectID
-	/// will need to be given to the block so it will have an idea when an
-	/// appropriate number of data locks have been allocated on behalf of the
-	/// current transaction.
-	/// </para>
-	/// <para>
-	/// <b>Note:</b> Read, Update and Exclusive data locks are each counted seperately
-	/// and any of these locks can cause an associated escalation on the owner
-	/// lock object.
-	/// </para>
-	/// </remarks>
-	internal class DataLockOwnerBlock : LockOwnerBlockBase<LogicalPageId>
+    /// <summary>
+    /// Lock owner blocks track the locks for a given table or sample on
+    /// behalf of a transaction.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// This object is required in order to implement lock escalation. When
+    /// a LOB is created the current number of pages owned by the ObjectID
+    /// will need to be given to the block so it will have an idea when an
+    /// appropriate number of data locks have been allocated on behalf of the
+    /// current transaction.
+    /// </para>
+    /// <para>
+    /// <b>Note:</b> Read, Update and Exclusive data locks are each counted seperately
+    /// and any of these locks can cause an associated escalation on the owner
+    /// lock object.
+    /// </para>
+    /// <para>
+    /// GetOwnerLock returns a object lock keyed on the object id.
+    /// GetItemLock returns a data lock keyed on both the object id and the logical page id.
+    /// </para>
+    /// </remarks>
+    internal class DataLockOwnerBlock : LockOwnerBlockBase<LogicalPageId>
 	{
 		#region Private Fields
 		private readonly ObjectId _objectId;

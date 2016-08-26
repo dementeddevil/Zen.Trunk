@@ -60,46 +60,46 @@ namespace Zen.Trunk.Storage.Locking
 		/// Gets a key for accessing index page information.
 		/// </summary>
 		/// <param name="dbId">The db id.</param>
-		/// <param name="ObjectId">The index id.</param>
+		/// <param name="objectId">The object id.</param>
 		/// <returns></returns>
-		public static string GetIndexKey(DatabaseId dbId, ObjectId ObjectId)
+		public static string GetIndexKey(DatabaseId dbId, ObjectId objectId)
 		{
-			return $"IK:{dbId.Value:X}${ObjectId.Value:X}";
+			return $"IK:{dbId.Value:X}${objectId.Value:X}";
 		}
 
-		/// <summary>
-		/// Gets a key for accessing the root definition of an index.
-		/// </summary>
-		/// <param name="dbId">The db id.</param>
-		/// <param name="ObjectId">The index id.</param>
-		/// <returns></returns>
-		public static string GetIndexRootKey(DatabaseId dbId, ObjectId ObjectId)
+        /// <summary>
+        /// Gets a key for accessing the root definition of an index.
+        /// </summary>
+        /// <param name="dbId">The db id.</param>
+        /// <param name="objectId">The object id.</param>
+        /// <returns></returns>
+        public static string GetIndexRootKey(DatabaseId dbId, ObjectId objectId)
 		{
-			return $"IRK:{dbId.Value:X}${ObjectId.Value:X}";
+			return $"IRK:{dbId.Value:X}${objectId.Value:X}";
 		}
 
-		/// <summary>
-		/// Gets a key for accessing a non-root and non-leaf index page.
-		/// </summary>
-		/// <param name="dbId">The db id.</param>
-		/// <param name="ObjectId">The index id.</param>
-		/// <param name="logicalId">The logical id.</param>
-		/// <returns></returns>
-		public static string GetIndexInternalKey(DatabaseId dbId, ObjectId ObjectId, LogicalPageId logicalId)
+        /// <summary>
+        /// Gets a key for accessing a non-root and non-leaf index page.
+        /// </summary>
+        /// <param name="dbId">The db id.</param>
+        /// <param name="objectId">The object id.</param>
+        /// <param name="logicalId">The logical id.</param>
+        /// <returns></returns>
+        public static string GetIndexInternalKey(DatabaseId dbId, ObjectId objectId, LogicalPageId logicalId)
 		{
-			return $"IIK:{dbId.Value:X}${ObjectId.Value:X}${logicalId.Value:X}";
+			return $"IIK:{dbId.Value:X}${objectId.Value:X}${logicalId.Value:X}";
 		}
 
-		/// <summary>
-		/// Gets a key for accessing the leaf index page information.
-		/// </summary>
-		/// <param name="dbId">The db id.</param>
-		/// <param name="ObjectId">The index id.</param>
-		/// <param name="logicalId">The logical id.</param>
-		/// <returns></returns>
-		public static string GetIndexLeafKey(DatabaseId dbId, ObjectId ObjectId, LogicalPageId logicalId)
+        /// <summary>
+        /// Gets a key for accessing the leaf index page information.
+        /// </summary>
+        /// <param name="dbId">The db id.</param>
+        /// <param name="objectId">The object id.</param>
+        /// <param name="logicalId">The logical id.</param>
+        /// <returns></returns>
+        public static string GetIndexLeafKey(DatabaseId dbId, ObjectId objectId, LogicalPageId logicalId)
 		{
-			return $"ILK:{dbId.Value:X}${ObjectId.Value:X}${logicalId.Value:X}";
+			return $"ILK:{dbId.Value:X}${objectId.Value:X}${logicalId.Value:X}";
 		}
 
 		/// <summary>

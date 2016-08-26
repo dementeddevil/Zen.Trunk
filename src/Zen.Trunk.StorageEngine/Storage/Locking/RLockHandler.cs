@@ -1,23 +1,18 @@
+using System;
+using System.Collections.Concurrent;
+using System.Threading;
+
 namespace Zen.Trunk.Storage.Locking
 {
-	using System;
-	using System.Collections.Concurrent;
-	using System.Collections.Generic;
-	using System.Threading;
-
-	internal class RLockHandler : ILockHandler
-	{
+	internal class RLockHandler : IRLockHandler
+    {
 		#region Private Fields
-		private int maxFreeLocks = 100;
+		private int _maxFreeLocks = 100;
 		//private SpinLockClass syncLocks = new SpinLockClass();
 		private readonly ConcurrentDictionary<string, RLock> _activeLocks =
 			new ConcurrentDictionary<string, RLock>();
 		private readonly ObjectPool<RLock> _freeLocks =
-			new ObjectPool<RLock>(
-				() =>
-				{
-					return new RLock();
-				});
+            new ObjectPool<RLock>(() => new RLock());
 		#endregion
 
 		#region Public Constructors
@@ -37,13 +32,13 @@ namespace Zen.Trunk.Storage.Locking
 		/// <remarks>
 		/// A resource lock or RLock only support read and write locks.
 		/// </remarks>
-		public void LockResource(string resource, TimeSpan timeout, bool writable)
+		public void LockResource(string resource, bool writable, TimeSpan timeout)
 		{
-			var lockObject = _activeLocks.GetOrAdd(
-				resource, key => _freeLocks.GetObject());
+            // Fetch r lock for resource or get one from free pool
+			var lockObject = _activeLocks.GetOrAdd(resource, key => _freeLocks.GetObject());
 
 			// Attempt to lock object
-			lockObject.Lock(timeout, writable);
+			lockObject.Lock(writable, timeout);
 		}
 
 		/// <summary>
@@ -61,7 +56,7 @@ namespace Zen.Trunk.Storage.Locking
 			{
 				RLock temp;
 				_activeLocks.TryRemove(resource, out temp);
-				if (_freeLocks.Count < maxFreeLocks)
+				if (_freeLocks.Count < _maxFreeLocks)
 				{
 					_freeLocks.PutObject(lockObject);
 				}
@@ -74,20 +69,21 @@ namespace Zen.Trunk.Storage.Locking
 		{
 			get
 			{
-				return maxFreeLocks;
+				return _maxFreeLocks;
 			}
 			set
 			{
-				Interlocked.Exchange(ref maxFreeLocks, value);
+				Interlocked.Exchange(ref _maxFreeLocks, value);
 			}
 		}
+
 		int ILockHandler.ActiveLockCount => _activeLocks.Count;
 
 	    int ILockHandler.FreeLockCount => _freeLocks.Count;
 
 	    void ILockHandler.PopulateFreeLockPool(int maxLocks)
 		{
-			while ((_freeLocks.Count < maxFreeLocks) && (maxLocks > 0))
+			while ((_freeLocks.Count < _maxFreeLocks) && (maxLocks > 0))
 			{
 				_freeLocks.PutObject(new RLock());
 				--maxLocks;

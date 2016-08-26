@@ -9,17 +9,16 @@
 	/// <summary>
 	/// Generic transaction-based lock implementation
 	/// </summary>
-	/// <typeparam name="LockTypeEnum"></typeparam>
-	public abstract class TransactionLock<LockTypeEnum> :
+	/// <typeparam name="TLockTypeEnum"></typeparam>
+	public abstract class TransactionLock<TLockTypeEnum> :
 		TransactionLockBase, IReferenceLock
-		where LockTypeEnum : struct, IComparable, IConvertible, IFormattable // enum
+		where TLockTypeEnum : struct, IComparable, IConvertible, IFormattable // enum
 	{
 		#region Lock Messages
-		#region LockRequestBase
 		protected class LockRequestBase : TaskCompletionSource<bool>
 		{
 			#region Internal Constructors
-			internal LockRequestBase(LockTypeEnum lockType, uint transactionId)
+			internal LockRequestBase(TLockTypeEnum lockType, TransactionId transactionId)
 			{
 				Lock = lockType;
 				TransactionId = transactionId;
@@ -27,67 +26,43 @@
 			#endregion
 
 			#region Public Properties
-			internal LockTypeEnum Lock
-			{
-				get;
-				set;
-			}
-			internal uint TransactionId
-			{
-				get; }
+			internal TLockTypeEnum Lock { get; set; }
+
+			internal TransactionId TransactionId { get; }
 			#endregion
 		}
-		#endregion
 
-		#region AcquireLock
-		protected class AcquireLock : LockRequestBase
+        protected class AcquireLock : LockRequestBase
 		{
 			#region Internal Constructors
-			internal AcquireLock(LockTypeEnum lockType, uint transactionId)
-				: base(lockType, transactionId)
-			{
-			}
-			#endregion
-		}
-		#endregion
-
-		#region ReleaseLock
-		protected class ReleaseLock : LockRequestBase
-		{
-			#region Internal Constructors
-			internal ReleaseLock(LockTypeEnum lockType, uint transactionId)
-				: base(lockType, transactionId)
-			{
-			}
-			#endregion
-		}
-		#endregion
-
-		#region QueryLock
-		protected class QueryLock : LockRequestBase
-		{
-			#region Internal Constructors
-			internal QueryLock(LockTypeEnum lockType, uint transactionId)
+			internal AcquireLock(TLockTypeEnum lockType, TransactionId transactionId)
 				: base(lockType, transactionId)
 			{
 			}
 			#endregion
 		}
 
-		#region DiscardLock
-		protected class DiscardLock : LockRequestBase
+        protected class ReleaseLock : LockRequestBase
 		{
 			#region Internal Constructors
-			internal DiscardLock(LockTypeEnum lockType, uint transactionId)
+			internal ReleaseLock(TLockTypeEnum lockType, TransactionId transactionId)
+				: base(lockType, transactionId)
+			{
+			}
+			#endregion
+		}
+
+        protected class QueryLock : LockRequestBase
+		{
+			#region Internal Constructors
+			internal QueryLock(TLockTypeEnum lockType, TransactionId transactionId)
 				: base(lockType, transactionId)
 			{
 			}
 			#endregion
 		}
 		#endregion
-		#endregion
-		#endregion
-
+		
 		#region Lock State
 		protected abstract class State
 		{
@@ -95,7 +70,7 @@
 			/// Gets the lock type that this state represents.
 			/// </summary>
 			/// <value>The lock.</value>
-			public abstract LockTypeEnum Lock
+			public abstract TLockTypeEnum Lock
 			{
 				get;
 			}
@@ -104,7 +79,7 @@
 			/// Gets an array of lock types that this state is compatable with.
 			/// </summary>
 			/// <value>The compatable locks.</value>
-			public abstract LockTypeEnum[] CompatableLocks
+			public abstract TLockTypeEnum[] CompatableLocks
 			{
 				get;
 			}
@@ -128,14 +103,14 @@
 			/// <c>true</c> if the lock type is an exclusive lock; otherwise,
 			/// <c>false</c>.
 			/// </returns>
-			public abstract bool IsExclusiveLock(LockTypeEnum lockType);
+			public abstract bool IsExclusiveLock(TLockTypeEnum lockType);
 
 			/// <summary>
 			/// Called when this state is entered.
 			/// </summary>
 			/// <param name="owner">The owner.</param>
 			/// <param name="oldState">The old state.</param>
-			public virtual void OnEnterState(TransactionLock<LockTypeEnum> owner, State oldState)
+			public virtual void OnEnterState(TransactionLock<TLockTypeEnum> owner, State oldState)
 			{
 			}
 
@@ -144,7 +119,7 @@
 			/// </summary>
 			/// <param name="owner">The owner.</param>
 			/// <param name="newState">The new state.</param>
-			public virtual void OnExitState(TransactionLock<LockTypeEnum> owner, State newState)
+			public virtual void OnExitState(TransactionLock<TLockTypeEnum> owner, State newState)
 			{
 			}
 
@@ -157,7 +132,7 @@
 			/// <c>true</c> if the request can acquire lock; otherwise,
 			/// <c>false</c>.
 			/// </returns>
-			public virtual bool CanAcquireLock(TransactionLock<LockTypeEnum> owner, AcquireLock request)
+			public virtual bool CanAcquireLock(TransactionLock<TLockTypeEnum> owner, AcquireLock request)
 			{
 				// We can acquire the lock if any of the following are true;
 				//	1. Active request count is zero
@@ -209,14 +184,13 @@
 		#endregion
 
 		#region Private Fields
-		private ConcurrentExclusiveSchedulerPair _taskInterleave;
 		private ActionBlock<AcquireLock> _acquireLockAction;
 		private ActionBlock<ReleaseLock> _releaseLockAction;
 		private ActionBlock<QueryLock> _queryLockAction;
 		private string _id;
 		private int _referenceCount = 0;
 		private bool _initialised;
-		private readonly Dictionary<uint, AcquireLock> _activeRequests = new Dictionary<uint, AcquireLock>();
+		private readonly Dictionary<TransactionId, AcquireLock> _activeRequests = new Dictionary<TransactionId, AcquireLock>();
 		private AcquireLock _pendingExclusiveRequest;
 		private readonly Queue<AcquireLock> _pendingRequests = new Queue<AcquireLock>();
 		private State _currentState;
@@ -229,11 +203,11 @@
 		public event EventHandler FinalRelease;
 		#endregion
 
-		#region Public Constructors
+		#region Protected Constructors
 		/// <summary>
 		/// Initializes a new instance of the <see cref="TransactionLock&lt;LockTypeEnum&gt;"/> class.
 		/// </summary>
-		public TransactionLock()
+		protected TransactionLock()
 		{
 		}
 		#endregion
@@ -260,7 +234,7 @@
 		/// Gets enumeration value for the lock representing the "none" lock.
 		/// </summary>
 		/// <value>The type of the none lock.</value>
-		protected abstract LockTypeEnum NoneLockType
+		protected abstract TLockTypeEnum NoneLockType
 		{
 			get;
 		}
@@ -282,7 +256,7 @@
 			_currentState.OnEnterState(this, null);
 
 			// Initialise receiver arbiters
-			_taskInterleave = new ConcurrentExclusiveSchedulerPair(TaskScheduler.Default);
+			var taskInterleave = new ConcurrentExclusiveSchedulerPair(TaskScheduler.Default);
 			_acquireLockAction = new ActionBlock<AcquireLock>(
 				request =>
 				{
@@ -290,7 +264,7 @@
 				},
 				new ExecutionDataflowBlockOptions
 				{
-					TaskScheduler = _taskInterleave.ExclusiveScheduler
+					TaskScheduler = taskInterleave.ExclusiveScheduler
 				});
 			_releaseLockAction = new ActionBlock<ReleaseLock>(
 				request =>
@@ -299,7 +273,7 @@
 				},
 				new ExecutionDataflowBlockOptions
 				{
-					TaskScheduler = _taskInterleave.ExclusiveScheduler
+					TaskScheduler = taskInterleave.ExclusiveScheduler
 				});
 			_queryLockAction = new ActionBlock<QueryLock>(
 				request =>
@@ -308,7 +282,7 @@
 				},
 				new ExecutionDataflowBlockOptions
 				{
-					TaskScheduler = _taskInterleave.ConcurrentScheduler
+					TaskScheduler = taskInterleave.ConcurrentScheduler
 				});
 
 			_initialised = true;
@@ -366,7 +340,7 @@
 		/// This method will throw if the current thread does not have a
 		/// transaction context.
 		/// </remarks>
-		public bool HasLock(LockTypeEnum lockType)
+		public bool HasLock(TLockTypeEnum lockType)
 		{
 			// Retrieve connection id and create request object.
 			// Will throw if no connection information is available for the
@@ -390,7 +364,7 @@
 		/// specified timeout period.
 		/// </para>
 		/// </remarks>
-		public void Lock(LockTypeEnum lockType, TimeSpan timeout)
+		public void Lock(TLockTypeEnum lockType, TimeSpan timeout)
 		{
 			// Retrieve connection id and create request object.
 			// Will throw if no connection information is available for the
@@ -417,7 +391,7 @@
 		/// The lock timeout period is fixed at 10 seconds so get it
 		/// right!
 		/// </remarks>
-		public void Unlock(LockTypeEnum newLockType)
+		public void Unlock(TLockTypeEnum newLockType)
 		{
 			// Retrieve connection id and create request object.
 			// Will throw if no connection information is available for the
@@ -428,7 +402,7 @@
 		#endregion
 
 		#region Internal Methods
-		internal void Lock(uint transactionId, LockTypeEnum lockType, TimeSpan timeout)
+		internal void Lock(TransactionId transactionId, TLockTypeEnum lockType, TimeSpan timeout)
 		{
 			// Post lock acquisition message
 			var request = new AcquireLock(lockType, transactionId);
@@ -448,7 +422,7 @@
 			AddRefLock();
 		}
 
-		internal void Unlock(uint transactionId, LockTypeEnum newLockType)
+		internal void Unlock(TransactionId transactionId, TLockTypeEnum newLockType)
 		{
 			// Post lock acquisition message
 			var request = new ReleaseLock(newLockType, transactionId);
@@ -472,7 +446,7 @@
 		}
 #endif
 
-		protected internal bool HasLock(uint transactionId, LockTypeEnum lockType)
+		protected internal bool HasLock(TransactionId transactionId, TLockTypeEnum lockType)
 		{
 			// Post lock acquisition message
 			var request = new QueryLock(lockType, transactionId);
@@ -487,7 +461,7 @@
 		/// </summary>
 		/// <param name="lockType">Type of the lock.</param>
 		/// <returns></returns>
-		protected abstract State GetStateFromType(LockTypeEnum lockType);
+		protected abstract State GetStateFromType(TLockTypeEnum lockType);
 
 		/// <summary>
 		/// Called when last reference to the lock is released.
@@ -678,7 +652,7 @@
 		}
 
 		/// <summary>
-		/// Gets the current <typeparamref name="LockTypeEnum"/> that
+		/// Gets the current <typeparamref name="TLockTypeEnum"/> that
 		/// represents the current state of the lock.
 		/// </summary>
 		/// <returns></returns>
@@ -686,7 +660,7 @@
 		/// The current lock state is determined by the <see cref="T:AcquireLock"/>
 		/// objects in the active request list.
 		/// </remarks>
-		protected LockTypeEnum GetActiveLockType()
+		protected TLockTypeEnum GetActiveLockType()
 		{
 			var lockType = NoneLockType;
 			foreach (var request in _activeRequests.Values)
@@ -723,9 +697,9 @@
 		/// </remarks>
 		/// <param name="throwIfMissing"></param>
 		/// <returns>Transaction ID or zero if none.</returns>
-		private uint GetThreadTransactionId(bool throwIfMissing)
+		private TransactionId GetThreadTransactionId(bool throwIfMissing)
 		{
-			uint transactionId = 0;
+			var transactionId = TransactionId.Zero;
 			if (TrunkTransactionContext.Current != null)
 			{
 				transactionId = TrunkTransactionContext.Current.TransactionId;
@@ -744,15 +718,9 @@
 			if (_currentState != newState)
 			{
 				var oldState = _currentState;
-				if (oldState != null)
-				{
-					oldState.OnExitState(this, newState);
-				}
-				_currentState = newState;
-				if (newState != null)
-				{
-					newState.OnEnterState(this, oldState);
-				}
+			    oldState?.OnExitState(this, newState);
+			    _currentState = newState;
+			    newState?.OnEnterState(this, oldState);
 			}
 		}
 
@@ -809,12 +777,12 @@
 			return false;
 		}
 
-		private bool IsDowngradedLock(LockTypeEnum currentLock, LockTypeEnum newLock)
+		private bool IsDowngradedLock(TLockTypeEnum currentLock, TLockTypeEnum newLock)
 		{
 			return (Convert.ToInt32(currentLock) > Convert.ToInt32(newLock));
 		}
 
-		private bool IsEquivalentLock(LockTypeEnum currentLock, LockTypeEnum newLock)
+		private bool IsEquivalentLock(TLockTypeEnum currentLock, TLockTypeEnum newLock)
 		{
 			return (Convert.ToInt32(currentLock) == Convert.ToInt32(newLock));
 		}

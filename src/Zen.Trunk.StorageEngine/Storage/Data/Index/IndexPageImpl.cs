@@ -214,7 +214,7 @@
 					{
 						_lastInternalLockWritable = true;
 					}
-					lm.LockRootIndex(ObjectId, LockTimeout, _lastInternalLockWritable);
+					lm.LockRootIndex(ObjectId, _lastInternalLockWritable, LockTimeout);
 					break;
 
 				case IndexType.Intermediate:
@@ -223,8 +223,7 @@
 					{
 						_lastInternalLockWritable = true;
 					}
-					lm.LockInternalIndex(ObjectId, LogicalId, LockTimeout,
-						_lastInternalLockWritable);
+					lm.LockInternalIndex(ObjectId, LogicalId, _lastInternalLockWritable, LockTimeout);
 					break;
 
 				case IndexType.Leaf:

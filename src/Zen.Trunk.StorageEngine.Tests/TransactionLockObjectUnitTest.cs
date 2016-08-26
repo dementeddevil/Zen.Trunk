@@ -31,7 +31,8 @@ namespace Zen.Trunk.Storage
 			dataLock.Initialise();
 
 			// Now we spoof transactions so we can test this madness
-			uint firstTransactionId = 5, secondTransactionId = 6;
+		    var firstTransactionId = new TransactionId(5);
+            var secondTransactionId = new TransactionId(6);
 
 			dataLock.Lock(firstTransactionId, DataLockType.Shared, TimeSpan.FromSeconds(30));
 			Assert.True(dataLock.HasLock(firstTransactionId, DataLockType.Shared));
@@ -104,11 +105,12 @@ namespace Zen.Trunk.Storage
 			dataLock.Parent = objectLock;
 			dataLock.Initialise();
 
-			// Now we spoof transactions so we can test this madness
-			uint firstTransactionId = 5, secondTransactionId = 6;
+            // Now we spoof transactions so we can test this madness
+            var firstTransactionId = new TransactionId(5);
+            var secondTransactionId = new TransactionId(6);
 
-			// Acquire shared database locks for both transactions
-			databaseLock.Lock(firstTransactionId, DatabaseLockType.Shared, TimeSpan.FromSeconds(30));
+            // Acquire shared database locks for both transactions
+            databaseLock.Lock(firstTransactionId, DatabaseLockType.Shared, TimeSpan.FromSeconds(30));
 			Assert.True(databaseLock.HasLock(firstTransactionId, DatabaseLockType.Shared), "Transaction #1 cannot gain shared database lock.");
 			databaseLock.Lock(secondTransactionId, DatabaseLockType.Shared, TimeSpan.FromSeconds(30));
 			Assert.True(databaseLock.HasLock(secondTransactionId, DatabaseLockType.Shared), "Transaction #2 cannot gain shared database lock.");

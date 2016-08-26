@@ -165,7 +165,7 @@ namespace Zen.Trunk.Storage.Locking
 		{
 			Trace.TraceInformation("LDH:{0}:{1}", dbId, virtualPageId);
 			var distKey = LockIdent.GetDistributionKey(dbId, virtualPageId);
-			_rLocks.LockResource(distKey, timeout, true);
+			_rLocks.LockResource(distKey, true, timeout);
 		}
 
 		public void UnlockDistributionHeader(DatabaseId dbId, VirtualPageId virtualPageId)
@@ -288,30 +288,27 @@ namespace Zen.Trunk.Storage.Locking
 		#endregion
 
 		#region Index Lock/Unlock
-		public void LockRootIndex(DatabaseId dbId, ObjectId ObjectId, TimeSpan timeout,
-			bool writable)
+		public void LockRootIndex(DatabaseId dbId, ObjectId objectId, bool writable, TimeSpan timeout)
 		{
-			var resourceKey = LockIdent.GetIndexRootKey(dbId, ObjectId);
-			LockResource(resourceKey, timeout, writable);
+			var resourceKey = LockIdent.GetIndexRootKey(dbId, objectId);
+			LockResource(resourceKey, writable, timeout);
 		}
 
-		public void UnlockRootIndex(DatabaseId dbId, ObjectId ObjectId, bool writable)
+		public void UnlockRootIndex(DatabaseId dbId, ObjectId objectId, bool writable)
 		{
-			var resourceKey = LockIdent.GetIndexRootKey(dbId, ObjectId);
+			var resourceKey = LockIdent.GetIndexRootKey(dbId, objectId);
 			UnlockResource(resourceKey, writable);
 		}
 
-		public void LockInternalIndex(DatabaseId dbId, ObjectId ObjectId, LogicalPageId logicalId,
-			TimeSpan timeout, bool writable)
+		public void LockInternalIndex(DatabaseId dbId, ObjectId objectId, LogicalPageId logicalId, bool writable, TimeSpan timeout)
 		{
-			var resourceKey = LockIdent.GetIndexInternalKey(dbId, ObjectId, logicalId);
-			LockResource(resourceKey, timeout, writable);
+			var resourceKey = LockIdent.GetIndexInternalKey(dbId, objectId, logicalId);
+			LockResource(resourceKey, writable, timeout);
 		}
 
-		public void UnlockInternalIndex(DatabaseId dbId, ObjectId ObjectId, LogicalPageId logicalId,
-			bool writable)
+		public void UnlockInternalIndex(DatabaseId dbId, ObjectId objectId, LogicalPageId logicalId, bool writable)
 		{
-			var resourceKey = LockIdent.GetIndexInternalKey(dbId, ObjectId, logicalId);
+			var resourceKey = LockIdent.GetIndexInternalKey(dbId, objectId, logicalId);
 			UnlockResource(resourceKey, writable);
 		}
 		#endregion
@@ -365,9 +362,9 @@ namespace Zen.Trunk.Storage.Locking
 		/// <param name="resource">The resource.</param>
 		/// <param name="timeout">The timeout.</param>
 		/// <param name="writable">if set to <c>true</c> [writable].</param>
-		private void LockResource(string resource, TimeSpan timeout, bool writable)
+		private void LockResource(string resource, bool writable, TimeSpan timeout)
 		{
-			_rLocks.LockResource(resource, timeout, writable);
+			_rLocks.LockResource(resource, writable, timeout);
 		}
 
 		/// <summary>

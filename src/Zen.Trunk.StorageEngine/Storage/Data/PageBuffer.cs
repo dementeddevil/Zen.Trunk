@@ -475,7 +475,7 @@ namespace Zen.Trunk.Storage.Data
 		private readonly IBufferDevice _bufferDevice;
 		private VirtualBuffer _oldBuffer;
 		private VirtualBuffer _newBuffer;
-		private uint _currentTransactionId;
+		private TransactionId _currentTransactionId;
 		private long _timestamp;
 		private readonly ConcurrentDictionary<Guid, StateChangeTrigger> _triggers =
 			new ConcurrentDictionary<Guid, StateChangeTrigger>();
@@ -629,14 +629,14 @@ namespace Zen.Trunk.Storage.Data
 		/// </remarks>
 		public override Stream GetBufferStream(int offset, int count, bool writable)
 		{
-			/*// Throw if state marks buffer as locked
+            /*// Throw if state marks buffer as locked
 			if (IsLocked)
 			{
 				throw new InvalidOperationException("Buffer is locked.");
 			}*/
 
-			// Get transaction ID
-			uint transactionId = 0;
+            // Get transaction ID
+            TransactionId transactionId = TransactionId.Zero;
 			var isReadUncommittedTxn = false;
 			if (TrunkTransactionContext.Current != null)
 			{
@@ -651,7 +651,7 @@ namespace Zen.Trunk.Storage.Data
 			// When we don't have a current transaction or when the current
 			//	transaction matches the active transaction, or the current
 			//	transaction is using read-uncommitted; we use the main buffer
-			if (_currentTransactionId == 0 ||
+			if (_currentTransactionId == TransactionId.Zero ||
 				_currentTransactionId == transactionId ||
 				isReadUncommittedTxn)
 			{
@@ -667,7 +667,7 @@ namespace Zen.Trunk.Storage.Data
 				}
 
 				// Save current transaction ID if necessary
-				if (_currentTransactionId == 0)
+				if (_currentTransactionId == TransactionId.Zero)
 				{
 					_currentTransactionId = transactionId;
 				}
@@ -818,7 +818,7 @@ namespace Zen.Trunk.Storage.Data
 			}
 			finally
 			{
-				_currentTransactionId = 0;
+				_currentTransactionId = TransactionId.Zero;
 			}
 		}
 
@@ -835,13 +835,13 @@ namespace Zen.Trunk.Storage.Data
 			}
 			finally
 			{
-				_currentTransactionId = 0;
+				_currentTransactionId = TransactionId.Zero;
 			}
 		}
 
 		void IPageEnlistmentNotification.Complete()
 		{
-			_currentTransactionId = 0;
+			_currentTransactionId = TransactionId.Zero;
 			_timestamp = 0;
 		}
 		#endregion

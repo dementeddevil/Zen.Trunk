@@ -206,9 +206,9 @@ namespace Zen.Trunk.Storage.Log
 			return request.Task;
 		}
 
-		public uint GetNextTransactionId()
+		public TransactionId GetNextTransactionId()
 		{
-			return (uint)Interlocked.Increment(ref _nextTransactionId);
+			return new TransactionId((uint)Interlocked.Increment(ref _nextTransactionId));
 		}
 
 		/// <summary>
@@ -525,7 +525,7 @@ namespace Zen.Trunk.Storage.Log
 			return true;
 		}
 
-		private Dictionary<uint, List<TransactionLogEntry>> GetCheckPointTransactions()
+		private Dictionary<TransactionId, List<TransactionLogEntry>> GetCheckPointTransactions()
 		{
 			// Read last reliable checkpoint record
 			var cpi = GetBestCheckpoint();
@@ -535,7 +535,7 @@ namespace Zen.Trunk.Storage.Log
 			_currentStream.Position = cpi.BeginOffset;
 
 			// Create log reader
-			Dictionary<uint, List<TransactionLogEntry>> transactionTable = null;
+			Dictionary<TransactionId, List<TransactionLogEntry>> transactionTable = null;
 			BeginCheckPointLogEntry startCheck = null;
 			EndCheckPointLogEntry endCheck = null;
 			while (endCheck == null)
@@ -571,7 +571,7 @@ namespace Zen.Trunk.Storage.Log
 
 					if (transactionTable == null)
 					{
-						transactionTable = new Dictionary<uint, List<TransactionLogEntry>>();
+						transactionTable = new Dictionary<TransactionId, List<TransactionLogEntry>>();
 					}
 
 					// Create transaction array as required
@@ -626,7 +626,7 @@ namespace Zen.Trunk.Storage.Log
 			{
 				var tle = entry as TransactionLogEntry;
 				var tran = new ActiveTransaction(
-					tle.TransactionId,
+					tle.TransactionId.Value,
 					rootPage.LogEndFileId,
 					rootPage.LogEndOffset,
 					tle.LogId);
@@ -653,10 +653,10 @@ namespace Zen.Trunk.Storage.Log
 				entry.LogType == LogEntryType.CommitXact)
 			{
 				var tle = entry as TransactionLogEntry;
-				foreach (var tran in _activeTransactions.Keys)
+				foreach (var tran in _activeTransactions.Keys.ToArray())
 				{
 					// Is this the matching transaction?
-					if (tran.TransactionId == tle.TransactionId)
+					if (tran.TransactionId == tle.TransactionId.Value)
 					{
 						// Remove the active transaction from the list
 						_activeTransactions.Remove(tran);
@@ -669,10 +669,8 @@ namespace Zen.Trunk.Storage.Log
 			else if (entry is TransactionLogEntry)
 			{
 				var tle = entry as TransactionLogEntry;
-				var tran =
-					(from item in _activeTransactions.Keys
-					 where item.TransactionId == tle.TransactionId
-					 select item).FirstOrDefault();
+			    var tran = _activeTransactions.Keys
+			        .FirstOrDefault(item => item.TransactionId == tle.TransactionId.Value);
 				if (tran != null)
 				{
 					// Add transaction entry to list
@@ -748,41 +746,38 @@ namespace Zen.Trunk.Storage.Log
 			try
 			{
 				var workDone = false;
-				List<uint> rollbackList = null;
+				List<TransactionId> rollbackList = null;
 
 				// Process each transaction
 				var transactionTable = GetCheckPointTransactions();
 				if (transactionTable != null)
 				{
-					foreach (var tranList in transactionTable.Values)
+					foreach (var tranList in transactionTable.Values.Where(tl => tl.Count > 0))
 					{
-						if (tranList.Count > 0)
+						// Every transaction in the transaction table which has an end-transaction
+						//	can be committed.
+						if (tranList[tranList.Count - 1].LogType == LogEntryType.CommitXact)
 						{
-							// Every transaction in the transaction table which has an end-transaction
-							//	can be committed.
-							if (tranList[tranList.Count - 1].LogType == LogEntryType.CommitXact)
-							{
-								await CommitTransactions(tranList);
-								workDone = true;
-							}
+							await CommitTransactions(tranList).ConfigureAwait(false);
+							workDone = true;
+						}
 
-							// Everything else must be rolled back
-							else
-							{
-								await RollbackTransactions(tranList);
+						// Everything else must be rolled back
+						else
+						{
+							await RollbackTransactions(tranList).ConfigureAwait(false);
 
-								// For implicit rollbacks we need to ensure we write an explicit
-								//	rollback record to the log at the end of recovery
-								if (tranList[tranList.Count - 1].LogType != LogEntryType.RollbackXact)
+							// For implicit rollbacks we need to ensure we write an explicit
+							//	rollback record to the log at the end of recovery
+							if (tranList[tranList.Count - 1].LogType != LogEntryType.RollbackXact)
+							{
+								if (rollbackList == null)
 								{
-									if (rollbackList == null)
-									{
-										rollbackList = new List<uint>();
-									}
-									rollbackList.Add(tranList[0].TransactionId);
+									rollbackList = new List<TransactionId>();
 								}
-								workDone = true;
+								rollbackList.Add(tranList[0].TransactionId);
 							}
+							workDone = true;
 						}
 					}
 				}

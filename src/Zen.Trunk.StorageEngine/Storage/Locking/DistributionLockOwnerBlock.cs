@@ -14,6 +14,10 @@ namespace Zen.Trunk.Storage.Locking
 	/// <para>
 	/// This object is required in order to implement lock escalation.
 	/// </para>
+	/// <para>
+	/// GetOwnerLock returns a distribution lock keyed on the virtual page id.
+	/// GetItemLock returns an extent lock keyed on both the virtual page id and the extent index.
+	/// </para>
 	/// </remarks>
 	internal class DistributionLockOwnerBlock : LockOwnerBlockBase<uint>
 	{
