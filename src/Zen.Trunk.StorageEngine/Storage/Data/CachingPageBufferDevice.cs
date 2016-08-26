@@ -676,7 +676,7 @@
 				else if (cacheInfo.CanFree && IsScavenging)
 				{
 					// Free the buffer (may throw)
-					cacheInfo.BufferInternal.SetFree();
+					cacheInfo.BufferInternal.SetFreeAsync();
 
 					// Remove cache item and decrement count
 					_bufferLookup.Remove(pageId);

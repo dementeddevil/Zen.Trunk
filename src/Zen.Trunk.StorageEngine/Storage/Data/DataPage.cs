@@ -390,7 +390,7 @@ namespace Zen.Trunk.Storage.Data
 			base.OnPreSave(e);
 
 			// Mark buffer as dirty and setup timestamp
-			DataBuffer.SetDirty();
+			DataBuffer.SetDirtyAsync();
 			DataBuffer.Timestamp = updateTimestamp;
 		}
 

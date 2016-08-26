@@ -682,7 +682,7 @@ namespace Zen.Trunk.Storage.Log
 			}
 
 			// Mark DataBuffer as dirty
-			DataBuffer.SetDirty();
+			DataBuffer.SetDirtyAsync();
 		}
 
 		internal override void OnRedoChanges(PageBuffer DataBuffer)
@@ -695,7 +695,7 @@ namespace Zen.Trunk.Storage.Log
 			}
 
 			// Mark DataBuffer as dirty
-			DataBuffer.SetDirty();
+			DataBuffer.SetDirtyAsync();
 		}
 		#endregion
 	}
@@ -766,7 +766,7 @@ namespace Zen.Trunk.Storage.Log
 			}
 
 			// Mark DataBuffer as dirty
-			DataBuffer.SetDirty();
+			DataBuffer.SetDirtyAsync();
 		}
 
 		internal override void OnRedoChanges(PageBuffer DataBuffer)
@@ -779,7 +779,7 @@ namespace Zen.Trunk.Storage.Log
 			}
 
 			// Mark DataBuffer as dirty
-			DataBuffer.SetDirty();
+			DataBuffer.SetDirtyAsync();
 		}
 		#endregion
 	}
@@ -841,7 +841,7 @@ namespace Zen.Trunk.Storage.Log
 			}
 
 			// Mark DataBuffer as dirty
-			DataBuffer.SetDirty();
+			DataBuffer.SetDirtyAsync();
 		}
 
 		internal override void OnRedoChanges(PageBuffer DataBuffer)
@@ -855,7 +855,7 @@ namespace Zen.Trunk.Storage.Log
 			}
 
 			// Mark DataBuffer as dirty
-			DataBuffer.SetDirty();
+			DataBuffer.SetDirtyAsync();
 		}
 		#endregion
 	}

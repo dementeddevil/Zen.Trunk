@@ -9,7 +9,7 @@ namespace Zen.Trunk.Storage
 	using System;
 
 	/// <summary>
-	/// TODO: Update summary.
+	/// <c>StatefulBufferScope</c> is used to manage the lifetime of a buffer.
 	/// </summary>
 	public class StatefulBufferScope<TBufferType> : IDisposable
 		where TBufferType : StatefulBuffer
