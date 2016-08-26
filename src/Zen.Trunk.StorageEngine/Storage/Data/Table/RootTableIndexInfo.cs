@@ -73,9 +73,9 @@
 		/// <summary>
 		/// Initializes a new instance of the <see cref="RootTableIndexInfo"/> class.
 		/// </summary>
-		/// <param name="ObjectId">The index id.</param>
-		public RootTableIndexInfo(uint ObjectId)
-			: base(ObjectId)
+		/// <param name="objectId">The object identifier.</param>
+		public RootTableIndexInfo(ObjectId objectId)
+			: base(objectId)
 		{
 			_indexSubType = new BufferFieldByte(base.LastField);
 			_columnIDs = new BufferFieldByteArrayUnbounded(_indexSubType);

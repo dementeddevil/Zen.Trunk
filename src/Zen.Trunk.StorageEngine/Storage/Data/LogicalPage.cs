@@ -15,15 +15,15 @@ namespace Zen.Trunk.Storage.Data
 	{
 		#region Private Fields
 		private LogicalPageId _logicalId;
-		private readonly BufferFieldUInt64 _prevLogicalId;
-		private readonly BufferFieldUInt64 _nextLogicalId;
+		private readonly BufferFieldLogicalPageId _prevLogicalId;
+		private readonly BufferFieldLogicalPageId _nextLogicalId;
 		#endregion
 
 		#region Public Constructors
 		public LogicalPage()
 		{
-			_prevLogicalId = new BufferFieldUInt64(base.LastHeaderField, 0);
-			_nextLogicalId = new BufferFieldUInt64(_prevLogicalId, 0);
+			_prevLogicalId = new BufferFieldLogicalPageId(base.LastHeaderField, LogicalPageId.Zero);
+			_nextLogicalId = new BufferFieldLogicalPageId(_prevLogicalId, LogicalPageId.Zero);
 		}
 		#endregion
 
@@ -72,14 +72,14 @@ namespace Zen.Trunk.Storage.Data
 		{
 			get
 			{
-				return new LogicalPageId(_prevLogicalId.Value);
+				return _prevLogicalId.Value;
 			}
 			set
 			{
 				CheckReadOnly();
-				if (_prevLogicalId.Value != value.Value)
+				if (_prevLogicalId.Value != value)
 				{
-					_prevLogicalId.Value = value.Value;
+					_prevLogicalId.Value = value;
 					SetHeaderDirty();
 				}
 			}
@@ -93,14 +93,14 @@ namespace Zen.Trunk.Storage.Data
 		{
 			get
 			{
-				return new LogicalPageId(_nextLogicalId.Value);
+				return _nextLogicalId.Value;
 			}
 			set
 			{
 				CheckReadOnly();
-				if (_nextLogicalId.Value != value.Value)
+				if (_nextLogicalId.Value != value)
 				{
-					_nextLogicalId.Value = value.Value;
+					_nextLogicalId.Value = value;
 					SetHeaderDirty();
 				}
 			}

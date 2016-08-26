@@ -37,7 +37,7 @@ namespace Zen.Trunk.Storage.Data
 		{
 			// 5 bytes
 			private readonly BufferFieldBitVector8 _status;
-			private readonly BufferFieldUInt32 _objectId;
+			private readonly BufferFieldObjectId _objectId;
 
 			// 14 bytes * 8
 			private readonly PageInfo[] _pageState;
@@ -47,7 +47,7 @@ namespace Zen.Trunk.Storage.Data
 			internal ExtentInfo()
 			{
 				_status = new BufferFieldBitVector8();
-				_objectId = new BufferFieldUInt32(_status);
+				_objectId = new BufferFieldObjectId(_status);
 				_pageState = new PageInfo[PagesPerExtent];
 				for (var index = 0; index < PagesPerExtent; ++index)
 				{
@@ -101,11 +101,11 @@ namespace Zen.Trunk.Storage.Data
 			{
 				get
 				{
-					return new ObjectId(_objectId.Value);
+					return _objectId.Value;
 				}
 				set
 				{
-					_objectId.Value = value.Value;
+					_objectId.Value = value;
 				}
 			}
 
@@ -149,15 +149,15 @@ namespace Zen.Trunk.Storage.Data
 
 		internal class PageInfo : BufferFieldWrapper
 		{
-			private readonly BufferFieldUInt64 _logicalId;
-			private readonly BufferFieldUInt32 _objectId;
+			private readonly BufferFieldLogicalPageId _logicalId;
+			private readonly BufferFieldObjectId _objectId;
 			private readonly BufferFieldByte _objectType;
 			private readonly BufferFieldByte _allocationStatus;
 
 			public PageInfo()
 			{
-				_logicalId = new BufferFieldUInt64();
-				_objectId = new BufferFieldUInt32(_logicalId);
+				_logicalId = new BufferFieldLogicalPageId();
+				_objectId = new BufferFieldObjectId(_logicalId);
 				_objectType = new BufferFieldByte(_objectId);
 				_allocationStatus = new BufferFieldByte(_objectType);
 			}
@@ -173,11 +173,11 @@ namespace Zen.Trunk.Storage.Data
 			{
 				get
 				{
-					return new LogicalPageId(_logicalId.Value);
+					return _logicalId.Value;
 				}
 				set
 				{
-					_logicalId.Value = value.Value;
+					_logicalId.Value = value;
 				}
 			}
 
@@ -188,11 +188,11 @@ namespace Zen.Trunk.Storage.Data
 			{
 				get
 				{
-					return new ObjectId(_objectId.Value);
+					return _objectId.Value;
 				}
 				set
 				{
-					_objectId.Value = value.Value;
+					_objectId.Value = value;
 				}
 			}
 

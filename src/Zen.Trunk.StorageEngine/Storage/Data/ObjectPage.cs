@@ -20,7 +20,7 @@ namespace Zen.Trunk.Storage.Data
 	public class ObjectPage : LogicalPage
 	{
 		#region Private Fields
-		private readonly BufferFieldUInt32 _objectId;
+		private readonly BufferFieldObjectId _objectId;
 		private ObjectLockType _objectLock;
 		#endregion
 
@@ -30,7 +30,7 @@ namespace Zen.Trunk.Storage.Data
 		/// </summary>
 		public ObjectPage()
 		{
-			_objectId = new BufferFieldUInt32(base.LastHeaderField, 0);
+			_objectId = new BufferFieldObjectId(base.LastHeaderField);
 		}
 		#endregion
 
@@ -49,14 +49,14 @@ namespace Zen.Trunk.Storage.Data
 		{
 			get
 			{
-				return new ObjectId(_objectId.Value);
+				return _objectId.Value;
 			}
 			set
 			{
 				CheckReadOnly();
-				if (_objectId.Value != value.Value)
+				if (_objectId.Value != value)
 				{
-					_objectId.Value = value.Value;
+					_objectId.Value = value;
 					SetHeaderDirty();
 				}
 			}
