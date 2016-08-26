@@ -17,14 +17,14 @@ namespace Zen.Trunk.Storage
     /// TODO: Update summary.
     /// </summary>
     [Trait("Subsystem", "Storage Engine Query")]
-    public class StorageQueryTest : StorageEngineUnitTest
+    public class StorageQueryTest : AutofacStorageEngineUnitTests
     {
         [Fact(DisplayName = "Create master device")]
         public async Task CreateMasterDeviceTest()
         {
             using (var tracker = new TempFileTracker())
             {
-                using (var manager = new MasterDatabaseDevice())
+                using (var manager = new MasterDatabaseDevice(Scope))
                 {
                     var executive = new QueryExecutive(manager);
 
@@ -33,7 +33,7 @@ namespace Zen.Trunk.Storage
 
                     var batch = new StringBuilder();
 
-                    TrunkTransactionContext.BeginTransaction(manager);
+                    manager.BeginTransaction();
                     batch.AppendLine("create database master");
                     batch.AppendLine("\ton");
                     batch.AppendLine("\t\tprimary");
@@ -50,11 +50,11 @@ namespace Zen.Trunk.Storage
                     batch.AppendLine("\t\t)");
                     batch.AppendLine("go");
                     await executive.Execute(batch.ToString());
-                    await TrunkTransactionContext.Commit();
+                    await TrunkTransactionContext.Commit().ConfigureAwait(true);
 
                     batch.Clear();
 
-                    TrunkTransactionContext.BeginTransaction(manager);
+                    manager.BeginTransaction();
                     batch.AppendLine("create table testtable");
                     batch.AppendLine("\t(");
                     batch.AppendLine("\tid int not null identity(1,1),");
@@ -66,7 +66,7 @@ namespace Zen.Trunk.Storage
                     await executive.Execute(batch.ToString());
                     await TrunkTransactionContext.Commit();
 
-                    await manager.Close();
+                    await manager.CloseAsync().ConfigureAwait(true);
                 }
             }
         }

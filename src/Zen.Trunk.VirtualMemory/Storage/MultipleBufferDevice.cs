@@ -78,13 +78,8 @@
             }
 
 			// Create device
-			var childDevice = new SingleBufferDevice(
-				_bufferFactory,
-				isPrimary,
-				name,
-				pathName,
-				_scatterGatherIoEnabled,
-				createPageCount);
+			var childDevice = _bufferDeviceFactory.CreateSingleBufferDevice(
+                name, pathName, createPageCount, _scatterGatherIoEnabled);
 
 			// Add child device with suitable device id
 			if (deviceId == DeviceId.Zero)

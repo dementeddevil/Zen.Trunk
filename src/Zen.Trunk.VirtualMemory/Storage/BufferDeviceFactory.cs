@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Zen.Trunk.Storage
+﻿namespace Zen.Trunk.Storage
 {
     public class BufferDeviceFactory : IBufferDeviceFactory
     {
@@ -16,10 +10,10 @@ namespace Zen.Trunk.Storage
         }
 
         public ISingleBufferDevice CreateSingleBufferDevice(
-            string name, string pathname, bool isPrimary, bool enableScatterGatherIo, uint createPageCount)
+            string name, string pathname, uint createPageCount, bool enableScatterGatherIo)
         {
             return new SingleBufferDevice(
-                _bufferFactory, isPrimary, name, pathname, enableScatterGatherIo, createPageCount);
+                _bufferFactory, name, pathname, createPageCount, enableScatterGatherIo);
         }
 
         public IMultipleBufferDevice CreateMultipleBufferDevice(bool enableScatterGatherIo)

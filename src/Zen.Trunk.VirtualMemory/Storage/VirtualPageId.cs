@@ -1,8 +1,7 @@
+using System;
+
 namespace Zen.Trunk.Storage
 {
-	using System;
-	using System.Globalization;
-
 	/// <summary>
 	/// Simple value type which represents a Device Page Identifier.
 	/// </summary>
@@ -24,7 +23,6 @@ namespace Zen.Trunk.Storage
 		/// Initializes a new instance of the <see cref="VirtualPageId"/> struct.
 		/// </summary>
 		/// <param name="virtualPageId">The virtual page id.</param>
-		[CLSCompliant(false)]
 		public VirtualPageId(ulong virtualPageId)
 		{
 			DeviceId = new DeviceId((ushort)((virtualPageId >> 32) & 0xffff));
@@ -36,7 +34,6 @@ namespace Zen.Trunk.Storage
 		/// </summary>
 		/// <param name="deviceId">The device id.</param>
 		/// <param name="physicalPageId">The physical page id.</param>
-		[CLSCompliant(false)]
 		public VirtualPageId(ushort deviceId, uint physicalPageId)
 		{
 			DeviceId = new DeviceId(deviceId);
@@ -48,7 +45,6 @@ namespace Zen.Trunk.Storage
         /// </summary>
         /// <param name="deviceId">The device id.</param>
         /// <param name="physicalPageId">The physical page id.</param>
-        [CLSCompliant(false)]
         public VirtualPageId(DeviceId deviceId, uint physicalPageId)
         {
             DeviceId = deviceId;
@@ -60,25 +56,21 @@ namespace Zen.Trunk.Storage
 	    /// <summary>
 		/// Gets the maximum allowable value for the physical page ID.
 		/// </summary>
-		[CLSCompliant(false)]
 		public static uint MaximumPhysicalPageId => uint.MaxValue;
 
         /// <summary>
         /// Gets/sets the device ID.
         /// </summary>
-        [CLSCompliant(false)]
 		public DeviceId DeviceId { get; }
 
 	    /// <summary>
 		/// Gets/sets the physical page ID.
 		/// </summary>
-		[CLSCompliant(false)]
 		public uint PhysicalPageId { get; }
 
 	    /// <summary>
 		/// Gets/sets the virtual page ID.
 		/// </summary>
-		[CLSCompliant(false)]
 		public ulong Value => (((ulong)DeviceId.Value) << 32) | (ulong)PhysicalPageId;
 
 	    /// <summary>
@@ -123,7 +115,7 @@ namespace Zen.Trunk.Storage
 		/// <returns></returns>
 		public override string ToString()
 		{
-			return $"VirtualPageId{DeviceId.Value:X4}:{PhysicalPageId:X8}";
+			return $"VirtualPageId[DI:{DeviceId.Value:X4},PPI:{PhysicalPageId:X8}]";
 		}
 
 		/// <summary>

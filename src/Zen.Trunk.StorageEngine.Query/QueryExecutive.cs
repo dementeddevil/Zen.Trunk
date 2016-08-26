@@ -22,7 +22,7 @@ namespace Zen.Trunk.Storage.Query
 			_masterDevice = masterDevice;
 		}
 
-		public void Execute(string statementBatch)
+		public Task Execute(string statementBatch)
 		{
             // Tokenise the input character stream
 			var charStream = new AntlrInputStream(statementBatch);
@@ -36,6 +36,8 @@ namespace Zen.Trunk.Storage.Query
 			// Build query batch pipeline from the AST
 		    var listener = new QueryTreeListener(_masterDevice);
 		    listener.EnterTsql_file(compileUnit);
+
+		    return Task.FromResult(true);
 		}
 	}
 

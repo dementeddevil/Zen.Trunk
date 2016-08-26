@@ -12,12 +12,7 @@
 			get;
 		}
 
-		bool IsPrimary
-		{
-			get;
-		}
-
-		uint PageCount
+	    uint PageCount
 		{
 			get;
 		}

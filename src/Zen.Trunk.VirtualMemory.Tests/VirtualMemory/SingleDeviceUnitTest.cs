@@ -28,7 +28,7 @@ Then the buffer contents are the same")]
                 var initBuffers = new List<VirtualBuffer>();
                 var loadBuffers = new List<VirtualBuffer>();
                 var testFile = tracker.Get("sdt.bin");
-                using (var device = BufferDeviceFactory.CreateSingleBufferDevice("test", testFile, true, true, 8))
+                using (var device = BufferDeviceFactory.CreateSingleBufferDevice("test", testFile, 8, true))
                 {
                     await device.OpenAsync().ConfigureAwait(true);
 
