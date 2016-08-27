@@ -7,15 +7,18 @@
 
 	public class AddDataDeviceParameters : AddDeviceParameters
 	{
-		#region Public Constructors
-		/// <summary>
-		/// Initializes a new instance of the <see cref="AddDevice" /> class.
-		/// </summary>
-		/// <param name="name">The name.</param>
-		/// <param name="pathName">Name of the path.</param>
-		/// <param name="createPageCount">The create page count.</param>
-		/// <param name="deviceId">The device id.</param>
-		public AddDataDeviceParameters(
+        #region Public Constructors
+        /// <summary>
+        /// Initializes a new instance of the <see cref="AddDataDeviceParameters" /> class.
+        /// </summary>
+        /// <param name="name">The name.</param>
+        /// <param name="pathName">Name of the path.</param>
+        /// <param name="deviceId">The device id.</param>
+        /// <param name="createPageCount">The create page count.</param>
+        /// <param name="updateRootPage">
+        /// Set to <c>true</c> to update the root page; otherwise <c>false</c>.
+        /// </param>
+        public AddDataDeviceParameters(
 			string name,
 			string pathName,
             DeviceId deviceId,

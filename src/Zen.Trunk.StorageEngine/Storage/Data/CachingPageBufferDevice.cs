@@ -8,8 +8,8 @@ using System.Threading.Tasks.Dataflow;
 
 namespace Zen.Trunk.Storage.Data
 {
-	public sealed class CachingPageBufferDevice : IDisposable
-	{
+    public sealed class CachingPageBufferDevice : ICachingPageBufferDevice
+    {
 		#region Private Types
 		private class PreparePageBufferRequest : TransactionContextTaskRequest<PageBuffer>
 		{
@@ -504,7 +504,7 @@ namespace Zen.Trunk.Storage.Data
 			while (!_shutdownToken.IsCancellationRequested)
 			{
 				if (_flushState == CacheFlushState.Idle &&
-					(lastFlush == null || (DateTime.UtcNow - lastFlush) > _cacheFlushInterval))
+					(lastFlush == null || DateTime.UtcNow - lastFlush > _cacheFlushInterval))
 				{
 					if (!IsScavenging && _bufferLookup.Count > _cacheScavengeOnThreshold)
 					{
@@ -512,7 +512,7 @@ namespace Zen.Trunk.Storage.Data
 					}
 					try
 					{
-						await FlushPagesAsync(flushParams);
+						await FlushPagesAsync(flushParams).ConfigureAwait(false);
 						lastFlush = DateTime.UtcNow;
 					}
 					finally
@@ -525,7 +525,7 @@ namespace Zen.Trunk.Storage.Data
 				}
 				else
 				{
-					Thread.Sleep(_cacheFlushInterval);
+					await Task.Delay(_cacheFlushInterval, _shutdownToken.Token).ConfigureAwait(false);
 				}
 			}
 
@@ -533,7 +533,7 @@ namespace Zen.Trunk.Storage.Data
 			// NOTE: We will wait for a maximum of 30 seconds
 			var start = DateTime.UtcNow;
 			while (_flushState != CacheFlushState.Idle &&
-				(DateTime.UtcNow - start) < TimeSpan.FromSeconds(30))
+				DateTime.UtcNow - start < TimeSpan.FromSeconds(30))
 			{
 				Thread.Sleep(1);
 			}
@@ -572,37 +572,25 @@ namespace Zen.Trunk.Storage.Data
 						_bufferLookup.Keys.CopyTo(keys, 0);
 					});
 
-				// Create cache partitioner 
-				var cacheKeyPartitioner =
-					ChunkPartitioner.Create<VirtualPageId>(keys, 10, 100);
-				try
-				{
-					Parallel.ForEach<VirtualPageId, FlushPageBufferState>(
-						cacheKeyPartitioner,
-						new ParallelOptions
+				// Create cache partitioner
+				Parallel.ForEach(
+                    ChunkPartitioner.Create(keys, 10, 100),
+					new ParallelOptions
+					{
+						MaxDegreeOfParallelism = 4
+					},
+					() => new FlushPageBufferState(request.Message),
+					ProcessCacheBufferEntry,
+					blockState =>
+					{
+						// Issue flush to each device accessed
+						var flushReads = blockState.LoadTasks.Count > 0;
+						var flushWrites = blockState.SaveTasks.Count > 0;
+						if (flushReads || flushWrites)
 						{
-							MaxDegreeOfParallelism = 4
-						},
-						() => new FlushPageBufferState(request.Message),
-						ProcessCacheBufferEntry,
-						blockState =>
-						{
-							// Issue flush to each device accessed
-							var flushReads = (blockState.LoadTasks.Count > 0);
-							var flushWrites = (blockState.SaveTasks.Count > 0);
-							if (flushReads || flushWrites)
-							{
-								blockState.FlushAccessedDevices(_bufferDevice)
-									.Wait();
-							}
-						});
-				}
-				finally
-				{
-					// Discard the partitioner if it implements IDisposable
-					var dispose = cacheKeyPartitioner as IDisposable;
-				    dispose?.Dispose();
-				}
+							blockState.FlushAccessedDevices(_bufferDevice).Wait();
+						}
+					});
 			}
 			finally
 			{

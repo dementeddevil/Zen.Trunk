@@ -37,6 +37,6 @@ namespace Zen.Trunk.Storage
 			: base (info, context)
 		{
 		}
-		#endregion
-	}
+        #endregion
+    }
 }
