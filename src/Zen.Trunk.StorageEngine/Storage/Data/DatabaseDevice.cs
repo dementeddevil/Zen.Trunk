@@ -402,7 +402,6 @@ namespace Zen.Trunk.Storage.Data
         #endregion
 
         #region Protected Methods
-
         protected override void BuildDeviceLifetimeScope(ContainerBuilder builder)
 	    {
 	        base.BuildDeviceLifetimeScope(builder);

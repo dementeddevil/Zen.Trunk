@@ -169,7 +169,7 @@ namespace Zen.Trunk.Storage.Data
 
 		#region Private Fields
 		private bool _isDisposed;
-		private CancellationTokenSource _shutdownToken;
+		private readonly CancellationTokenSource _shutdownToken = new CancellationTokenSource();
 		private IMultipleBufferDevice _bufferDevice;
 
 		// Buffer load/initialisation
@@ -186,18 +186,18 @@ namespace Zen.Trunk.Storage.Data
 		private readonly int _cacheScavengeOnThreshold = 1800;
 		private readonly TimeSpan _cacheFlushInterval = TimeSpan.FromMilliseconds(500);
 		private CacheFlushState _flushState = CacheFlushState.Idle;
-		private Task _cacheManagerTask;
+		private readonly Task _cacheManagerTask;
 
 		// Free pool
-		private ObjectPool<PageBuffer> _freePagePool;
+		private readonly ObjectPool<PageBuffer> _freePagePool;
 		private readonly int _freePoolMin = 50;
 		private readonly int _freePoolMax = 100;
 		private Task _freePoolFillerTask;
 
 		// Ports
-		private ITargetBlock<PreparePageBufferRequest> _initBufferPort;
-		private ITargetBlock<PreparePageBufferRequest> _loadBufferPort;
-		private ITargetBlock<FlushCachingDeviceRequest> _flushBuffersPort;
+		private readonly ITargetBlock<PreparePageBufferRequest> _initBufferPort;
+		private readonly ITargetBlock<PreparePageBufferRequest> _loadBufferPort;
+		private readonly ITargetBlock<FlushCachingDeviceRequest> _flushBuffersPort;
 		#endregion
 
 		#region Public Constructors
@@ -209,10 +209,7 @@ namespace Zen.Trunk.Storage.Data
 		{
 			_bufferDevice = bufferDevice;
 
-            // Create our cancellation token used to kill device
-            _shutdownToken = new CancellationTokenSource();
-
-            // Initialise the free-buffer pool handler
+		    // Initialise the free-buffer pool handler
             _freePagePool = new ObjectPool<PageBuffer>(
                 () =>
                 {
@@ -382,9 +379,6 @@ namespace Zen.Trunk.Storage.Data
 			}
 			return request.Task;
 		}
-		#endregion
-
-		#region Protected Methods
 		#endregion
 
 		#region Private Methods
