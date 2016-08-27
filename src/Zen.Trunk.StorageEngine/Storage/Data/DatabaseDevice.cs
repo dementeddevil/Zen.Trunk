@@ -415,8 +415,11 @@ namespace Zen.Trunk.Storage.Data
 	                    return deviceFactory.CreateMultipleBufferDevice(true);
 	                })
 	            .As<IBufferDevice>()
-	            .As<IMultipleBufferDevice>();
-	        builder.RegisterType<CachingPageBufferDevice>().AsSelf();
+	            .As<IMultipleBufferDevice>()
+                .SingleInstance();
+	        builder.RegisterType<CachingPageBufferDevice>()
+                .AsSelf()
+                .SingleInstance();
 
 	        builder
 	            .RegisterType<DatabaseLockManager>()

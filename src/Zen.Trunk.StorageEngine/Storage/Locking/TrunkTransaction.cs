@@ -108,7 +108,7 @@ namespace Zen.Trunk.Storage.Locking
         private TransactionLockOwnerBlock _lockOwner;
         private TransactionOptions _options;
         private bool _isBeginLogWritten = false;
-        private TransactionId _transactionId = new TransactionId(1);
+        private TransactionId _transactionId = TransactionId.Zero;
         private int _transactionCount = 1;
         private MasterLogPageDevice _logDevice = null;
         private bool _nestedRollbackTriggered = false;
@@ -233,7 +233,6 @@ namespace Zen.Trunk.Storage.Locking
         public IDatabaseLockManager LockManager { get; }
 
         public bool IsCompleted => _isCompleted;
-
         #endregion
 
         #region Public Methods
@@ -268,7 +267,6 @@ namespace Zen.Trunk.Storage.Locking
             // Ensure begin log record has been written
             if (!_isBeginLogWritten)
             {
-                _tracer.WriteVerboseLine("Writing begin xact {0} to log", _transactionId);
                 await WriteBeginXact().ConfigureAwait(false);
             }
 
@@ -278,6 +276,7 @@ namespace Zen.Trunk.Storage.Locking
                 entry.RewriteTransactionId(_transactionId);
             }
 
+            _tracer.WriteVerboseLine($"{_transactionId} => Writing {entry.LogType} to log");
             if (LoggingDevice != null)
             {
                 _transactionLogs.Add(entry);
@@ -312,21 +311,25 @@ namespace Zen.Trunk.Storage.Locking
 
             try
             {
-                _isCompleting = true;
+                // If we don't yet have a valid transaction ID then try to get one now
+                if (_transactionId == TransactionId.Zero)
+                {
+                    TryEnlistInTransaction();
+                }
 
+                _isCompleting = true;
                 var performCommit = true;
                 var prepTasks = new List<Task<bool>>();
                 if (_nestedRollbackTriggered)
                 {
                     _tracer.WriteVerboseLine(
-                        "Rolling back {0} sub-enlistments due to nested transaction failure.",
-                        _subEnlistments.Count);
+                        $"{_transactionId} => Rolling back {_subEnlistments.Count} sub-enlistments due to nested transaction failure.");
                     performCommit = false;
                 }
                 else
                 {
                     _tracer.WriteVerboseLine(
-                        "Preparing commit on {0} sub-enlistments",
+                        $"{_transactionId} => Preparing commit on {_subEnlistments.Count} sub-enlistments.",
                         _subEnlistments.Count);
 
                     // Prepare our sub-enlistments (pages) for commit operation
@@ -341,8 +344,7 @@ namespace Zen.Trunk.Storage.Locking
                         catch (Exception e)
                         {
                             _tracer.WriteVerboseLine(
-                                "Prepare failed - rolling back\n\t{0}",
-                                e.Message);
+                                $"{_transactionId} => Prepare failed - rolling back\n\t{e.Message}");
                             performCommit = false;
                         }
                     }
@@ -370,8 +372,8 @@ namespace Zen.Trunk.Storage.Locking
                     }
                     catch (Exception e)
                     {
-                        _tracer.WriteVerboseLine("Prepare failed - rolling back\n\t{0}",
-                            e.Message);
+                        _tracer.WriteVerboseLine(
+                            $"{_transactionId} => Prepare failed - rolling back\n\t{e.Message}");
                         performCommit = false;
                     }
                 }
@@ -381,8 +383,8 @@ namespace Zen.Trunk.Storage.Locking
                 if (performCommit)
                 {
                     // Notify all prepared objects that want to commit
-                    _tracer.WriteVerboseLine("Committing {0} sub-enlistments",
-                        commitList.Count);
+                    _tracer.WriteVerboseLine(
+                        $"{_transactionId} => Committing {commitList.Count} sub-enlistments");
                     var commitTasks = new List<Task>();
                     try
                     {
@@ -449,7 +451,6 @@ namespace Zen.Trunk.Storage.Locking
                 }
 
                 // Write journal entry for transaction state
-                _tracer.WriteVerboseLine("Writing end xact {0} to log", _transactionId);
                 await WriteEndXact(performCommit).ConfigureAwait(false);
 
                 // Notify candidates that transaction has completed
@@ -474,7 +475,8 @@ namespace Zen.Trunk.Storage.Locking
                     }
                 }
 
-                _tracer.WriteVerboseLine("Commit completed - discarding xact scope");
+                _tracer.WriteVerboseLine(
+                    $"{_transactionId} => Commit completed - discarding xact scope");
             }
             catch (Exception)
             {
@@ -517,8 +519,8 @@ namespace Zen.Trunk.Storage.Locking
             try
             {
                 _isCompleting = true;
-                _tracer.WriteVerboseLine("Preparing rollback on {0} sub-enlistments",
-                    _subEnlistments.Count);
+                _tracer.WriteVerboseLine(
+                    $"{_transactionId} => Preparing rollback on {_subEnlistments.Count} sub-enlistments");
                 var rollbackTasks = new List<Task>();
                 foreach (var sub in _subEnlistments)
                 {
@@ -577,7 +579,7 @@ namespace Zen.Trunk.Storage.Locking
             if (!_isCompleted && !_isCompleting)
             {
                 _tracer.WriteWarningLine(
-                    "In-progress transaction disposed - performing implicit rollback");
+                    $"{_transactionId} => In-progress transaction disposed - performing implicit rollback");
 
                 // Force rollback of the current transaction
                 Rollback().Wait(Timeout);
@@ -634,6 +636,7 @@ namespace Zen.Trunk.Storage.Locking
         {
             if (!_isBeginLogWritten)
             {
+                _tracer.WriteVerboseLine($"{_transactionId} => Writing begin xact to log");
                 if (LoggingDevice != null)
                 {
                     // Write begin transaction entry
@@ -655,7 +658,11 @@ namespace Zen.Trunk.Storage.Locking
             // No need to write end-xact if begin not written
             if (_isBeginLogWritten && LoggingDevice != null)
             {
-                LogEntry entry = null;
+                var endXactType = commit ? "commit" : "rollback";
+                _tracer.WriteVerboseLine(
+                    $"{_transactionId} => Writing end xact ({endXactType}) to log");
+
+                LogEntry entry;
                 if (commit)
                 {
                     entry = new CommitTransactionLogEntry(_transactionId);
