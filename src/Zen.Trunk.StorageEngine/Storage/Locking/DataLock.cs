@@ -91,11 +91,13 @@ namespace Zen.Trunk.Storage.Locking
 
 		    public override DataLockType[] CompatableLocks =>
                 new DataLockType[0];
-		}
-		#endregion
 
-		#region Private Fields
-		private static readonly NoneState NoneStateObject = new NoneState();
+            public override bool CanEnterExclusiveLock => true;
+        }
+        #endregion
+
+        #region Private Fields
+        private static readonly NoneState NoneStateObject = new NoneState();
 		private static readonly SharedState SharedStateObject = new SharedState();
 		private static readonly UpdateState UpdateStateObject = new UpdateState();
 		private static readonly ExclusiveState ExclusiveStateObject = new ExclusiveState();

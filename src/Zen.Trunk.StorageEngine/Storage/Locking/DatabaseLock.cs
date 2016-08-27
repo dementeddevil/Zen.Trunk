@@ -100,11 +100,13 @@ namespace Zen.Trunk.Storage.Locking
 
 		    public override DatabaseLockType[] CompatableLocks =>
                 new DatabaseLockType[0];
-		}
-		#endregion
 
-		#region Public Constructors
-		public DatabaseLock()
+            public override bool CanEnterExclusiveLock => true;
+        }
+        #endregion
+
+        #region Public Constructors
+        public DatabaseLock()
 		{
 		}
 		#endregion

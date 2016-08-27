@@ -128,11 +128,13 @@ namespace Zen.Trunk.Storage.Locking
 
 		    public override ObjectLockType[] CompatableLocks =>
                 new ObjectLockType[0];
-		}
-		#endregion
 
-		#region Private Fields
-		private static readonly NoneState NoneStateObject = new NoneState();
+            public override bool CanEnterExclusiveLock => true;
+        }
+        #endregion
+
+        #region Private Fields
+        private static readonly NoneState NoneStateObject = new NoneState();
 		private static readonly IntentSharedState IntentSharedStateObject = new IntentSharedState();
 		private static readonly SharedState SharedStateObject = new SharedState();
 		private static readonly IntentExclusiveState IntentExclusiveStateObject = new IntentExclusiveState();

@@ -94,6 +94,8 @@ namespace Zen.Trunk.Storage.Locking
 
             public override RootLockType[] CompatableLocks =>
                 new RootLockType[0];
+
+            public override bool CanEnterExclusiveLock => true;
         }
         #endregion
 

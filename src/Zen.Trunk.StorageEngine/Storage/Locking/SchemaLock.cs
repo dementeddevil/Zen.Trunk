@@ -100,11 +100,13 @@ namespace Zen.Trunk.Storage.Locking
 			public override SchemaLockType Lock => SchemaLockType.SchemaModification;
 
 		    public override SchemaLockType[] CompatableLocks => new SchemaLockType[0];
-		}
-		#endregion
 
-		#region Public Constructors
-		static SchemaLock ()
+            public override bool CanEnterExclusiveLock => true;
+        }
+        #endregion
+
+        #region Public Constructors
+        static SchemaLock ()
 		{
 			noneState = new NoneState ();
 			schemaStabilityState = new SchemaStabilityState ();

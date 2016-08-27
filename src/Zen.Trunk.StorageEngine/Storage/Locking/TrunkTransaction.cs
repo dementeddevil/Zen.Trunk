@@ -105,15 +105,15 @@ namespace Zen.Trunk.Storage.Locking
         private readonly ILifetimeScope _lifetimeScope;
         private readonly List<IPageEnlistmentNotification> _subEnlistments = new List<IPageEnlistmentNotification>();
         private readonly List<TransactionLogEntry> _transactionLogs = new List<TransactionLogEntry>();
+        private readonly ITracer _tracer;
         private TransactionOptions _options;
-        private bool _isBeginLogWritten = false;
+        private bool _isBeginLogWritten;
         private TransactionId _transactionId = TransactionId.Zero;
         private int _transactionCount = 1;
-        private MasterLogPageDevice _logDevice = null;
-        private bool _nestedRollbackTriggered = false;
-        private bool _isCompleting = false;
-        private bool _isCompleted = false;
-        private readonly ITracer _tracer;
+        private MasterLogPageDevice _logDevice;
+        private bool _nestedRollbackTriggered;
+        private bool _isCompleting;
+        private bool _isCompleted;
         #endregion
 
         #region Public Constructors
