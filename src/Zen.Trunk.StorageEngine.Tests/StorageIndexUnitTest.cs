@@ -241,8 +241,9 @@ namespace Zen.Trunk.Storage
             base.InitializeContainerBuilder(builder);
 
             builder.RegisterType<DatabaseDevice>()
-                .WithParameter("dbId", DatabaseId.Zero)
-                .SingleInstance();
+                .WithParameter("dbId", DatabaseId.Master)
+                .SingleInstance()
+                .OnActivated(e => e.Instance.InitialiseDeviceLifetimeScope(Scope));
         }
 
         private DatabaseDevice CreateDatabaseDevice()

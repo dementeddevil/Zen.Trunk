@@ -121,16 +121,10 @@ namespace Zen.Trunk.Storage.Data
         /// <summary>
         /// Initializes a new instance of the <see cref="DatabaseDevice"/> class.
         /// </summary>
-        /// <param name="parentLifetimeScope">The parent service provider.</param>
         /// <param name="dbId">The database identifier.</param>
-        public DatabaseDevice(ILifetimeScope parentLifetimeScope, DatabaseId dbId)
-			: base(parentLifetimeScope)
-        {
+        public DatabaseDevice(DatabaseId dbId)
+	    {
             _dbId = dbId;
-            // Initialise devices
-            var deviceFactory = ResolveDeviceService<IBufferDeviceFactory>();
-            _bufferDevice = deviceFactory.CreateMultipleBufferDevice(true);
-            _dataBufferDevice = new CachingPageBufferDevice(_bufferDevice);
 
             // Setup ports
             var taskInterleave = new ConcurrentExclusiveSchedulerPair(TaskScheduler.Default);
@@ -220,10 +214,33 @@ namespace Zen.Trunk.Storage.Data
 		/// </summary>
 		/// <value>The primary file group id.</value>
 		protected virtual FileGroupId PrimaryFileGroupId => FileGroupId.Primary;
-
 	    #endregion
 
 		#region Private Properties
+	    private IMultipleBufferDevice RawBufferDevice
+	    {
+	        get
+	        {
+	            if (_bufferDevice == null)
+	            {
+	                _bufferDevice = ResolveDeviceService<IMultipleBufferDevice>();
+	            }
+	            return _bufferDevice;
+	        }
+	    }
+
+	    private CachingPageBufferDevice CachingBufferDevice
+	    {
+	        get
+	        {
+	            if (_dataBufferDevice == null)
+	            {
+	                _dataBufferDevice = ResolveDeviceService<CachingPageBufferDevice>();
+	            }
+	            return _dataBufferDevice;
+	        }
+	    }
+
 		/// <summary>
 		/// Gets the add file group data device port.
 		/// </summary>
@@ -391,6 +408,17 @@ namespace Zen.Trunk.Storage.Data
 	        base.BuildDeviceLifetimeScope(builder);
 
 	        builder
+	            .Register(
+	                context =>
+	                {
+	                    var deviceFactory = context.Resolve<IBufferDeviceFactory>();
+	                    return deviceFactory.CreateMultipleBufferDevice(true);
+	                })
+	            .As<IBufferDevice>()
+	            .As<IMultipleBufferDevice>();
+	        builder.RegisterType<CachingPageBufferDevice>().AsSelf();
+
+	        builder
 	            .RegisterType<DatabaseLockManager>()
                 .WithParameter("dbId", _dbId)
 	            .As<IDatabaseLockManager>()
@@ -401,19 +429,13 @@ namespace Zen.Trunk.Storage.Data
 	            .As<LogPageDevice>()
 	            .As<MasterLogPageDevice>();
 
-	        builder
-	            .Register(context => _bufferDevice)
-	            .As<IBufferDevice>()
-	            .As<IMultipleBufferDevice>();
-
-            builder
-                .Register(context => _dataBufferDevice)
-                .As<CachingPageBufferDevice>();
-
-	        builder.RegisterType<MasterDatabasePrimaryFileGroupDevice>();
-	        builder.RegisterType<PrimaryFileGroupDevice>();
-	        builder.RegisterType<SecondaryFileGroupDevice>();
-	    }
+	        builder.RegisterType<MasterDatabasePrimaryFileGroupDevice>()
+                .OnActivated(e => e.Instance.InitialiseDeviceLifetimeScope(LifetimeScope));
+            builder.RegisterType<PrimaryFileGroupDevice>()
+                .OnActivated(e => e.Instance.InitialiseDeviceLifetimeScope(LifetimeScope));
+            builder.RegisterType<SecondaryFileGroupDevice>()
+                .OnActivated(e => e.Instance.InitialiseDeviceLifetimeScope(LifetimeScope));
+        }
 
 		/// <summary>
 		/// Performs a device-specific mount operation.
@@ -437,7 +459,7 @@ namespace Zen.Trunk.Storage.Data
 
 			// Mount the underlying device
 			Tracer.WriteVerboseLine("Opening underlying buffer device...");
-			await _bufferDevice.OpenAsync().ConfigureAwait(false);
+			await RawBufferDevice.OpenAsync().ConfigureAwait(false);
 
 			// Mount the primary file-group device
 			Tracer.WriteVerboseLine("Opening primary file-group device...");
@@ -505,13 +527,13 @@ namespace Zen.Trunk.Storage.Data
 			}
 
 			// Close the caching page device
-			await _dataBufferDevice.CloseAsync().ConfigureAwait(false);
+			await CachingBufferDevice.CloseAsync().ConfigureAwait(false);
 
 			// Close the log device
 			await ResolveDeviceService<MasterLogPageDevice>().CloseAsync().ConfigureAwait(false);
 
 			// Close underlying buffer device
-			await _bufferDevice.CloseAsync().ConfigureAwait(false);
+			await RawBufferDevice.CloseAsync().ConfigureAwait(false);
 
 			// Invalidate objects
 			_dataBufferDevice = null;
@@ -608,7 +630,8 @@ namespace Zen.Trunk.Storage.Data
 	    {
 	        if (_masterLogPageDevice == null)
 	        {
-	            _masterLogPageDevice = new MasterLogPageDevice(LifetimeScope, string.Empty);
+	            _masterLogPageDevice = new MasterLogPageDevice(string.Empty);
+                _masterLogPageDevice.InitialiseDeviceLifetimeScope(LifetimeScope);
 	        }
 
             return await _masterLogPageDevice.AddDevice(request.Message).ConfigureAwait(false);
@@ -677,7 +700,7 @@ namespace Zen.Trunk.Storage.Data
 				request.Message.Page.PreLoadInternal();
 
 				// Load the buffer from the underlying cache
-				request.Message.Page.DataBuffer = await _dataBufferDevice
+				request.Message.Page.DataBuffer = await CachingBufferDevice
                     .LoadPageAsync(request.Message.Page.VirtualId)
                     .ConfigureAwait(false);
 				request.Message.Page.PostLoadInternal();
@@ -708,7 +731,7 @@ namespace Zen.Trunk.Storage.Data
 
 		private async Task<bool> FlushDeviceBuffersHandler(FlushFileGroupRequest request)
 		{
-			await _dataBufferDevice.FlushPagesAsync(request.Message);
+			await CachingBufferDevice.FlushPagesAsync(request.Message);
 			return true;
 		}
 
@@ -753,7 +776,9 @@ namespace Zen.Trunk.Storage.Data
 				// Ask data device to dump all unwritten/logged pages to disk
 				// Typically this shouldn't find many pages to write except under
 				//	heavy load.
-				await _dataBufferDevice.FlushPagesAsync(new FlushCachingDeviceParameters(true)).ConfigureAwait(false);
+				await CachingBufferDevice
+                    .FlushPagesAsync(new FlushCachingDeviceParameters(true))
+                    .ConfigureAwait(false);
 			}
 			catch (Exception error)
 			{

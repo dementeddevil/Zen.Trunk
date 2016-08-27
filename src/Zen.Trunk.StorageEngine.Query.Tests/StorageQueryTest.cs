@@ -24,8 +24,9 @@ namespace Zen.Trunk.Storage
         {
             using (var tracker = new TempFileTracker())
             {
-                using (var manager = new MasterDatabaseDevice(Scope))
+                using (var manager = new MasterDatabaseDevice())
                 {
+                    manager.InitialiseDeviceLifetimeScope(Scope);
                     var executive = new QueryExecutive(manager);
 
                     var dataFile = tracker.Get("master.mddf");

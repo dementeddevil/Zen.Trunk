@@ -43,11 +43,9 @@ namespace Zen.Trunk.Storage.Log
 	    /// <summary>
 	    /// Initializes a new instance of the <see cref="LogPageDevice"/> class.
 	    /// </summary>
-	    /// <param name="lifetimeScope">The parent service provider.</param>
 	    /// <param name="deviceId">The device identifier.</param>
 	    /// <param name="pathName">The log file pathname.</param>
-	    public LogPageDevice(ILifetimeScope lifetimeScope, DeviceId deviceId, string pathName)
-			: base(lifetimeScope)
+	    public LogPageDevice(DeviceId deviceId, string pathName)
 		{
             DeviceId = deviceId;
             PathName = pathName;

@@ -24,8 +24,9 @@ namespace Zen.Trunk.Storage
                 var masterDataPathName = tracker.Get("master.mddf");
                 var masterLogPathName = tracker.Get("master.mlf");
 
-                using (var dbDevice = new DatabaseDevice(Scope, DatabaseId.Zero))
+                using (var dbDevice = new DatabaseDevice(PrimaryDatabaseId))
                 {
+                    dbDevice.InitialiseDeviceLifetimeScope(Scope);
                     dbDevice.BeginTransaction();
 
                     var addFgDevice =
@@ -67,8 +68,9 @@ namespace Zen.Trunk.Storage
                 var masterDataPathName = tracker.Get("master.mddf");
                 var masterLogPathName = tracker.Get("master.mlf");
 
-                using (var dbDevice = new DatabaseDevice(Scope, DatabaseId.Zero))
+                using (var dbDevice = new DatabaseDevice(PrimaryDatabaseId))
                 {
+                    dbDevice.InitialiseDeviceLifetimeScope(Scope);
                     dbDevice.BeginTransaction();
                     bool rollback = false;
                     try
@@ -203,8 +205,9 @@ namespace Zen.Trunk.Storage
                 var masterDataPathName = tracker.Get("master.mddf");
                 var masterLogPathName = tracker.Get("master.mlf");
 
-                using (var dbDevice = new DatabaseDevice(Scope, DatabaseId.Zero))
+                using (var dbDevice = new DatabaseDevice(PrimaryDatabaseId))
                 {
+                    dbDevice.InitialiseDeviceLifetimeScope(Scope);
                     dbDevice.BeginTransaction();
 
                     var addFgDevice =

@@ -19,8 +19,8 @@ namespace Zen.Trunk.Storage
                 new Dictionary<VirtualPageId, PageBuffer>();
 
 		    public MockPageDevice(ILifetimeScope parentLifetimeScope)
-                : base(parentLifetimeScope)
 		    {
+                InitialiseDeviceLifetimeScope(parentLifetimeScope);
 		    }
 
 			/// <summary>

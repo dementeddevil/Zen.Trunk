@@ -69,10 +69,9 @@ namespace Zen.Trunk.Storage.Log
 	    /// <summary>
 	    /// Initializes a new instance of the <see cref="LogPageDevice"/> class.
 	    /// </summary>
-	    /// <param name="parentLifetimeScope">The parent service provider.</param>
 	    /// <param name="pathName">Pathname to log file</param>
-	    public MasterLogPageDevice(ILifetimeScope parentLifetimeScope, string pathName)
-			: base(parentLifetimeScope, DeviceId.Zero, pathName)
+	    public MasterLogPageDevice(string pathName)
+			: base(DeviceId.Zero, pathName)
 		{
 	        var taskInterleave = new ConcurrentExclusiveSchedulerPair(TaskScheduler.Default);
             AddLogDevicePort = new TaskRequestActionBlock<AddLogDeviceRequest, DeviceId>(

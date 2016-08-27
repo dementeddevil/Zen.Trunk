@@ -15,7 +15,6 @@ namespace Zen.Trunk.Storage
 	public abstract class MountableDevice : TraceableObject, IMountableDevice, IDisposable
 	{
 		#region Private Fields
-		private readonly ILifetimeScope _parentServiceProvider;
 		private int _deviceState = (int)MountableDeviceState.Closed;
 		private bool _disposed;
         private ILifetimeScope _lifetimeScope;
@@ -25,11 +24,8 @@ namespace Zen.Trunk.Storage
 		/// <summary>
 		/// Initializes a new instance of the <see cref="MountableDevice"/> class.
 		/// </summary>
-		/// <param name="parentServiceProvider">The parent service provider.</param>
-		protected MountableDevice(ILifetimeScope parentServiceProvider)
+		protected MountableDevice()
 		{
-			_parentServiceProvider = parentServiceProvider;
-            InitialiseDeviceLifetimeScope(_parentServiceProvider);
 		}
 		#endregion
 
@@ -52,15 +48,29 @@ namespace Zen.Trunk.Storage
 
 	    public ILifetimeScope LifetimeScope => _lifetimeScope;
 
-	    #endregion
+        #endregion
 
-		#region Public Methods
-		/// <summary>
-		/// Opens this instance.
-		/// </summary>
-		/// <returns></returns>
-		public async Task OpenAsync(bool isCreate)
+        #region Public Methods
+        /// <summary>
+        /// Initialises the device lifetime scope.
+        /// </summary>
+        /// <param name="parentLifetimeScope">The parent lifetime scope.</param>
+        public void InitialiseDeviceLifetimeScope(ILifetimeScope parentLifetimeScope)
+        {
+            _lifetimeScope = parentLifetimeScope.BeginLifetimeScope(BuildDeviceLifetimeScope);
+        }
+
+        /// <summary>
+        /// Opens this instance.
+        /// </summary>
+        /// <returns></returns>
+        public async Task OpenAsync(bool isCreate)
 		{
+		    if (_lifetimeScope == null)
+		    {
+		        throw new InvalidOperationException();    
+		    }
+
 			Tracer.WriteVerboseLine("Open - Enter");
 			CheckDisposed();
 			MutateStateOrThrow(MountableDeviceState.Closed, MountableDeviceState.Opening);
@@ -132,7 +142,6 @@ namespace Zen.Trunk.Storage
         #endregion
 
         #region Protected Methods
-
         protected void HookupPageSite(Page page)
 	    {
 	        page.SetLifetimeScope(LifetimeScope);
@@ -193,11 +202,6 @@ namespace Zen.Trunk.Storage
 		{
 			return CompletedTask.Default;
 		}
-
-        protected void InitialiseDeviceLifetimeScope(ILifetimeScope parentLifetimeScope)
-        {
-            _lifetimeScope = parentLifetimeScope.BeginLifetimeScope(BuildDeviceLifetimeScope);
-        }
 
         protected virtual void BuildDeviceLifetimeScope(ContainerBuilder builder)
         {

@@ -33,18 +33,14 @@ namespace Zen.Trunk.Storage.Data
 		/// <summary>
 		/// Initializes a new instance of the <see cref="MasterDatabaseDevice"/> class.
 		/// </summary>
-		/// <param name="parentLifetimeScope">The parent lifetime scope.</param>
 		/// <remarks>
 		/// The parent lifetime scope must be able to resolve the following interfaces;
 		/// 1. IVirtualBufferFactory
 		/// </remarks>
-		public MasterDatabaseDevice(ILifetimeScope parentLifetimeScope)
-			: base(parentLifetimeScope, DatabaseId.Zero)
+		public MasterDatabaseDevice()
+			: base(DatabaseId.Master)
 		{
 		}
-		#endregion
-
-		#region Public Properties
 		#endregion
 
 		#region Protected Properties
@@ -53,7 +49,6 @@ namespace Zen.Trunk.Storage.Data
 		/// </summary>
 		/// <value>The primary file group id.</value>
 		protected override FileGroupId PrimaryFileGroupId => FileGroupId.Master;
-
 	    #endregion
 
 		#region Public Methods
@@ -319,7 +314,6 @@ namespace Zen.Trunk.Storage.Data
 		#endregion
 
 		#region Protected Methods
-
 	    protected override void BuildDeviceLifetimeScope(ContainerBuilder builder)
 	    {
 	        base.BuildDeviceLifetimeScope(builder);

@@ -10,6 +10,7 @@ namespace Zen.Trunk.Storage
     {
         #region Public Fields
         public static readonly DatabaseId Zero = new DatabaseId(0);
+        public static readonly DatabaseId Master = new DatabaseId(1);
         #endregion
 
         #region Private Fields

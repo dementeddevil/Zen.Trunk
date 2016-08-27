@@ -8,9 +8,7 @@ namespace Zen.Trunk.Storage
 		/// <summary>
 		/// Initializes a new instance of the <see cref="PageDevice"/> class.
 		/// </summary>
-		/// <param name="parentServiceProvider">The parent service provider.</param>
-		protected PageDevice(ILifetimeScope parentServiceProvider)
-			: base(parentServiceProvider)
+		protected PageDevice()
 		{
 		}
 		#endregion

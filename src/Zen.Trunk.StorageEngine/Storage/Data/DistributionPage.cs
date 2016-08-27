@@ -453,7 +453,9 @@ namespace Zen.Trunk.Storage.Data
 			// Sanity checks
 			if (offset >= PageTrackingCount)
 			{
-				throw new ArgumentOutOfRangeException("Offset outside page tracking range for this page.");
+				throw new ArgumentOutOfRangeException(
+                    nameof(offset),
+                    "Offset outside page tracking range for this page.");
 			}
 			CheckReadOnly();
 

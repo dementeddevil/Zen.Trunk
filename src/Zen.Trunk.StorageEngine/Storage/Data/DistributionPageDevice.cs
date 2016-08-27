@@ -10,8 +10,8 @@ namespace Zen.Trunk.Storage.Data
 	public abstract class DistributionPageDevice : PageDevice
 	{
 		#region Private Fields
-		private readonly FileGroupDevice _fileGroupDevice;
 		private readonly DeviceId _deviceId;
+		private FileGroupDevice _fileGroupDevice;
 		private bool _firstCallForRootPage = true;
 		#endregion
 
@@ -19,12 +19,9 @@ namespace Zen.Trunk.Storage.Data
 		/// <summary>
 		/// Initializes a new instance of the <see cref="DistributionPageDevice"/> class.
 		/// </summary>
-		/// <param name="lifetimeScope">The file group device.</param>
 		/// <param name="deviceId">The device id.</param>
-		protected DistributionPageDevice(ILifetimeScope lifetimeScope, DeviceId deviceId)
-			: base(lifetimeScope)
+		protected DistributionPageDevice(DeviceId deviceId)
 		{
-			_fileGroupDevice = lifetimeScope.Resolve<FileGroupDevice>();
 			_deviceId = deviceId;
 		}
 		#endregion
@@ -34,7 +31,17 @@ namespace Zen.Trunk.Storage.Data
 
 	    public bool IsPrimary => DeviceId == DeviceId.Primary;
 
-	    public FileGroupDevice FileGroupDevice => _fileGroupDevice;
+	    public FileGroupDevice FileGroupDevice
+	    {
+	        get
+	        {
+	            if (_fileGroupDevice == null)
+	            {
+	                _fileGroupDevice = ResolveDeviceService<FileGroupDevice>();
+	            }
+	            return _fileGroupDevice;
+	        }   
+	    }
 
 	    public abstract uint DistributionPageOffset
 		{
@@ -249,7 +256,7 @@ namespace Zen.Trunk.Storage.Data
 				Tracer.WriteVerboseLine("\tPage id {0}", pageId);
 
 				// Issue the sub-ordinate request
-				await _fileGroupDevice.InitDataPage(
+				await FileGroupDevice.InitDataPage(
 					new InitDataPageParameters(page)).ConfigureAwait(false);
 
 				// Notify page as to the number of usable extents
@@ -282,7 +289,7 @@ namespace Zen.Trunk.Storage.Data
 				Tracer.WriteVerboseLine("\tPage id {0}", pageId);
 
 				// Issue the sub-ordinate request
-				await _fileGroupDevice.LoadDataPage(
+				await FileGroupDevice.LoadDataPage(
 					new LoadDataPageParameters(page)).ConfigureAwait(false);
 
 				// Mark original request as complete
@@ -298,15 +305,15 @@ namespace Zen.Trunk.Storage.Data
 		private async Task LoadDistributionPageAndImport(uint distPageIndex, DistributionPage page)
 		{
 			await LoadDistributionPage(page, distPageIndex).ConfigureAwait(false);
-			await _fileGroupDevice.ImportDistributionPage(page).ConfigureAwait(false);
+			await FileGroupDevice.ImportDistributionPage(page).ConfigureAwait(false);
 		} 
 		#endregion
 	}
 
 	public class PrimaryDistributionPageDevice : DistributionPageDevice
 	{
-		public PrimaryDistributionPageDevice(ILifetimeScope provider, DeviceId deviceId)
-			: base(provider, deviceId)
+		public PrimaryDistributionPageDevice(DeviceId deviceId)
+			: base(deviceId)
 		{
 		}
 
@@ -315,8 +322,8 @@ namespace Zen.Trunk.Storage.Data
 
 	public class SecondaryDistributionPageDevice : DistributionPageDevice
 	{
-		public SecondaryDistributionPageDevice(ILifetimeScope provider, DeviceId deviceId)
-			: base(provider, deviceId)
+		public SecondaryDistributionPageDevice(DeviceId deviceId)
+			: base(deviceId)
 		{
 			if (deviceId == DeviceId.Zero ||
                 deviceId == DeviceId.Primary)

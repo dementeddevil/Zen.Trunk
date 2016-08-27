@@ -208,18 +208,92 @@ namespace Zen.Trunk.Storage.Data
 		public CachingPageBufferDevice(IMultipleBufferDevice bufferDevice)
 		{
 			_bufferDevice = bufferDevice;
-			Initialize();
-		}
-		#endregion
 
-		#region Private Properties
-		/// <summary>
-		/// Gets or sets a value indicating whether this instance is scavenging.
-		/// </summary>
-		/// <value>
-		/// <c>true</c> if this instance is scavenging; otherwise, <c>false</c>.
-		/// </value>
-		private bool IsScavenging
+            // Create our cancellation token used to kill device
+            _shutdownToken = new CancellationTokenSource();
+
+            // Initialise the free-buffer pool handler
+            _freePagePool = new ObjectPool<PageBuffer>(
+                () =>
+                {
+                    if (_shutdownToken.IsCancellationRequested)
+                    {
+                        return null;
+                    }
+                    return new PageBuffer(_bufferDevice);
+                });
+            _freePoolFillerTask = Task.Factory.StartNew(
+                async () =>
+                {
+                    // Keep the free page pool at minimum level
+                    while (!_shutdownToken.IsCancellationRequested)
+                    {
+                        while (_freePagePool.Count < _freePoolMin)
+                        {
+                            _freePagePool.PutObject(new PageBuffer(_bufferDevice));
+                        }
+                        await Task.Delay(TimeSpan.FromSeconds(1), _shutdownToken.Token);
+                    }
+
+                    // Drain free page pool when we are asked to shutdown
+                    while (_freePagePool.Count > 0)
+                    {
+                        var buffer = _freePagePool.GetObject();
+                        if (buffer == null)
+                        {
+                            // The only way we will ever have nulls in the pool
+                            //	is if the factory method has detected the call
+                            //	to shutdown - so we can stop draining now...
+                            break;
+                        }
+                        buffer.Dispose();
+                    }
+                },
+                _shutdownToken.Token,
+                TaskCreationOptions.LongRunning,
+                TaskScheduler.Default);
+
+            // Initialisation and load handlers make use of common handler
+            _initBufferPort = new TransactionContextActionBlock<PreparePageBufferRequest, PageBuffer>(
+                request => HandleLoadOrInit(request, false),
+                new ExecutionDataflowBlockOptions
+                {
+                    TaskScheduler = TaskScheduler.Default,
+                    MaxDegreeOfParallelism = 10,
+                    MaxMessagesPerTask = 3,
+                    CancellationToken = _shutdownToken.Token
+                });
+            _loadBufferPort = new TransactionContextActionBlock<PreparePageBufferRequest, PageBuffer>(
+                request => HandleLoadOrInit(request, true),
+                new ExecutionDataflowBlockOptions
+                {
+                    TaskScheduler = TaskScheduler.Default,
+                    MaxDegreeOfParallelism = 10,
+                    MaxMessagesPerTask = 3,
+                    CancellationToken = _shutdownToken.Token
+                });
+
+            // Explicit flush handler
+            _flushBuffersPort = new TaskRequestActionBlock<FlushCachingDeviceRequest, bool>(
+                request => HandleFlushPageBuffers(request));
+
+            // Initialise caching support
+            _cacheManagerTask = Task.Factory.StartNew(
+                CacheManagerThread,
+                CancellationToken.None,
+                TaskCreationOptions.LongRunning,
+                TaskScheduler.Default);
+        }
+        #endregion
+
+        #region Private Properties
+        /// <summary>
+        /// Gets or sets a value indicating whether this instance is scavenging.
+        /// </summary>
+        /// <value>
+        /// <c>true</c> if this instance is scavenging; otherwise, <c>false</c>.
+        /// </value>
+        private bool IsScavenging
 		{
 			get;
 			set;
@@ -314,84 +388,6 @@ namespace Zen.Trunk.Storage.Data
 		#endregion
 
 		#region Private Methods
-		private void Initialize()
-		{
-			// Create our cancellation token used to kill device
-			_shutdownToken = new CancellationTokenSource();
-
-			// Initialise the free-buffer pool handler
-			_freePagePool = new ObjectPool<PageBuffer>(
-				() =>
-				{
-					if (_shutdownToken.IsCancellationRequested)
-					{
-						return null;
-					}
-					return new PageBuffer(_bufferDevice);
-				});
-			_freePoolFillerTask = Task.Factory.StartNew(
-				async () =>
-				{
-					// Keep the free page pool at minimum level
-					while (!_shutdownToken.IsCancellationRequested)
-					{
-						while (_freePagePool.Count < _freePoolMin)
-						{
-							_freePagePool.PutObject(new PageBuffer(_bufferDevice));
-						}
-						await Task.Delay(TimeSpan.FromSeconds(1), _shutdownToken.Token);
-					}
-
-					// Drain free page pool when we are asked to shutdown
-					while (_freePagePool.Count > 0)
-					{
-						var buffer = _freePagePool.GetObject();
-						if (buffer == null)
-						{
-							// The only way we will ever have nulls in the pool
-							//	is if the factory method has detected the call
-							//	to shutdown - so we can stop draining now...
-							break;
-						}
-						buffer.Dispose();
-					}
-				},
-				_shutdownToken.Token,
-				TaskCreationOptions.LongRunning,
-				TaskScheduler.Default);
-
-			// Initialisation and load handlers make use of common handler
-			_initBufferPort = new TransactionContextActionBlock<PreparePageBufferRequest, PageBuffer>(
-				request => HandleLoadOrInit(request, false),
-				new ExecutionDataflowBlockOptions
-				{
-					TaskScheduler = TaskScheduler.Default,
-					MaxDegreeOfParallelism = 10,
-					MaxMessagesPerTask = 3,
-					CancellationToken = _shutdownToken.Token
-				});
-			_loadBufferPort = new TransactionContextActionBlock<PreparePageBufferRequest, PageBuffer>(
-				request => HandleLoadOrInit(request, true),
-				new ExecutionDataflowBlockOptions
-				{
-					TaskScheduler = TaskScheduler.Default,
-					MaxDegreeOfParallelism = 10,
-					MaxMessagesPerTask = 3,
-					CancellationToken = _shutdownToken.Token
-				});
-
-			// Explicit flush handler
-			_flushBuffersPort = new TaskRequestActionBlock<FlushCachingDeviceRequest, bool>(
-				request => HandleFlushPageBuffers(request));
-
-			// Initialise caching support
-			_cacheManagerTask = Task.Factory.StartNew(
-				CacheManagerThread,
-				CancellationToken.None,
-				TaskCreationOptions.LongRunning,
-				TaskScheduler.Default);
-		}
-
 		private void CheckDisposed()
 		{
 			if (_isDisposed)

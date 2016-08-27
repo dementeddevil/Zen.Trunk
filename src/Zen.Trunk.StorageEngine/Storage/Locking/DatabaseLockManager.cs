@@ -21,6 +21,11 @@ namespace Zen.Trunk.Storage.Locking
 				throw new ArgumentNullException(nameof(globalLockManager));
 			}
 
+		    if (dbId == DatabaseId.Zero)
+		    {
+		        throw new ArgumentNullException(nameof(dbId));
+		    }
+
 			_globalLockManager = globalLockManager;
 			_dbId = dbId;
 		}

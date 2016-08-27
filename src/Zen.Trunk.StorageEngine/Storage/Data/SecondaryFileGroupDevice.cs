@@ -1,6 +1,4 @@
-﻿using Autofac;
-
-namespace Zen.Trunk.Storage.Data
+﻿namespace Zen.Trunk.Storage.Data
 {
 	/// <summary>
 	/// <c>SecondaryFileGroupDevice</c> represents a secondary file-group.
@@ -11,8 +9,8 @@ namespace Zen.Trunk.Storage.Data
 	/// </remarks>
 	public class SecondaryFileGroupDevice : FileGroupDevice
 	{
-		public SecondaryFileGroupDevice(ILifetimeScope parentLifetimeScope, FileGroupId id, string name)
-			: base(parentLifetimeScope, id, name)
+		public SecondaryFileGroupDevice(FileGroupId id, string name)
+			: base(id, name)
 		{
 		}
 
