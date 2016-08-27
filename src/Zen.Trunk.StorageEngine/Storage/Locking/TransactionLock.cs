@@ -1,11 +1,11 @@
-﻿namespace Zen.Trunk.Storage.Locking
-{
-	using System;
-	using System.Collections.Generic;
-	using System.Threading;
-	using System.Threading.Tasks;
-	using System.Threading.Tasks.Dataflow;
+﻿using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Threading.Tasks.Dataflow;
 
+namespace Zen.Trunk.Storage.Locking
+{
 	/// <summary>
 	/// Generic transaction-based lock implementation
 	/// </summary>

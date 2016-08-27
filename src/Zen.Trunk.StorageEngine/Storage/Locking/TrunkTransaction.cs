@@ -105,7 +105,6 @@ namespace Zen.Trunk.Storage.Locking
         private readonly ILifetimeScope _lifetimeScope;
         private readonly List<IPageEnlistmentNotification> _subEnlistments = new List<IPageEnlistmentNotification>();
         private readonly List<TransactionLogEntry> _transactionLogs = new List<TransactionLogEntry>();
-        private TransactionLockOwnerBlock _lockOwner;
         private TransactionOptions _options;
         private bool _isBeginLogWritten = false;
         private TransactionId _transactionId = TransactionId.Zero;
@@ -214,20 +213,6 @@ namespace Zen.Trunk.Storage.Locking
             }
         }
 
-        private void TryEnlistInTransaction()
-        {
-            try
-            {
-                if (_lifetimeScope.TryResolve<MasterLogPageDevice>(out _logDevice))
-                {
-                    _transactionId = _logDevice.GetNextTransactionId();
-                }
-            }
-            catch (DependencyResolutionException)
-            {
-            }
-        }
-
         public TransactionLockOwnerBlock TransactionLocks { get; }
 
         public IDatabaseLockManager LockManager { get; }
@@ -309,12 +294,17 @@ namespace Zen.Trunk.Storage.Locking
                 return true;
             }
 
+            bool needToResetTransactionId = false;
             try
             {
                 // If we don't yet have a valid transaction ID then try to get one now
                 if (_transactionId == TransactionId.Zero)
                 {
                     TryEnlistInTransaction();
+                    if (_transactionId != TransactionId.Zero)
+                    {
+                        needToResetTransactionId = true;
+                    }
                 }
 
                 _isCompleting = true;
@@ -484,6 +474,12 @@ namespace Zen.Trunk.Storage.Locking
             }
             finally
             {
+                // We need to reset the transaction id so unlocking pages will work
+                if (needToResetTransactionId)
+                {
+                    _transactionId = TransactionId.Zero;
+                }
+
                 // Release other objects
                 Release();
             }
@@ -605,10 +601,9 @@ namespace Zen.Trunk.Storage.Locking
             _transactionLogs.Clear();
 
             // Release all locks
-            if (_lockOwner != null)
+            if (TransactionLocks != null)
             {
-                _lockOwner.ReleaseAll();
-                _lockOwner = null;
+                TransactionLocks.ReleaseAll();
             }
 
             // Cleanup enlistments that implement IDisposable
@@ -630,6 +625,20 @@ namespace Zen.Trunk.Storage.Locking
             // Perform final state update
             _isCompleted = true;
             _isCompleting = false;
+        }
+
+        private void TryEnlistInTransaction()
+        {
+            try
+            {
+                if (_lifetimeScope.TryResolve<MasterLogPageDevice>(out _logDevice))
+                {
+                    _transactionId = _logDevice.GetNextTransactionId();
+                }
+            }
+            catch (DependencyResolutionException)
+            {
+            }
         }
 
         private async Task WriteBeginXact()

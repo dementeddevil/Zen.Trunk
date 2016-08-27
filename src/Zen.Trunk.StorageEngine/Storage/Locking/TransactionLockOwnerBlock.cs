@@ -1,8 +1,8 @@
+using System.Collections.Concurrent;
+using System.Linq;
+
 namespace Zen.Trunk.Storage.Locking
 {
-	using System.Collections.Concurrent;
-	using System.Linq;
-
 	/// <summary>
 	/// A <b>TransactionLockOwnerBlock</b> object tracks all the owned objects
 	/// locked by a given transaction and their associated locked data pages.
@@ -37,7 +37,6 @@ namespace Zen.Trunk.Storage.Locking
 		/// Transaction ID.
 		/// </summary>
 		/// <param name="lockManager">Lock Manager</param>
-		/// <param name="transactionId">Transaction ID</param>
 		public TransactionLockOwnerBlock(IDatabaseLockManager lockManager)
 		{
 			_lockManager = lockManager;
@@ -58,10 +57,7 @@ namespace Zen.Trunk.Storage.Locking
 		{
 			return _rootLocks.GetOrAdd(
 				fileGroupId,
-				id =>
-				{
-					return _lockManager.GetRootLock(id);
-				});
+				id => _lockManager.GetRootLock(id));
 		}
 
 		/// <summary>
@@ -73,10 +69,7 @@ namespace Zen.Trunk.Storage.Locking
 		{
 			return _schemaLocks.GetOrAdd(
 				objectId,
-				id =>
-				{
-					return _lockManager.GetSchemaLock(id);
-				});
+				id => _lockManager.GetSchemaLock(id));
 		}
 
 		/// <summary>
@@ -92,10 +85,7 @@ namespace Zen.Trunk.Storage.Locking
 		{
 			return _distributionOwnerBlocks.GetOrAdd(
 				virtualId,
-				id =>
-				{
-					return new DistributionLockOwnerBlock(_lockManager, id, maxExtentLocks);
-				});
+				id => new DistributionLockOwnerBlock(_lockManager, id, maxExtentLocks));
 		}
 
 		/// <summary>
@@ -111,10 +101,7 @@ namespace Zen.Trunk.Storage.Locking
 		{
 			return _dataOwnerBlocks.GetOrAdd(
 				objectId,
-				id =>
-				{
-					return new DataLockOwnerBlock(_lockManager, id, maxPageLocks);
-				});
+				id => new DataLockOwnerBlock(_lockManager, id, maxPageLocks));
 		}
 
 		/// <summary>
@@ -129,7 +116,7 @@ namespace Zen.Trunk.Storage.Locking
 		{
 			while (_rootLocks.Count > 0)
 			{
-				RootLock lockObject = null;
+				RootLock lockObject;
 				if (_rootLocks.TryRemove(_rootLocks.Keys.First(), out lockObject))
 				{
 					lockObject.Unlock();
@@ -139,7 +126,7 @@ namespace Zen.Trunk.Storage.Locking
 
 			while (_schemaLocks.Count > 0)
 			{
-				SchemaLock lockObject = null;
+				SchemaLock lockObject;
 				if (_schemaLocks.TryRemove(_schemaLocks.Keys.First(), out lockObject))
 				{
 					lockObject.Unlock();
@@ -149,7 +136,7 @@ namespace Zen.Trunk.Storage.Locking
 
 			while (_distributionOwnerBlocks.Count > 0)
 			{
-				DistributionLockOwnerBlock block = null;
+				DistributionLockOwnerBlock block;
 				if (_distributionOwnerBlocks.TryRemove(_distributionOwnerBlocks.Keys.First(), out block))
 				{
 					block.ReleaseLocks();

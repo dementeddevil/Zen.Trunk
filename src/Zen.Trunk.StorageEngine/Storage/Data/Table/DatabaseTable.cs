@@ -678,12 +678,10 @@ namespace Zen.Trunk.Storage.Data.Table
 		/// </summary>
 		/// <value>The database.</value>
 		public FileGroupDevice Owner => _owner;
-
 	    #endregion
 
 		#region Internal Properties
-		internal IDatabaseLockManager LockingManager => (IDatabaseLockManager)((IServiceProvider)_owner).GetService(typeof(IDatabaseLockManager));
-
+		internal IDatabaseLockManager LockingManager => _owner.LifetimeScope.Resolve<IDatabaseLockManager>();
 	    #endregion
 
 		#region Public Methods

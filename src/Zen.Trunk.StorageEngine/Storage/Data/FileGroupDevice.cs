@@ -793,6 +793,7 @@ namespace Zen.Trunk.Storage.Data
             }
 
             // Stage #3: Initialise page object passed in request
+            HookupPageSite(request.Message.Page);
             var pageBufferDevice =
                 ResolveDeviceService<CachingPageBufferDevice>();
             request.Message.Page.PreInitInternal();
@@ -844,6 +845,7 @@ namespace Zen.Trunk.Storage.Data
             }
 
             // Stage #2: Load the buffer from the underlying cache
+            HookupPageSite(request.Message.Page);
             var pageBufferDevice =
                 ResolveDeviceService<CachingPageBufferDevice>();
             request.Message.Page.PreLoadInternal();

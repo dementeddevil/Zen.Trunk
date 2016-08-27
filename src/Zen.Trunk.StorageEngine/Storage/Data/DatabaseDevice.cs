@@ -660,9 +660,6 @@ namespace Zen.Trunk.Storage.Data
 			var fileGroupDevice = GetFileGroupDevice(
 				request.Message.FileGroupId, request.Message.FileGroupName);
 
-			// Setup page site
-			HookupPageSite(request.Message.Page);
-
 			// Pass request onwards
 			await fileGroupDevice
 				.InitDataPage(request.Message)
@@ -714,9 +711,6 @@ namespace Zen.Trunk.Storage.Data
 					request.Message.FileGroupId, request.Message.FileGroupName);
 				var fileGroupDevice = GetFileGroupDevice(
 					request.Message.FileGroupId, request.Message.FileGroupName);
-
-				// Setup page site
-				HookupPageSite(request.Message.Page);
 
 				// Pass request onwards
 				await fileGroupDevice
