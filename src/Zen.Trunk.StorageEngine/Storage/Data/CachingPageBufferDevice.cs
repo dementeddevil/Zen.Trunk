@@ -10,13 +10,13 @@ namespace Zen.Trunk.Storage.Data
 {
     public sealed class CachingPageBufferDevice : ICachingPageBufferDevice
     {
-		#region Private Types
-		private class PreparePageBufferRequest : TransactionContextTaskRequest<PageBuffer>
-		{
-			public PreparePageBufferRequest(VirtualPageId pageId)
-			{
-				PageId = pageId;
-			}
+        #region Private Types
+        private class PreparePageBufferRequest : TransactionContextTaskRequest<PageBuffer>
+        {
+            public PreparePageBufferRequest(VirtualPageId pageId)
+            {
+                PageId = pageId;
+            }
 
             public VirtualPageId PageId { get; }
         }
@@ -167,38 +167,38 @@ namespace Zen.Trunk.Storage.Data
         }
         #endregion
 
-		#region Private Fields
-		private bool _isDisposed;
-		private readonly CancellationTokenSource _shutdownToken = new CancellationTokenSource();
-		private IMultipleBufferDevice _bufferDevice;
+        #region Private Fields
+        private bool _isDisposed;
+        private readonly CancellationTokenSource _shutdownToken = new CancellationTokenSource();
+        private IMultipleBufferDevice _bufferDevice;
 
         // Buffer load/initialisation
         private readonly ConcurrentDictionary<VirtualPageId, TaskCompletionSource<PageBuffer>> _pendingLoadOrInit =
             new ConcurrentDictionary<VirtualPageId, TaskCompletionSource<PageBuffer>>();
 
-		// Buffer cache
-		private readonly SpinLockClass _bufferLookupLock = new SpinLockClass();
-		private readonly SortedList<VirtualPageId, BufferCacheInfo> _bufferLookup =
-			new SortedList<VirtualPageId, BufferCacheInfo>();
-		private int _cacheSize;
-		private readonly int _maxCacheSize = 2048;
-		private readonly int _cacheScavengeOffThreshold = 1500;
-		private readonly int _cacheScavengeOnThreshold = 1800;
-		private readonly TimeSpan _cacheFlushInterval = TimeSpan.FromMilliseconds(500);
-		private CacheFlushState _flushState = CacheFlushState.Idle;
-		private readonly Task _cacheManagerTask;
+        // Buffer cache
+        private readonly SpinLockClass _bufferLookupLock = new SpinLockClass();
+        private readonly SortedList<VirtualPageId, BufferCacheInfo> _bufferLookup =
+            new SortedList<VirtualPageId, BufferCacheInfo>();
+        private int _cacheSize;
+        private readonly int _maxCacheSize = 2048;
+        private readonly int _cacheScavengeOffThreshold = 1500;
+        private readonly int _cacheScavengeOnThreshold = 1800;
+        private readonly TimeSpan _cacheFlushInterval = TimeSpan.FromMilliseconds(500);
+        private CacheFlushState _flushState = CacheFlushState.Idle;
+        private readonly Task _cacheManagerTask;
 
-		// Free pool
-		private readonly ObjectPool<PageBuffer> _freePagePool;
-		private readonly int _freePoolMin = 50;
-		private readonly int _freePoolMax = 100;
-		private Task _freePoolFillerTask;
+        // Free pool
+        private readonly ObjectPool<PageBuffer> _freePagePool;
+        private readonly int _freePoolMin = 50;
+        private readonly int _freePoolMax = 100;
+        private Task _freePoolFillerTask;
 
-		// Ports
-		private readonly ITargetBlock<PreparePageBufferRequest> _initBufferPort;
-		private readonly ITargetBlock<PreparePageBufferRequest> _loadBufferPort;
-		private readonly ITargetBlock<FlushCachingDeviceRequest> _flushBuffersPort;
-		#endregion
+        // Ports
+        private readonly ITargetBlock<PreparePageBufferRequest> _initBufferPort;
+        private readonly ITargetBlock<PreparePageBufferRequest> _loadBufferPort;
+        private readonly ITargetBlock<FlushCachingDeviceRequest> _flushBuffersPort;
+        #endregion
 
         #region Public Constructors
         /// <summary>
@@ -209,7 +209,7 @@ namespace Zen.Trunk.Storage.Data
         {
             _bufferDevice = bufferDevice;
 
-		    // Initialise the free-buffer pool handler
+            // Initialise the free-buffer pool handler
             _freePagePool = new ObjectPool<PageBuffer>(
                 () =>
                 {
@@ -381,14 +381,14 @@ namespace Zen.Trunk.Storage.Data
         }
         #endregion
 
-		#region Private Methods
-		private void CheckDisposed()
-		{
-			if (_isDisposed)
-			{
-				throw new ObjectDisposedException(GetType().FullName);
-			}
-		}
+        #region Private Methods
+        private void CheckDisposed()
+        {
+            if (_isDisposed)
+            {
+                throw new ObjectDisposedException(GetType().FullName);
+            }
+        }
 
         private Task<PageBuffer> HandleLoadOrInit(PreparePageBufferRequest request, bool isLoad)
         {
@@ -450,26 +450,7 @@ namespace Zen.Trunk.Storage.Data
                 else
                 {
                     // Delegate load or init to buffer object
-                    Task requestTask;
-                    if (isLoad)
-                    {
-                        requestTask = buffer.RequestLoadAsync(request.PageId, LogicalPageId.Zero);
-                    }
-                    else
-                    {
-                        requestTask = buffer.InitAsync(request.PageId, LogicalPageId.Zero);
-                    }
-
-                    // Attach the continuations that will clean up the task
-                    requestTask.ContinueWith(
-                        t => RemovePendingLoadOrInitAndComplete(request.PageId, ct => ct.TrySetCanceled()),
-                        TaskContinuationOptions.OnlyOnCanceled);
-                    requestTask.ContinueWith(
-                        t => RemovePendingLoadOrInitAndComplete(request.PageId, ct => ct.TrySetResult(buffer)),
-                        TaskContinuationOptions.OnlyOnRanToCompletion);
-                    requestTask.ContinueWith(
-                        t => RemovePendingLoadOrInitAndComplete(request.PageId, ct => ct.TrySetException(t.Exception)),
-                        TaskContinuationOptions.OnlyOnFaulted);
+                    RequestLoadOrInitPageBuffer(buffer, isLoad, request.PageId);
                 }
             }
             return pbtcs.Task;
@@ -518,7 +499,7 @@ namespace Zen.Trunk.Storage.Data
                     }
                     try
                     {
-                        await FlushPagesAsync(flushParams);
+                        await FlushPagesAsync(flushParams).ConfigureAwait(false);
                         lastFlush = DateTime.UtcNow;
                     }
                     finally
@@ -578,41 +559,44 @@ namespace Zen.Trunk.Storage.Data
                         _bufferLookup.Keys.CopyTo(keys, 0);
                     });
 
-				// Create cache partitioner
-				Parallel.ForEach(
+                // Create cache partitioner
+                Parallel.ForEach(
                     ChunkPartitioner.Create(keys, 10, 100),
-					new ParallelOptions
-					{
-						MaxDegreeOfParallelism = 4
-					},
-					() => new FlushPageBufferState(request.Message),
-					ProcessCacheBufferEntry,
-					blockState =>
-					{
-						// Issue flush to each device accessed
-						var flushReads = blockState.LoadTasks.Count > 0;
-						var flushWrites = blockState.SaveTasks.Count > 0;
-						if (flushReads || flushWrites)
-						{
-							blockState.FlushAccessedDevices(_bufferDevice).Wait();
-						}
-					});
-			}
-			finally
-			{
-				// Clear flush state if it is the same as when we started
-				if (_flushState == newState)
-				{
-					_flushState = CacheFlushState.Idle;
-				}
-			}
+                    new ParallelOptions
+                    {
+                        MaxDegreeOfParallelism = 4
+                    },
+                    () => new FlushPageBufferState(request.Message),
+                    ProcessCacheBufferEntry,
+                    blockState =>
+                    {
+                        // Issue flush to each device accessed
+                        var flushReads = blockState.LoadTasks.Count > 0;
+                        var flushWrites = blockState.SaveTasks.Count > 0;
+                        if (flushReads || flushWrites)
+                        {
+                            blockState.FlushAccessedDevices(_bufferDevice).Wait();
+                        }
+                    });
+            }
+            finally
+            {
+                // Clear flush state if it is the same as when we started
+                if (_flushState == newState)
+                {
+                    _flushState = CacheFlushState.Idle;
+                }
+            }
 
             // Signal request has completed
             return true;
         }
 
         private FlushPageBufferState ProcessCacheBufferEntry(
-            VirtualPageId pageId, ParallelLoopState loopState, long index, FlushPageBufferState blockState)
+            VirtualPageId pageId,
+            ParallelLoopState loopState,
+            long index,
+            FlushPageBufferState blockState)
         {
             // Retrieve entry from cache - skip if no longer present
             BufferCacheInfo cacheInfo;
@@ -621,29 +605,9 @@ namespace Zen.Trunk.Storage.Data
                 // Process pages we can load
                 if (blockState.Params.FlushReads && cacheInfo.IsReadPending)
                 {
-                    // Create a task that tackles the load operation and notifies
-                    //	all waiting callers when complete - whatever the outcome
-                    var loadTask = cacheInfo.BufferInternal.LoadAsync();
-                    loadTask.ContinueWith(
-                        task =>
-                        {
-                            if (task.IsCanceled)
-                            {
-                                LoadOrInitCancelled(cacheInfo.PageId);
-                            }
-                            else if (task.Exception != null)
-                            {
-                                LoadOrInitFailed(cacheInfo.PageId, task.Exception);
-                            }
-                            else
-                            {
-                                LoadOrInitComplete(cacheInfo.PageId, cacheInfo.PageBuffer);
-                            }
-                        },
-                        TaskContinuationOptions.AttachedToParent |
-                        TaskContinuationOptions.ExecuteSynchronously);
-                    blockState.LoadTasks.Add(loadTask);
-
+                    // Create async task to load the cache info, add to list
+                    //  and signal that we have a pending load
+                    blockState.LoadTasks.Add(LoadCacheInfo(cacheInfo));
                     blockState.MarkDeviceAsAccessedForLoad(pageId.DeviceId);
                 }
 
@@ -651,10 +615,8 @@ namespace Zen.Trunk.Storage.Data
                 else if (blockState.Params.FlushWrites && cacheInfo.IsWritePending)
                 {
                     // This may throw if another thread changes the
-                    //	buffer state before the ioSave begins the
-                    //	write operation - ignore these errors
+                    //	buffer state before it begins the write operation
                     blockState.SaveTasks.Add(cacheInfo.BufferInternal.SaveAsync());
-
                     blockState.MarkDeviceAsAccessedForSave(pageId.DeviceId);
                 }
                 else if (cacheInfo.CanFree && IsScavenging)
@@ -681,11 +643,37 @@ namespace Zen.Trunk.Storage.Data
             return blockState;
         }
 
+        private async void RequestLoadOrInitPageBuffer(PageBuffer buffer, bool isLoad, VirtualPageId pageId)
+        {
+            try
+            {
+                if (isLoad)
+                {
+                    await buffer.RequestLoadAsync(pageId, LogicalPageId.Zero).ConfigureAwait(false);
+                }
+                else
+                {
+                    await buffer.InitAsync(pageId, LogicalPageId.Zero);
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                LoadOrInitCancelled(pageId);
+                return;
+            }
+            catch (Exception exception)
+            {
+                LoadOrInitFailed(pageId, exception);
+                return;
+            }
+            LoadOrInitComplete(pageId, buffer);
+        }
+
         private async Task LoadCacheInfo(BufferCacheInfo cacheInfo)
         {
             try
             {
-                await cacheInfo.BufferInternal.LoadAsync();
+                await cacheInfo.BufferInternal.LoadAsync().ConfigureAwait(false);
             }
             catch (OperationCanceledException)
             {
