@@ -1,11 +1,9 @@
+using System;
+using System.Runtime.Serialization;
+using System.Security.Permissions;
+
 namespace Zen.Trunk
 {
-	using System;
-	using System.Collections.Generic;
-	using System.Runtime.Serialization;
-	using System.Security.Permissions;
-	using System.Text;
-
 	/// <summary>
 	/// The <b>CoreException</b> class is the base class for all exception
 	/// objects used throughout the framework.

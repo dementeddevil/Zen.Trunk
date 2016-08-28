@@ -105,6 +105,7 @@
     <Compile Include="TransactionLockObjectUnitTest.cs" />
     <Compile Include="StorageIndexUnitTest.cs" />
     <Compile Include="PageBufferUnitTests.cs" />
+    <Compile Include="CachingPageBufferDeviceUnitTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Zen.Trunk.StorageEngine\Zen.Trunk.StorageEngine.csproj">

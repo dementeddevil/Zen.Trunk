@@ -8,15 +8,15 @@ using System.Threading.Tasks.Dataflow;
 
 namespace Zen.Trunk.Storage.Data
 {
-    public sealed class CachingPageBufferDevice : IDisposable
+    public sealed class CachingPageBufferDevice : ICachingPageBufferDevice
     {
-        #region Private Types
-        private class PreparePageBufferRequest : TransactionContextTaskRequest<PageBuffer>
-        {
-            public PreparePageBufferRequest(VirtualPageId pageId)
-            {
-                PageId = pageId;
-            }
+		#region Private Types
+		private class PreparePageBufferRequest : TransactionContextTaskRequest<PageBuffer>
+		{
+			public PreparePageBufferRequest(VirtualPageId pageId)
+			{
+				PageId = pageId;
+			}
 
             public VirtualPageId PageId { get; }
         }
@@ -167,38 +167,38 @@ namespace Zen.Trunk.Storage.Data
         }
         #endregion
 
-        #region Private Fields
-        private bool _isDisposed;
-        private CancellationTokenSource _shutdownToken;
-        private IMultipleBufferDevice _bufferDevice;
+		#region Private Fields
+		private bool _isDisposed;
+		private readonly CancellationTokenSource _shutdownToken = new CancellationTokenSource();
+		private IMultipleBufferDevice _bufferDevice;
 
         // Buffer load/initialisation
         private readonly ConcurrentDictionary<VirtualPageId, TaskCompletionSource<PageBuffer>> _pendingLoadOrInit =
             new ConcurrentDictionary<VirtualPageId, TaskCompletionSource<PageBuffer>>();
 
-        // Buffer cache
-        private readonly SpinLockClass _bufferLookupLock = new SpinLockClass();
-        private readonly SortedList<VirtualPageId, BufferCacheInfo> _bufferLookup =
-            new SortedList<VirtualPageId, BufferCacheInfo>();
-        private int _cacheSize;
-        private readonly int _maxCacheSize = 2048;
-        private readonly int _cacheScavengeOffThreshold = 1500;
-        private readonly int _cacheScavengeOnThreshold = 1800;
-        private readonly TimeSpan _cacheFlushInterval = TimeSpan.FromMilliseconds(500);
-        private CacheFlushState _flushState = CacheFlushState.Idle;
-        private Task _cacheManagerTask;
+		// Buffer cache
+		private readonly SpinLockClass _bufferLookupLock = new SpinLockClass();
+		private readonly SortedList<VirtualPageId, BufferCacheInfo> _bufferLookup =
+			new SortedList<VirtualPageId, BufferCacheInfo>();
+		private int _cacheSize;
+		private readonly int _maxCacheSize = 2048;
+		private readonly int _cacheScavengeOffThreshold = 1500;
+		private readonly int _cacheScavengeOnThreshold = 1800;
+		private readonly TimeSpan _cacheFlushInterval = TimeSpan.FromMilliseconds(500);
+		private CacheFlushState _flushState = CacheFlushState.Idle;
+		private readonly Task _cacheManagerTask;
 
-        // Free pool
-        private ObjectPool<PageBuffer> _freePagePool;
-        private readonly int _freePoolMin = 50;
-        private readonly int _freePoolMax = 100;
-        private Task _freePoolFillerTask;
+		// Free pool
+		private readonly ObjectPool<PageBuffer> _freePagePool;
+		private readonly int _freePoolMin = 50;
+		private readonly int _freePoolMax = 100;
+		private Task _freePoolFillerTask;
 
-        // Ports
-        private ITargetBlock<PreparePageBufferRequest> _initBufferPort;
-        private ITargetBlock<PreparePageBufferRequest> _loadBufferPort;
-        private ITargetBlock<FlushCachingDeviceRequest> _flushBuffersPort;
-        #endregion
+		// Ports
+		private readonly ITargetBlock<PreparePageBufferRequest> _initBufferPort;
+		private readonly ITargetBlock<PreparePageBufferRequest> _loadBufferPort;
+		private readonly ITargetBlock<FlushCachingDeviceRequest> _flushBuffersPort;
+		#endregion
 
         #region Public Constructors
         /// <summary>
@@ -209,10 +209,7 @@ namespace Zen.Trunk.Storage.Data
         {
             _bufferDevice = bufferDevice;
 
-            // Create our cancellation token used to kill device
-            _shutdownToken = new CancellationTokenSource();
-
-            // Initialise the free-buffer pool handler
+		    // Initialise the free-buffer pool handler
             _freePagePool = new ObjectPool<PageBuffer>(
                 () =>
                 {
@@ -321,7 +318,7 @@ namespace Zen.Trunk.Storage.Data
                 _shutdownToken.Cancel();
 
                 // Wait for the cache thread to terminate
-                await _cacheManagerTask;
+                await _cacheManagerTask.ConfigureAwait(false);
 
                 // If we have any requests pending load or init then
                 //	notify callers
@@ -384,17 +381,14 @@ namespace Zen.Trunk.Storage.Data
         }
         #endregion
 
-        #region Protected Methods
-        #endregion
-
-        #region Private Methods
-        private void CheckDisposed()
-        {
-            if (_isDisposed)
-            {
-                throw new ObjectDisposedException(GetType().FullName);
-            }
-        }
+		#region Private Methods
+		private void CheckDisposed()
+		{
+			if (_isDisposed)
+			{
+				throw new ObjectDisposedException(GetType().FullName);
+			}
+		}
 
         private Task<PageBuffer> HandleLoadOrInit(PreparePageBufferRequest request, bool isLoad)
         {
@@ -584,46 +578,34 @@ namespace Zen.Trunk.Storage.Data
                         _bufferLookup.Keys.CopyTo(keys, 0);
                     });
 
-                // Create cache partitioner 
-                var cacheKeyPartitioner =
-                    ChunkPartitioner.Create<VirtualPageId>(keys, 10, 100);
-                try
-                {
-                    Parallel.ForEach<VirtualPageId, FlushPageBufferState>(
-                        cacheKeyPartitioner,
-                        new ParallelOptions
-                        {
-                            MaxDegreeOfParallelism = 4
-                        },
-                        () => new FlushPageBufferState(request.Message),
-                        ProcessCacheBufferEntry,
-                        blockState =>
-                        {
-                            // Issue flush to each device accessed
-                            var flushReads = (blockState.LoadTasks.Count > 0);
-                            var flushWrites = (blockState.SaveTasks.Count > 0);
-                            if (flushReads || flushWrites)
-                            {
-                                blockState.FlushAccessedDevices(_bufferDevice)
-                                    .Wait();
-                            }
-                        });
-                }
-                finally
-                {
-                    // Discard the partitioner if it implements IDisposable
-                    var dispose = cacheKeyPartitioner as IDisposable;
-                    dispose?.Dispose();
-                }
-            }
-            finally
-            {
-                // Clear flush state if it is the same as when we started
-                if (_flushState == newState)
-                {
-                    _flushState = CacheFlushState.Idle;
-                }
-            }
+				// Create cache partitioner
+				Parallel.ForEach(
+                    ChunkPartitioner.Create(keys, 10, 100),
+					new ParallelOptions
+					{
+						MaxDegreeOfParallelism = 4
+					},
+					() => new FlushPageBufferState(request.Message),
+					ProcessCacheBufferEntry,
+					blockState =>
+					{
+						// Issue flush to each device accessed
+						var flushReads = blockState.LoadTasks.Count > 0;
+						var flushWrites = blockState.SaveTasks.Count > 0;
+						if (flushReads || flushWrites)
+						{
+							blockState.FlushAccessedDevices(_bufferDevice).Wait();
+						}
+					});
+			}
+			finally
+			{
+				// Clear flush state if it is the same as when we started
+				if (_flushState == newState)
+				{
+					_flushState = CacheFlushState.Idle;
+				}
+			}
 
             // Signal request has completed
             return true;
