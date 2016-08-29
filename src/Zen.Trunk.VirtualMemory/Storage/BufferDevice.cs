@@ -39,7 +39,6 @@
 		/// </summary>
 		/// <value>The state of the device.</value>
 		public MountableDeviceState DeviceState => (MountableDeviceState)_deviceState;
-
 	    #endregion
 
 		#region Public Methods

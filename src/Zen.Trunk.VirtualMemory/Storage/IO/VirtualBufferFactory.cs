@@ -22,17 +22,28 @@ namespace Zen.Trunk.Storage.IO
 	/// </remarks>
 	public class VirtualBufferFactory : IVirtualBufferFactory, IDisposable
 	{
-		private SafeMemoryHandle _reservationBaseAddress;
-		private readonly int _reservationPages;
+        private const int MinimumReservationMB = 16;
+        private const long OneMegaByte = 1024L * 1024L;
 
+		private readonly int _reservationPages;
 		private readonly object _syncBufferChain = new object();
-		private LinkedList<VirtualBufferCache> _bufferChain;
 		private readonly int _bufferSize;
 		private readonly int _cacheBlockSize;
 		private readonly int _maxCacheElements;
+		private SafeMemoryHandle _reservationBaseAddress;
+		private LinkedList<VirtualBufferCache> _bufferChain;
 
-		public VirtualBufferFactory(int reservationMB, int bufferSize)
+		public VirtualBufferFactory(int bufferSize, int reservationMB)
 		{
+            // Buffer size must be multiple of system page size
+            if((bufferSize % VirtualBuffer.SystemPageSize) != 0)
+            {
+                throw new ArgumentException(
+                    $"Buffer size must be multiple of {VirtualBuffer.SystemPageSize}.",
+                    nameof(bufferSize));
+            }
+			_bufferSize = bufferSize;
+
 			// Minimum reservation amount = 16Mb
 			if (reservationMB < 16)
 			{
@@ -40,9 +51,8 @@ namespace Zen.Trunk.Storage.IO
 			}
 
 			// Calculate number of pages to reserve
-			_reservationPages = (int)((((long)reservationMB) * 1024L * 1024L) /
+			_reservationPages = (int)((((long)reservationMB) * OneMegaByte) /
 				VirtualBuffer.SystemPageSize);
-			_bufferSize = bufferSize;
 
 			// Determine maximum number of pages
 			var totalPages = _reservationPages * VirtualBuffer.SystemPageSize / bufferSize;
