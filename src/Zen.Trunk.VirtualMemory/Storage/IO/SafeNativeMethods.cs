@@ -440,13 +440,14 @@ namespace Zen.Trunk.Storage.IO
 			{
 				var addressPtr = address.DangerousGetHandle();
 				var oldPageProtectionPtr = new IntPtr();
-				if (!VirtualProtectInternal(addressPtr,
+				if (!VirtualProtectInternal(
+                    addressPtr,
 #if PLATFORMx86
- (int)address.TotalBytes,
+                    (int)address.TotalBytes,
 #else
- address.TotalBytes,
+                    (long)address.TotalBytes,
 #endif
- newPageProtection, oldPageProtectionPtr))
+                    newPageProtection, oldPageProtectionPtr))
 				{
 					Marshal.ThrowExceptionForHR(Marshal.GetHRForLastWin32Error());
 				}
