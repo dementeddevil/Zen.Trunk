@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using System.Transactions;
 using Autofac;
 using Autofac.Core;
+using Zen.Trunk.Logging;
 using Zen.Trunk.Storage.Locking;
 
 namespace Zen.Trunk.Storage
@@ -12,13 +13,15 @@ namespace Zen.Trunk.Storage
 	/// <summary>
 	/// </summary>
 	[CLSCompliant(false)]
-	public abstract class MountableDevice : TraceableObject, IMountableDevice, IDisposable
+	public abstract class MountableDevice : IMountableDevice, IDisposable
 	{
 		#region Private Fields
+	    private static readonly ILog Logger = LogProvider.For<MountableDevice>();
+
 		private int _deviceState = (int)MountableDeviceState.Closed;
 		private bool _disposed;
-        private ILifetimeScope _lifetimeScope;
-        #endregion
+
+	    #endregion
 
         #region Protected Constructors
 		/// <summary>
@@ -34,11 +37,7 @@ namespace Zen.Trunk.Storage
 		/// Gets or sets a value indicating whether this instance is being created.
 		/// </summary>
 		/// <value><c>true</c> if this instance is create; otherwise, <c>false</c>.</value>
-		public bool IsCreate
-		{
-			get;
-			private set;
-		}
+		public bool IsCreate { get; private set; }
 
 		/// <summary>
 		/// Gets the state of the device.
@@ -46,9 +45,9 @@ namespace Zen.Trunk.Storage
 		/// <value>The state of the device.</value>
 		public MountableDeviceState DeviceState => (MountableDeviceState)_deviceState;
 
-	    public ILifetimeScope LifetimeScope => _lifetimeScope;
+	    public ILifetimeScope LifetimeScope { get; private set; }
 
-        #endregion
+	    #endregion
 
         #region Public Methods
         /// <summary>
@@ -57,7 +56,7 @@ namespace Zen.Trunk.Storage
         /// <param name="parentLifetimeScope">The parent lifetime scope.</param>
         public void InitialiseDeviceLifetimeScope(ILifetimeScope parentLifetimeScope)
         {
-            _lifetimeScope = parentLifetimeScope.BeginLifetimeScope(BuildDeviceLifetimeScope);
+            LifetimeScope = parentLifetimeScope.BeginLifetimeScope(BuildDeviceLifetimeScope);
         }
 
         /// <summary>
@@ -66,18 +65,21 @@ namespace Zen.Trunk.Storage
         /// <returns></returns>
         public async Task OpenAsync(bool isCreate)
 		{
-		    if (_lifetimeScope == null)
+		    if (LifetimeScope == null)
 		    {
 		        throw new InvalidOperationException();    
 		    }
 
-			Tracer.WriteVerboseLine("Open - Enter");
+		    if (Logger.IsDebugEnabled())
+		    {
+		        Logger.Debug("Open - Enter");
+		    }
 			CheckDisposed();
 			MutateStateOrThrow(MountableDeviceState.Closed, MountableDeviceState.Opening);
 			try
 			{
 				IsCreate = isCreate;
-				await Task.Run(() => OnOpen()).ConfigureAwait(false);
+				await Task.Run(OnOpen).ConfigureAwait(false);
 			}
 			catch
 			{
@@ -87,9 +89,12 @@ namespace Zen.Trunk.Storage
 			finally
 			{
 				IsCreate = false;
-				Tracer.WriteVerboseLine("Open - Exit");
-			}
-			MutateStateOrThrow(MountableDeviceState.Opening, MountableDeviceState.Open);
+                if (Logger.IsDebugEnabled())
+                {
+                    Logger.Debug("Open - Exit");
+                }
+            }
+            MutateStateOrThrow(MountableDeviceState.Opening, MountableDeviceState.Open);
 		}
 
 		/// <summary>
@@ -98,19 +103,25 @@ namespace Zen.Trunk.Storage
 		/// <returns></returns>
 		public async Task CloseAsync()
 		{
-			Tracer.WriteVerboseLine("Close - Enter");
+            if (Logger.IsDebugEnabled())
+            {
+                Logger.Debug("Close - Enter");
+            }
 			CheckDisposed();
 			MutateStateOrThrow(MountableDeviceState.Open, MountableDeviceState.Closing);
 			try
 			{
-				await Task.Run(() => OnClose()).ConfigureAwait(false);
+				await Task.Run(OnClose).ConfigureAwait(false);
 			}
 			finally
 			{
 				MutateStateOrThrow(MountableDeviceState.Closing, MountableDeviceState.Closed);
-				Tracer.WriteVerboseLine("Close - Exit");
-			}
-		}
+                if (Logger.IsDebugEnabled())
+                {
+                    Logger.Debug("Close - Exit");
+                }
+            }
+        }
 
 		/// <summary>
 		/// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
@@ -122,22 +133,22 @@ namespace Zen.Trunk.Storage
 
 	    public void BeginTransaction()
 	    {
-	        TrunkTransactionContext.BeginTransaction(_lifetimeScope);
+	        TrunkTransactionContext.BeginTransaction(LifetimeScope);
 	    }
 
         public void BeginTransaction(TransactionOptions transactionOptions)
         {
-            TrunkTransactionContext.BeginTransaction(_lifetimeScope, transactionOptions);
+            TrunkTransactionContext.BeginTransaction(LifetimeScope, transactionOptions);
         }
 
         public void BeginTransaction(TimeSpan timeout)
         {
-            TrunkTransactionContext.BeginTransaction(_lifetimeScope, timeout);
+            TrunkTransactionContext.BeginTransaction(LifetimeScope, timeout);
         }
 
         public void BeginTransaction(IsolationLevel isoLevel, TimeSpan timeout)
         {
-            TrunkTransactionContext.BeginTransaction(_lifetimeScope, isoLevel, timeout);
+            TrunkTransactionContext.BeginTransaction(LifetimeScope, isoLevel, timeout);
         }
         #endregion
 
@@ -157,19 +168,9 @@ namespace Zen.Trunk.Storage
 			    $"{GetType().FullName} should be closed prior to dispose.");
 			_disposed = true;
 
-            _lifetimeScope?.Dispose();
-            _lifetimeScope = null;
+            LifetimeScope?.Dispose();
+            LifetimeScope = null;
         }
-
-        /// <summary>
-        /// Creates the tracer.
-        /// </summary>
-        /// <param name="tracerName">Name of the tracer.</param>
-        /// <returns></returns>
-        protected override ITracer CreateTracer(string tracerName)
-		{
-			return TS.CreatePageDeviceTracer(tracerName);
-		}
 
 		/// <summary>
 		/// Checks if this instance has been disposed.
@@ -214,7 +215,7 @@ namespace Zen.Trunk.Storage
         protected T ResolveDeviceService<T>(params Parameter[] parameters)
         {
             CheckDisposed();
-            return _lifetimeScope.Resolve<T>(parameters);
+            return LifetimeScope.Resolve<T>(parameters);
         }
 		#endregion
 

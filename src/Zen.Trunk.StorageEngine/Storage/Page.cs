@@ -3,6 +3,7 @@ using System.Collections.Specialized;
 using System.ComponentModel;
 using System.IO;
 using Autofac;
+using Zen.Trunk.Logging;
 using Zen.Trunk.Storage.IO;
 
 namespace Zen.Trunk.Storage
@@ -15,7 +16,7 @@ namespace Zen.Trunk.Storage
 	/// In the base class the header only contains a single byte used to
 	/// track status bits for the page.
 	/// </remarks>
-	public abstract class Page : TraceableObject, IDisposable
+	public abstract class Page : IDisposable
 	{
 		#region Internal Objects
 		private class NewPageInterceptorField : BufferField
@@ -55,6 +56,8 @@ namespace Zen.Trunk.Storage
 		#endregion
 
 		#region Private Fields
+	    private static readonly ILog Logger = LogProvider.For<Page>();
+
 		private static readonly object InitEvent = new object();
 		private static readonly object LoadEvent = new object();
 		private static readonly object SaveEvent = new object();
@@ -158,7 +161,10 @@ namespace Zen.Trunk.Storage
 		/// </summary>
 		protected Page()
 		{
-			Tracer.WriteVerboseLine("{0}.ctor", GetType().Name);
+		    if (Logger.IsDebugEnabled())
+		    {
+		        Logger.Debug($"{GetType().Name} ctor")
+		    }
 
 			_status = new BufferFieldBitVector32();
 			_newPageField = new NewPageInterceptorField(_status, this);

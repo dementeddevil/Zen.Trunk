@@ -4,7 +4,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Diagnostics;
 using Zen.Trunk.Storage.Data;
-using Zen.Trunk.Storage.IO;
 
 namespace Zen.Trunk.Storage
 {
@@ -14,7 +13,7 @@ namespace Zen.Trunk.Storage
     /// </summary>
     /// <remarks>
     /// <para>
-    /// StatefulBuffer wraps <see cref="VirtualBuffer"/> objects to maintain a
+    /// StatefulBuffer wraps <see cref="IVirtualBuffer"/> objects to maintain a
     /// consistent presentation state for multiple consumers.
     /// </para>
     /// <para>
@@ -23,7 +22,7 @@ namespace Zen.Trunk.Storage
     /// and the log writer.
     /// </para>
     /// </remarks>
-    public abstract class StatefulBuffer : TraceableObject, IDisposable
+    public abstract class StatefulBuffer : IDisposable
     {
         #region Internal Objects
         /// <summary>
@@ -72,8 +71,9 @@ namespace Zen.Trunk.Storage
             /// <summary>
             /// Notifies class that buffer instance has entered state.
             /// </summary>
-            /// <param name="buffer"></param>
+            /// <param name="instance"></param>
             /// <param name="lastState"></param>
+            /// <param name="userState"></param>
             public virtual Task OnEnterState(StatefulBuffer instance, State lastState, object userState)
             {
                 return CompletedTask.Default;
@@ -82,8 +82,9 @@ namespace Zen.Trunk.Storage
             /// <summary>
             /// Notifies class that buffer instance is leaving state.
             /// </summary>
-            /// <param name="buffer"></param>
+            /// <param name="instance"></param>
             /// <param name="nextState"></param>
+            /// <param name="userState"></param>
             public virtual Task OnLeaveState(StatefulBuffer instance, State nextState, object userState)
             {
                 return CompletedTask.Default;
@@ -191,7 +192,7 @@ namespace Zen.Trunk.Storage
             CheckDisposed();
 
             // Perform interlocked increment then notify state
-            System.Threading.Interlocked.Increment(ref _refCount);
+            Interlocked.Increment(ref _refCount);
             _currentState.AddRef(this);
         }
 
@@ -208,7 +209,7 @@ namespace Zen.Trunk.Storage
             // Sanity check
             CheckDisposed();
 
-            System.Threading.Interlocked.Decrement(ref _refCount);
+            Interlocked.Decrement(ref _refCount);
             _currentState.Release(this);
         }
 
@@ -258,16 +259,6 @@ namespace Zen.Trunk.Storage
             {
                 throw new ObjectDisposedException(GetType().FullName);
             }
-        }
-
-        /// <summary>
-        /// Creates the tracer.
-        /// </summary>
-        /// <param name="tracerName">Name of the tracer.</param>
-        /// <returns></returns>
-        protected override ITracer CreateTracer(string tracerName)
-        {
-            return TS.CreatePageBufferTracer(tracerName);
         }
 
         /// <summary>
