@@ -6,11 +6,11 @@ namespace Zen.Trunk.Storage
     public static class ContainerBuilderExtensions
     {
         public static ContainerBuilder WithVirtualBufferFactory(
-            this ContainerBuilder builder, int bufferSize = 8192, int reservationMB = 32)
+            this ContainerBuilder builder, int bufferSize = 8192, int reservationMb = 32)
         {
             builder.RegisterType<VirtualBufferFactory>()
                 .WithParameter("bufferSize", bufferSize)
-                .WithParameter("reservationMB", reservationMB)
+                .WithParameter("reservationMb", reservationMb)
                 .As<IVirtualBufferFactory>()
                 .SingleInstance();
             return builder;

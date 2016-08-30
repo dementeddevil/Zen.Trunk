@@ -39,8 +39,8 @@ namespace Zen.Trunk.Storage
                 .ReturnsAsync(TestCases.SecondaryDeviceId);
             MockedMultipleBufferDevice
                 .Setup(mbd => mbd.LoadBufferAsync(
-                    It.IsAny<VirtualPageId>(), It.IsAny<VirtualBuffer>()))
-                .Callback<VirtualPageId, VirtualBuffer>(
+                    It.IsAny<VirtualPageId>(), It.IsAny<IVirtualBuffer>()))
+                .Callback<VirtualPageId, IVirtualBuffer>(
                     (vid, buffer) =>
                     {
                         if (vid.DeviceId == TestCases.PrimaryDeviceId && vid.PhysicalPageId < _primaryDeviceBuffers.Count)
@@ -55,8 +55,8 @@ namespace Zen.Trunk.Storage
                 .Returns(Task.FromResult(true));
             MockedMultipleBufferDevice
                 .Setup(mbd => mbd.SaveBufferAsync(
-                    It.IsAny<VirtualPageId>(), It.IsAny<VirtualBuffer>()))
-                .Callback<VirtualPageId, VirtualBuffer>(
+                    It.IsAny<VirtualPageId>(), It.IsAny<IVirtualBuffer>()))
+                .Callback<VirtualPageId, IVirtualBuffer>(
                     (vid, buffer) =>
                     {
                         if (vid.DeviceId == TestCases.PrimaryDeviceId && vid.PhysicalPageId < _primaryDeviceBuffers.Count)
@@ -101,7 +101,7 @@ namespace Zen.Trunk.Storage
 
             // Assert
             MockedMultipleBufferDevice
-                .Verify(mbd => mbd.LoadBufferAsync(new VirtualPageId(deviceId, physicalPage), It.IsAny<VirtualBuffer>()));
+                .Verify(mbd => mbd.LoadBufferAsync(new VirtualPageId(deviceId, physicalPage), It.IsAny<IVirtualBuffer>()));
         }
 
         [Theory(DisplayName = "Given a valid loaded and dirty buffer, when the current transaction is committed and flush is called, then the save method on MBD is called.")]
@@ -129,9 +129,9 @@ namespace Zen.Trunk.Storage
 
             // Assert
             MockedMultipleBufferDevice
-                .Verify(mbd => mbd.LoadBufferAsync(new VirtualPageId(deviceId, physicalPage), It.IsAny<VirtualBuffer>()), Times.Once);
+                .Verify(mbd => mbd.LoadBufferAsync(new VirtualPageId(deviceId, physicalPage), It.IsAny<IVirtualBuffer>()), Times.Once);
             MockedMultipleBufferDevice
-                .Verify(mbd => mbd.LoadBufferAsync(new VirtualPageId(deviceId, physicalPage), It.IsAny<VirtualBuffer>()), Times.Once);
+                .Verify(mbd => mbd.LoadBufferAsync(new VirtualPageId(deviceId, physicalPage), It.IsAny<IVirtualBuffer>()), Times.Once);
         }
     }
 
