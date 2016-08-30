@@ -74,6 +74,7 @@
     <Compile Include="Storage\DatabaseId.cs" />
     <Compile Include="Storage\Data\CachingPageBufferDevice.cs" />
     <Compile Include="CoreException.cs" />
+    <Compile Include="Storage\Data\CachingPageBufferDeviceSettings.cs" />
     <Compile Include="Storage\Data\DatabaseDevice.cs" />
     <Compile Include="Storage\Data\DatabaseDeviceMessages.cs" />
     <Compile Include="Storage\Data\FileGroupDeviceMessages.cs" />

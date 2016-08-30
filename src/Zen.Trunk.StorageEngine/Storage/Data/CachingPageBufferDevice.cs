@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
+using Zen.Trunk.Logging;
 
 namespace Zen.Trunk.Storage.Data
 {
@@ -168,6 +169,10 @@ namespace Zen.Trunk.Storage.Data
         #endregion
 
         #region Private Fields
+        private static readonly ILog Logger = LogProvider.For<CachingPageBufferDevice>();
+
+        private readonly CachingPageBufferDeviceSettings _cacheSettings;
+
         private bool _isDisposed;
         private readonly CancellationTokenSource _shutdownToken = new CancellationTokenSource();
         private IMultipleBufferDevice _bufferDevice;
@@ -181,18 +186,12 @@ namespace Zen.Trunk.Storage.Data
         private readonly SortedList<VirtualPageId, BufferCacheInfo> _bufferLookup =
             new SortedList<VirtualPageId, BufferCacheInfo>();
         private int _cacheSize;
-        private readonly int _maxCacheSize = 2048;
-        private readonly int _cacheScavengeOffThreshold = 1500;
-        private readonly int _cacheScavengeOnThreshold = 1800;
-        private readonly TimeSpan _cacheFlushInterval = TimeSpan.FromMilliseconds(500);
         private CacheFlushState _flushState = CacheFlushState.Idle;
-        private readonly Task _cacheManagerTask;
+        private readonly Task _pageBufferFlushTask;
 
         // Free pool
         private readonly ObjectPool<PageBuffer> _freePagePool;
-        private readonly int _freePoolMin = 50;
-        private readonly int _freePoolMax = 100;
-        private Task _freePoolFillerTask;
+        private readonly Task _freePoolFillerTask;
 
         // Ports
         private readonly ITargetBlock<PreparePageBufferRequest> _initBufferPort;
@@ -202,12 +201,16 @@ namespace Zen.Trunk.Storage.Data
 
         #region Public Constructors
         /// <summary>
-        /// Initializes a new instance of the <see cref="CachingPageBufferDevice"/> class.
+        /// Initializes a new instance of the <see cref="CachingPageBufferDevice" /> class.
         /// </summary>
         /// <param name="bufferDevice">The buffer device that is to be cached.</param>
-        public CachingPageBufferDevice(IMultipleBufferDevice bufferDevice)
+        /// <param name="cacheSettings">The cache device settings.</param>
+        public CachingPageBufferDevice(
+            IMultipleBufferDevice bufferDevice,
+            CachingPageBufferDeviceSettings cacheSettings)
         {
             _bufferDevice = bufferDevice;
+            _cacheSettings = cacheSettings ?? new CachingPageBufferDeviceSettings();
 
             // Initialise the free-buffer pool handler
             _freePagePool = new ObjectPool<PageBuffer>(
@@ -220,33 +223,8 @@ namespace Zen.Trunk.Storage.Data
                     return new PageBuffer(_bufferDevice);
                 });
             _freePoolFillerTask = Task.Factory.StartNew(
-                async () =>
-                {
-                    // Keep the free page pool at minimum level
-                    while (!_shutdownToken.IsCancellationRequested)
-                    {
-                        while (_freePagePool.Count < _freePoolMin)
-                        {
-                            _freePagePool.PutObject(new PageBuffer(_bufferDevice));
-                        }
-                        await Task.Delay(TimeSpan.FromSeconds(1), _shutdownToken.Token);
-                    }
-
-                    // Drain free page pool when we are asked to shutdown
-                    while (_freePagePool.Count > 0)
-                    {
-                        var buffer = _freePagePool.GetObject();
-                        if (buffer == null)
-                        {
-                            // The only way we will ever have nulls in the pool
-                            //	is if the factory method has detected the call
-                            //	to shutdown - so we can stop draining now...
-                            break;
-                        }
-                        buffer.Dispose();
-                    }
-                },
-                _shutdownToken.Token,
+                FreePoolFillerThread,
+                CancellationToken.None,
                 TaskCreationOptions.LongRunning,
                 TaskScheduler.Default);
 
@@ -256,7 +234,7 @@ namespace Zen.Trunk.Storage.Data
                 new ExecutionDataflowBlockOptions
                 {
                     TaskScheduler = TaskScheduler.Default,
-                    MaxDegreeOfParallelism = 10,
+                    MaxDegreeOfParallelism = _cacheSettings.InitBufferThreadCount,
                     MaxMessagesPerTask = 3,
                     CancellationToken = _shutdownToken.Token
                 });
@@ -265,18 +243,23 @@ namespace Zen.Trunk.Storage.Data
                 new ExecutionDataflowBlockOptions
                 {
                     TaskScheduler = TaskScheduler.Default,
-                    MaxDegreeOfParallelism = 10,
+                    MaxDegreeOfParallelism = _cacheSettings.LoadBufferThreadCount,
                     MaxMessagesPerTask = 3,
                     CancellationToken = _shutdownToken.Token
                 });
 
             // Explicit flush handler
             _flushBuffersPort = new TaskRequestActionBlock<FlushCachingDeviceRequest, bool>(
-                request => HandleFlushPageBuffers(request));
+                request => HandleFlushPageBuffers(request),
+                new ExecutionDataflowBlockOptions
+                {
+                    TaskScheduler = TaskScheduler.Default,
+                    CancellationToken = CancellationToken.None
+                });
 
             // Initialise caching support
-            _cacheManagerTask = Task.Factory.StartNew(
-                CacheManagerThread,
+            _pageBufferFlushTask = Task.Factory.StartNew(
+                PageBufferFlushThread,
                 CancellationToken.None,
                 TaskCreationOptions.LongRunning,
                 TaskScheduler.Default);
@@ -317,8 +300,12 @@ namespace Zen.Trunk.Storage.Data
                 // Shutdown all running threads
                 _shutdownToken.Cancel();
 
-                // Wait for the cache thread to terminate
-                await _cacheManagerTask.ConfigureAwait(false);
+                // Wait for long-running threads to terminate
+                await Task
+                    .WhenAll(
+                        _pageBufferFlushTask,
+                        _freePoolFillerTask)
+                    .ConfigureAwait(false);
 
                 // If we have any requests pending load or init then
                 //	notify callers
@@ -429,7 +416,7 @@ namespace Zen.Trunk.Storage.Data
                         else
                         {
                             // Throw if we are full...
-                            if (_bufferLookup.Count >= _maxCacheSize)
+                            if (_bufferLookup.Count >= _cacheSettings.MaximumCacheSize)
                             {
                                 // Buffer cache is at capacity
                                 throw new OutOfMemoryException("Buffer cache is full.");
@@ -484,35 +471,39 @@ namespace Zen.Trunk.Storage.Data
                 pageId, ct => ct.TrySetCanceled());
         }
 
-        private async Task CacheManagerThread()
+        private async Task PageBufferFlushThread()
         {
             var flushParams = new FlushCachingDeviceParameters(true, true, DeviceId.Zero);
-            DateTime? lastFlush = null;
             while (!_shutdownToken.IsCancellationRequested)
             {
-                if (_flushState == CacheFlushState.Idle &&
-                    (lastFlush == null || (DateTime.UtcNow - lastFlush) > _cacheFlushInterval))
+                if (_flushState == CacheFlushState.Idle)
                 {
-                    if (!IsScavenging && _bufferLookup.Count > _cacheScavengeOnThreshold)
+                    // Determine whether we need to start scavenging
+                    if (!IsScavenging && _bufferLookup.Count > _cacheSettings.CacheScavengeOnThreshold)
                     {
                         IsScavenging = true;
                     }
+
                     try
                     {
+                        // Flush both reads and writes then update last flush time
                         await FlushPagesAsync(flushParams).ConfigureAwait(false);
-                        lastFlush = DateTime.UtcNow;
                     }
                     finally
                     {
-                        if (IsScavenging && _bufferLookup.Count < _cacheScavengeOffThreshold)
+                        // Determine whether we have recovered enough pages to stop scavenging
+                        if (IsScavenging && _bufferLookup.Count < _cacheSettings.CacheScavengeOffThreshold)
                         {
                             IsScavenging = false;
                         }
                     }
                 }
-                else
+
+                if (!_shutdownToken.IsCancellationRequested)
                 {
-                    Thread.Sleep(_cacheFlushInterval);
+                    await Task
+                        .Delay(_cacheSettings.CacheFlushInterval, _shutdownToken.Token)
+                        .ConfigureAwait(false);
                 }
             }
 
@@ -532,6 +523,43 @@ namespace Zen.Trunk.Storage.Data
                 info.Dispose();
             }
             _bufferLookup.Clear();
+        }
+
+        private async Task FreePoolFillerThread()
+        {
+            // Keep the free page pool at minimum level
+            while (!_shutdownToken.IsCancellationRequested)
+            {
+                // Fill free pool to high-water mark
+                while (!_shutdownToken.IsCancellationRequested &&
+                    _freePagePool.Count < _cacheSettings.MaximumFreePoolSize)
+                {
+                    _freePagePool.PutObject(new PageBuffer(_bufferDevice));
+                }
+
+                // Monitor until we see low-water mark
+                while (!_shutdownToken.IsCancellationRequested &&
+                    _freePagePool.Count > _cacheSettings.MinimumFreePoolSize)
+                {
+                    await Task
+                        .Delay(_cacheSettings.FreePoolMonitorInterval, _shutdownToken.Token)
+                        .ConfigureAwait(false);
+                }
+            }
+
+            // Drain free page pool when we are asked to shutdown
+            while (_freePagePool.Count > 0)
+            {
+                var buffer = _freePagePool.GetObject();
+                if (buffer == null)
+                {
+                    // The only way we will ever have nulls in the pool is if
+                    //  the free-pool factory method has detected the call to
+                    //  shutdown - so we can stop draining now...
+                    break;
+                }
+                buffer.Dispose();
+            }
         }
 
         private bool HandleFlushPageBuffers(FlushCachingDeviceRequest request)
@@ -561,10 +589,13 @@ namespace Zen.Trunk.Storage.Data
 
                 // Create cache partitioner
                 Parallel.ForEach(
-                    ChunkPartitioner.Create(keys, 10, 100),
+                    ChunkPartitioner.Create(
+                        keys,
+                        _cacheSettings.MinimumBlockFlushSize,
+                        _cacheSettings.MaximumBlockFlushSize),
                     new ParallelOptions
                     {
-                        MaxDegreeOfParallelism = 4
+                        MaxDegreeOfParallelism = _cacheSettings.BlockFlushThreadCount
                     },
                     () => new FlushPageBufferState(request.Message),
                     ProcessCacheBufferEntry,
@@ -629,7 +660,7 @@ namespace Zen.Trunk.Storage.Data
                     Interlocked.Decrement(ref _cacheSize);
 
                     // Add to free pages if we can
-                    if (_freePagePool.Count < _freePoolMax)
+                    if (_freePagePool.Count < _cacheSettings.MaximumFreePoolSize)
                     {
                         // Add buffer to free pool and disconnect from cache
                         _freePagePool.PutObject(cacheInfo.BufferInternal);
@@ -653,7 +684,7 @@ namespace Zen.Trunk.Storage.Data
                 }
                 else
                 {
-                    await buffer.InitAsync(pageId, LogicalPageId.Zero);
+                    await buffer.InitAsync(pageId, LogicalPageId.Zero).ConfigureAwait(false);
                 }
             }
             catch (OperationCanceledException)
