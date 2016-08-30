@@ -171,10 +171,11 @@ namespace Zen.Trunk.Storage.IO
 		#region IDisposable Members
 		public void Dispose()
 		{
-			DisposeManagedObjects();
+			Dispose(true);
+            GC.SuppressFinalize(this);
 		}
 
-		protected virtual void DisposeManagedObjects()
+		protected virtual void Dispose(bool disposing)
 		{
 			if (_reservationBaseAddress != null)
 			{
