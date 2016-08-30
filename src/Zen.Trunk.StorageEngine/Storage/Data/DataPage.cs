@@ -1,11 +1,12 @@
+using System;
+using System.IO;
+using System.Threading;
+using System.Transactions;
+using Zen.Trunk.Logging;
+using Zen.Trunk.Storage.Locking;
+
 namespace Zen.Trunk.Storage.Data
 {
-	using System;
-	using System.IO;
-	using System.Threading;
-	using System.Transactions;
-	using Zen.Trunk.Storage.Locking;
-
 	/// <summary>
 	/// <b>DataPage</b> object extends <see cref="Page"/> and is the
 	/// common base class for all data related page functionality.
@@ -22,6 +23,7 @@ namespace Zen.Trunk.Storage.Data
 	public class DataPage : Page
 	{
 		#region Private Fields
+	    private static readonly ILog Logger = LogProvider.For<DataPage>();
 
 	    private PageBuffer _buffer;
 		private readonly SpinLockClass _syncTimestamp = new SpinLockClass();
@@ -200,12 +202,11 @@ namespace Zen.Trunk.Storage.Data
 
 		protected override Stream CreateHeaderStream(bool readOnly)
 		{
-			Tracer.WriteVerboseLine(
-				"CreateHeaderStream ({0})",
-				new object[]
-				{
-					readOnly ? "read-only" : "writeable"
-				});
+		    if (Logger.IsDebugEnabled())
+		    {
+		        var readOnlyState = readOnly ? "read-only" : "writeable";
+		        Logger.Debug($"CreateHeaderStream as {readOnlyState}");
+		    }
 
 			// Return memory stream based on underlying buffer memory
 			return _buffer.GetBufferStream(0, (int)HeaderSize, !readOnly);
@@ -213,12 +214,11 @@ namespace Zen.Trunk.Storage.Data
 
 		public override Stream CreateDataStream(bool readOnly)
 		{
-			Tracer.WriteVerboseLine(
-				"CreateDataStream ({0})",
-				new object[]
-				{
-					readOnly ? "read-only" : "writeable"
-				});
+            if (Logger.IsDebugEnabled())
+            {
+                var readOnlyState = readOnly ? "read-only" : "writeable";
+                Logger.Debug($"CreateDataStream as {readOnlyState}");
+            }
 
 			// Return memory stream based on underlying buffer memory
 			return _buffer.GetBufferStream(

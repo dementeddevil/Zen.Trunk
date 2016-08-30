@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 using Autofac;
+using Zen.Trunk.Logging;
 using Zen.Trunk.Storage.Data.Table;
 using Zen.Trunk.Storage.Locking;
 using Zen.Trunk.Utils;
@@ -160,17 +161,9 @@ namespace Zen.Trunk.Storage.Data
         #endregion
 
         #region Private Fields
+        private static readonly ILog Logger = LogProvider.For<FileGroupDevice>();
+
         private DatabaseDevice _owner;
-        private readonly ITargetBlock<AddDataDeviceRequest> _addDataDevicePort;
-        private readonly ITargetBlock<RemoveDataDeviceRequest> _removeDataDevicePort;
-        private readonly ITargetBlock<InitDataPageRequest> _initDataPagePort;
-        private readonly ITargetBlock<LoadDataPageRequest> _loadDataPagePort;
-        private readonly ITargetBlock<CreateDistributionPagesRequest> _createDistributionPagesPort;
-        private readonly ITargetBlock<ExpandDataDeviceRequest> _expandDataDevicePort;
-        private readonly ITargetBlock<AllocateDataPageRequest> _allocateDataPagePort;
-        private readonly ITargetBlock<ImportDistributionPageRequest> _importDistributionPagePort;
-        private readonly ITargetBlock<AddTableRequest> _addTablePort;
-        private readonly ITargetBlock<AddTableIndexRequest> _addTableIndexPort;
 
         private DeviceId? _primaryDeviceId;
         private PrimaryDistributionPageDevice _primaryDevice;
@@ -195,61 +188,61 @@ namespace Zen.Trunk.Storage.Data
 
             // Setup ports
             var taskInterleave = new ConcurrentExclusiveSchedulerPair();
-            _addDataDevicePort = new TransactionContextActionBlock<AddDataDeviceRequest, DeviceId>(
+            AddDataDevicePort = new TransactionContextActionBlock<AddDataDeviceRequest, DeviceId>(
                 request => AddDataDeviceHandler(request),
                 new ExecutionDataflowBlockOptions
                 {
                     TaskScheduler = taskInterleave.ExclusiveScheduler
                 });
-            _removeDataDevicePort = new TransactionContextActionBlock<RemoveDataDeviceRequest, bool>(
+            RemoveDataDevicePort = new TransactionContextActionBlock<RemoveDataDeviceRequest, bool>(
                 request => RemoveDataDeviceHandler(request),
                 new ExecutionDataflowBlockOptions
                 {
                     TaskScheduler = taskInterleave.ExclusiveScheduler
                 });
-            _allocateDataPagePort = new TransactionContextActionBlock<AllocateDataPageRequest, VirtualPageId>(
+            AllocateDataPagePort = new TransactionContextActionBlock<AllocateDataPageRequest, VirtualPageId>(
                 request => AllocateDataPageHandler(request),
                 new ExecutionDataflowBlockOptions
                 {
                     TaskScheduler = taskInterleave.ExclusiveScheduler
                 });
-            _createDistributionPagesPort = new TransactionContextActionBlock<CreateDistributionPagesRequest, bool>(
+            CreateDistributionPagesPort = new TransactionContextActionBlock<CreateDistributionPagesRequest, bool>(
                 request => CreateDistributionPagesHandler(request),
                 new ExecutionDataflowBlockOptions
                 {
                     TaskScheduler = taskInterleave.ExclusiveScheduler
                 });
-            _expandDataDevicePort = new TransactionContextActionBlock<ExpandDataDeviceRequest, bool>(
+            ExpandDataDevicePort = new TransactionContextActionBlock<ExpandDataDeviceRequest, bool>(
                 request => ExpandDataDeviceHandler(request),
                 new ExecutionDataflowBlockOptions
                 {
                     TaskScheduler = taskInterleave.ExclusiveScheduler
                 });
-            _initDataPagePort = new TransactionContextActionBlock<InitDataPageRequest, bool>(
+            InitDataPagePort = new TransactionContextActionBlock<InitDataPageRequest, bool>(
                 request => InitDataPageHandler(request),
                 new ExecutionDataflowBlockOptions
                 {
                     TaskScheduler = taskInterleave.ConcurrentScheduler
                 });
-            _loadDataPagePort = new TransactionContextActionBlock<LoadDataPageRequest, bool>(
+            LoadDataPagePort = new TransactionContextActionBlock<LoadDataPageRequest, bool>(
                 request => LoadDataPageHandler(request),
                 new ExecutionDataflowBlockOptions
                 {
                     TaskScheduler = taskInterleave.ConcurrentScheduler
                 });
-            _importDistributionPagePort = new TransactionContextActionBlock<ImportDistributionPageRequest, bool>(
+            ImportDistributionPagePort = new TransactionContextActionBlock<ImportDistributionPageRequest, bool>(
                 request => ImportDistributionPageHandler(request),
                 new ExecutionDataflowBlockOptions
                 {
                     TaskScheduler = taskInterleave.ConcurrentScheduler
                 });
-            _addTablePort = new TransactionContextActionBlock<AddTableRequest, ObjectId>(
+            AddTablePort = new TransactionContextActionBlock<AddTableRequest, ObjectId>(
                 request => AddTableHandler(request),
                 new ExecutionDataflowBlockOptions
                 {
                     TaskScheduler = taskInterleave.ExclusiveScheduler
                 });
-            _addTableIndexPort = new TransactionContextActionBlock<AddTableIndexRequest, ObjectId>(
+            AddTableIndexPort = new TransactionContextActionBlock<AddTableIndexRequest, ObjectId>(
                 request => AddTableIndexHandler(request),
                 new ExecutionDataflowBlockOptions
                 {
@@ -297,12 +290,6 @@ namespace Zen.Trunk.Storage.Data
         #endregion
 
         #region Protected Properties
-        /// <summary>
-        /// Gets the name of the tracer.
-        /// </summary>
-        /// <value>The name of the tracer.</value>
-        protected override string TracerName => GetType().Name + ":" + FileGroupId + ":" + FileGroupName;
-
         protected ILogicalVirtualManager LogicalVirtualManager
         {
             get
@@ -321,55 +308,55 @@ namespace Zen.Trunk.Storage.Data
         /// Gets the add data device port.
         /// </summary>
         /// <value>The add data device port.</value>
-        private ITargetBlock<AddDataDeviceRequest> AddDataDevicePort => _addDataDevicePort;
+        private ITargetBlock<AddDataDeviceRequest> AddDataDevicePort { get; }
 
         /// <summary>
         /// Gets the remove data device port.
         /// </summary>
         /// <value>The remove data device port.</value>
-        private ITargetBlock<RemoveDataDeviceRequest> RemoveDataDevicePort => _removeDataDevicePort;
+        private ITargetBlock<RemoveDataDeviceRequest> RemoveDataDevicePort { get; }
 
         /// <summary>
         /// Gets the init data page port.
         /// </summary>
         /// <value>The init data page port.</value>
-        private ITargetBlock<InitDataPageRequest> InitDataPagePort => _initDataPagePort;
+        private ITargetBlock<InitDataPageRequest> InitDataPagePort { get; }
 
         /// <summary>
         /// Gets the load data page port.
         /// </summary>
         /// <value>The load data page port.</value>
-        private ITargetBlock<LoadDataPageRequest> LoadDataPagePort => _loadDataPagePort;
+        private ITargetBlock<LoadDataPageRequest> LoadDataPagePort { get; }
 
         /// <summary>
         /// Gets the create distribution pages port.
         /// </summary>
         /// <value>The create distribution pages port.</value>
-        private ITargetBlock<CreateDistributionPagesRequest> CreateDistributionPagesPort => _createDistributionPagesPort;
+        private ITargetBlock<CreateDistributionPagesRequest> CreateDistributionPagesPort { get; }
 
         /// <summary>
         /// Gets the expand data device port.
         /// </summary>
         /// <value>The expand data device port.</value>
-        private ITargetBlock<ExpandDataDeviceRequest> ExpandDataDevicePort => _expandDataDevicePort;
+        private ITargetBlock<ExpandDataDeviceRequest> ExpandDataDevicePort { get; }
 
         /// <summary>
         /// Gets the allocate data page port.
         /// </summary>
         /// <value>The allocate data page port.</value>
-        private ITargetBlock<AllocateDataPageRequest> AllocateDataPagePort => _allocateDataPagePort;
+        private ITargetBlock<AllocateDataPageRequest> AllocateDataPagePort { get; }
 
         /// <summary>
         /// Gets the import distribution page port.
         /// </summary>
         /// <value>The import distribution page.</value>
-        private ITargetBlock<ImportDistributionPageRequest> ImportDistributionPagePort => _importDistributionPagePort;
+        private ITargetBlock<ImportDistributionPageRequest> ImportDistributionPagePort { get; }
 
         /// <summary>
         /// Gets the add table port.
         /// </summary>
         /// <value>The add table port.</value>
-        private ITargetBlock<AddTableRequest> AddTablePort => _addTablePort;
+        private ITargetBlock<AddTableRequest> AddTablePort { get; }
 
         /// <summary>
         /// Gets the add table index port.
@@ -377,7 +364,7 @@ namespace Zen.Trunk.Storage.Data
         /// <value>
         /// The add table index port.
         /// </value>
-        private ITargetBlock<AddTableIndexRequest> AddTableIndexPort => _addTableIndexPort;
+        private ITargetBlock<AddTableIndexRequest> AddTableIndexPort { get; }
 
         private DatabaseDevice Owner
         {
@@ -517,7 +504,10 @@ namespace Zen.Trunk.Storage.Data
         /// <returns></returns>
         protected override async Task OnOpen()
         {
-            Tracer.WriteInfoLine("OnOpen: Enter");
+            if (Logger.IsInfoEnabled())
+            {
+                Logger.Info("OnOpen : Enter");
+            }
 
             if (_primaryDevice == null)
             {
@@ -526,11 +516,17 @@ namespace Zen.Trunk.Storage.Data
             }
 
             // Open/create the primary device
-            Tracer.WriteInfoLine("OnOpen: Opening primary device");
+            if (Logger.IsInfoEnabled())
+            {
+                Logger.Info("OnOpen : Opening primary device");
+            }
             await _primaryDevice.OpenAsync(IsCreate);
 
             // Load or create the root page
-            Tracer.WriteInfoLine("OnOpen: Opening secondary devices");
+            if (Logger.IsInfoEnabled())
+            {
+                Logger.Info("OnOpen : Opening secondary devices");
+            }
             using (var rootPage = (PrimaryFileGroupRootPage)
                 await _primaryDevice.LoadOrCreateRootPage().ConfigureAwait(false))
             {
@@ -567,7 +563,10 @@ namespace Zen.Trunk.Storage.Data
                 }
             }
 
-            Tracer.WriteVerboseLine("OnOpen: Leave");
+            if (Logger.IsInfoEnabled())
+            {
+                Logger.Info("OnOpen : Exit");
+            }
         }
 
         /// <summary>
@@ -639,12 +638,6 @@ namespace Zen.Trunk.Storage.Data
 
         private async Task<DeviceId> AddDataDeviceHandler(AddDataDeviceRequest request)
         {
-            Tracer.WriteVerboseLine("AddDataDevice");
-
-            // TODO: Update this method to pass the information to the
-            //	distribution device.
-            // When the dist device is opened
-
             // Determine whether this is the first device in a file-group
             var priFileGroupDevice = _devices.Count == 0;
 
@@ -699,7 +692,6 @@ namespace Zen.Trunk.Storage.Data
                     .AddDeviceAsync(request.Message.Name, fullPathName, request.Message.DeviceId, allocationPages)
                     .ConfigureAwait(false);
             }
-            Tracer.WriteVerboseLine("AddDevice -> device id = {0}", deviceId);
 
             // Create distribution page device wrapper and add to list
             DistributionPageDevice newDevice = null;

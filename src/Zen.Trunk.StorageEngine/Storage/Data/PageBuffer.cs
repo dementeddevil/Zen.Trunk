@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Zen.Trunk.Logging;
 using Zen.Trunk.Storage.Locking;
 using Zen.Trunk.Storage.Log;
 
@@ -468,10 +469,12 @@ namespace Zen.Trunk.Storage.Data
 				return result;
 			}
 		}
-		#endregion
+        #endregion
 
-		#region Private Fields
-		private readonly IBufferDevice _bufferDevice;
+        #region Private Fields
+        private static readonly ILog Logger = LogProvider.For<PageBuffer>();
+
+        private readonly IBufferDevice _bufferDevice;
 		private IVirtualBuffer _oldBuffer;
 		private IVirtualBuffer _newBuffer;
 		private TransactionId _currentTransactionId;
@@ -659,7 +662,6 @@ namespace Zen.Trunk.Storage.Data
 					// First request for writable buffer must make copy of current.
 					if (_oldBuffer == null)
 					{
-						// TODO: Consider whether we can do this without a copy
 						_oldBuffer = _bufferDevice.BufferFactory.AllocateBuffer();
 						_newBuffer.CopyTo(_oldBuffer);
 					}
@@ -671,15 +673,16 @@ namespace Zen.Trunk.Storage.Data
 					_currentTransactionId = transactionId;
 				}
 
-				// Always return copy of current working buffer.
-				Tracer.WriteVerboseLine(
-					"GetBufferStream backed by current buffer {0}",
-					_newBuffer.BufferId);
-				return _newBuffer.GetBufferStream(offset, count, writable);
+                // Always return copy of current working buffer.
+			    if (Logger.IsDebugEnabled())
+			    {
+			        Logger.Debug($"GetBufferStream backed by current buffer {_newBuffer.BufferId}");
+			    }
+			    return _newBuffer.GetBufferStream(offset, count, writable);
 			}
 
 			// Everything else uses the old buffer.
-			else if (_oldBuffer != null)
+			if (_oldBuffer != null)
 			{
 				if (writable)
 				{
@@ -687,15 +690,14 @@ namespace Zen.Trunk.Storage.Data
 						"Another transaction already has write access.");
 				}
 
-				Tracer.WriteVerboseLine(
-					"GetBufferStream backed by old buffer {0}",
-					_oldBuffer.BufferId);
-				return _oldBuffer.GetBufferStream(offset, count, false);
+			    if (Logger.IsDebugEnabled())
+			    {
+			        Logger.Debug($"GetBufferStream backed by old buffer {_oldBuffer.BufferId}");
+			    }
+			    return _oldBuffer.GetBufferStream(offset, count, false);
 			}
-			else
-			{
-				throw new InvalidOperationException("Stream is unavailable.");
-			}
+
+			throw new InvalidOperationException("Stream is unavailable.");
 		}
 		#endregion
 

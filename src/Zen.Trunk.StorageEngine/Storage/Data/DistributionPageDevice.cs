@@ -1,15 +1,16 @@
-﻿using Autofac;
+﻿using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using Zen.Trunk.Logging;
+using Zen.Trunk.Storage.Locking;
 
 namespace Zen.Trunk.Storage.Data
 {
-	using System;
-	using System.Collections.Generic;
-	using System.Threading.Tasks;
-	using Zen.Trunk.Storage.Locking;
-
 	public abstract class DistributionPageDevice : PageDevice
 	{
 		#region Private Fields
+        private static readonly ILog Logger = LogProvider.For<DistributionPageDevice>();
+
 		private readonly DeviceId _deviceId;
 		private FileGroupDevice _fileGroupDevice;
 		private bool _firstCallForRootPage = true;
@@ -68,7 +69,10 @@ namespace Zen.Trunk.Storage.Data
 		/// <returns></returns>
 		public virtual async Task<RootPage> LoadOrCreateRootPage()
 		{
-			Tracer.WriteVerboseLine("Load/create root page");
+            if (Logger.IsDebugEnabled())
+            {
+                Logger.Debug("Load/create root page");
+            }
 
 			// Load or initialise the file-group root page
 			var rootPage = FileGroupDevice.CreateRootPage(IsPrimary);
@@ -76,17 +80,35 @@ namespace Zen.Trunk.Storage.Data
 			HookupPageSite(rootPage);
 			if (IsCreate && _firstCallForRootPage)
 			{
-				Tracer.WriteVerboseLine("Init root page pending");
-				await FileGroupDevice.InitDataPage(
-					new InitDataPageParameters(rootPage, false, true)).ConfigureAwait(false);
-				Tracer.WriteVerboseLine("Init root page completed");
+                if (Logger.IsDebugEnabled())
+                {
+                    Logger.Debug("Init root page pending");
+                }
+
+                await FileGroupDevice
+                    .InitDataPage(new InitDataPageParameters(rootPage, false, true))
+                    .ConfigureAwait(false);
+
+                if (Logger.IsDebugEnabled())
+                {
+                    Logger.Debug("Init root page completed");
+                }
 			}
 			else
 			{
-				Tracer.WriteVerboseLine("Load root page pending");
-				await FileGroupDevice.LoadDataPage(
-					new LoadDataPageParameters(rootPage, true, IsPrimary, true)).ConfigureAwait(false);
-				Tracer.WriteVerboseLine("Load root page completed");
+                if (Logger.IsDebugEnabled())
+                {
+                    Logger.Debug("Load root page pending");
+                }
+
+                await FileGroupDevice
+                    .LoadDataPage(new LoadDataPageParameters(rootPage, true, IsPrimary, true))
+                    .ConfigureAwait(false);
+
+                if (Logger.IsDebugEnabled())
+                {
+                    Logger.Debug("Load root page completed");
+                }
 			}
 
 			_firstCallForRootPage = false;
@@ -186,7 +208,10 @@ namespace Zen.Trunk.Storage.Data
 				}
 
 				var pageCount = rootPage.AllocatedPages;
-				Tracer.WriteVerboseLine("Preparing to process distribution pages to cover device {0} of {1} pages", _deviceId, pageCount);
+                if (Logger.IsDebugEnabled())
+                {
+                    Logger.Debug($"Preparing to process distribution pages to cover device {_deviceId} of {pageCount} pages");
+                }
 
 				var subTasks = new List<Task>();
 
@@ -215,8 +240,11 @@ namespace Zen.Trunk.Storage.Data
 						pages.Add(page);
 					}
 
-					// Wait for all pages to init or load and import
-					Tracer.WriteVerboseLine("Waiting for distribution page processing to complete for device {0}...", _deviceId);
+                    // Wait for all pages to init or load and import
+                    if (Logger.IsDebugEnabled())
+                    {
+                        Logger.Debug($"Waiting for distribution page processing to complete for device {_deviceId}...");
+                    }
 					await TaskExtra
 						.WhenAllOrEmpty(subTasks.ToArray())
 						.ConfigureAwait(false);
@@ -230,7 +258,10 @@ namespace Zen.Trunk.Storage.Data
 					}
 				}
 
-				Tracer.WriteVerboseLine("Open completed for device {0}", _deviceId);
+                if (Logger.IsDebugEnabled())
+                {
+                    Logger.Debug($"Open completed for device {_deviceId}");
+                }
 			}
 		}
 		#endregion
@@ -240,7 +271,10 @@ namespace Zen.Trunk.Storage.Data
 		{
 			try
 			{
-				Tracer.WriteVerboseLine("Init distribution page");
+                if (Logger.IsDebugEnabled())
+                {
+                    Logger.Debug("Init distribution page");
+                }
 
 				// Create contained init request
 				HookupPageSite(page);
@@ -253,7 +287,10 @@ namespace Zen.Trunk.Storage.Data
 				// Setup the page virtual id
 				var pageId = new VirtualPageId(DeviceId, physicalId);
 				page.VirtualId = pageId;
-				Tracer.WriteVerboseLine("\tPage id {0}", pageId);
+                if (Logger.IsDebugEnabled())
+                {
+                    Logger.Debug($"Distribution page at {pageId}");
+                }
 
 				// Issue the sub-ordinate request
 				await FileGroupDevice.InitDataPage(
@@ -263,12 +300,18 @@ namespace Zen.Trunk.Storage.Data
 				page.InitialiseValidExtents(devicePageCount);
 				page.Save();
 
-				// Mark original request as complete
-				Tracer.WriteVerboseLine("Init distribution page complete");
+                // Mark original request as complete
+                if (Logger.IsDebugEnabled())
+                {
+                    Logger.Debug("Init distribution page complete");
+                }
 			}
 			catch (Exception error)
 			{
-				Tracer.WriteVerboseLine("Init distribution page failed {0}", error);
+                if (Logger.IsDebugEnabled())
+                {
+                    Logger.Debug($"Init distribution page failed {error}");
+                }
 				throw;
 			}
 		}
@@ -277,7 +320,10 @@ namespace Zen.Trunk.Storage.Data
 		{
 			try
 			{
-				Tracer.WriteVerboseLine("Load distribution page");
+                if (Logger.IsDebugEnabled())
+                {
+                    Logger.Debug("Load distribution page");
+                }
 
 				// Create contained load request
 				HookupPageSite(page);
@@ -286,18 +332,28 @@ namespace Zen.Trunk.Storage.Data
 				var physicalId = ((distributionPageIndex * (DistributionPage.PageTrackingCount + 1)) + DistributionPageOffset);
 				var pageId = new VirtualPageId(DeviceId, physicalId);
 				page.VirtualId = pageId;
-				Tracer.WriteVerboseLine("\tPage id {0}", pageId);
+                if (Logger.IsDebugEnabled())
+                {
+                    Logger.Debug($"Distribution page at {pageId}");
+                }
 
 				// Issue the sub-ordinate request
-				await FileGroupDevice.LoadDataPage(
-					new LoadDataPageParameters(page)).ConfigureAwait(false);
+				await FileGroupDevice
+                    .LoadDataPage(new LoadDataPageParameters(page))
+                    .ConfigureAwait(false);
 
-				// Mark original request as complete
-				Tracer.WriteVerboseLine("Load distribution page complete");
+                // Mark original request as complete
+                if (Logger.IsDebugEnabled())
+                {
+                    Logger.Debug("Load distribution page complete");
+                }
 			}
 			catch (Exception error)
 			{
-				Tracer.WriteVerboseLine("Load distribution page failed {0}", error);
+                if (Logger.IsDebugEnabled())
+                {
+                    Logger.Debug($"Load distribution page failed {error}");
+                }
 				throw;
 			}
 		}
@@ -308,30 +364,5 @@ namespace Zen.Trunk.Storage.Data
 			await FileGroupDevice.ImportDistributionPage(page).ConfigureAwait(false);
 		} 
 		#endregion
-	}
-
-	public class PrimaryDistributionPageDevice : DistributionPageDevice
-	{
-		public PrimaryDistributionPageDevice(DeviceId deviceId)
-			: base(deviceId)
-		{
-		}
-
-		public override uint DistributionPageOffset => 1;
-	}
-
-	public class SecondaryDistributionPageDevice : DistributionPageDevice
-	{
-		public SecondaryDistributionPageDevice(DeviceId deviceId)
-			: base(deviceId)
-		{
-			if (deviceId == DeviceId.Zero ||
-                deviceId == DeviceId.Primary)
-			{
-				throw new ArgumentException("deviceId");
-			}
-		}
-
-		public override uint DistributionPageOffset => 1;
 	}
 }

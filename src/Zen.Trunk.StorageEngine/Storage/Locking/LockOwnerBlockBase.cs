@@ -1,3 +1,5 @@
+using Zen.Trunk.Logging;
+
 namespace Zen.Trunk.Storage.Locking
 {
 	using System;
@@ -23,7 +25,7 @@ namespace Zen.Trunk.Storage.Locking
 	/// on the owner lock object.
 	/// </para>
 	/// </remarks>
-	internal abstract class LockOwnerBlockBase<TItemLockIdType> : TraceableObject, IDisposable
+	internal abstract class LockOwnerBlockBase<TItemLockIdType> : IDisposable
 	{
 		#region Private Types
 		private class ItemLockDictionary : Dictionary<TItemLockIdType, DataLock>
@@ -65,6 +67,8 @@ namespace Zen.Trunk.Storage.Locking
 		#endregion
 
 		#region Private Fields
+	    private static readonly ILog Logger = LogProvider.For<LockOwnerBlockBase<TItemLockIdType>>();
+
 		private readonly IDatabaseLockManager _manager;
 		private uint _ownerLockCount;
 		private readonly uint _maxItemLocks;
@@ -312,16 +316,6 @@ namespace Zen.Trunk.Storage.Locking
 		}
 
 		/// <summary>
-		/// Creates the tracer.
-		/// </summary>
-		/// <param name="tracerName">Name of the tracer.</param>
-		/// <returns></returns>
-		protected override ITracer CreateTracer(string tracerName)
-		{
-			return TS.CreateLockBlockTracer(tracerName);
-		}
-
-		/// <summary>
 		/// Gets the owner lock.
 		/// </summary>
 		/// <returns>
@@ -382,7 +376,10 @@ namespace Zen.Trunk.Storage.Locking
 				// Check whether we can escalate this lock
 				if (_readLocks.Count > _maxItemLocks)
 				{
-					Tracer.WriteVerboseLine("Attempting lock owner block SHARED lock escalation");
+				    if (Logger.IsDebugEnabled())
+				    {
+				        Logger.Debug("Attempting lock owner block SHARED lock escalation");
+				    }
 
 					var hasEscalatedLock = false;
 					try
@@ -538,7 +535,10 @@ namespace Zen.Trunk.Storage.Locking
 			// Check whether we can escalate this lock
 			if (_writeLocks.Count > _maxItemLocks)
 			{
-				Tracer.WriteVerboseLine("Attempting lock owner block EXCLUSIVE lock escalation");
+                if (Logger.IsDebugEnabled())
+                {
+                    Logger.Debug("Attempting lock owner block EXCLUSIVE lock escalation");
+                }
 
 				var hasEscalated = false;
 				try

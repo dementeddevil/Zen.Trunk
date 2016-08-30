@@ -93,7 +93,9 @@
     <Compile Include="Storage\Data\ObjectPage.cs" />
     <Compile Include="Storage\Data\ObjectRefInfo.cs" />
     <Compile Include="Storage\Data\ObjectSchemaPage.cs" />
+    <Compile Include="Storage\Data\PrimaryDistributionPageDevice.cs" />
     <Compile Include="Storage\Data\PrimaryFileGroupDevice.cs" />
+    <Compile Include="Storage\Data\SecondaryDistributionPageDevice.cs" />
     <Compile Include="Storage\Data\SecondaryFileGroupDevice.cs" />
     <Compile Include="Storage\Data\SecondaryFileGroupRootPage.cs" />
     <Compile Include="Storage\Data\PrimaryFileGroupRootPage.cs" />

@@ -163,7 +163,7 @@ namespace Zen.Trunk.Storage
 		{
 		    if (Logger.IsDebugEnabled())
 		    {
-		        Logger.Debug($"{GetType().Name} ctor")
+		        Logger.Debug($"{GetType().Name} ctor");
 		    }
 
 			_status = new BufferFieldBitVector32();
@@ -398,8 +398,6 @@ namespace Zen.Trunk.Storage
 			}
 		}
 
-		protected override string TracerName => GetType().Name;
-
 	    protected virtual BufferField FirstHeaderField => _status;
 
 	    protected virtual BufferField LastHeaderField => _newPageField;
@@ -551,16 +549,6 @@ namespace Zen.Trunk.Storage
 			// Disconnect from site
 			_lifetimeScope?.Dispose();
 		    _lifetimeScope = null;
-		}
-
-		/// <summary>
-		/// Creates the tracer.
-		/// </summary>
-		/// <param name="tracerName">Name of the tracer.</param>
-		/// <returns></returns>
-		protected override ITracer CreateTracer(string tracerName)
-		{
-			return TS.CreatePageBufferTracer(tracerName);
 		}
 
 		/// <summary>

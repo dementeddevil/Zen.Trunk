@@ -1,16 +1,16 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Threading.Tasks.Dataflow;
 using Autofac;
+using Zen.Trunk.Logging;
+using Zen.Trunk.Storage;
+using Zen.Trunk.Storage.Locking;
+using Zen.Trunk.Storage.Log;
 
 namespace Zen.Trunk.Storage.Data
 {
-	using System;
-	using System.Collections.Generic;
-	using System.Linq;
-	using System.Threading.Tasks;
-	using System.Threading.Tasks.Dataflow;
-	using Zen.Trunk.Storage;
-	using Zen.Trunk.Storage.Locking;
-	using Zen.Trunk.Storage.Log;
-
 	public class DatabaseDevice : PageDevice
 	{
 		#region Private Types
@@ -98,6 +98,7 @@ namespace Zen.Trunk.Storage.Data
 		#endregion
 
 		#region Private Fields
+	    private static readonly ILog Logger = LogProvider.For<DatabaseDevice>();
 
 		private readonly DatabaseId _dbId;
 
@@ -203,12 +204,6 @@ namespace Zen.Trunk.Storage.Data
         #endregion
 
         #region Protected Properties
-        /// <summary>
-        /// Gets the name of the tracer.
-        /// </summary>
-        /// <value>The name of the tracer.</value>
-        protected override string TracerName => base.TracerName;
-
 	    /// <summary>
 		/// Gets the primary file group id.
 		/// </summary>
@@ -445,7 +440,10 @@ namespace Zen.Trunk.Storage.Data
 		/// <returns></returns>
 		protected override async Task OnOpen()
 		{
-			Tracer.WriteInfoLine("DatabaseDevice.OnOpen -> Start");
+		    if (Logger.IsInfoEnabled())
+		    {
+			    Logger.Info("DatabaseDevice.OnOpen -> Start");
+		    }
 
 			// Sanity check
 			if (_fileGroupById.Count == 0)
@@ -459,25 +457,37 @@ namespace Zen.Trunk.Storage.Data
 				throw new InvalidOperationException("No primary file-group device.");
 			}
 
-			// Mount the underlying device
-			Tracer.WriteVerboseLine("Opening underlying buffer device...");
+            // Mount the underlying device
+		    if (Logger.IsDebugEnabled())
+		    {
+			    Logger.Debug("Opening underlying buffer device...");
+		    }
 			await RawBufferDevice.OpenAsync().ConfigureAwait(false);
 
-			// Mount the primary file-group device
-			Tracer.WriteVerboseLine("Opening primary file-group device...");
+            // Mount the primary file-group device
+            if (Logger.IsDebugEnabled())
+            {
+                Logger.Debug("Opening primary file-group device...");
+            }
 			await fgDevice.OpenAsync(IsCreate).ConfigureAwait(false);
 
-			// At this point the primary file-group is mounted and all
-			//	secondary file-groups are mounted too (via AddFileGroupDevice)
+            // At this point the primary file-group is mounted and all
+            //	secondary file-groups are mounted too (via AddFileGroupDevice)
 
-			// Mount the log device
-			Tracer.WriteVerboseLine("Opening log device...");
+            // Mount the log device
+            if (Logger.IsDebugEnabled())
+            {
+                Logger.Debug("Opening log device...");
+            }
 			await ResolveDeviceService<MasterLogPageDevice>().OpenAsync(IsCreate).ConfigureAwait(false);
 
 			// If this is not create then we need to perform recovery
 			if (!IsCreate)
 			{
-				Tracer.WriteVerboseLine("Initiating recovery...");
+                if (Logger.IsDebugEnabled())
+                {
+                    Logger.Debug("Initiating recovery...");
+                }
 				await ResolveDeviceService<MasterLogPageDevice>().PerformRecovery().ConfigureAwait(false);
 			}
 		}
@@ -680,10 +690,12 @@ namespace Zen.Trunk.Storage.Data
 				!request.Message.FileGroupIdValid &&
 				string.IsNullOrEmpty(request.Message.FileGroupName))
 			{
-				Tracer.WriteVerboseLine("LoadFileGroupPage - By VirtualId {0}",
-					request.Message.Page.VirtualId);
+			    if (Logger.IsDebugEnabled())
+			    {
+			        Logger.Debug($"LoadFileGroupPage - By VirtualId {request.Message.Page.VirtualId}");
+			    }
 
-				// This type of load request is typically only ever 
+			    // This type of load request is typically only ever 
 				//	performed during database recovery
 				// TODO: Consider making this type of load illegal outside
 				//	of recovery - for now it is allowed only if the page
@@ -706,8 +718,10 @@ namespace Zen.Trunk.Storage.Data
 			}
 			else
 			{
-				Tracer.WriteVerboseLine("LoadFileGroupPage - By File-Group [{0},{1}]",
-					request.Message.FileGroupId, request.Message.FileGroupName);
+                if (Logger.IsDebugEnabled())
+                {
+                    Logger.Debug($"LoadFileGroupPage - By File-Group [{request.Message.FileGroupId},{request.Message.FileGroupName}]");
+                }
 				var fileGroupDevice = GetFileGroupDevice(
 					request.Message.FileGroupId, request.Message.FileGroupName);
 
@@ -761,7 +775,10 @@ namespace Zen.Trunk.Storage.Data
 
 		private async Task ExecuteCheckPoint()
 		{
-			Tracer.WriteVerboseLine("CheckPoint - Begin");
+		    if (Logger.IsDebugEnabled())
+		    {
+			    Logger.Debug("CheckPoint - Begin");
+		    }
 
 			// Issue begin checkpoint
 			await ResolveDeviceService<MasterLogPageDevice>().WriteEntry(new BeginCheckPointLogEntry()).ConfigureAwait(false);
@@ -790,13 +807,18 @@ namespace Zen.Trunk.Storage.Data
 			// Throw if we have failed
 			if (exception != null)
 			{
-				Tracer.WriteVerboseLine("CheckPoint - End with exception [{0}]",
-					exception.Message);
+                if (Logger.IsDebugEnabled())
+                {
+                    Logger.Debug($"CheckPoint - Exit with exception [{exception.Message}]");
+                }
 				throw exception;
 			}
 			else
 			{
-				Tracer.WriteVerboseLine("CheckPoint - End");
+                if (Logger.IsDebugEnabled())
+                {
+                    Logger.Debug("CheckPoint - Exit");
+                }
 			}
 		}
 
