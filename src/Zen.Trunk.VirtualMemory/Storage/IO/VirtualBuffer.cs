@@ -1,11 +1,11 @@
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+
 namespace Zen.Trunk.Storage.IO
 {
-	using System;
-	using System.Collections.Generic;
-	using System.Diagnostics;
-	using System.IO;
-
-	/// <summary>
+    /// <summary>
 	/// <c>VirtualBuffer</c> is a low-level unmanaged memory object
 	/// used to create pages aligned on page boundaries and used
 	/// exclusively to deal with interactions between the scatter/gather
@@ -24,29 +24,23 @@ namespace Zen.Trunk.Storage.IO
 	/// manner.
 	/// </para>
 	/// </remarks>
-	public sealed class VirtualBuffer : IDisposable
-	{
+	public sealed class VirtualBuffer : IVirtualBuffer
+    {
 		#region Private Objects
 		private struct StreamInfo
 		{
-			#region Private Fields
-			private readonly int _offset;
-			private readonly int _count;
-			#endregion
-
 			#region Public Constructors
 			public StreamInfo(int offset, int count)
 			{
-				_offset = offset;
-				_count = count;
+				Offset = offset;
+				Count = count;
 			}
 			#endregion
 
 			#region Public Properties
-			public int Offset => _offset;
+			public int Offset { get; }
 
-		    public int Count => _count;
-
+		    public int Count { get; }
 		    #endregion
 		}
 
@@ -276,8 +270,7 @@ namespace Zen.Trunk.Storage.IO
 		private static int _pageSize;
 
 		private readonly SafeCommitableMemoryHandle _buffer;
-		private readonly int _bufferSize;
-		private readonly VirtualBufferCache _owner;
+        private readonly VirtualBufferCache _owner;
 		private readonly int _cacheSlot;
 
 		private bool _committed;
@@ -296,21 +289,13 @@ namespace Zen.Trunk.Storage.IO
 			}
 
 			_buffer = buffer;
-			_bufferSize = bufferSize;
+			BufferSize = bufferSize;
 			_owner = owner;
 			_cacheSlot = slot;
 		}
 		#endregion
 
 		#region Public Properties
-		/// <summary>
-		/// Gets the buffer unique identifier.
-		/// </summary>
-		/// <value>
-		/// The buffer unique identifier.
-		/// </value>
-		public string BufferId => $"{_owner.CacheId}:{_cacheSlot}";
-
 	    /// <summary>
 		/// Gets the size of the system page.
 		/// </summary>
@@ -331,21 +316,28 @@ namespace Zen.Trunk.Storage.IO
 		}
 
 		/// <summary>
+		/// Gets the buffer unique identifier.
+		/// </summary>
+		/// <value>
+		/// The buffer unique identifier.
+		/// </value>
+		public string BufferId => $"{_owner.CacheId}:{_cacheSlot}";
+
+		/// <summary>
 		/// Gets the size of the buffer.
 		/// </summary>
 		/// <value>
 		/// The size of the buffer.
 		/// </value>
-		public int BufferSize => _bufferSize;
+		public int BufferSize { get; }
 
-	    /// <summary>
+        /// <summary>
 		/// Gets a value indicating whether this buffer instance is dirty.
 		/// </summary>
 		/// <value>
 		/// <c>true</c> if dirty; otherwise, <c>false</c>.
 		/// </value>
 		public bool IsDirty => _dirty;
-
 	    #endregion
 
 		#region Public Methods
@@ -365,7 +357,7 @@ namespace Zen.Trunk.Storage.IO
 		/// </summary>
 		/// <param name="buffer">The buffer.</param>
 		/// <returns></returns>
-		public int Compare(VirtualBuffer buffer)
+		public int CompareTo(IVirtualBuffer buffer)
 		{
 			CheckDisposed();
 			if (buffer == null)
@@ -378,7 +370,7 @@ namespace Zen.Trunk.Storage.IO
 			}
 			unsafe
 			{
-				return memcmpimpl(Buffer, buffer.Buffer, BufferSize);
+				return memcmpimpl(Buffer, ((VirtualBuffer)buffer).Buffer, BufferSize);
 			}
 		}
 
@@ -386,7 +378,7 @@ namespace Zen.Trunk.Storage.IO
 		/// Copies the contents of this instance to the specified instance.
 		/// </summary>
 		/// <param name="destination">The destination.</param>
-		public void CopyTo(VirtualBuffer destination)
+		public void CopyTo(IVirtualBuffer destination)
 		{
 			CheckDisposed();
 			if (destination == null)
@@ -403,7 +395,7 @@ namespace Zen.Trunk.Storage.IO
 			}
 			unsafe
 			{
-				memcpyimpl(Buffer, destination.Buffer, BufferSize);
+				memcpyimpl(Buffer, ((VirtualBuffer)destination).Buffer, BufferSize);
 			}
 		}
 

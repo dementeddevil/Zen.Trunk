@@ -86,13 +86,15 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="App_Packages\LibLog.4.2\LibLog.cs" />
-    <Compile Include="Storage\BufferDevice.cs" />
-    <Compile Include="Storage\BufferDeviceFactory.cs" />
+    <Compile Include="Storage\IBufferDeviceInfo.cs" />
+    <Compile Include="Storage\IO\BufferDevice.cs" />
+    <Compile Include="Storage\IO\BufferDeviceFactory.cs" />
     <Compile Include="Storage\BufferDeviceMessages.cs" />
     <Compile Include="Storage\BufferDeviceShuttingDownException.cs" />
     <Compile Include="Storage\ContainerBuilderExtensions.cs" />
     <Compile Include="Storage\DeviceId.cs" />
     <Compile Include="Storage\IBufferDeviceFactory.cs" />
+    <Compile Include="Storage\IVirtualBuffer.cs" />
     <Compile Include="Storage\VirtualPageId.cs" />
     <Compile Include="Storage\IBufferDevice.cs" />
     <Compile Include="Storage\IMultipleBufferDevice.cs" />
@@ -113,8 +115,8 @@
     <Compile Include="Storage\ISingleBufferDevice.cs" />
     <Compile Include="Storage\IVirtualBufferFactory.cs" />
     <Compile Include="Storage\MountableDeviceState.cs" />
-    <Compile Include="Storage\MultipleBufferDevice.cs" />
-    <Compile Include="Storage\SingleBufferDevice.cs" />
+    <Compile Include="Storage\IO\MultipleBufferDevice.cs" />
+    <Compile Include="Storage\IO\SingleBufferDevice.cs" />
     <Compile Include="TraceableObject.cs" />
     <Compile Include="TS.cs" />
   </ItemGroup>

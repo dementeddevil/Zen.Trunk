@@ -1,9 +1,9 @@
+using System;
+using System.Collections.Generic;
+using Zen.Trunk.Logging;
+
 namespace Zen.Trunk.Storage.IO
 {
-	using System;
-	using System.Collections.Generic;
-	using System.Diagnostics;
-
 	/// <summary>
 	/// <c>VirtualBufferFactory</c> manages the heap-space allocated
 	/// through the Win32 VirtualAlloc family of functions.
@@ -20,9 +20,11 @@ namespace Zen.Trunk.Storage.IO
 	/// at bay.
 	/// </para>
 	/// </remarks>
-	public class VirtualBufferFactory : IVirtualBufferFactory, IDisposable
+	public class VirtualBufferFactory : IVirtualBufferFactory
 	{
-        private const int MinimumReservationMB = 16;
+	    private static readonly ILog Logger = LogProvider.For<VirtualBufferFactory>();
+
+        private const int MinimumReservationMb = 16;
         private const long OneMegaByte = 1024L * 1024L;
 
 		private readonly int _reservationPages;
@@ -33,7 +35,7 @@ namespace Zen.Trunk.Storage.IO
 		private SafeMemoryHandle _reservationBaseAddress;
 		private LinkedList<VirtualBufferCache> _bufferChain;
 
-		public VirtualBufferFactory(int bufferSize, int reservationMB)
+		public VirtualBufferFactory(int bufferSize, int reservationMb)
 		{
             // Buffer size must be multiple of system page size
             if((bufferSize % VirtualBuffer.SystemPageSize) != 0)
@@ -45,13 +47,13 @@ namespace Zen.Trunk.Storage.IO
 			_bufferSize = bufferSize;
 
 			// Minimum reservation amount = 16Mb
-			if (reservationMB < 16)
+			if (reservationMb < MinimumReservationMb)
 			{
-				reservationMB = 16;
+				reservationMb = MinimumReservationMb;
 			}
 
 			// Calculate number of pages to reserve
-			_reservationPages = (int)((((long)reservationMB) * OneMegaByte) /
+			_reservationPages = (int)((((long)reservationMb) * OneMegaByte) /
 				VirtualBuffer.SystemPageSize);
 
 			// Determine maximum number of pages
@@ -60,7 +62,21 @@ namespace Zen.Trunk.Storage.IO
 
 			// Determine maximum number of caches
 			_maxCacheElements = totalPages / _cacheBlockSize;
+
+            // Debugging information
+		    if (Logger.IsDebugEnabled())
+		    {
+		        Logger.Debug(
+		            $"Virtual buffer factory initialised with reservation of {reservationMb}Mb and buffer size of {bufferSize}");
+		    }
+            if(Logger.IsInfoEnabled())
+            {
+                Logger.Info(
+                    $"Virtual buffer factory {totalPages} pages split across {_maxCacheElements} caches available");
+            }
 		}
+
+		public int BufferSize => _bufferSize;
 
 		public bool IsNearlyFull
 		{
@@ -70,25 +86,21 @@ namespace Zen.Trunk.Storage.IO
 				{
 					return false;
 				}
-				else
+
+                foreach (var cache in _bufferChain)
 				{
-					foreach (var cache in _bufferChain)
+					if (!cache.IsNearlyFull)
 					{
-						if (!cache.IsNearlyFull)
-						{
-							return false;
-						}
+						return false;
 					}
-					return true;
 				}
+				return true;
 			}
 		}
 
-		public int BufferSize => _bufferSize;
-
 	    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2201:DoNotRaiseReservedExceptionTypes",
 			Justification = "Throwing an out of memory exception is an acceptable usage scenario for this method.")]
-		public unsafe VirtualBuffer AllocateBuffer()
+		public unsafe IVirtualBuffer AllocateBuffer()
 		{
 			// Reserve page space as needed.
 			if (_reservationBaseAddress == null)
@@ -162,8 +174,13 @@ namespace Zen.Trunk.Storage.IO
 			// Determine total bytes to reserve
 			var totalBytes = ((ulong)VirtualBuffer.SystemPageSize) *
 				((ulong)_reservationPages);
-			Trace.TraceInformation("Reserve {0} pages {1} total bytes",
-				_reservationPages, totalBytes);
+
+            if (Logger.IsInfoEnabled())
+            {
+                Logger.Info(
+                    $"Reservation of {_reservationPages} pages at {totalBytes} total bytes.");
+            }
+
 			_reservationBaseAddress = SafeNativeMethods.VirtualReserve(
 				new UIntPtr(totalBytes), SafeNativeMethods.PAGE_NOACCESS);
 		}
@@ -181,9 +198,14 @@ namespace Zen.Trunk.Storage.IO
 			{
 				var totalBytes = ((ulong)VirtualBuffer.SystemPageSize) *
 					((ulong)_reservationPages);
-				Trace.TraceInformation("Release {0} pages {1} total bytes",
-					_reservationPages, totalBytes);
-				_reservationBaseAddress.Dispose();
+
+			    if (Logger.IsInfoEnabled())
+			    {
+			        Logger.Info(
+			            $"Release of {_reservationPages} pages at {totalBytes} total bytes.");
+			    }
+
+                _reservationBaseAddress.Dispose();
 				_reservationBaseAddress = null;
 			}
 		}

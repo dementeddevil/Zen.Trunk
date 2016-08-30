@@ -1,12 +1,11 @@
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using Zen.Trunk.Storage.Data;
+using Zen.Trunk.Storage.IO;
+
 namespace Zen.Trunk.Storage.Log
 {
-	using System;
-	using System.Collections.Generic;
-	using System.IO;
-	using System.Threading.Tasks;
-	using Zen.Trunk.Storage.Data;
-	using Zen.Trunk.Storage.IO;
-
 	/// <summary>
 	/// Identifies the valid types of <see cref="T:LogEntry"/> records
 	/// that can be written or read from a transaction log.
@@ -633,7 +632,7 @@ namespace Zen.Trunk.Storage.Log
 		/// <param name="virtualPageId">The virtual page id.</param>
 		/// <param name="timestamp">The timestamp.</param>
 		public PageImageCreateLogEntry(
-			VirtualBuffer buffer,
+			IVirtualBuffer buffer,
 			ulong virtualPageId,
 			long timestamp)
 			: base(virtualPageId, timestamp, LogEntryType.CreatePage)
@@ -712,8 +711,8 @@ namespace Zen.Trunk.Storage.Log
 
 		#region Public Constructors
 		public PageImageUpdateLogEntry(
-			VirtualBuffer before,
-			VirtualBuffer after,
+			IVirtualBuffer before,
+			IVirtualBuffer after,
 			ulong virtualPageId,
 			long timestamp)
 			: base(virtualPageId, timestamp, LogEntryType.ModifyPage)
@@ -795,7 +794,7 @@ namespace Zen.Trunk.Storage.Log
 
 		#region Public Constructors
 		public PageImageDeleteLogEntry(
-			VirtualBuffer buffer,
+			IVirtualBuffer buffer,
 			ulong virtualPageId,
 			long timestamp)
 			: base(virtualPageId, timestamp, LogEntryType.DeletePage)

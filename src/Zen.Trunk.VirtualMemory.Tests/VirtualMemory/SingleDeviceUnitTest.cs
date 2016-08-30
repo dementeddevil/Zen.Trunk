@@ -25,8 +25,8 @@ Then the buffer contents are the same")]
             using (var tracker = new TempFileTracker())
             {
                 // Arrange
-                var initBuffers = new List<VirtualBuffer>();
-                var loadBuffers = new List<VirtualBuffer>();
+                var initBuffers = new List<IVirtualBuffer>();
+                var loadBuffers = new List<IVirtualBuffer>();
                 var testFile = tracker.Get("sdt.bin");
                 using (var device = BufferDeviceFactory.CreateSingleBufferDevice("test", testFile, 8, true))
                 {
@@ -60,7 +60,7 @@ Then the buffer contents are the same")]
                 {
                     var lhs = initBuffers[index];
                     var rhs = loadBuffers[index];
-                    Assert.True(lhs.Compare(rhs) == 0, "Buffer mismatch");
+                    Assert.True(lhs.CompareTo(rhs) == 0, "Buffer mismatch");
                 }
 
                 DisposeBuffers(initBuffers);
@@ -68,7 +68,7 @@ Then the buffer contents are the same")]
             }
         }
 
-        private void DisposeBuffers(IEnumerable<VirtualBuffer> buffers)
+        private void DisposeBuffers(IEnumerable<IVirtualBuffer> buffers)
         {
             foreach (var buffer in buffers)
             {

@@ -1,11 +1,8 @@
-﻿namespace Zen.Trunk.Storage
-{
-	using System;
-	using System.Threading.Tasks;
-	using Zen.Trunk.Storage.IO;
+﻿using System.Threading.Tasks;
 
-	[CLSCompliant(false)]
-	public interface ISingleBufferDevice : IBufferDevice
+namespace Zen.Trunk.Storage
+{
+    public interface ISingleBufferDevice : IBufferDevice
 	{
 		string Name
 		{
@@ -17,9 +14,9 @@
 			get;
 		}
 
-		Task LoadBufferAsync(uint physicalPageId, VirtualBuffer buffer);
+		Task LoadBufferAsync(uint physicalPageId, IVirtualBuffer buffer);
 
-        Task SaveBufferAsync(uint physicalPageId, VirtualBuffer buffer);
+        Task SaveBufferAsync(uint physicalPageId, IVirtualBuffer buffer);
 
         Task FlushBuffersAsync(bool flushReads, bool flushWrites);
 

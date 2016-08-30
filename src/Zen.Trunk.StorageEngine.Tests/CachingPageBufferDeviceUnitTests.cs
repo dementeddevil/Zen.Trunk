@@ -12,8 +12,8 @@ namespace Zen.Trunk.Storage
 {
     public class CachingPageBufferDeviceUnitTests : AutofacStorageEngineUnitTests
     {
-        private readonly List<VirtualBuffer> _primaryDeviceBuffers = new List<VirtualBuffer>();
-        private readonly List<VirtualBuffer> _secondaryDeviceBuffers = new List<VirtualBuffer>();
+        private readonly List<IVirtualBuffer> _primaryDeviceBuffers = new List<IVirtualBuffer>();
+        private readonly List<IVirtualBuffer> _secondaryDeviceBuffers = new List<IVirtualBuffer>();
         private CachingPageBufferDevice _pageBufferDevice;
 
         public CachingPageBufferDeviceUnitTests()

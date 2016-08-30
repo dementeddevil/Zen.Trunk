@@ -1,16 +1,15 @@
+using System;
+using System.Globalization;
+using System.IO;
+using System.Runtime.CompilerServices;
+using System.Runtime.ConstrainedExecution;
+using System.Runtime.InteropServices;
+using System.Text;
+using System.Threading;
+using Microsoft.Win32.SafeHandles;
 
 namespace Zen.Trunk.Storage.IO
 {
-	using System;
-	using System.Globalization;
-	using System.IO;
-	using System.Runtime.CompilerServices;
-	using System.Runtime.ConstrainedExecution;
-	using System.Runtime.InteropServices;
-	using System.Text;
-	using System.Threading;
-	using Microsoft.Win32.SafeHandles;
-
 	internal static class SafeNativeMethods
 	{
 		internal const int ERROR_INVALID_ADDRESS = 487;

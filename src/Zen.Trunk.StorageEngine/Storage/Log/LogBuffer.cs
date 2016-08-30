@@ -1,10 +1,9 @@
+using System;
+using System.IO;
+using System.Threading.Tasks;
+
 namespace Zen.Trunk.Storage.Log
 {
-	using System;
-	using System.IO;
-	using System.Threading.Tasks;
-	using Zen.Trunk.Storage.IO;
-
 	/// <summary>
 	/// <c>LogBuffer</c> provides a buffer implementation suitable for
 	/// database log pages.
@@ -22,23 +21,23 @@ namespace Zen.Trunk.Storage.Log
 
 		private static class LogBufferStateFactory
 		{
-			private static readonly Lazy<State> _freeState = new Lazy<State>(() => new FreeState(), true);
-			private static readonly Lazy<State> _loadState = new Lazy<State>(() => new LoadState(), true);
-			private static readonly Lazy<State> _allocatedState = new Lazy<State>(() => new AllocatedState(), true);
-			private static readonly Lazy<State> _dirtyState = new Lazy<State>(() => new DirtyState(), true);
+			private static readonly State FreeStateObject = new FreeState();
+			private static readonly State LoadStateObject = new LoadState();
+			private static readonly State AllocatedStateObject = new AllocatedState();
+			private static readonly State DirtyStateObject = new DirtyState();
 
 			public static State GetState(LogBufferStateType state)
 			{
 				switch (state)
 				{
 					case LogBufferStateType.Free:
-						return _freeState.Value;
+						return FreeStateObject;
 					case LogBufferStateType.Load:
-						return _loadState.Value;
+						return LoadStateObject;
 					case LogBufferStateType.Allocated:
-						return _allocatedState.Value;
+						return AllocatedStateObject;
 					case LogBufferStateType.Dirty:
-						return _dirtyState.Value;
+						return DirtyStateObject;
 					default:
 						throw new InvalidOperationException("Invalid buffer state.");
 				}
@@ -140,7 +139,7 @@ namespace Zen.Trunk.Storage.Log
 
 		#region Private Fields
 		private readonly Stream _backingStore;
-	    private VirtualBuffer _buffer;
+	    private IVirtualBuffer _buffer;
 		#endregion
 
 		#region Public Constructors

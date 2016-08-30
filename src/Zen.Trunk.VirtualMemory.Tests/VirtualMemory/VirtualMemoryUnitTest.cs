@@ -31,7 +31,7 @@ Then no corruption or deadlocks occur")]
                 parallelRequests.Add(Task.Factory.StartNew(
                     () =>
                     {
-                        var bufferList = new List<VirtualBuffer>();
+                        var bufferList = new List<IVirtualBuffer>();
                         try
                         {
                             for (var index = 0; index < 1000; ++index)

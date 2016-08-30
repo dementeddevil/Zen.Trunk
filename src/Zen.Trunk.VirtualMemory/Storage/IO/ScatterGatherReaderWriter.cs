@@ -1,10 +1,10 @@
+using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+
 namespace Zen.Trunk.Storage.IO
 {
-	using System;
-	using System.Collections.Generic;
-	using System.Threading;
-	using System.Threading.Tasks;
-
 	/// <summary>
 	/// <c>ScatterGatherReaderWriter</c> optimises buffer persistence by
 	/// grouping reads and writes on sequential buffers together and performing
@@ -13,7 +13,6 @@ namespace Zen.Trunk.Storage.IO
 	public sealed class ScatterGatherReaderWriter : IDisposable
 	{
 		#region Private Fields
-		private AdvancedFileStream _stream;
 		private readonly StreamScatterGatherHelper _readBuffers;
 		private readonly StreamScatterGatherHelper _writeBuffers;
 		private readonly CancellationTokenSource _shutdown;
@@ -28,7 +27,6 @@ namespace Zen.Trunk.Storage.IO
 		/// <param name="stream">Underlying stream object.</param>
 		public ScatterGatherReaderWriter(AdvancedFileStream stream)
 		{
-			_stream = stream;
 			_readBuffers = new StreamScatterGatherHelper(stream, true);
 			_writeBuffers = new StreamScatterGatherHelper(stream, false);
 			_shutdown = new CancellationTokenSource ();
@@ -53,31 +51,29 @@ namespace Zen.Trunk.Storage.IO
 			DisposeManagedObjects();
 		}
 
-		/// <summary>
-		/// Performs an asynchronous write of the specified buffer at the given
-		/// physical page address.
-		/// </summary>
-		/// <param name="physicalPageId">The page id.</param>
-		/// <param name="buffer">A <see cref="T:VirtualBuffer"/> object to be
-		/// persisted.</param>
-		/// <returns></returns>
-		[CLSCompliant(false)]
-		public Task WriteBufferAsync(uint physicalPageId, VirtualBuffer buffer)
+        /// <summary>
+        /// Performs an asynchronous write of the specified buffer at the given
+        /// physical page address.
+        /// </summary>
+        /// <param name="physicalPageId">The physical page id.</param>
+        /// <param name="buffer">A <see cref="T:IVirtualBuffer"/> object to be persisted.</param>
+        /// <returns></returns>
+        [CLSCompliant(false)]
+		public Task WriteBufferAsync(uint physicalPageId, IVirtualBuffer buffer)
 		{
 			return _writeBuffers.ProcessBufferAsync(physicalPageId, buffer);
 		}
 
-		/// <summary>
-		/// Performs an asynchronous read of the specified buffer at the given
-		/// physical page address.
-		/// </summary>
-		/// <param name="pageId">The page id.</param>
-		/// <param name="buffer">A <see cref="T:VirtualBuffer"/> object to be
-		/// persisted.</param>
-		/// <returns>
-		/// </returns>
-		[CLSCompliant(false)]
-		public Task ReadBufferAsync(uint physicalPageId, VirtualBuffer buffer)
+        /// <summary>
+        /// Performs an asynchronous read of the specified buffer at the given
+        /// physical page address.
+        /// </summary>
+        /// <param name="physicalPageId">The physical page id.</param>
+        /// <param name="buffer">A <see cref="T:IVirtualBuffer"/> object to be persisted.</param>
+        /// <returns>
+        /// </returns>
+        [CLSCompliant(false)]
+		public Task ReadBufferAsync(uint physicalPageId, IVirtualBuffer buffer)
 		{
 			return _readBuffers.ProcessBufferAsync(physicalPageId, buffer);
 		}

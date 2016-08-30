@@ -3,11 +3,14 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Zen.Trunk.Logging;
 
 namespace Zen.Trunk.Storage.IO
 {
     public class ScatterGatherRequestArray
-	{
+    {
+        private static readonly ILog Logger = LogProvider.For<ScatterGatherRequestArray>();
+
 		private readonly DateTime _createdDate;
 		private readonly List<ScatterGatherRequest> _callbackInfo = new List<ScatterGatherRequest>();
 		private uint _startBlockNo;
@@ -74,10 +77,11 @@ namespace Zen.Trunk.Storage.IO
 
 		public async Task FlushAsReadAsync(AdvancedFileStream stream)
 		{
-#if IOTRACE
-			Trace.TraceInformation("SGW - Reading {0} memory blocks from disk",
-				_callbackInfo.Count);
-#endif
+		    if (Logger.IsDebugEnabled())
+		    {
+		        Logger.Debug($"Reading {_callbackInfo.Count} memory blocks from disk");
+		    }
+
 			// Prepare buffer array
 			var buffers = _callbackInfo
 				.Select(item => item.Buffer)
@@ -117,12 +121,13 @@ namespace Zen.Trunk.Storage.IO
 
 		public async Task FlushAsWriteAsync(AdvancedFileStream stream)
 		{
-#if IOTRACE
-			Trace.TraceInformation("SGW - Writing {0} memory blocks to disk",
-				_callbackInfo.Count);
-#endif
-			// Prepare buffer array
-			var buffers = _callbackInfo
+            if (Logger.IsDebugEnabled())
+            {
+                Logger.Debug($"Writing {_callbackInfo.Count} memory blocks to disk");
+            }
+
+            // Prepare buffer array
+            var buffers = _callbackInfo
 				.Select(item => item.Buffer)
 				.ToArray();
 			var bufferSize = buffers[0].BufferSize;

@@ -1,8 +1,8 @@
+using System;
+using System.IO;
+
 namespace Zen.Trunk.Storage.IO
 {
-	using System;
-	using System.IO;
-
 	public class NonClosingStream : Stream
 	{
 		#region Private Fields

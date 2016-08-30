@@ -6,14 +6,14 @@
 	public static class AdvancedFileStreamExtensions
 	{
 		public static Task WriteGatherAsync(
-			this AdvancedFileStream stream, VirtualBuffer[] buffers)
+			this AdvancedFileStream stream, IVirtualBuffer[] buffers)
 		{
 			return Task.Factory.FromAsync(
 				stream.BeginWriteGather, stream.EndWriteGather, buffers, null);
 		}
 
 		public static Task<int> ReadScatterAsync(
-			this AdvancedFileStream stream, VirtualBuffer[] buffers)
+			this AdvancedFileStream stream, IVirtualBuffer[] buffers)
 		{
 			return Task<int>.Factory.FromAsync(
 				stream.BeginReadScatter, stream.EndReadScatter, buffers, null);

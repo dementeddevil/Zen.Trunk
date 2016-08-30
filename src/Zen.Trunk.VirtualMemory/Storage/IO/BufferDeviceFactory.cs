@@ -1,4 +1,4 @@
-﻿namespace Zen.Trunk.Storage
+﻿namespace Zen.Trunk.Storage.IO
 {
     public class BufferDeviceFactory : IBufferDeviceFactory
     {

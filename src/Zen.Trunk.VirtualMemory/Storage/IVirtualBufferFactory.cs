@@ -1,8 +1,7 @@
-﻿namespace Zen.Trunk.Storage
-{
-	using System;
-	using Zen.Trunk.Storage.IO;
+﻿using System;
 
+namespace Zen.Trunk.Storage
+{
 	public interface IVirtualBufferFactory : IDisposable
 	{
 		bool IsNearlyFull
@@ -15,6 +14,6 @@
 			get;
 		}
 
-		VirtualBuffer AllocateBuffer();
+		IVirtualBuffer AllocateBuffer();
 	}
 }

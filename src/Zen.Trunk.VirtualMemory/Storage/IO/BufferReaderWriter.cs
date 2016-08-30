@@ -1,9 +1,9 @@
+using System;
+using System.IO;
+using System.Text;
+
 namespace Zen.Trunk.Storage.IO
 {
-	using System;
-	using System.IO;
-	using System.Text;
-
 	public class BufferReaderWriter : IDisposable
 	{
 		#region Private Fields

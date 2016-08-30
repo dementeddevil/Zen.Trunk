@@ -1,10 +1,9 @@
-﻿namespace Zen.Trunk.Storage
-{
-    using System;
-    using System.IO;
-    using System.Threading.Tasks;
-    using Zen.Trunk.Storage.IO;
+﻿using System;
+using System.IO;
+using System.Threading.Tasks;
 
+namespace Zen.Trunk.Storage.IO
+{
     [CLSCompliant(false)]
     public class SingleBufferDevice : BufferDevice, ISingleBufferDevice
     {
@@ -108,7 +107,7 @@
         #endregion
 
         #region Public Methods
-        public async Task LoadBufferAsync(uint physicalPageId, VirtualBuffer buffer)
+        public async Task LoadBufferAsync(uint physicalPageId, IVirtualBuffer buffer)
         {
             if (IsScatterGatherIOEnabled)
             {
@@ -130,7 +129,7 @@
             }
         }
 
-        public async Task SaveBufferAsync(uint physicalPageId, VirtualBuffer buffer)
+        public async Task SaveBufferAsync(uint physicalPageId, IVirtualBuffer buffer)
         {
             if (IsScatterGatherIOEnabled)
             {

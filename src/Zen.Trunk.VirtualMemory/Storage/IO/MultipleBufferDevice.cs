@@ -1,12 +1,10 @@
-﻿namespace Zen.Trunk.Storage
-{
-	using System;
-	using System.Collections.Concurrent;
-	using System.Collections.Generic;
-	using System.Threading.Tasks;
-	using Zen.Trunk.Storage.IO;
+﻿using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
-	[CLSCompliant(false)]
+namespace Zen.Trunk.Storage.IO
+{
 	public class MultipleBufferDevice : BufferDevice, IMultipleBufferDevice
 	{
 		#region Private Types
@@ -137,13 +135,13 @@
 			return device.ExpandDevice(pageCount);
 		}
 
-		public Task LoadBufferAsync(VirtualPageId pageId, VirtualBuffer buffer)
+		public Task LoadBufferAsync(VirtualPageId pageId, IVirtualBuffer buffer)
 		{
 			var device = GetDevice(pageId.DeviceId);
 			return device.LoadBufferAsync(pageId.PhysicalPageId, buffer);
 		}
 
-		public Task SaveBufferAsync(VirtualPageId pageId, VirtualBuffer buffer)
+		public Task SaveBufferAsync(VirtualPageId pageId, IVirtualBuffer buffer)
 		{
 			var device = GetDevice(pageId.DeviceId);
 			return device.SaveBufferAsync(pageId.PhysicalPageId, buffer);

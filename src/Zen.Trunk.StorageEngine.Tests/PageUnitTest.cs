@@ -89,12 +89,12 @@ namespace Zen.Trunk.Storage
 				throw new NotImplementedException();
 			}
 
-			public Task LoadBufferAsync(VirtualPageId pageId, VirtualBuffer buffer)
+			public Task LoadBufferAsync(VirtualPageId pageId, IVirtualBuffer buffer)
 			{
 				throw new NotImplementedException();
 			}
 
-			public Task SaveBufferAsync(VirtualPageId pageId, VirtualBuffer buffer)
+			public Task SaveBufferAsync(VirtualPageId pageId, IVirtualBuffer buffer)
 			{
 				throw new NotImplementedException();
 			}

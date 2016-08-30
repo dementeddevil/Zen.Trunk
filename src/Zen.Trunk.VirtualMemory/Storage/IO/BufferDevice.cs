@@ -1,14 +1,16 @@
-﻿namespace Zen.Trunk.Storage
-{
-	using System;
-	using System.Diagnostics;
-	using System.Threading;
-	using System.Threading.Tasks;
+﻿using System;
+using System.Diagnostics;
+using System.Threading;
+using System.Threading.Tasks;
+using Zen.Trunk.Logging;
 
-	[CLSCompliant(false)]
-	public abstract class BufferDevice : TraceableObject, IBufferDevice
+namespace Zen.Trunk.Storage.IO
+{
+	public abstract class BufferDevice : IBufferDevice
 	{
 		#region Private Fields
+	    private static readonly ILog Logger = LogProvider.For<BufferDevice>();
+
 		private int _deviceState = (int)MountableDeviceState.Closed;
 		private bool _disposed;
 		#endregion
@@ -48,8 +50,12 @@
 		/// <returns></returns>
 		public async Task OpenAsync()
 		{
-			Tracer.WriteVerboseLine("Open - Enter");
-			CheckDisposed();
+		    if (Logger.IsDebugEnabled())
+		    {
+		        Logger.Debug("Open - Enter");
+		    }
+
+            CheckDisposed();
 			MutateStateOrThrow(MountableDeviceState.Closed, MountableDeviceState.Opening);
 			try
 			{
@@ -62,9 +68,12 @@
 			}
 			finally
 			{
-				Tracer.WriteVerboseLine("Open - Exit");
-			}
-			MutateStateOrThrow(MountableDeviceState.Opening, MountableDeviceState.Open);
+                if (Logger.IsDebugEnabled())
+                {
+                    Logger.Debug("Open - Exit");
+                }
+            }
+            MutateStateOrThrow(MountableDeviceState.Opening, MountableDeviceState.Open);
 		}
 
 		/// <summary>
@@ -73,8 +82,11 @@
 		/// <returns></returns>
 		public async Task CloseAsync()
 		{
-			Tracer.WriteVerboseLine("Close - Enter");
-			CheckDisposed();
+            if (Logger.IsDebugEnabled())
+            {
+                Logger.Debug("Close - Enter");
+            }
+            CheckDisposed();
 			MutateStateOrThrow(MountableDeviceState.Open, MountableDeviceState.Closing);
 			try
 			{
@@ -83,9 +95,12 @@
 			finally
 			{
 				MutateStateOrThrow(MountableDeviceState.Closing, MountableDeviceState.Closed);
-				Tracer.WriteVerboseLine("Close - Exit");
-			}
-		}
+                if (Logger.IsDebugEnabled())
+                {
+                    Logger.Debug("Close - Exit");
+                }
+            }
+        }
 
 		/// <summary>
 		/// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.

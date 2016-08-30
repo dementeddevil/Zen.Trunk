@@ -1,9 +1,9 @@
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
 namespace Zen.Trunk.Storage.IO
 {
-	using System;
-	using System.Collections.Generic;
-	using System.Threading.Tasks;
-
 	public class StreamScatterGatherHelper
 	{
 		#region Private Fields
@@ -49,10 +49,9 @@ namespace Zen.Trunk.Storage.IO
 		///	new one will be created without flushing any existing groups.
 		/// </remarks>
 		[CLSCompliant(false)]
-		public Task ProcessBufferAsync(uint physicalPageId, VirtualBuffer buffer)
+		public Task ProcessBufferAsync(uint physicalPageId, IVirtualBuffer buffer)
 		{
-			var request =
-				new ScatterGatherRequest(physicalPageId, buffer);
+			var request = new ScatterGatherRequest(physicalPageId, buffer);
 
 			// Attempt to add to existing array or create a new one
 			var added = false;

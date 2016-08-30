@@ -1,12 +1,9 @@
 ﻿namespace Zen.Trunk.Storage
 {
-	using System;
 	using System.Collections.Generic;
 	using System.Threading.Tasks;
-	using Zen.Trunk.Storage.IO;
 
-	[CLSCompliant(false)]
-	public interface IMultipleBufferDevice : IBufferDevice
+    public interface IMultipleBufferDevice : IBufferDevice
 	{
 		/// <summary>
 		/// Adds a new child single buffer device to this instance.
@@ -60,7 +57,7 @@
 		/// <param name="pageId"></param>
 		/// <param name="buffer"></param>
 		/// <returns></returns>
-		Task LoadBufferAsync(VirtualPageId pageId, VirtualBuffer buffer);
+		Task LoadBufferAsync(VirtualPageId pageId, IVirtualBuffer buffer);
 
 		/// <summary>
 		/// Asynchronously saves a buffer to the device and page associated
@@ -69,7 +66,7 @@
 		/// <param name="pageId">The page unique identifier.</param>
 		/// <param name="buffer">The buffer.</param>
 		/// <returns></returns>
-		Task SaveBufferAsync(VirtualPageId pageId, VirtualBuffer buffer);
+		Task SaveBufferAsync(VirtualPageId pageId, IVirtualBuffer buffer);
 
 		Task FlushBuffersAsync(bool flushReads, bool flushWrites, params DeviceId[] deviceIds);
 
@@ -85,24 +82,5 @@
 		/// <param name="deviceId">The device unique identifier.</param>
 		/// <returns></returns>
 		IBufferDeviceInfo GetDeviceInfo(DeviceId deviceId);
-	}
-
-	[CLSCompliant(false)]
-	public interface IBufferDeviceInfo
-	{
-		DeviceId DeviceId
-		{
-			get;
-		}
-
-		string Name
-		{
-			get;
-		}
-
-		uint PageCount
-		{
-			get;
-		}
 	}
 }

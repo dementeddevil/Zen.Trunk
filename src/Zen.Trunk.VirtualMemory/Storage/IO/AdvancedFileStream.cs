@@ -685,7 +685,7 @@ namespace Zen.Trunk.Storage.IO
 		/// <returns>An <see cref="T:IAsyncResult"/> object.</returns>
 		[HostProtection(SecurityAction.LinkDemand, ExternalThreading = true)]
 		public virtual IAsyncResult BeginReadScatter(
-			VirtualBuffer[] buffers, AsyncCallback callback, object state)
+			IVirtualBuffer[] buffers, AsyncCallback callback, object state)
 		{
 			if (buffers == null || buffers.Length == 0)
 			{
@@ -808,7 +808,7 @@ namespace Zen.Trunk.Storage.IO
 		/// <returns>An <see cref="T:IAsyncResult"/> object.</returns>
 		[HostProtection(SecurityAction.LinkDemand, ExternalThreading = true)]
 		public virtual IAsyncResult BeginWriteGather(
-			VirtualBuffer[] buffers, AsyncCallback callback, object state)
+			IVirtualBuffer[] buffers, AsyncCallback callback, object state)
 		{
 			if (buffers == null || buffers.Length == 0)
 			{
@@ -1948,7 +1948,7 @@ namespace Zen.Trunk.Storage.IO
 		}
 
 		private unsafe AdvancedStreamAsyncResult BeginReadFileScatterCore(
-			VirtualBuffer[] buffers, AsyncCallback userCallback, object stateObject)
+			IVirtualBuffer[] buffers, AsyncCallback userCallback, object stateObject)
 		{
 			// Prepare gather array
 			var bufferCount = buffers.Length;
@@ -1965,7 +1965,7 @@ namespace Zen.Trunk.Storage.IO
 				for (var elemIndex = 0; elemIndex < elemPerBuffer; ++elemIndex)
 				{
 					elements[elemOffset + elemIndex] = new SafeNativeMethods.FILE_SEGMENT_ELEMENT(
-						new IntPtr(buffer.Buffer + (VirtualBuffer.SystemPageSize * elemIndex)));
+						new IntPtr(((VirtualBuffer)buffer).Buffer + (VirtualBuffer.SystemPageSize * elemIndex)));
 				}
 			}
 
@@ -2092,7 +2092,7 @@ namespace Zen.Trunk.Storage.IO
 		}
 
 		private unsafe AdvancedStreamAsyncResult BeginWriteFileGatherCore(
-			VirtualBuffer[] buffers, AsyncCallback userCallback, object stateObject)
+			IVirtualBuffer[] buffers, AsyncCallback userCallback, object stateObject)
 		{
 			// Prepare gather array
 			var bufferCount = buffers.Length;
@@ -2109,7 +2109,7 @@ namespace Zen.Trunk.Storage.IO
 				for (var elemIndex = 0; elemIndex < elemPerBuffer; ++elemIndex)
 				{
 					elements[elemOffset + elemIndex] = new SafeNativeMethods.FILE_SEGMENT_ELEMENT(
-						new IntPtr(buffer.Buffer + (VirtualBuffer.SystemPageSize * elemIndex)));
+						new IntPtr(((VirtualBuffer)buffer).Buffer + (VirtualBuffer.SystemPageSize * elemIndex)));
 				}
 			}
 

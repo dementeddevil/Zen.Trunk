@@ -5,11 +5,11 @@ namespace Zen.Trunk.Storage.IO
 	internal class VirtualBufferCache
 	{
 		#region Private Fields
-		private static int s_nextCacheId = 0;
+		private static int _nextCacheId = 0;
+
 		private readonly int _cacheId;
 		private readonly SafeCommitableMemoryHandle _baseAddress;
 		private readonly SafeCommitableMemoryHandle _nextAddress;
-		private int _bufferSize;
 		private readonly int _bufferCacheSize;
 		private readonly VirtualBuffer[] _buffers;
 		private int _usedBuffers;
@@ -24,9 +24,8 @@ namespace Zen.Trunk.Storage.IO
 		/// <param name="bufferSlots">The buffer slots.</param>
 		public unsafe VirtualBufferCache(SafeCommitableMemoryHandle baseAddress, int bufferSize, int bufferSlots)
 		{
-			_cacheId = Interlocked.Increment(ref s_nextCacheId);
+			_cacheId = Interlocked.Increment(ref _nextCacheId);
 			_baseAddress = baseAddress;
-			_bufferSize = bufferSize;
 			_bufferCacheSize = bufferSlots;
 
 			_buffers = new VirtualBuffer[_bufferCacheSize];

@@ -3,7 +3,6 @@ using System.Collections.Concurrent;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Zen.Trunk.Storage.IO;
 using Zen.Trunk.Storage.Locking;
 using Zen.Trunk.Storage.Log;
 
@@ -473,8 +472,8 @@ namespace Zen.Trunk.Storage.Data
 
 		#region Private Fields
 		private readonly IBufferDevice _bufferDevice;
-		private VirtualBuffer _oldBuffer;
-		private VirtualBuffer _newBuffer;
+		private IVirtualBuffer _oldBuffer;
+		private IVirtualBuffer _newBuffer;
 		private TransactionId _currentTransactionId;
 		private long _timestamp;
 		private readonly ConcurrentDictionary<Guid, StateChangeTrigger> _triggers =
@@ -706,7 +705,7 @@ namespace Zen.Trunk.Storage.Data
 			return DoLoad(_newBuffer);
 		}
 
-		private Task DoLoad(VirtualBuffer buffer)
+		private Task DoLoad(IVirtualBuffer buffer)
 		{
 			var mbd = _bufferDevice as IMultipleBufferDevice;
 			if (mbd != null)
@@ -727,7 +726,7 @@ namespace Zen.Trunk.Storage.Data
 			}
 		}
 
-		private async Task DoSave(VirtualBuffer buffer)
+		private async Task DoSave(IVirtualBuffer buffer)
 		{
 			var mbd = _bufferDevice as IMultipleBufferDevice;
 			if (mbd != null)

@@ -7,7 +7,7 @@
 	public class ScatterGatherRequest : TaskRequest<object>
 	{
 		[CLSCompliant(false)]
-		public ScatterGatherRequest(uint physicalPageId, VirtualBuffer buffer)
+		public ScatterGatherRequest(uint physicalPageId, IVirtualBuffer buffer)
 		{
 			PhysicalPageId = physicalPageId;
 			Buffer = buffer;
@@ -19,7 +19,7 @@
 			private set;
 		}
 
-		public VirtualBuffer Buffer
+		public IVirtualBuffer Buffer
 		{
 			get;
 			private set;
