@@ -13,33 +13,35 @@ using Zen.Trunk.Storage.Locking;
 
 namespace Zen.Trunk.Storage.Query
 {
-	public class QueryExecutive
-	{
-		private readonly MasterDatabaseDevice _masterDevice;
+    public class QueryExecutive
+    {
+        private readonly MasterDatabaseDevice _masterDevice;
 
-		public QueryExecutive(MasterDatabaseDevice masterDevice)
-		{
-			_masterDevice = masterDevice;
-		}
+        public QueryExecutive(MasterDatabaseDevice masterDevice)
+        {
+            _masterDevice = masterDevice;
+        }
 
-		public Task Execute(string statementBatch)
-		{
+        public IEnumerable<BatchedCompoundOperation> Batches { get; private set; }
+
+        public Task Execute(string statementBatch)
+        {
             // Tokenise the input character stream
-			var charStream = new AntlrInputStream(statementBatch);
-			var lexer = new TrunkSqlLexer(charStream);
+            var charStream = new AntlrInputStream(statementBatch);
+            var lexer = new TrunkSqlLexer(charStream);
 
-			// Build AST from the token stream
-			var tokenStream = new CommonTokenStream(lexer);
-			var parser = new TrunkSqlParser(tokenStream);
-			var compileUnit = parser.tsql_file();
+            // Build AST from the token stream
+            var tokenStream = new CommonTokenStream(lexer);
+            var parser = new TrunkSqlParser(tokenStream);
+            var compileUnit = parser.tsql_file();
 
-			// Build query batch pipeline from the AST
-		    var listener = new QueryTreeListener(_masterDevice);
-		    listener.EnterTsql_file(compileUnit);
+            // Build query batch pipeline from the AST
+            var visitor = new SqlBatchOperationBuilder(_masterDevice);
+            Batches = compileUnit.Accept(visitor);
 
-		    return Task.FromResult(true);
-		}
-	}
+            return Task.FromResult(true);
+        }
+    }
 
     /// <summary>
     /// 
@@ -51,38 +53,90 @@ namespace Zen.Trunk.Storage.Query
     /// and execute a series of asynchronous blocks.
     /// Each block is an asynchronous operation or composite (where BEGIN/END is used).
     /// </remarks>
-    public class QueryTreeListener : TrunkSqlBaseListener
+    public class SqlBatchOperationBuilder : TrunkSqlBaseVisitor<IList<BatchedCompoundOperation>>
     {
         private readonly MasterDatabaseDevice _masterDatabase;
         private readonly List<BatchedCompoundOperation> _batches =
             new List<BatchedCompoundOperation>();
 
         private BatchedCompoundOperation _currentBatch;
+        private DatabaseDevice _activeDatabase;
 
-        public QueryTreeListener(MasterDatabaseDevice masterDatabase)
+        public SqlBatchOperationBuilder(MasterDatabaseDevice masterDatabase)
         {
             _masterDatabase = masterDatabase;
         }
 
-        public override void EnterBatch([NotNull] TrunkSqlParser.BatchContext context)
+        public IEnumerable<BatchedCompoundOperation> Batches => _batches;
+
+        public override IList<BatchedCompoundOperation> VisitBatch(TrunkSqlParser.BatchContext context)
         {
             CreateNewBatch();
 
-            base.EnterBatch(context);
-        }
-
-        public override void ExitBatch([NotNull] TrunkSqlParser.BatchContext context)
-        {
-            base.ExitBatch(context);
+            base.VisitBatch(context);
 
             CommitCurrentBatch();
+            return _batches;
+        }
+
+        public override IList<BatchedCompoundOperation> VisitUse_statement(TrunkSqlParser.Use_statementContext context)
+        {
+            var dbName = context.database.ToString();
+            var dbDevice = _masterDatabase.GetDatabaseDevice(dbName);
+            if (dbDevice == null)
+            {
+                throw new Exception($"Unknown database ({dbName})");
+            }
+
+            _activeDatabase = dbDevice;
+            _currentBatch.PushDatabaseSwitch(dbName);
+            return base.VisitUse_statement(context);
+        }
+
+        public override IList<BatchedCompoundOperation> VisitSet_special(TrunkSqlParser.Set_specialContext context)
+        {
+            if (context.ChildCount > 4 &&
+                context.GetChild(0) == context.SET() &&
+                context.GetChild(1) == context.TRANSACTION() &&
+                context.GetChild(2) == context.ISOLATION() &&
+                context.GetChild(3) == context.LEVEL())
+            {
+                IsolationLevel level = IsolationLevel.ReadCommitted;
+                if (context.GetChild(4) == context.READ() &&
+                    context.GetChild(5) == context.UNCOMMITTED())
+                {
+                    level = IsolationLevel.ReadUncommitted;
+                }
+                if (context.GetChild(4) == context.READ() &&
+                    context.GetChild(5) == context.COMMITTED())
+                {
+                    level = IsolationLevel.ReadCommitted;
+                }
+                if (context.GetChild(4) == context.REPEATABLE() &&
+                    context.GetChild(5) == context.READ())
+                {
+                    level = IsolationLevel.RepeatableRead;
+                }
+                if (context.GetChild(4) == context.SNAPSHOT())
+                {
+                    level = IsolationLevel.Snapshot;
+                }
+                if (context.GetChild(4) == context.SERIALIZABLE())
+                {
+                    level = IsolationLevel.Serializable;
+                }
+
+                // TODO: Determine whether this demands a new batch
+                _currentBatch.SetTransactionIsolationLevel(level);
+            }
+            return base.VisitSet_special(context);
         }
 
         private void CreateNewBatch()
         {
             CommitCurrentBatch();
 
-            _currentBatch = new BatchedCompoundOperation(_masterDatabase);
+            _currentBatch = new BatchedCompoundOperation(_masterDatabase, _activeDatabase);
         }
 
         private void CommitCurrentBatch()
@@ -97,6 +151,8 @@ namespace Zen.Trunk.Storage.Query
 
     public class BatchedCompoundOperation : CompoundOperation
     {
+        private IsolationLevel _isolationLevel = IsolationLevel.ReadCommitted;
+
         public BatchedCompoundOperation(
             MasterDatabaseDevice masterDatabase,
             DatabaseDevice activeDatabase = null)
@@ -104,11 +160,13 @@ namespace Zen.Trunk.Storage.Query
         {
         }
 
+        public IsolationLevel TransactionIsolationLevel => _isolationLevel;
+
         protected override Task PreExecuteAsync()
         {
             TrunkTransactionContext.BeginTransaction(
                 MasterDatabase.LifetimeScope,
-                IsolationLevel.ReadCommitted,
+                _isolationLevel,
                 TimeSpan.FromSeconds(30));
 
             return base.PreExecuteAsync();
@@ -126,6 +184,11 @@ namespace Zen.Trunk.Storage.Query
             {
                 await TrunkTransactionContext.Rollback().ConfigureAwait(false);
             }
+        }
+
+        public void SetTransactionIsolationLevel(IsolationLevel level)
+        {
+            _isolationLevel = level;
         }
     }
 

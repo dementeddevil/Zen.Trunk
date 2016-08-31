@@ -4,8 +4,10 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Transactions;
 using Xunit;
 using Zen.Trunk.Storage.Data;
 using Zen.Trunk.Storage.Locking;
@@ -68,6 +70,39 @@ namespace Zen.Trunk.Storage
                     await TrunkTransactionContext.Commit();
 
                     await manager.CloseAsync().ConfigureAwait(true);
+                }
+            }
+        }
+
+        public async Task UseDatabaseTest()
+        {
+
+        }
+
+        [Theory(DisplayName = "Set transaction isolation level propagates to executed batch")]
+        [InlineData("READ UNCOMMITTED", IsolationLevel.ReadUncommitted)]
+        [InlineData("READ COMMITTED", IsolationLevel.ReadCommitted)]
+        [InlineData("REPEATABLE READ", IsolationLevel.RepeatableRead)]
+        [InlineData("SNAPSHOT", IsolationLevel.Snapshot)]
+        [InlineData("SERIALIZABLE", IsolationLevel.Serializable)]
+        public async Task SetTransaction(
+            string requestedIsolationLevel, IsolationLevel expectedIsolationLevel)
+        {
+            using (var tracker = new TempFileTracker())
+            {
+                using (var manager = new MasterDatabaseDevice())
+                {
+                    manager.InitialiseDeviceLifetimeScope(Scope);
+                    var executive = new QueryExecutive(manager);
+
+                    var batch = new StringBuilder();
+                    batch.AppendLine(
+                        $"SET TRANSACTION ISOLATION LEVEL {requestedIsolationLevel};");
+                    batch.AppendLine("GO");
+
+                    await executive.Execute(batch.ToString()).ConfigureAwait(true);
+
+                    //executive.Batches.FirstOrDefault().
                 }
             }
         }
