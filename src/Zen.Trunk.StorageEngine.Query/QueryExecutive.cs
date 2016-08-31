@@ -24,7 +24,7 @@ namespace Zen.Trunk.Storage.Query
 
         public IEnumerable<BatchedCompoundOperation> Batches { get; private set; }
 
-        public Task Execute(string statementBatch)
+        public async Task Execute(string statementBatch)
         {
             // Tokenise the input character stream
             var charStream = new AntlrInputStream(statementBatch);
@@ -39,7 +39,11 @@ namespace Zen.Trunk.Storage.Query
             var visitor = new SqlBatchOperationBuilder(_masterDevice);
             Batches = compileUnit.Accept(visitor);
 
-            return Task.FromResult(true);
+            // Walk the batches and execute each one
+            foreach(var batch in Batches)
+            {
+                await batch.ExecuteAsync().ConfigureAwait(false);
+            }
         }
     }
 
