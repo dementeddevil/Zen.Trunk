@@ -24,7 +24,7 @@ namespace Zen.Trunk.Storage.Query
 
         public IEnumerable<BatchedCompoundOperation> Batches { get; private set; }
 
-        public async Task Execute(string statementBatch)
+        public async Task Execute(string statementBatch, bool onlyPrepare = false)
         {
             // Tokenise the input character stream
             var charStream = new AntlrInputStream(statementBatch);
@@ -38,6 +38,11 @@ namespace Zen.Trunk.Storage.Query
             // Build query batch pipeline from the AST
             var visitor = new SqlBatchOperationBuilder(_masterDevice);
             Batches = compileUnit.Accept(visitor);
+
+            if(onlyPrepare)
+            {
+                return;
+            }
 
             // Walk the batches and execute each one
             foreach(var batch in Batches)
