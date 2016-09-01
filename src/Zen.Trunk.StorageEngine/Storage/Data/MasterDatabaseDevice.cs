@@ -109,7 +109,15 @@ namespace Zen.Trunk.Storage.Data
 
 				foreach (var file in fileGroup.Value.Where(f=>f.Name != "PRIMARY"))
 				{
-					await AttachDatabaseFileGroupDeviceAsync(request, file, pageSize, mountingPrimary, needToCreateMasterFilegroup, device, fileGroup, deviceId);
+					await AttachDatabaseFileGroupDeviceAsync(
+                        request,
+                        file,
+                        pageSize,
+                        mountingPrimary,
+                        needToCreateMasterFilegroup,
+                        device,
+                        fileGroup,
+                        deviceId).ConfigureAwait(false);
 
 				    // Advance to next device
 					deviceId = deviceId.Next;

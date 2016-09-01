@@ -39,13 +39,13 @@ namespace Zen.Trunk.Storage.Query
             var visitor = new SqlBatchOperationBuilder(_masterDevice);
             Batches = compileUnit.Accept(visitor);
 
-            if(onlyPrepare)
+            if (onlyPrepare)
             {
                 return;
             }
 
             // Walk the batches and execute each one
-            foreach(var batch in Batches)
+            foreach (var batch in Batches)
             {
                 await batch.ExecuteAsync().ConfigureAwait(false);
             }
@@ -70,6 +70,8 @@ namespace Zen.Trunk.Storage.Query
 
         private BatchedCompoundOperation _currentBatch;
         private DatabaseDevice _activeDatabase;
+
+        private AttachDatabaseParameters _attachDatabaseParameters;
 
         public SqlBatchOperationBuilder(MasterDatabaseDevice masterDatabase)
         {
@@ -102,15 +104,25 @@ namespace Zen.Trunk.Storage.Query
             return base.VisitUse_statement(context);
         }
 
-        public override IList<BatchedCompoundOperation> VisitSet_special(TrunkSqlParser.Set_specialContext context)
+        public override IList<BatchedCompoundOperation> VisitSetTransactionIsolationLevel(TrunkSqlParser.SetTransactionIsolationLevelContext context)
         {
-            if (context.ChildCount > 4 &&
+            /*if (context.ChildCount > 4 &&
                 context.GetChild(0) == context.SET() &&
                 context.GetChild(1) == context.TRANSACTION() &&
                 context.GetChild(2) == context.ISOLATION() &&
-                context.GetChild(3) == context.LEVEL())
+                context.GetChild(3) == context.LEVEL())*/
+
+            IsolationLevel level = IsolationLevel.ReadCommitted;
+            if (context.GetChild(4) == context.SNAPSHOT())
             {
-                IsolationLevel level = IsolationLevel.ReadCommitted;
+                level = IsolationLevel.Snapshot;
+            }
+            else if (context.GetChild(4) == context.SERIALIZABLE())
+            {
+                level = IsolationLevel.Serializable;
+            }
+            if (context.ChildCount > 5)
+            {
                 if (context.GetChild(4) == context.READ() &&
                     context.GetChild(5) == context.UNCOMMITTED())
                 {
@@ -126,19 +138,78 @@ namespace Zen.Trunk.Storage.Query
                 {
                     level = IsolationLevel.RepeatableRead;
                 }
-                if (context.GetChild(4) == context.SNAPSHOT())
-                {
-                    level = IsolationLevel.Snapshot;
-                }
-                if (context.GetChild(4) == context.SERIALIZABLE())
-                {
-                    level = IsolationLevel.Serializable;
-                }
-
-                // TODO: Determine whether this demands a new batch
-                _currentBatch.SetTransactionIsolationLevel(level);
             }
-            return base.VisitSet_special(context);
+
+            // TODO: Determine whether this demands a new batch
+            _currentBatch.SetTransactionIsolationLevel(level);
+            return base.VisitSetTransactionIsolationLevel(context);
+        }
+
+        public override IList<BatchedCompoundOperation> VisitCreate_database(TrunkSqlParser.Create_databaseContext context)
+        {
+            _attachDatabaseParameters = new AttachDatabaseParameters();
+            _attachDatabaseParameters.Name = context.database.ToString();
+            var fileSpecCount = context.database_file_spec().Length;
+            var rawDatabaseFileSpec = context.database_file_spec(0);
+            var fileSpecIndex = 0;
+            var isLogFileSpec = false;
+            var fileGroupName = string.Empty;
+            for (int index = 0; index < context.ChildCount; ++index)
+            {
+                var token = context.GetChild(index);
+                if (token == context.LOG())
+                {
+                    isLogFileSpec = true;
+                }
+                if (token == context.PRIMARY())
+                {
+                    fileGroupName = "PRIMARY";
+                }
+                if (token == rawDatabaseFileSpec)
+                {
+                    var rawFileGroupSpec = rawDatabaseFileSpec.file_group();
+                    var rawFileSpec = rawDatabaseFileSpec.file_spec();
+                    if (!isLogFileSpec && rawFileGroupSpec != null)
+                    {
+                        fileGroupName = rawFileGroupSpec.id().ToString();
+                        foreach (var rfs in rawFileGroupSpec.file_spec())
+                        {
+                            var nativeFileSpec =
+                                new FileSpec
+                                {
+                                    Size = rfs.f
+                                };
+                            rfs.id()
+                        }
+                    }
+                    rawFileSpec.
+                    // Process file specification and add to parameters
+
+
+                    if (++fileSpecIndex < fileSpecCount)
+                    {
+                        rawDatabaseFileSpec = context.database_file_spec(fileSpecIndex);
+                    }
+                    else
+                    {
+                        rawDatabaseFileSpec = null;
+                    }
+                }
+            }
+            return base.VisitCreate_database(context);
+
+        }
+
+        private FileSpec GetNativeFileSpecFromFileSpec(TrunkSqlParser.File_specContext fileSpecContext)
+        {
+            var nativeFileSpec =
+                new FileSpec
+                {
+                    Name = fileSpecContext.id().ToString(),
+                    FileName = fileSpecContext.file.Text,
+                };
+
+            return nativeFileSpec;
         }
 
         private void CreateNewBatch()

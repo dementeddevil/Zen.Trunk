@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Transactions;
+using Autofac;
 using Xunit;
 using Zen.Trunk.Storage.Data;
 using Zen.Trunk.Storage.Locking;
@@ -26,7 +27,7 @@ namespace Zen.Trunk.Storage
         {
             using (var tracker = new TempFileTracker())
             {
-                using (var manager = new MasterDatabaseDevice())
+                using (var manager = Scope.Resolve<MasterDatabaseDevice>())
                 {
                     manager.InitialiseDeviceLifetimeScope(Scope);
                     var executive = new QueryExecutive(manager);
@@ -105,6 +106,14 @@ namespace Zen.Trunk.Storage
                     //executive.Batches.FirstOrDefault().
                 }
             }
+        }
+
+        protected override void InitializeContainerBuilder(ContainerBuilder builder)
+        {
+            base.InitializeContainerBuilder(builder);
+            builder.RegisterType<MasterDatabaseDevice>()
+                .SingleInstance()
+                .AsSelf();
         }
     }
 }

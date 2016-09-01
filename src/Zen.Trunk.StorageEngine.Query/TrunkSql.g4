@@ -655,15 +655,15 @@ fetch_cursor
 // https://msdn.microsoft.com/en-us/library/ms190356.aspx
 // Runtime check.
 set_special
-    : SET id (id | constant_LOCAL_ID | on_off) ';'?
+    : SET id (id | constant_LOCAL_ID | on_off) ';'?											# SetValueOrOption
     // https://msdn.microsoft.com/en-us/library/ms173763.aspx
     | SET TRANSACTION ISOLATION LEVEL
-      (READ UNCOMMITTED | READ COMMITTED | REPEATABLE READ | SNAPSHOT | SERIALIZABLE) ';'?
+      (READ UNCOMMITTED | READ COMMITTED | REPEATABLE READ | SNAPSHOT | SERIALIZABLE) ';'?	# SetTransactionIsolationLevel
     // https://msdn.microsoft.com/en-us/library/ms188059.aspx
-    | SET IDENTITY_INSERT table_name on_off ';'?
-    | SET ANSI_NULLS on_off
-    | SET QUOTED_IDENTIFIER on_off
-    | SET ANSI_PADDING on_off
+    | SET IDENTITY_INSERT table_name on_off ';'?											# SetTableIdentityInsert
+    | SET ANSI_NULLS on_off																	# SetAnsiNullsHandling
+    | SET QUOTED_IDENTIFIER on_off															# SetQuotedIdentifierHandling
+    | SET ANSI_PADDING on_off																# SetAnsiPaddingHandling
     ;
 
 constant_LOCAL_ID
