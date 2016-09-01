@@ -22,7 +22,7 @@ namespace Zen.Trunk.Storage.Query
             _masterDevice = masterDevice;
         }
 
-        public IEnumerable<BatchedCompoundOperation> Batches { get; private set; }
+        public CompoundFile File { get; private set; }
 
         public async Task Execute(string statementBatch, bool onlyPrepare = false)
         {
@@ -37,7 +37,7 @@ namespace Zen.Trunk.Storage.Query
 
             // Build query batch pipeline from the AST
             var visitor = new SqlBatchOperationBuilder(_masterDevice);
-            Batches = compileUnit.Accept(visitor);
+            File = (CompoundFile)compileUnit.Accept(visitor);
 
             if (onlyPrepare)
             {
@@ -45,10 +45,7 @@ namespace Zen.Trunk.Storage.Query
             }
 
             // Walk the batches and execute each one
-            foreach (var batch in Batches)
-            {
-                await batch.ExecuteAsync().ConfigureAwait(false);
-            }
+            await File.ExecuteAsync().ConfigureAwait(false);
         }
     }
 
@@ -62,13 +59,12 @@ namespace Zen.Trunk.Storage.Query
     /// and execute a series of asynchronous blocks.
     /// Each block is an asynchronous operation or composite (where BEGIN/END is used).
     /// </remarks>
-    public class SqlBatchOperationBuilder : TrunkSqlBaseVisitor<IList<BatchedCompoundOperation>>
+    public class SqlBatchOperationBuilder : TrunkSqlBaseVisitor<CompoundOperation>
     {
         private readonly MasterDatabaseDevice _masterDatabase;
-        private readonly List<BatchedCompoundOperation> _batches =
-            new List<BatchedCompoundOperation>();
-
+        private CompoundFile _file;
         private BatchedCompoundOperation _currentBatch;
+        private CompoundOperation _currentOperation;
         private DatabaseDevice _activeDatabase;
 
         private AttachDatabaseParameters _attachDatabaseParameters;
@@ -78,19 +74,25 @@ namespace Zen.Trunk.Storage.Query
             _masterDatabase = masterDatabase;
         }
 
-        public IEnumerable<BatchedCompoundOperation> Batches => _batches;
+        public CompoundFile File => _file;
 
-        public override IList<BatchedCompoundOperation> VisitBatch(TrunkSqlParser.BatchContext context)
+        public override CompoundOperation VisitTsql_file([NotNull] TrunkSqlParser.Tsql_fileContext context)
+        {
+            base.VisitTsql_file(context);
+            return _file;
+        }
+
+        public override CompoundOperation VisitBatch(TrunkSqlParser.BatchContext context)
         {
             CreateNewBatch();
 
             base.VisitBatch(context);
 
             CommitCurrentBatch();
-            return _batches;
+            return _currentBatch;
         }
 
-        public override IList<BatchedCompoundOperation> VisitUse_statement(TrunkSqlParser.Use_statementContext context)
+        public override CompoundOperation VisitUse_statement(TrunkSqlParser.Use_statementContext context)
         {
             var dbName = context.database.ToString();
             var dbDevice = _masterDatabase.GetDatabaseDevice(dbName);
@@ -104,7 +106,7 @@ namespace Zen.Trunk.Storage.Query
             return base.VisitUse_statement(context);
         }
 
-        public override IList<BatchedCompoundOperation> VisitSetTransactionIsolationLevel(TrunkSqlParser.SetTransactionIsolationLevelContext context)
+        public override CompoundOperation VisitSetTransactionIsolationLevel(TrunkSqlParser.SetTransactionIsolationLevelContext context)
         {
             /*if (context.ChildCount > 4 &&
                 context.GetChild(0) == context.SET() &&
@@ -145,7 +147,7 @@ namespace Zen.Trunk.Storage.Query
             return base.VisitSetTransactionIsolationLevel(context);
         }
 
-        public override IList<BatchedCompoundOperation> VisitCreate_database(TrunkSqlParser.Create_databaseContext context)
+        public override CompoundOperation VisitCreate_database(TrunkSqlParser.Create_databaseContext context)
         {
             _attachDatabaseParameters = new AttachDatabaseParameters();
             _attachDatabaseParameters.Name = context.database.ToString();
@@ -169,20 +171,40 @@ namespace Zen.Trunk.Storage.Query
                 {
                     var rawFileGroupSpec = rawDatabaseFileSpec.file_group();
                     var rawFileSpec = rawDatabaseFileSpec.file_spec();
-                    if (!isLogFileSpec && rawFileGroupSpec != null)
+                    if (!isLogFileSpec)
                     {
-                        fileGroupName = rawFileGroupSpec.id().ToString();
-                        foreach (var rfs in rawFileGroupSpec.file_spec())
+                        if (rawFileGroupSpec != null)
                         {
-                            var nativeFileSpec =
-                                new FileSpec
-                                {
-                                    Size = rfs.f
-                                };
-                            rfs.id()
+                            fileGroupName = rawFileGroupSpec.id().ToString();
+                            foreach (var rfs in rawFileGroupSpec.file_spec())
+                            {
+                                var nativeFileSpec = GetNativeFileSpecFromFileSpec(rfs);
+                                _attachDatabaseParameters.AddDataFile(fileGroupName, nativeFileSpec);
+                            }
+                        }
+                        else if (rawFileSpec != null)
+                        {
+                            var nativeFileSpec = GetNativeFileSpecFromFileSpec(rawFileSpec);
+                            _attachDatabaseParameters.AddDataFile("PRIMARY", nativeFileSpec);
                         }
                     }
-                    rawFileSpec.
+                    else
+                    {
+                        if (rawFileGroupSpec != null)
+                        {
+                            foreach (var rfs in rawFileGroupSpec.file_spec())
+                            {
+                                var nativeFileSpec = GetNativeFileSpecFromFileSpec(rfs);
+                                _attachDatabaseParameters.AddLogFile(nativeFileSpec);
+                            }
+                        }
+                        else if (rawFileSpec != null)
+                        {
+                            var nativeFileSpec = GetNativeFileSpecFromFileSpec(rawFileSpec);
+                            _attachDatabaseParameters.AddLogFile(nativeFileSpec);
+                        }
+                    }
+
                     // Process file specification and add to parameters
 
 
@@ -216,15 +238,46 @@ namespace Zen.Trunk.Storage.Query
         {
             CommitCurrentBatch();
 
+            if (_file == null)
+            {
+                _file = new CompoundFile(_masterDatabase, _activeDatabase);
+            }
+
             _currentBatch = new BatchedCompoundOperation(_masterDatabase, _activeDatabase);
+            _currentOperation = _currentBatch;
         }
 
         private void CommitCurrentBatch()
         {
             if (_currentBatch != null && !_currentBatch.IsEmpty)
             {
-                _batches.Add(_currentBatch);
+                _file.Add(_currentBatch);
                 _currentBatch = null;
+                _currentOperation = null;
+            }
+        }
+    }
+
+    public class CompoundFile : CompoundOperation
+    {
+        private readonly IList<BatchedCompoundOperation> _batches =
+            new List<BatchedCompoundOperation>();
+
+        public CompoundFile(MasterDatabaseDevice masterDatabase, DatabaseDevice activeDatabase = null)
+            : base(masterDatabase, activeDatabase)
+        {
+        }
+
+        public void Add(BatchedCompoundOperation batchedOperation)
+        {
+            _batches.Add(batchedOperation);
+        }
+
+        protected override async Task ExecuteCoreAsync()
+        {
+            foreach (var batch in _batches)
+            {
+                await batch.ExecuteAsync().ConfigureAwait(false);
             }
         }
     }
