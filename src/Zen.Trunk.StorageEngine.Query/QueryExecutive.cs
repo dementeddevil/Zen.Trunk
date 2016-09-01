@@ -149,8 +149,8 @@ namespace Zen.Trunk.Storage.Query
 
         public override CompoundOperation VisitCreate_database(TrunkSqlParser.Create_databaseContext context)
         {
-            _attachDatabaseParameters = new AttachDatabaseParameters();
-            _attachDatabaseParameters.Name = context.database.ToString();
+            var attachDatabaseParameters = new AttachDatabaseParameters();
+            attachDatabaseParameters.Name = context.database.ToString();
             var fileSpecCount = context.database_file_spec().Length;
             var rawDatabaseFileSpec = context.database_file_spec(0);
             var fileSpecIndex = 0;
@@ -179,13 +179,13 @@ namespace Zen.Trunk.Storage.Query
                             foreach (var rfs in rawFileGroupSpec.file_spec())
                             {
                                 var nativeFileSpec = GetNativeFileSpecFromFileSpec(rfs);
-                                _attachDatabaseParameters.AddDataFile(fileGroupName, nativeFileSpec);
+                                attachDatabaseParameters.AddDataFile(fileGroupName, nativeFileSpec);
                             }
                         }
                         else if (rawFileSpec != null)
                         {
                             var nativeFileSpec = GetNativeFileSpecFromFileSpec(rawFileSpec);
-                            _attachDatabaseParameters.AddDataFile("PRIMARY", nativeFileSpec);
+                            attachDatabaseParameters.AddDataFile(fileGroupName, nativeFileSpec);
                         }
                     }
                     else
@@ -195,19 +195,17 @@ namespace Zen.Trunk.Storage.Query
                             foreach (var rfs in rawFileGroupSpec.file_spec())
                             {
                                 var nativeFileSpec = GetNativeFileSpecFromFileSpec(rfs);
-                                _attachDatabaseParameters.AddLogFile(nativeFileSpec);
+                                attachDatabaseParameters.AddLogFile(nativeFileSpec);
                             }
                         }
                         else if (rawFileSpec != null)
                         {
                             var nativeFileSpec = GetNativeFileSpecFromFileSpec(rawFileSpec);
-                            _attachDatabaseParameters.AddLogFile(nativeFileSpec);
+                            attachDatabaseParameters.AddLogFile(nativeFileSpec);
                         }
                     }
 
                     // Process file specification and add to parameters
-
-
                     if (++fileSpecIndex < fileSpecCount)
                     {
                         rawDatabaseFileSpec = context.database_file_spec(fileSpecIndex);
@@ -218,8 +216,10 @@ namespace Zen.Trunk.Storage.Query
                     }
                 }
             }
-            return base.VisitCreate_database(context);
 
+            CreateNewBatch();
+            _currentOperation.PushAttachDatabase(attachDatabaseParameters);
+            return _currentBatch;
         }
 
         private FileSpec GetNativeFileSpecFromFileSpec(TrunkSqlParser.File_specContext fileSpecContext)
@@ -237,41 +237,67 @@ namespace Zen.Trunk.Storage.Query
                 if (child == fileSpecContext.SIZE())
                 {
                     nativeFileSpec.Size = GetNativeSizeFromFileSize(
-                        fileSpecContext.GetChild<TrunkSqlParser.File_sizeContext>(index + 1));
+                        (TrunkSqlParser.File_sizeContext)fileSpecContext.GetChild(index + 2));
                 }
-                if(child == fileSpecContext.MAXSIZE())
+                if (child == fileSpecContext.MAXSIZE())
                 {
-
+                    if (fileSpecContext.GetChild(index + 2) == fileSpecContext.UNLIMITED())
+                    {
+                        nativeFileSpec.MaxSize = FileSize.Unlimited;
+                    }
+                    else
+                    {
+                        nativeFileSpec.MaxSize = GetNativeSizeFromFileSize(
+                            (TrunkSqlParser.File_sizeContext)fileSpecContext.GetChild(index + 2));
+                    }
+                }
+                if (child == fileSpecContext.FILEGROWTH())
+                {
+                    nativeFileSpec.FileGrowth = GetNativeSizeFromFileSize(
+                        (TrunkSqlParser.File_sizeContext)fileSpecContext.GetChild(index + 2));
                 }
             }
+
             return nativeFileSpec;
         }
 
-        private long GetNativeSizeFromFileSize(TrunkSqlParser.File_sizeContext fileSizeContext)
+        private FileSize GetNativeSizeFromFileSize(TrunkSqlParser.File_sizeContext fileSizeContext)
         {
             // Get the 
             var sizeText = fileSizeContext.GetChild(0).GetText();
-            var unit = "MB";
-            if(fileSizeContext.ChildCount > 1)
+            var unit = FileSize.FileSizeUnit.MegaBytes;
+            if (fileSizeContext.ChildCount > 1)
             {
                 var unitToken = fileSizeContext.GetChild(1);
-                if(unitToken == fileSizeContext.KB())
+                if (unitToken == fileSizeContext.KB())
                 {
-                    unit = "KB";
-                }
-                else if(unitToken == fileSizeContext.MB())
-                {
-                    unit = "MB";
+                    unit = FileSize.FileSizeUnit.KiloBytes;
                 }
                 else if (unitToken == fileSizeContext.MB())
                 {
-                    unit = "GB";
+                    unit = FileSize.FileSizeUnit.MegaBytes;
                 }
-                else if (unitToken == fileSizeContext.MB())
+                else if (unitToken == fileSizeContext.GB())
                 {
-                    unit = "TB";
+                    unit = FileSize.FileSizeUnit.GigaBytes;
+                }
+                else if (unitToken == fileSizeContext.TB())
+                {
+                    unit = FileSize.FileSizeUnit.TeraBytes;
+                }
+                else if (unitToken == fileSizeContext.MODULE())
+                {
+                    unit = FileSize.FileSizeUnit.Percentage;
                 }
             }
+
+            double value;
+            if (double.TryParse(sizeText, out value))
+            {
+                return new FileSize(value, unit);
+            }
+
+            return new FileSize(0.0, unit);
         }
 
         private void CreateNewBatch()
@@ -411,6 +437,11 @@ namespace Zen.Trunk.Storage.Query
                     _activeDatabase = _masterDatabase.GetDatabaseDevice(databaseName);
                     return Task.FromResult(true);
                 });
+        }
+
+        public void PushAttachDatabase(AttachDatabaseParameters attachParameters)
+        {
+            _operations.Add(() => _masterDatabase.AttachDatabase(attachParameters));
         }
 
         public void PushNestedOperation(CompoundOperation operation)

@@ -1360,7 +1360,7 @@ assignment_operator
     ;
 
 file_size:
-    DECIMAL( KB | MB | GB | TB | '%' )?
+    DECIMAL( KB | MB | GB | TB | MODULE )?
     ;
 
 // Lexer

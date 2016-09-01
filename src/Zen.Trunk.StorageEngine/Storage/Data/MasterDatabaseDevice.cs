@@ -16,100 +16,100 @@ using Zen.Trunk.Storage.Log;
 namespace Zen.Trunk.Storage.Data
 {
     public class MasterDatabaseDevice : DatabaseDevice
-	{
-		#region Public Fields
-		public static readonly string[] ReservedDatabaseNames =
-			new[] { "MASTER", "TEMPDB" };
-		#endregion
+    {
+        #region Public Fields
+        public static readonly string[] ReservedDatabaseNames =
+            new[] { "MASTER", "TEMPDB" };
+        #endregion
 
-		#region Private Fields
-		private readonly Dictionary<string, DatabaseDevice> _userDatabases =
-			new Dictionary<string, DatabaseDevice>(StringComparer.OrdinalIgnoreCase);
-		private DatabaseId _nextDatabaseId;
-		private bool _hasAttachedMaster;
-		#endregion
+        #region Private Fields
+        private readonly Dictionary<string, DatabaseDevice> _userDatabases =
+            new Dictionary<string, DatabaseDevice>(StringComparer.OrdinalIgnoreCase);
+        private DatabaseId _nextDatabaseId;
+        private bool _hasAttachedMaster;
+        #endregion
 
-		#region Public Constructors
-		/// <summary>
-		/// Initializes a new instance of the <see cref="MasterDatabaseDevice"/> class.
-		/// </summary>
-		/// <remarks>
-		/// The parent lifetime scope must be able to resolve the following interfaces;
-		/// 1. IVirtualBufferFactory
-		/// </remarks>
-		public MasterDatabaseDevice()
-			: base(DatabaseId.Master)
-		{
-		}
-		#endregion
+        #region Public Constructors
+        /// <summary>
+        /// Initializes a new instance of the <see cref="MasterDatabaseDevice"/> class.
+        /// </summary>
+        /// <remarks>
+        /// The parent lifetime scope must be able to resolve the following interfaces;
+        /// 1. IVirtualBufferFactory
+        /// </remarks>
+        public MasterDatabaseDevice()
+            : base(DatabaseId.Master)
+        {
+        }
+        #endregion
 
-		#region Protected Properties
-		/// <summary>
-		/// Gets the primary file group id.
-		/// </summary>
-		/// <value>The primary file group id.</value>
-		protected override FileGroupId PrimaryFileGroupId => FileGroupId.Master;
-	    #endregion
+        #region Protected Properties
+        /// <summary>
+        /// Gets the primary file group id.
+        /// </summary>
+        /// <value>The primary file group id.</value>
+        protected override FileGroupId PrimaryFileGroupId => FileGroupId.Master;
+        #endregion
 
-		#region Public Methods
-		public async Task AttachDatabase(AttachDatabaseParameters request)
-		{
-			// Determine whether we are attaching the master database
-			var mountingMaster = false;
-			DatabaseDevice device;
-			if (!_hasAttachedMaster)
-			{
-				if (!request.Name.Equals("master", StringComparison.OrdinalIgnoreCase))
-				{
-					throw new ArgumentException("First database attached must be master database.");
-				}
+        #region Public Methods
+        public async Task AttachDatabase(AttachDatabaseParameters request)
+        {
+            // Determine whether we are attaching the master database
+            var mountingMaster = false;
+            DatabaseDevice device;
+            if (!_hasAttachedMaster)
+            {
+                if (!request.Name.Equals("master", StringComparison.OrdinalIgnoreCase))
+                {
+                    throw new ArgumentException("First database attached must be master database.");
+                }
 
-				mountingMaster = true;
-				device = this;
-			}
-			else
-			{
-				if (request.Name.Equals("master", StringComparison.OrdinalIgnoreCase))
-				{
-					throw new ArgumentException("Master database has already been attached.");
-				}
+                mountingMaster = true;
+                device = this;
+            }
+            else
+            {
+                if (request.Name.Equals("master", StringComparison.OrdinalIgnoreCase))
+                {
+                    throw new ArgumentException("Master database has already been attached.");
+                }
 
-				// Create new database device
-				var dbId = _nextDatabaseId = _nextDatabaseId.Next;
-				device = ResolveDeviceService<DatabaseDevice>(
+                // Create new database device
+                var dbId = _nextDatabaseId = _nextDatabaseId.Next;
+                device = ResolveDeviceService<DatabaseDevice>(
                     new NamedParameter("dbId", dbId));
-			}
+            }
 
-			// Create transaction context for the new database device
-			//TrunkTransactionContext.BeginTransaction(device, TimeSpan.FromMinutes(1));
+            // Create transaction context for the new database device
+            //TrunkTransactionContext.BeginTransaction(device, TimeSpan.FromMinutes(1));
 
-			// Check database name is unique
-			if (_userDatabases.ContainsKey(request.Name))
-			{
-				throw new ArgumentException("Database with same name already exists.");
-			}
+            // Check database name is unique
+            if (_userDatabases.ContainsKey(request.Name))
+            {
+                throw new ArgumentException("Database with same name already exists.");
+            }
 
-			// Get the page size so we can calculate the number of pages
-			//	needed for the device (in create scenarios only)
-			uint pageSize;
-			{
-				var page = new DataPage();
-				pageSize = page.PageSize;
-			}
+            // Get the page size so we can calculate the number of pages
+            //	needed for the device (in create scenarios only)
+            uint pageSize;
+            {
+                var page = new DataPage();
+                pageSize = page.PageSize;
+            }
 
-			// Walk the list of file-groups
-			var primaryName = string.Empty;
-			var primaryFileName = string.Empty;
-			var mountingPrimary = true;
-			var needToCreateMasterFilegroup = mountingMaster;
-			foreach (var fileGroup in request.FileGroups)
-			{
-				var deviceId = DeviceId.Primary;
-			    var primary = fileGroup.Value.FirstOrDefault(f => f.Name == "PRIMARY");
+            // Walk the list of file-groups
+            var primaryName = string.Empty;
+            var primaryFileName = string.Empty;
+            var mountingPrimary = true;
+            var needToCreateMasterFilegroup = mountingMaster;
+            foreach (var fileGroup in request.FileGroups)
+            {
+                var deviceId = DeviceId.Primary;
+                var primary = fileGroup.Value.FirstOrDefault(f => f.Name == "PRIMARY");
 
-				foreach (var file in fileGroup.Value.Where(f=>f.Name != "PRIMARY"))
-				{
-					await AttachDatabaseFileGroupDeviceAsync(
+                foreach (var file in fileGroup.Value.Where(f => f.Name != "PRIMARY"))
+                {
+                    await AttachDatabaseFileGroupDeviceAsync(
                         request,
                         file,
                         pageSize,
@@ -119,318 +119,321 @@ namespace Zen.Trunk.Storage.Data
                         fileGroup,
                         deviceId).ConfigureAwait(false);
 
-				    // Advance to next device
-					deviceId = deviceId.Next;
-					mountingPrimary = needToCreateMasterFilegroup = false;
-				}
-			}
+                    // Advance to next device
+                    deviceId = deviceId.Next;
+                    mountingPrimary = needToCreateMasterFilegroup = false;
+                }
+            }
 
-			// Walk the list of log files
-			foreach (var file in request.LogFiles)
-			{
-				var pageCount = (uint)(file.Size / pageSize);
+            // Walk the list of log files
+            foreach (var file in request.LogFiles)
+            {
+                var pageCount = (uint)
+                    (file.Size.HasValue ? file.Size.Value.GetSizeAsPages(pageSize) : 0);
 
-				var deviceParams = new AddLogDeviceParameters(
+                var deviceParams = new AddLogDeviceParameters(
                     file.Name, file.FileName, DeviceId.Zero, pageCount);
-				await device.AddLogDevice(deviceParams).ConfigureAwait(false);
-			}
+                await device.AddLogDevice(deviceParams).ConfigureAwait(false);
+            }
 
-			// Now mount the device
-			await device.OpenAsync(true).ConfigureAwait(false);
+            // Now mount the device
+            await device.OpenAsync(true).ConfigureAwait(false);
 
-			// If we get this far then commit transaction used to create
-			//	the database device
-			//TrunkTransactionContext.Commit();
+            // If we get this far then commit transaction used to create
+            //	the database device
+            //TrunkTransactionContext.Commit();
 
-			// If we are not attaching the master database then update
-			//	the master root page...
-			if (!mountingMaster)
-			{
-				//TrunkTransactionContext.BeginTransaction(this, TimeSpan.FromMinutes(1));
+            // If we are not attaching the master database then update
+            //	the master root page...
+            if (!mountingMaster)
+            {
+                //TrunkTransactionContext.BeginTransaction(this, TimeSpan.FromMinutes(1));
 
-				// Load the master database primary file-group root page
-				var masterRootPage =
-					new MasterDatabasePrimaryFileGroupRootPage();
-				masterRootPage.RootLock = Locking.RootLockType.Shared;
+                // Load the master database primary file-group root page
+                var masterRootPage =
+                    new MasterDatabasePrimaryFileGroupRootPage();
+                masterRootPage.RootLock = Locking.RootLockType.Shared;
 
-				// Load page from root device
-				await LoadFileGroupPage(
-					new LoadFileGroupPageParameters(null, masterRootPage, true)).ConfigureAwait(false);
+                // Load page from root device
+                await LoadFileGroupPage(
+                    new LoadFileGroupPageParameters(null, masterRootPage, true)).ConfigureAwait(false);
 
-				// Add this database information to the database list
-				masterRootPage.ReadOnly = false;
-				masterRootPage.RootLock = Locking.RootLockType.Update;
-				masterRootPage.RootLock = Locking.RootLockType.Exclusive;
-				masterRootPage.AddDatabase(request.Name, primaryName, primaryFileName);
-				masterRootPage.Save();
+                // Add this database information to the database list
+                masterRootPage.ReadOnly = false;
+                masterRootPage.RootLock = Locking.RootLockType.Update;
+                masterRootPage.RootLock = Locking.RootLockType.Exclusive;
+                masterRootPage.AddDatabase(request.Name, primaryName, primaryFileName);
+                masterRootPage.Save();
 
-				//TrunkTransactionContext.Commit();
+                //TrunkTransactionContext.Commit();
 
-				// If we get this far then add device
-				_userDatabases.Add(request.Name, device);
-			}
-			else
-			{
-				_hasAttachedMaster = true;
-			}
-		}
+                // If we get this far then add device
+                _userDatabases.Add(request.Name, device);
+            }
+            else
+            {
+                _hasAttachedMaster = true;
+            }
+        }
 
-	    private static async Task AttachDatabaseFileGroupDeviceAsync(
+        private static async Task AttachDatabaseFileGroupDeviceAsync(
             AttachDatabaseParameters request,
             FileSpec file,
             uint pageSize,
-	        bool mountingPrimary,
+            bool mountingPrimary,
             bool needToCreateMasterFilegroup,
             DatabaseDevice device,
             KeyValuePair<string, IList<FileSpec>> fileGroup,
-	        DeviceId deviceId)
-	    {
-	        string primaryName;
-	        string primaryFileName;
-// Determine number of pages to use if we are creating devices
-	        uint createPageCount = 0;
-	        if (request.IsCreate)
-	        {
-	            createPageCount = (uint) (file.Size/pageSize);
-	        }
+            DeviceId deviceId)
+        {
+            string primaryName;
+            string primaryFileName;
 
-	        if (mountingPrimary)
-	        {
-	            if (needToCreateMasterFilegroup)
-	            {
-	                await device
-	                    .AddFileGroupDevice(
-	                        new AddFileGroupDeviceParameters(
-	                            FileGroupId.Master,
-	                            fileGroup.Key,
-	                            file.Name,
-	                            file.FileName,
-	                            deviceId,
-	                            createPageCount))
-	                    .ConfigureAwait(false);
-	            }
-	            else
-	            {
-	                await device
-	                    .AddFileGroupDevice(
-	                        new AddFileGroupDeviceParameters(
-	                            FileGroupId.Primary,
-	                            fileGroup.Key,
-	                            file.Name,
-	                            file.FileName,
-	                            deviceId,
-	                            createPageCount))
-	                    .ConfigureAwait(false);
-	            }
+            // Determine number of pages to use if we are creating devices
+            uint createPageCount = 0;
+            if (request.IsCreate)
+            {
+                createPageCount =
+                    file.Size.HasValue ? file.Size.Value.GetSizeAsPages(pageSize) : 0;
+            }
 
-	            primaryName = file.Name;
-	            primaryFileName = file.FileName;
-	        }
-	        else
-	        {
-	            await device
-	                .AddFileGroupDevice(
-	                    new AddFileGroupDeviceParameters(
-	                        FileGroupId.Invalid,
-	                        fileGroup.Key,
-	                        file.Name,
-	                        file.FileName,
-	                        deviceId,
-	                        createPageCount))
-	                .ConfigureAwait(false);
-	        }
-	    }
+            if (mountingPrimary)
+            {
+                if (needToCreateMasterFilegroup)
+                {
+                    await device
+                        .AddFileGroupDevice(
+                            new AddFileGroupDeviceParameters(
+                                FileGroupId.Master,
+                                fileGroup.Key,
+                                file.Name,
+                                file.FileName,
+                                deviceId,
+                                createPageCount))
+                        .ConfigureAwait(false);
+                }
+                else
+                {
+                    await device
+                        .AddFileGroupDevice(
+                            new AddFileGroupDeviceParameters(
+                                FileGroupId.Primary,
+                                fileGroup.Key,
+                                file.Name,
+                                file.FileName,
+                                deviceId,
+                                createPageCount))
+                        .ConfigureAwait(false);
+                }
 
-	    public Task DetachDatabase(string name)
-		{
-			// Check for reserved database names
-			foreach (var reserved in ReservedDatabaseNames)
-			{
-				if (string.Equals(reserved, name))
-				{
-					throw new ArgumentException("System databases are always online.");
-				}
-			}
+                primaryName = file.Name;
+                primaryFileName = file.FileName;
+            }
+            else
+            {
+                await device
+                    .AddFileGroupDevice(
+                        new AddFileGroupDeviceParameters(
+                            FileGroupId.Invalid,
+                            fileGroup.Key,
+                            file.Name,
+                            file.FileName,
+                            deviceId,
+                            createPageCount))
+                    .ConfigureAwait(false);
+            }
+        }
 
-			// Locate user database
-			DatabaseDevice device;
-			if (!_userDatabases.TryGetValue(name, out device))
-			{
-				throw new ArgumentException("Database not found.");
-			}
+        public Task DetachDatabase(string name)
+        {
+            // Check for reserved database names
+            foreach (var reserved in ReservedDatabaseNames)
+            {
+                if (string.Equals(reserved, name))
+                {
+                    throw new ArgumentException("System databases are always online.");
+                }
+            }
 
-			// Detach the database
-			// TODO: Detaching a database means we must do the following;
-			//	1. Place database into pending close mode (no further txns allowed)
-			//		(actually this is optional if we do a checkpoint since any
-			//		in-flight transactions will be rolledback when the database is
-			//		reattached.)
-			//	2. Wait for all transactions to complete (this may timeout)
-			//	3. Wait for all logs to be written to disk (in practice this means
-			//		we must issue a checkpoint and wait for it to complete)
-			//	4. Update the master database root page (with the new list of
-			//		attached databases)
+            // Locate user database
+            DatabaseDevice device;
+            if (!_userDatabases.TryGetValue(name, out device))
+            {
+                throw new ArgumentException("Database not found.");
+            }
 
-			// For now do bugger all
-			return CompletedTask.Default;
-		}
+            // Detach the database
+            // TODO: Detaching a database means we must do the following;
+            //	1. Place database into pending close mode (no further txns allowed)
+            //		(actually this is optional if we do a checkpoint since any
+            //		in-flight transactions will be rolledback when the database is
+            //		reattached.)
+            //	2. Wait for all transactions to complete (this may timeout)
+            //	3. Wait for all logs to be written to disk (in practice this means
+            //		we must issue a checkpoint and wait for it to complete)
+            //	4. Update the master database root page (with the new list of
+            //		attached databases)
 
-		public Task ChangeDatabaseStatus(ChangeDatabaseStatusParameters request)
-		{
-			// Check for reserved database names
-			foreach (var reserved in ReservedDatabaseNames)
-			{
-				if (string.Equals(reserved, request.Name))
-				{
-					throw new ArgumentException("System databases are always online.");
-				}
-			}
+            // For now do bugger all
+            return CompletedTask.Default;
+        }
 
-			// Locate user database
-			DatabaseDevice device;
-			if (!_userDatabases.TryGetValue(request.Name, out device))
-			{
-				throw new ArgumentException("Database not found.");
-			}
+        public Task ChangeDatabaseStatus(ChangeDatabaseStatusParameters request)
+        {
+            // Check for reserved database names
+            foreach (var reserved in ReservedDatabaseNames)
+            {
+                if (string.Equals(reserved, request.Name))
+                {
+                    throw new ArgumentException("System databases are always online.");
+                }
+            }
 
-			// Change the database status
-			// TODO: Marking a database online means we must mount it
-			// TODO: Marking a database as offline means we must wait for
-			//	all transactions to complete (this may timeout) and wait
-			//	for all logs to be written to disk (in practice this means
-			//	we must issue a checkpoint and wait for it to complete)
+            // Locate user database
+            DatabaseDevice device;
+            if (!_userDatabases.TryGetValue(request.Name, out device))
+            {
+                throw new ArgumentException("Database not found.");
+            }
 
-			// Finally save the updated database state in the root page of
-			//	the master database.
-			return CompletedTask.Default;
-		}
+            // Change the database status
+            // TODO: Marking a database online means we must mount it
+            // TODO: Marking a database as offline means we must wait for
+            //	all transactions to complete (this may timeout) and wait
+            //	for all logs to be written to disk (in practice this means
+            //	we must issue a checkpoint and wait for it to complete)
 
-	    public DatabaseDevice GetDatabaseDevice(string databaseName)
-	    {
-	        if (string.Equals(databaseName, "master", StringComparison.OrdinalIgnoreCase))
-	        {
-	            return this;
-	        }
+            // Finally save the updated database state in the root page of
+            //	the master database.
+            return CompletedTask.Default;
+        }
 
-	        if (!_userDatabases.ContainsKey(databaseName))
-	        {
-	            throw new ArgumentException("Database not found", nameof(databaseName));
-	        }
+        public DatabaseDevice GetDatabaseDevice(string databaseName)
+        {
+            if (string.Equals(databaseName, "master", StringComparison.OrdinalIgnoreCase))
+            {
+                return this;
+            }
 
-	        return _userDatabases[databaseName];
-	    }
-		#endregion
+            if (!_userDatabases.ContainsKey(databaseName))
+            {
+                throw new ArgumentException("Database not found", nameof(databaseName));
+            }
 
-		#region Protected Methods
-	    protected override void BuildDeviceLifetimeScope(ContainerBuilder builder)
-	    {
-	        base.BuildDeviceLifetimeScope(builder);
+            return _userDatabases[databaseName];
+        }
+        #endregion
 
-	        builder.RegisterType<GlobalLockManager>().As<IGlobalLockManager>().SingleInstance();
-	        builder.RegisterType<DatabaseDevice>().AsSelf();
-	    }
+        #region Protected Methods
+        protected override void BuildDeviceLifetimeScope(ContainerBuilder builder)
+        {
+            base.BuildDeviceLifetimeScope(builder);
 
-		/// <summary>
-		/// Performs a device-specific mount operation.
-		/// </summary>
-		/// <returns></returns>
-		protected override async Task OnOpen()
-		{
-			// Perform base class mounting
-			await base.OnOpen().ConfigureAwait(false);
+            builder.RegisterType<GlobalLockManager>().As<IGlobalLockManager>().SingleInstance();
+            builder.RegisterType<DatabaseDevice>().AsSelf();
+        }
 
-			// If we are in non-create mode then we need to mount any other
-			//	online databases
-			if (!IsCreate)
-			{
-				// Load the master database primary file-group root page
-			    var masterRootPage =
-			        new MasterDatabasePrimaryFileGroupRootPage
-			        {
-			            RootLock = RootLockType.Shared
-			        };
+        /// <summary>
+        /// Performs a device-specific mount operation.
+        /// </summary>
+        /// <returns></returns>
+        protected override async Task OnOpen()
+        {
+            // Perform base class mounting
+            await base.OnOpen().ConfigureAwait(false);
 
-			    // Load page from root device
-				await LoadFileGroupPage(
-					new LoadFileGroupPageParameters(null, masterRootPage, true)).ConfigureAwait(false);
+            // If we are in non-create mode then we need to mount any other
+            //	online databases
+            if (!IsCreate)
+            {
+                // Load the master database primary file-group root page
+                var masterRootPage =
+                    new MasterDatabasePrimaryFileGroupRootPage
+                    {
+                        RootLock = RootLockType.Shared
+                    };
 
-				// Walk the list of databases in the root page
-				// NOTE: We exclude offline devices
-				foreach (var deviceInfo in masterRootPage
-					.GetDatabaseEnumerator()
-					.Where(item => item.IsOnline))
-				{
-					// Create attach request and post - no need to wait...
-					var attach =
-						new AttachDatabaseParameters
-						{
-							Name = deviceInfo.Name,
-							IsCreate = false,
-						};
-					attach.AddDataFile(
-						"PRIMARY",
-						new FileSpec
-						{
-							Name = deviceInfo.PrimaryName,
-							FileName = deviceInfo.PrimaryFilePathName
-						});
-					await AttachDatabase(attach).ConfigureAwait(false);
-				}
-			}
-		}
+                // Load page from root device
+                await LoadFileGroupPage(
+                    new LoadFileGroupPageParameters(null, masterRootPage, true)).ConfigureAwait(false);
 
-		/// <summary>
-		/// Called when closing the device.
-		/// </summary>
-		/// <returns></returns>
-		protected override async Task OnClose()
-		{
-			// TODO: Make sure we close TEMPDB last
+                // Walk the list of databases in the root page
+                // NOTE: We exclude offline devices
+                foreach (var deviceInfo in masterRootPage
+                    .GetDatabaseEnumerator()
+                    .Where(item => item.IsOnline))
+                {
+                    // Create attach request and post - no need to wait...
+                    var attach =
+                        new AttachDatabaseParameters
+                        {
+                            Name = deviceInfo.Name,
+                            IsCreate = false,
+                        };
+                    attach.AddDataFile(
+                        "PRIMARY",
+                        new FileSpec
+                        {
+                            Name = deviceInfo.PrimaryName,
+                            FileName = deviceInfo.PrimaryFilePathName
+                        });
+                    await AttachDatabase(attach).ConfigureAwait(false);
+                }
+            }
+        }
 
-			// Close user databases first
-			await TaskExtra
-				.WhenAllOrEmpty(_userDatabases.Values
+        /// <summary>
+        /// Called when closing the device.
+        /// </summary>
+        /// <returns></returns>
+        protected override async Task OnClose()
+        {
+            // TODO: Make sure we close TEMPDB last
+
+            // Close user databases first
+            await TaskExtra
+                .WhenAllOrEmpty(_userDatabases.Values
                     .Select(device => device.CloseAsync())
                     .ToArray())
-				.ConfigureAwait(false);
+                .ConfigureAwait(false);
 
-			// Finally close the master device
-			await base.OnClose().ConfigureAwait(false);
-		}
-		#endregion
-	}
+            // Finally close the master device
+            await base.OnClose().ConfigureAwait(false);
+        }
+        #endregion
+    }
 
-	public class AttachDatabaseParameters
-	{
-		private readonly IDictionary<string, IList<FileSpec>> _fileGroups =
-			new Dictionary<string, IList<FileSpec>>(StringComparer.OrdinalIgnoreCase);
-		private readonly List<FileSpec> _logFiles = new List<FileSpec>();
+    public class AttachDatabaseParameters
+    {
+        private readonly IDictionary<string, IList<FileSpec>> _fileGroups =
+            new Dictionary<string, IList<FileSpec>>(StringComparer.OrdinalIgnoreCase);
+        private readonly List<FileSpec> _logFiles = new List<FileSpec>();
 
-		public string Name { get; set; }
+        public string Name { get; set; }
 
-		public bool IsCreate { get; set; }
+        public bool IsCreate { get; set; }
 
         public bool HasPrimaryFileGroup => _fileGroups.ContainsKey("PRIMARY");
 
-	    public IDictionary<string, IList<FileSpec>> FileGroups => new ReadOnlyDictionary<string, IList<FileSpec>>(_fileGroups);
+        public IDictionary<string, IList<FileSpec>> FileGroups => new ReadOnlyDictionary<string, IList<FileSpec>>(_fileGroups);
 
-	    public ICollection<FileSpec> LogFiles => _logFiles.AsReadOnly();
+        public ICollection<FileSpec> LogFiles => _logFiles.AsReadOnly();
 
-	    public void AddDataFile(string fileGroup, FileSpec file)
-	    {
+        public void AddDataFile(string fileGroup, FileSpec file)
+        {
             // Find or create filegroup entry
-	        IList<FileSpec> files;
-	        if (!_fileGroups.TryGetValue(fileGroup, out files))
-	        {
+            IList<FileSpec> files;
+            if (!_fileGroups.TryGetValue(fileGroup, out files))
+            {
                 files = new List<FileSpec>();
-	            _fileGroups.Add(fileGroup, files);
-	        }
+                _fileGroups.Add(fileGroup, files);
+            }
 
             // Validate files have unique filename
-			if (files.Any(item => string.Equals(item.FileName, file.FileName, StringComparison.OrdinalIgnoreCase)))
-			{
-				throw new ArgumentException("Data file must have unique filename.");
-			}
+            if (files.Any(item => string.Equals(item.FileName, file.FileName, StringComparison.OrdinalIgnoreCase)))
+            {
+                throw new ArgumentException("Data file must have unique filename.");
+            }
 
             // Validate files have unique name
             if (files.Any(item => string.Equals(item.Name, file.Name, StringComparison.OrdinalIgnoreCase)))
@@ -439,10 +442,10 @@ namespace Zen.Trunk.Storage.Data
             }
 
             files.Add(file);
-		}
+        }
 
-		public void AddLogFile(FileSpec file)
-		{
+        public void AddLogFile(FileSpec file)
+        {
             // Validate files have unique filename
             if (_logFiles.Any(item => string.Equals(item.FileName, file.FileName, StringComparison.OrdinalIgnoreCase)))
             {
@@ -455,59 +458,120 @@ namespace Zen.Trunk.Storage.Data
                 throw new ArgumentException("Log file must have unique logical name.");
             }
 
-			_logFiles.Add(file);
-		}
-	}
+            _logFiles.Add(file);
+        }
+    }
 
-	public class ChangeDatabaseStatusParameters
-	{
-		public ChangeDatabaseStatusParameters(string name, bool isOnline)
-		{
-			Name = name;
-			IsOnline = isOnline;
-		}
+    public class ChangeDatabaseStatusParameters
+    {
+        public ChangeDatabaseStatusParameters(string name, bool isOnline)
+        {
+            Name = name;
+            IsOnline = isOnline;
+        }
 
-		public string Name { get; }
+        public string Name { get; }
 
-		public bool IsOnline { get; }
-	}
+        public bool IsOnline { get; }
+    }
 
-	public class FileSpec
-	{
-		public string Name
-		{
-			get;
-			set;
-		}
+    public class FileSpec
+    {
+        public string Name
+        {
+            get;
+            set;
+        }
 
-		public string FileName
-		{
-			get;
-			set;
-		}
+        public string FileName
+        {
+            get;
+            set;
+        }
 
-		public long Size
-		{
-			get;
-			set;
-		}
+        public FileSize? Size
+        {
+            get;
+            set;
+        }
 
-		public long MaxSize
-		{
-			get;
-			set;
-		}
+        public FileSize? MaxSize
+        {
+            get;
+            set;
+        }
 
-		public long? ByteGrowth
-		{
-			get;
-			set;
-		}
+        public FileSize? FileGrowth
+        {
+            get;
+            set;
+        }
+    }
 
-		public double? PercentGrowth
-		{
-			get;
-			set;
-		}
-	}
+    public struct FileSize
+    {
+        public enum FileSizeUnit
+        {
+            KiloBytes,
+            MegaBytes,
+            GigaBytes,
+            TeraBytes,
+            Percentage,
+            Unlimited
+        }
+
+        public static readonly FileSize Unlimited = new FileSize(0, FileSizeUnit.Unlimited);
+
+        public FileSize(double value, FileSizeUnit unit)
+        {
+            if (unit == FileSizeUnit.Percentage &&
+                (value < 0.0 || value > 100.0))
+            {
+                throw new ArgumentException(nameof(value));
+            }
+
+            Value = value;
+            Unit = unit;
+        }
+
+        public double Value { get; }
+
+        public FileSizeUnit Unit { get; }
+
+        public bool IsUnlimited => Unit == FileSizeUnit.Unlimited;
+
+        public bool IsPercentage => Unit == FileSizeUnit.Percentage;
+
+        public uint GetSizeAsPages(uint pageSize)
+        {
+            var actualSize = 0L;
+            switch (Unit)
+            {
+                case FileSizeUnit.KiloBytes:
+                    actualSize = (long)(Value * 1024);
+                    break;
+                case FileSizeUnit.MegaBytes:
+                    actualSize = (long)(Value * 1024 * 1024);
+                    break;
+                case FileSizeUnit.GigaBytes:
+                    actualSize = (long)(Value * 1024 * 1024 * 1024);
+                    break;
+                case FileSizeUnit.TeraBytes:
+                    actualSize = (long)(Value * 1024 * 1024 * 1024 * 1024);
+                    break;
+                default:
+                    return 0;
+            }
+
+            // 1MB = 128 pages @ 8192 bytes per page
+            // 1GB = 131,072 pages @ 8192 bytes per page
+            // 1TB = 134,217,728 pages @ 8192 bytes per page
+            uint pages = (uint)(actualSize / pageSize);
+            if ((actualSize % pageSize) != 0)
+            {
+                ++pages;
+            }
+            return pages;
+        }
+    }
 }
