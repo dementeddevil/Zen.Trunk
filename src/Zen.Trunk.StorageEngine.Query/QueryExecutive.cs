@@ -231,7 +231,47 @@ namespace Zen.Trunk.Storage.Query
                     FileName = fileSpecContext.file.Text,
                 };
 
+            for (int index = 0; index < fileSpecContext.ChildCount; ++index)
+            {
+                var child = fileSpecContext.GetChild(index);
+                if (child == fileSpecContext.SIZE())
+                {
+                    nativeFileSpec.Size = GetNativeSizeFromFileSize(
+                        fileSpecContext.GetChild<TrunkSqlParser.File_sizeContext>(index + 1));
+                }
+                if(child == fileSpecContext.MAXSIZE())
+                {
+
+                }
+            }
             return nativeFileSpec;
+        }
+
+        private long GetNativeSizeFromFileSize(TrunkSqlParser.File_sizeContext fileSizeContext)
+        {
+            // Get the 
+            var sizeText = fileSizeContext.GetChild(0).GetText();
+            var unit = "MB";
+            if(fileSizeContext.ChildCount > 1)
+            {
+                var unitToken = fileSizeContext.GetChild(1);
+                if(unitToken == fileSizeContext.KB())
+                {
+                    unit = "KB";
+                }
+                else if(unitToken == fileSizeContext.MB())
+                {
+                    unit = "MB";
+                }
+                else if (unitToken == fileSizeContext.MB())
+                {
+                    unit = "GB";
+                }
+                else if (unitToken == fileSizeContext.MB())
+                {
+                    unit = "TB";
+                }
+            }
         }
 
         private void CreateNewBatch()
