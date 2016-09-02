@@ -552,19 +552,19 @@ set_statement
 // https://msdn.microsoft.com/en-us/library/ms174377.aspx
 transaction_statement
     // https://msdn.microsoft.com/en-us/library/ms188386.aspx
-    : BEGIN DISTRIBUTED (TRAN | TRANSACTION) (id | LOCAL_ID)? ';'?
+    : BEGIN DISTRIBUTED (TRAN | TRANSACTION) (id | LOCAL_ID)? ';'?												#begin_distributed_transaction_statement
     // https://msdn.microsoft.com/en-us/library/ms188929.aspx
-    | BEGIN (TRAN | TRANSACTION) ((id | LOCAL_ID) (WITH MARK STRING)?)? ';'?
+    | BEGIN (TRAN | TRANSACTION) ((id | LOCAL_ID) (WITH MARK STRING)?)? ';'?									#begin_transaction_statement
     // https://msdn.microsoft.com/en-us/library/ms190295.aspx
-    | COMMIT (TRAN | TRANSACTION) ((id | LOCAL_ID) (WITH '(' DELAYED_DURABILITY EQUAL (OFF | ON) ')')?)? ';'?
+    | COMMIT (TRAN | TRANSACTION) ((id | LOCAL_ID) (WITH '(' DELAYED_DURABILITY EQUAL (OFF | ON) ')')?)? ';'?	#commit_transaction_statement
     // https://msdn.microsoft.com/en-us/library/ms178628.aspx
-    | COMMIT WORK? ';'?
+    | COMMIT WORK? ';'?																							#commit_work_statement
     // https://msdn.microsoft.com/en-us/library/ms181299.aspx
-    | ROLLBACK (TRAN | TRANSACTION) (id | LOCAL_ID)? ';'?
+    | ROLLBACK (TRAN | TRANSACTION) (id | LOCAL_ID)? ';'?														#rollback_transaction_statement
     // https://msdn.microsoft.com/en-us/library/ms174973.aspx
-    | ROLLBACK WORK? ';'?
+    | ROLLBACK WORK? ';'?																						#rollback_work_statement
     // https://msdn.microsoft.com/en-us/library/ms188378.aspx
-    | SAVE (TRAN | TRANSACTION) (id | LOCAL_ID)? ';'?
+    | SAVE (TRAN | TRANSACTION) (id | LOCAL_ID)? ';'?															#save_transaction_statement
     ;
 
 // https://msdn.microsoft.com/en-us/library/ms188037.aspx
@@ -655,15 +655,15 @@ fetch_cursor
 // https://msdn.microsoft.com/en-us/library/ms190356.aspx
 // Runtime check.
 set_special
-    : SET id (id | constant_LOCAL_ID | on_off) ';'?											# SetValueOrOption
+    : SET id (id | constant_LOCAL_ID | on_off) ';'?											#set_value_or_option_statement
     // https://msdn.microsoft.com/en-us/library/ms173763.aspx
     | SET TRANSACTION ISOLATION LEVEL
-      (READ UNCOMMITTED | READ COMMITTED | REPEATABLE READ | SNAPSHOT | SERIALIZABLE) ';'?	# SetTransactionIsolationLevel
+      (READ UNCOMMITTED | READ COMMITTED | REPEATABLE READ | SNAPSHOT | SERIALIZABLE) ';'?	#set_transaction_isolation_level_statement
     // https://msdn.microsoft.com/en-us/library/ms188059.aspx
-    | SET IDENTITY_INSERT table_name on_off ';'?											# SetTableIdentityInsert
-    | SET ANSI_NULLS on_off																	# SetAnsiNullsHandling
-    | SET QUOTED_IDENTIFIER on_off															# SetQuotedIdentifierHandling
-    | SET ANSI_PADDING on_off																# SetAnsiPaddingHandling
+    | SET IDENTITY_INSERT table_name on_off ';'?											#set_table_identity_insert_statement
+    | SET ANSI_NULLS on_off																	#set_ansi_nulls_handling_statement
+    | SET QUOTED_IDENTIFIER on_off															#set_quoted_identifier_handling_statement
+    | SET ANSI_PADDING on_off																#set_ansi_padding_handling_statement
     ;
 
 constant_LOCAL_ID

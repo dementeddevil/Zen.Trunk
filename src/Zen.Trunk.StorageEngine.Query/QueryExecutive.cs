@@ -10,6 +10,7 @@ using Antlr4.Runtime.Tree;
 using Autofac;
 using Zen.Trunk.Storage.Data;
 using Zen.Trunk.Storage.Locking;
+using System.Linq.Expressions;
 
 namespace Zen.Trunk.Storage.Query
 {
@@ -49,6 +50,19 @@ namespace Zen.Trunk.Storage.Query
         }
     }
 
+    public class ExecutionContext
+    {
+        public ExecutionContext(MasterDatabaseDevice masterDatabase, DatabaseDevice activeDatabase = null)
+        {
+            MasterDatabase = masterDatabase;
+            ActiveDatabase = activeDatabase ?? masterDatabase;
+        }
+
+        public MasterDatabaseDevice MasterDatabase { get; }
+
+        public DatabaseDevice ActiveDatabase { get; set; }
+    }
+
     /// <summary>
     /// 
     /// </summary>
@@ -67,7 +81,10 @@ namespace Zen.Trunk.Storage.Query
         private CompoundOperation _currentOperation;
         private DatabaseDevice _activeDatabase;
 
-        private AttachDatabaseParameters _attachDatabaseParameters;
+        private IsolationLevel _currentIsolationLevel;
+        private int _transactionDepth;
+        private readonly List<Expression<Func<ExecutionContext, Task>>> _operations =
+            new List<Expression<Func<ExecutionContext, Task>>>();
 
         public SqlBatchOperationBuilder(MasterDatabaseDevice masterDatabase)
         {
@@ -82,31 +99,24 @@ namespace Zen.Trunk.Storage.Query
             return _file;
         }
 
-        public override CompoundOperation VisitBatch(TrunkSqlParser.BatchContext context)
-        {
-            CreateNewBatch();
-
-            base.VisitBatch(context);
-
-            CommitCurrentBatch();
-            return _currentBatch;
-        }
-
         public override CompoundOperation VisitUse_statement(TrunkSqlParser.Use_statementContext context)
         {
             var dbName = context.database.ToString();
-            var dbDevice = _masterDatabase.GetDatabaseDevice(dbName);
-            if (dbDevice == null)
-            {
-                throw new Exception($"Unknown database ({dbName})");
-            }
-
-            _activeDatabase = dbDevice;
-            _currentBatch.PushDatabaseSwitch(dbName);
+            _operations.Add((ec) => ExecuteUseDatabase(ec, dbName));
             return base.VisitUse_statement(context);
         }
 
-        public override CompoundOperation VisitSetTransactionIsolationLevel(TrunkSqlParser.SetTransactionIsolationLevelContext context)
+        public override CompoundOperation VisitBegin_transaction_statement([NotNull] TrunkSqlParser.Begin_transaction_statementContext context)
+        {
+            return base.VisitBegin_transaction_statement(context);
+        }
+
+        public override CompoundOperation VisitCommit_transaction_statement([NotNull] TrunkSqlParser.Commit_transaction_statementContext context)
+        {
+            return base.VisitCommit_transaction_statement(context);
+        }
+
+        public override CompoundOperation VisitSet_transaction_isolation_level_statement([NotNull] TrunkSqlParser.Set_transaction_isolation_level_statementContext context)
         {
             /*if (context.ChildCount > 4 &&
                 context.GetChild(0) == context.SET() &&
@@ -142,9 +152,8 @@ namespace Zen.Trunk.Storage.Query
                 }
             }
 
-            // TODO: Determine whether this demands a new batch
-            _currentBatch.SetTransactionIsolationLevel(level);
-            return base.VisitSetTransactionIsolationLevel(context);
+            _currentIsolationLevel = level;
+            return base.VisitSet_transaction_isolation_level_statement(context);
         }
 
         public override CompoundOperation VisitCreate_database(TrunkSqlParser.Create_databaseContext context)
@@ -217,8 +226,7 @@ namespace Zen.Trunk.Storage.Query
                 }
             }
 
-            CreateNewBatch();
-            _currentOperation.PushAttachDatabase(attachDatabaseParameters);
+            _operations.Add((ec) => ec.MasterDatabase.AttachDatabase(attachDatabaseParameters));
             return _currentBatch;
         }
 
@@ -300,27 +308,15 @@ namespace Zen.Trunk.Storage.Query
             return new FileSize(0.0, unit);
         }
 
-        private void CreateNewBatch()
+        private Task ExecuteUseDatabase(ExecutionContext context, string dbName)
         {
-            CommitCurrentBatch();
-
-            if (_file == null)
+            var dbDevice = context.MasterDatabase.GetDatabaseDevice(dbName);
+            if (dbDevice == null)
             {
-                _file = new CompoundFile(_masterDatabase, _activeDatabase);
+                throw new Exception($"Unknown database ({dbName})");
             }
-
-            _currentBatch = new BatchedCompoundOperation(_masterDatabase, _activeDatabase);
-            _currentOperation = _currentBatch;
-        }
-
-        private void CommitCurrentBatch()
-        {
-            if (_currentBatch != null && !_currentBatch.IsEmpty)
-            {
-                _file.Add(_currentBatch);
-                _currentBatch = null;
-                _currentOperation = null;
-            }
+            context.ActiveDatabase = dbDevice;
+            return Task.FromResult(true);
         }
     }
 
@@ -351,8 +347,17 @@ namespace Zen.Trunk.Storage.Query
     public class BatchedCompoundOperation : CompoundOperation
     {
         private IsolationLevel _isolationLevel = IsolationLevel.ReadCommitted;
+        private BatchedCompoundOperation _parentBatch;
 
         public BatchedCompoundOperation(
+            MasterDatabaseDevice masterDatabase,
+            DatabaseDevice activeDatabase = null)
+            : base(masterDatabase, activeDatabase)
+        {
+        }
+
+        private BatchedCompoundOperation(
+            BatchedCompoundOperation parentBatch,
             MasterDatabaseDevice masterDatabase,
             DatabaseDevice activeDatabase = null)
             : base(masterDatabase, activeDatabase)
@@ -389,6 +394,23 @@ namespace Zen.Trunk.Storage.Query
         {
             _isolationLevel = level;
         }
+
+        public BatchedCompoundOperation PushNestedBatch()
+        {
+            var childBatch = new BatchedCompoundOperation(this, MasterDatabase, ActiveDatabase);
+            childBatch.SetTransactionIsolationLevel(_isolationLevel);
+            return childBatch;
+        }
+
+        public BatchedCompoundOperation PopNestedBatch()
+        {
+            if (_parentBatch == null)
+            {
+                throw new InvalidOperationException("Not in a transaction");
+            }
+
+            return _parentBatch;
+        }
     }
 
     public class CompoundOperation
@@ -406,6 +428,8 @@ namespace Zen.Trunk.Storage.Query
         }
 
         public MasterDatabaseDevice MasterDatabase => _masterDatabase;
+
+        public DatabaseDevice ActiveDatabase => _activeDatabase;
 
         public bool IsEmpty => _operations.Count == 0;
 
