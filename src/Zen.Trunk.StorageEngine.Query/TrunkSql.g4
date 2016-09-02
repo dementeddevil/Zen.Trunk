@@ -1160,7 +1160,7 @@ scalar_function_name
 // https://msdn.microsoft.com/en-us/library/ms187752.aspx
 // TODO: implement runtime check or add new tokens.
 data_type
-    /*: BIGINT
+    : BIGINT
     | BINARY '(' DECIMAL ')'
     | BIT
     | CHAR '(' DECIMAL ')'
@@ -1192,8 +1192,8 @@ data_type
     | UNIQUEIDENTIFIER
     | VARBINARY '(' DECIMAL | MAX ')'
     | VARCHAR '(' DECIMAL | MAX ')'
-    | XML*/
-    : id IDENTITY? ('(' (DECIMAL | MAX) (',' DECIMAL)? ')')?
+    | XML
+    /*: id IDENTITY? ('(' (DECIMAL | MAX) (',' DECIMAL)? ')')?*/
     ;
 
 default_value

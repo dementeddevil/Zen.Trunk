@@ -11,6 +11,7 @@ using Autofac;
 using Zen.Trunk.Storage.Data;
 using Zen.Trunk.Storage.Locking;
 using System.Linq.Expressions;
+using Zen.Trunk.Storage.Data.Table;
 
 namespace Zen.Trunk.Storage.Query
 {
@@ -359,16 +360,18 @@ namespace Zen.Trunk.Storage.Query
         public override bool VisitCreate_procedure(TrunkSqlParser.Create_procedureContext context)
         {
             // TODO: Look for matching symbol matching context name
-            if (CurrentSymbolScope.Find(context.func_proc_name().GetText()) != null)
+            var funcName = context.func_proc_name().GetText();
+            if (CurrentSymbolScope.Find(funcName) != null)
             {
                 // TODO: Throw information should include symbol location
                 throw new Exception("proc name is not unique");
             }
 
-            _scopeStack.Push(new FunctionSymbolScope(GlobalSymbolScope, context.func_proc_name().GetText()));
+            // Create function symbol for this proc in global scope
+            GlobalSymbolScope.AddSymbol(new FunctionSymbol(funcName, TableColumnDataType.None, 0));
 
-            // TODO: Create proc symbol and prepare for getting parameters
-            //  and return value
+            // Create new function symbol scope
+            _scopeStack.Push(new FunctionSymbolScope(GlobalSymbolScope, context.func_proc_name().GetText()));
 
             var result = base.VisitCreate_procedure(context);
 
@@ -377,14 +380,202 @@ namespace Zen.Trunk.Storage.Query
             return result;
         }
 
-        public override bool VisitBlock_statement(TrunkSqlParser.Block_statementContext context)
+        public override bool VisitSql_clauses([NotNull] TrunkSqlParser.Sql_clausesContext context)
         {
-            _scopeStack.Push(new BlockSymbolScope(CurrentSymbolScope));
+            bool needToPopScope = false;
+            if (CurrentSymbolScope != GlobalSymbolScope)
+            {
+                _scopeStack.Push(new LocalSymbolScope(CurrentSymbolScope));
+                needToPopScope = true;
+            }
 
-            var result = base.VisitBlock_statement(context);
+            var result = base.VisitSql_clauses(context);
 
-            _scopeStack.Pop();
+            // If we entered a scope earlier then make sure we pop
+            if (needToPopScope)
+            {
+                _scopeStack.Pop();
+            }
             return result;
+        }
+
+        public override bool VisitProcedure_param([NotNull] TrunkSqlParser.Procedure_paramContext context)
+        {
+            var symbolName = context.LOCAL_ID().GetText();
+            var dataType = context.data_type();
+            bool isVarying = context.children.Any(c => c == context.VARYING());
+            bool isOutput = context.children.Any(c => c == context.OUT() || c == context.OUTPUT());
+            bool isReadOnly = context.children.Any(c => c == context.READONLY());
+            var dataTypeChild = dataType.GetChild(0);
+            var length = 0;
+            if (dataType.ChildCount > 2)
+            {
+                int.TryParse(dataType.GetChild(2).GetText(), out length);
+            }
+            if (dataTypeChild == dataType.BIT())
+            {
+                CurrentSymbolScope.AddSymbol(new ParameterSymbol(
+                    symbolName, TableColumnDataType.Bit, 1, isVarying, isOutput, isReadOnly));
+            }
+            else if (dataTypeChild == dataType.SMALLINT())
+            {
+                CurrentSymbolScope.AddSymbol(new ParameterSymbol(
+                    symbolName, TableColumnDataType.Short, 2, isVarying, isOutput, isReadOnly));
+            }
+            else if (dataTypeChild == dataType.INT())
+            {
+                CurrentSymbolScope.AddSymbol(new ParameterSymbol(
+                    symbolName, TableColumnDataType.Int, 4, isVarying, isOutput, isReadOnly));
+            }
+            else if (dataTypeChild == dataType.BIGINT())
+            {
+                CurrentSymbolScope.AddSymbol(new ParameterSymbol(
+                    symbolName, TableColumnDataType.Long, 8, isVarying, isOutput, isReadOnly));
+            }
+            else if (dataTypeChild == dataType.BINARY())
+            {
+                CurrentSymbolScope.AddSymbol(new ParameterSymbol(
+                    symbolName, TableColumnDataType.Byte, length, isVarying, isOutput, isReadOnly));
+            }
+            else if (dataTypeChild == dataType.VARBINARY())
+            {
+                CurrentSymbolScope.AddSymbol(new ParameterSymbol(
+                    symbolName, TableColumnDataType.Byte, length, isVarying, isOutput, isReadOnly));
+            }
+            else if (dataTypeChild == dataType.CHAR())
+            {
+                CurrentSymbolScope.AddSymbol(new ParameterSymbol(
+                    symbolName, TableColumnDataType.Char, length, isVarying, isOutput, isReadOnly));
+            }
+            else if (dataTypeChild == dataType.VARCHAR())
+            {
+                CurrentSymbolScope.AddSymbol(new ParameterSymbol(
+                    symbolName, TableColumnDataType.Long, 8, isVarying, isOutput, isReadOnly));
+            }
+            else if (dataTypeChild == dataType.NCHAR())
+            {
+                CurrentSymbolScope.AddSymbol(new ParameterSymbol(
+                    symbolName, TableColumnDataType.NChar, length * 2, isVarying, isOutput, isReadOnly));
+            }
+            else if (dataTypeChild == dataType.NVARCHAR())
+            {
+                CurrentSymbolScope.AddSymbol(new ParameterSymbol(
+                    symbolName, TableColumnDataType.Long, length * 2, isVarying, isOutput, isReadOnly));
+            }
+            else if (dataTypeChild == dataType.DATETIME())
+            {
+                CurrentSymbolScope.AddSymbol(new ParameterSymbol(
+                    symbolName, TableColumnDataType.DateTime, 8, isVarying, isOutput, isReadOnly));
+            }
+            else if (dataTypeChild == dataType.FLOAT())
+            {
+                CurrentSymbolScope.AddSymbol(new ParameterSymbol(
+                    symbolName, TableColumnDataType.Float, 4, isVarying, isOutput, isReadOnly));
+            }
+            else if (dataTypeChild == dataType.REAL())
+            {
+                CurrentSymbolScope.AddSymbol(new ParameterSymbol(
+                    symbolName, TableColumnDataType.Double, 8, isVarying, isOutput, isReadOnly));
+            }
+            else if (dataTypeChild == dataType.MONEY())
+            {
+                CurrentSymbolScope.AddSymbol(new ParameterSymbol(
+                    symbolName, TableColumnDataType.Money, 8, isVarying, isOutput, isReadOnly));
+            }
+            else if (dataTypeChild == dataType.UNIQUEIDENTIFIER())
+            {
+                CurrentSymbolScope.AddSymbol(new ParameterSymbol(
+                    symbolName, TableColumnDataType.Guid, 16, isVarying, isOutput, isReadOnly));
+            }
+            return base.VisitProcedure_param(context);
+        }
+
+        public override bool VisitDeclare_local([NotNull] TrunkSqlParser.Declare_localContext context)
+        {
+            var symbolName = context.LOCAL_ID().GetText();
+            var dataType = context.data_type();
+            var dataTypeChild = dataType.GetChild(0);
+            var length = 0;
+            if (dataType.ChildCount > 2)
+            {
+                int.TryParse(dataType.GetChild(2).GetText(), out length);
+            }
+            if (dataTypeChild == dataType.BIT())
+            {
+                CurrentSymbolScope.AddSymbol(new VariableSymbol(
+                    symbolName, TableColumnDataType.Bit, 1));
+            }
+            else if (dataTypeChild == dataType.SMALLINT())
+            {
+                CurrentSymbolScope.AddSymbol(new VariableSymbol(
+                    symbolName, TableColumnDataType.Short, 2));
+            }
+            else if (dataTypeChild == dataType.INT())
+            {
+                CurrentSymbolScope.AddSymbol(new VariableSymbol(
+                    symbolName, TableColumnDataType.Int, 4));
+            }
+            else if (dataTypeChild == dataType.BIGINT())
+            {
+                CurrentSymbolScope.AddSymbol(new VariableSymbol(
+                    symbolName, TableColumnDataType.Long, 8));
+            }
+            else if (dataTypeChild == dataType.BINARY())
+            {
+                CurrentSymbolScope.AddSymbol(new VariableSymbol(
+                    symbolName, TableColumnDataType.Byte, length));
+            }
+            else if (dataTypeChild == dataType.VARBINARY())
+            {
+                CurrentSymbolScope.AddSymbol(new VariableSymbol(
+                    symbolName, TableColumnDataType.Byte, length));
+            }
+            else if (dataTypeChild == dataType.CHAR())
+            {
+                CurrentSymbolScope.AddSymbol(new VariableSymbol(
+                    symbolName, TableColumnDataType.Char, length));
+            }
+            else if (dataTypeChild == dataType.VARCHAR())
+            {
+                CurrentSymbolScope.AddSymbol(new VariableSymbol(
+                    symbolName, TableColumnDataType.Long, 8));
+            }
+            else if (dataTypeChild == dataType.NCHAR())
+            {
+                CurrentSymbolScope.AddSymbol(new VariableSymbol(
+                    symbolName, TableColumnDataType.NChar, length * 2));
+            }
+            else if (dataTypeChild == dataType.NVARCHAR())
+            {
+                CurrentSymbolScope.AddSymbol(new VariableSymbol(
+                    symbolName, TableColumnDataType.Long, length * 2));
+            }
+            else if (dataTypeChild == dataType.DATETIME())
+            {
+                CurrentSymbolScope.AddSymbol(new VariableSymbol(
+                    symbolName, TableColumnDataType.DateTime, 8));
+            }
+            else if (dataTypeChild == dataType.FLOAT())
+            {
+                CurrentSymbolScope.AddSymbol(new VariableSymbol(
+                    symbolName, TableColumnDataType.Float, 4));
+            }
+            else if (dataTypeChild == dataType.REAL())
+            {
+                CurrentSymbolScope.AddSymbol(new VariableSymbol(
+                    symbolName, TableColumnDataType.Double, 8));
+            }
+            else if (dataTypeChild == dataType.MONEY())
+            {
+                CurrentSymbolScope.AddSymbol(new VariableSymbol(
+                    symbolName, TableColumnDataType.Money, 8));
+            }
+            else if (dataTypeChild == dataType.UNIQUEIDENTIFIER())
+            {
+                CurrentSymbolScope.AddSymbol(new VariableSymbol(
+                    symbolName, TableColumnDataType.Guid, 16));
+            }
+            return base.VisitDeclare_local(context);
         }
     }
 
@@ -455,9 +646,9 @@ namespace Zen.Trunk.Storage.Query
         }
     }
 
-    public class BlockSymbolScope : ChildSymbolScope
+    public class LocalSymbolScope : ChildSymbolScope
     {
-        public BlockSymbolScope(SymbolScope parentScope)
+        public LocalSymbolScope(SymbolScope parentScope)
             : base(parentScope)
         {
         }
@@ -465,11 +656,64 @@ namespace Zen.Trunk.Storage.Query
 
     public class Symbol
     {
-        public Symbol(string name)
+        public Symbol(string name, TableColumnDataType type, int length)
         {
             Name = name;
+            Type = type;
+            Length = length;
         }
 
         public string Name { get; }
+
+        public TableColumnDataType Type { get; }
+
+        public int Length { get; }
+    }
+
+    public class VariableSymbol : Symbol
+    {
+        public VariableSymbol(string name, TableColumnDataType type, int length)
+            : base(name, type, length)
+        {
+        }
+    }
+
+    public class ParameterSymbol : Symbol
+    {
+        public ParameterSymbol(
+            string name,
+            TableColumnDataType type,
+            int length,
+            bool isVarying,
+            bool isOutput,
+            bool isReadOnly)
+            : base(name, type, length)
+        {
+            IsVarying = isVarying;
+            IsOutput = isOutput;
+            IsReadOnly = isReadOnly;
+        }
+
+        public bool IsVarying { get; }
+
+        public bool IsOutput { get; }
+
+        public bool IsReadOnly { get; }
+    }
+
+    public class FunctionSymbol : Symbol
+    {
+        public FunctionSymbol(string name, TableColumnDataType type, int length)
+            : base(name, type, length)
+        {
+        }
+    }
+
+    public class ProcedureSymbol : Symbol
+    {
+        public ProcedureSymbol(string name, TableColumnDataType type)
+            : base(name, type, 0)
+        {
+        }
     }
 }
