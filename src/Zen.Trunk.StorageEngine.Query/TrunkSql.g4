@@ -94,8 +94,8 @@ cfl_statement
     | RETURN expression? ';'?                        #return_statement
     // https://msdn.microsoft.com/en-us/library/ee677615.aspx
     | THROW (
-      error_number=(DECIMAL | LOCAL_ID) ',' message=(STRING | LOCAL_ID) ','
-      state=(DECIMAL | LOCAL_ID))? ';'?              #throw_statement
+      error_number=(DECIMAL_SEQUENCE | LOCAL_ID) ',' message=(STRING | LOCAL_ID) ','
+      state=(DECIMAL_SEQUENCE | LOCAL_ID))? ';'?              #throw_statement
     // https://msdn.microsoft.com/en-us/library/ms175976.aspx
     | BEGIN TRY ';'? try_clauses=sql_clauses? END TRY ';'?
       BEGIN CATCH ';'? catch_clauses=sql_clauses? END CATCH ';'?                    #try_catch_statement
@@ -106,7 +106,7 @@ cfl_statement
     // https://msdn.microsoft.com/en-us/library/ms176047.aspx.
     | PRINT expression ';'?                                                         #print_statement
     // https://msdn.microsoft.com/en-us/library/ms178592.aspx
-    | RAISERROR '(' msg=(DECIMAL | STRING | LOCAL_ID) ',' severity=constant_LOCAL_ID ','
+    | RAISERROR '(' msg=(DECIMAL_SEQUENCE | STRING | LOCAL_ID) ',' severity=constant_LOCAL_ID ','
         state=constant_LOCAL_ID (',' constant_LOCAL_ID)* ')' ';'?                   #raiseerror_statement
     ;
 
@@ -215,7 +215,7 @@ create_index
 
 // https://msdn.microsoft.com/en-us/library/ms187926(v=sql.120).aspx
 create_procedure
-    : CREATE proc=(PROC | PROCEDURE) func_proc_name (';' DECIMAL)?
+    : CREATE proc=(PROC | PROCEDURE) func_proc_name (';' DECIMAL_SEQUENCE)?
       ('('? procedure_param (',' procedure_param)* ')'?)?
       (WITH procedure_option (',' procedure_option)*)?
       (FOR REPLICATION)? AS sql_clauses
@@ -234,7 +234,7 @@ procedure_option
 // https://msdn.microsoft.com/en-us/library/ms188038.aspx
 create_statistics
     : CREATE STATISTICS id ON table_name_with_hint '(' column_name_list ')'
-      (WITH (FULLSCAN | SAMPLE DECIMAL (PERCENT | ROWS) | STATS_STREAM)
+      (WITH (FULLSCAN | SAMPLE DECIMAL_SEQUENCE (PERCENT | ROWS) | STATS_STREAM)
             (',' NORECOMPUTE)? (',' INCREMENTAL EQUAL on_off)? )? ';'?
     ;
 
@@ -361,7 +361,7 @@ external_access_option:
   | DEFAULT_FULLTEXT_LANGUAGE EQUAL ( id | STRING )  
   | NESTED_TRIGGERS EQUAL ( OFF | ON )  
   | TRANSFORM_NOISE_WORDS EQUAL ( OFF | ON )  
-  | TWO_DIGIT_YEAR_CUTOFF EQUAL DECIMAL
+  | TWO_DIGIT_YEAR_CUTOFF EQUAL DECIMAL_SEQUENCE
   ;
 
 HADR_options:
@@ -411,7 +411,7 @@ sql_option:
   | ANSI_PADDING on_off   
   | ANSI_WARNINGS on_off   
   | ARITHABORT on_off   
-  | COMPATIBILITY_LEVEL EQUAL DECIMAL
+  | COMPATIBILITY_LEVEL EQUAL DECIMAL_SEQUENCE
   | CONCAT_NULL_YIELDS_NULL on_off   
   | NUMERIC_ROUNDABORT on_off   
   | QUOTED_IDENTIFIER on_off   
@@ -419,11 +419,11 @@ sql_option:
   ;
 
 target_recovery_time_option:
-     TARGET_RECOVERY_TIME EQUAL DECIMAL ( SECONDS | MINUTES )
+     TARGET_RECOVERY_TIME EQUAL DECIMAL_SEQUENCE ( SECONDS | MINUTES )
     ;
 
 termination:
-    ROLLBACK AFTER seconds = DECIMAL
+    ROLLBACK AFTER seconds = DECIMAL_SEQUENCE
     | ROLLBACK IMMEDIATE   
     | NO_WAIT  
     ;
@@ -569,7 +569,7 @@ transaction_statement
 
 // https://msdn.microsoft.com/en-us/library/ms188037.aspx
 go_statement
-    : GO (count=DECIMAL)?
+    : GO (count=DECIMAL_SEQUENCE)?
     ;
 
 // https://msdn.microsoft.com/en-us/library/ms188366.aspx
@@ -602,7 +602,7 @@ column_def_table_constraint
 column_definition
     : id (data_type | AS expression) (COLLATE id)? null_notnull?
       ((CONSTRAINT constraint=id)? DEFAULT constant_expression (WITH VALUES)?
-       | IDENTITY ('(' seed=DECIMAL ',' increment=DECIMAL ')')? (NOT FOR REPLICATION)?)?
+       | IDENTITY ('(' seed=DECIMAL_SEQUENCE ',' increment=DECIMAL_SEQUENCE ')')? (NOT FOR REPLICATION)?)?
       ROWGUIDCOL?
       column_constraint*
     ;
@@ -629,7 +629,7 @@ index_options
 // Id runtime checking. Id in (PAD_INDEX, FILLFACTOR, IGNORE_DUP_KEY, STATISTICS_NORECOMPUTE, ALLOW_ROW_LOCKS,
 // ALLOW_PAGE_LOCKS, SORT_IN_TEMPDB, ONLINE, MAXDOP, DATA_COMPRESSION, ONLINE).
 index_option
-    : simple_id '=' (simple_id | on_off | DECIMAL)
+    : simple_id '=' (simple_id | on_off | DECIMAL_SEQUENCE)
     ;
 
 // https://msdn.microsoft.com/en-us/library/ms180169.aspx
@@ -753,7 +753,7 @@ predicate
     | expression NOT? LIKE expression (ESCAPE expression)?
     | expression IS null_notnull
     | '(' search_condition ')'
-	| DECIMAL
+	| DECIMAL_SEQUENCE
     ;
 
 query_expression
@@ -791,7 +791,7 @@ for_clause
     ;
 
 xml_common_directives
-    : ',' (BINARY BASE64 | TYPE | ROOT)
+    : ',' (HEX_SEQUENCE BASE64 | TYPE | ROOT)
     ;
 
 order_by_expression
@@ -812,7 +812,7 @@ option_clause
     ;
 
 option
-    : FAST number_rows=DECIMAL
+    : FAST number_rows=DECIMAL_SEQUENCE
     | (HASH | ORDER) GROUP
     | (MERGE | HASH | CONCAT) UNION
     | (LOOP | MERGE | HASH) JOIN
@@ -821,8 +821,8 @@ option
     | IGNORE_NONCLUSTERED_COLUMNSTORE_INDEX
     | KEEP PLAN
     | KEEPFIXED PLAN
-    | MAXDOP number_of_processors=DECIMAL
-    | MAXRECURSION number_recursion=DECIMAL
+    | MAXDOP number_of_processors=DECIMAL_SEQUENCE
+    | MAXRECURSION number_recursion=DECIMAL_SEQUENCE
     | OPTIMIZE FOR '(' optimize_for_arg (',' optimize_for_arg)* ')'
     | OPTIMIZE FOR UNKNOWN
     | PARAMETERIZATION (SIMPLE | FORCED)
@@ -871,7 +871,7 @@ table_source_item
     ;
 
 change_table
-    : CHANGETABLE '(' CHANGES table_name ',' (NULL | DECIMAL | LOCAL_ID) ')'
+    : CHANGETABLE '(' CHANGES table_name ',' (NULL | DECIMAL_SEQUENCE | LOCAL_ID) ')'
     ;
 
 // https://msdn.microsoft.com/en-us/library/ms191472.aspx
@@ -899,7 +899,7 @@ rowset_function
 
 // runtime check.
 bulk_option
-    : id '=' bulk_option_value=(DECIMAL | STRING)
+    : id '=' bulk_option_value=(DECIMAL_SEQUENCE | STRING)
     ;
 
 derived_table
@@ -934,7 +934,7 @@ function_call
     // https://msdn.microsoft.com/en-us/library/ms174420.aspx
     | DATEPART '(' ID ',' expression ')'
     // https://msdn.microsoft.com/en-us/library/ms189838.aspx
-    | IDENTITY '(' data_type (',' seed=DECIMAL)? (',' increment=DECIMAL)? ')'
+    | IDENTITY '(' data_type (',' seed=DECIMAL_SEQUENCE)? (',' increment=DECIMAL_SEQUENCE)? ')'
     // https://msdn.microsoft.com/en-us/library/bb839514.aspx
     | MIN_ACTIVE_ROWVERSION
     // https://msdn.microsoft.com/en-us/library/ms177562.aspx
@@ -980,12 +980,12 @@ table_hint
                 | FORCESEEK ('(' index_value '(' ID  (',' ID)* ')' ')')?
                 | SERIALIZABLE
                 | SNAPSHOT
-                | SPATIAL_WINDOW_MAX_CELLS '=' DECIMAL
+                | SPATIAL_WINDOW_MAX_CELLS '=' DECIMAL_SEQUENCE
                 | ID)?
     ;
 
 index_value
-    : id | DECIMAL
+    : id | DECIMAL_SEQUENCE
     ;
 
 column_alias_list
@@ -1047,13 +1047,13 @@ window_frame_bound
 
 window_frame_preceding
     : UNBOUNDED PRECEDING
-    | DECIMAL PRECEDING
+    | DECIMAL_SEQUENCE PRECEDING
     | CURRENT ROW
     ;
 
 window_frame_following
     : UNBOUNDED FOLLOWING
-    | DECIMAL FOLLOWING
+    | DECIMAL_SEQUENCE FOLLOWING
     ;
 
 create_database_option:
@@ -1062,7 +1062,7 @@ create_database_option:
     | DEFAULT_FULLTEXT_LANGUAGE EQUAL ( id | STRING )
     | NESTED_TRIGGERS EQUAL ( OFF | ON )
     | TRANSFORM_NOISE_WORDS EQUAL ( OFF | ON )
-    | TWO_DIGIT_YEAR_CUTOFF EQUAL DECIMAL
+    | TWO_DIGIT_YEAR_CUTOFF EQUAL DECIMAL_SEQUENCE
     | DB_CHAINING ( OFF | ON )
     | TRUSTWORTHY ( OFF | ON )
     ;
@@ -1158,17 +1158,16 @@ scalar_function_name
     ;
 
 // https://msdn.microsoft.com/en-us/library/ms187752.aspx
-// TODO: implement runtime check or add new tokens.
 data_type
     : BIGINT
-    | BINARY '(' DECIMAL ')'
+    | BINARY '(' DECIMAL_SEQUENCE ')'
     | BIT
-    | CHAR '(' DECIMAL ')'
+    | CHAR '(' DECIMAL_SEQUENCE ')'
     | DATE
     | DATETIME
     | DATETIME2
-    | DATETIMEOFFSET '(' DECIMAL ')'
-    | DECIMAL '(' DECIMAL ',' DECIMAL ')'
+    | DATETIMEOFFSET '(' DECIMAL_SEQUENCE ')'
+    | DECIMAL '(' DECIMAL_SEQUENCE ',' DECIMAL_SEQUENCE ')'
     | FLOAT
     | GEOGRAPHY
     | GEOMETRY
@@ -1176,24 +1175,23 @@ data_type
     | IMAGE
     | INT
     | MONEY
-    | NCHAR '(' DECIMAL ')'
+    | NCHAR '(' DECIMAL_SEQUENCE ')'
     | NTEXT
-    | NUMERIC '(' DECIMAL ',' DECIMAL ')'
-    | NVARCHAR '(' DECIMAL | MAX ')'
+    | NUMERIC '(' DECIMAL_SEQUENCE ',' DECIMAL_SEQUENCE ')'
+    | NVARCHAR '(' DECIMAL_SEQUENCE | MAX ')'
     | REAL
     | SMALLDATETIME
     | SMALLINT
     | SMALLMONEY
     | SQL_VARIANT
     | TEXT
-    | TIME '(' DECIMAL ')'
+    | TIME '(' DECIMAL_SEQUENCE ')'
     | TIMESTAMP
     | TINYINT
     | UNIQUEIDENTIFIER
-    | VARBINARY '(' DECIMAL | MAX ')'
-    | VARCHAR '(' DECIMAL | MAX ')'
+    | VARBINARY '(' DECIMAL_SEQUENCE | MAX ')'
+    | VARCHAR '(' DECIMAL_SEQUENCE | MAX ')'
     | XML
-    /*: id IDENTITY? ('(' (DECIMAL | MAX) (',' DECIMAL)? ')')?*/
     ;
 
 default_value
@@ -1204,10 +1202,10 @@ default_value
 // https://msdn.microsoft.com/en-us/library/ms179899.aspx
 constant
     : STRING // string, datetime or uniqueidentifier
-    | BINARY
-    | sign? DECIMAL
-    | sign? (REAL | FLOAT)  // float or decimal
-    | sign? dollar='$' (DECIMAL | FLOAT)       // money
+    | HEX_SEQUENCE
+    | sign? DECIMAL_SEQUENCE
+    | sign? (REAL_SEQUENCE | FLOAT_SEQUENCE)  // float or decimal
+    | sign? dollar='$' (DECIMAL_SEQUENCE | FLOAT_SEQUENCE)       // money
     ;
 
 sign
@@ -1360,7 +1358,7 @@ assignment_operator
     ;
 
 file_size:
-    DECIMAL( KB | MB | GB | TB | MODULE )?
+    DECIMAL_SEQUENCE( KB | MB | GB | TB | MODULE )?
     ;
 
 // Lexer
@@ -1763,6 +1761,39 @@ WORK:                                  W O R K;
 XML:                                   X M L;
 XMLNAMESPACES:                         X M L N A M E S P A C E S;
 
+// Data types keywords
+BIGINT:								   B I G I N T;
+BINARY:                                B I N A R Y;
+BIT:                                   B I T;
+CHAR:                                  C H A R;
+DATE:                                  D A T E;
+DATETIME:                              D A T E T I M E;
+DATETIME2:                             D A T E T I M E '2';
+DATETIMEOFFSET:                        D A T E T I M E O F F S E T;
+DECIMAL:                               D E C I M A L;
+FLOAT:                                 F L O A T;
+GEOGRAPHY:                             G E O G R A P H Y;
+GEOMETRY:                              G E O M E T R Y;
+HIERARCHYID:                           H I E R A R C H Y I D;
+IMAGE:                                 I M A G E;
+INT:                                   I N T;
+MONEY:                                 M O N E Y;
+NCHAR:                                 N C H A R;
+NTEXT:                                 N T E X T;
+NUMERIC:                               N U M E R I C;
+NVARCHAR:                              N V A R C H A R;
+REAL:                                  R E A L;
+SMALLDATETIME:                         S M A L L D A T E T I M E;
+SMALLINT:                              S M A L L I N T;
+SMALLMONEY:                            S M A L L M O N E Y;
+SQL_VARIANT:                           S Q L '_' V A R I A N T;
+TEXT:                                  T E X T;
+TIMESTAMP:                             T I M E S T A M P;
+TINYINT:                               T I N Y I N T;
+UNIQUEIDENTIFIER:                      U N I Q U E I D E N T I F I E R;
+VARBINARY:                             V A R B I N A R Y;
+VARCHAR:                               V A R C H A R;
+
 DOLLAR_ACTION:                         '$' A C T I O N;
 
 SPACE:              [ \t\r\n]+    -> skip;
@@ -1773,12 +1804,12 @@ LINE_COMMENT:       '--' ~[\r\n]* -> channel(HIDDEN);
 DOUBLE_QUOTE_ID:    '"' ~'"'+ '"';
 SQUARE_BRACKET_ID:  '[' ~']'+ ']';
 LOCAL_ID:           '@' [a-zA-Z_$@#0-9]+;
-DECIMAL:             DEC_DIGIT+;
+DECIMAL_SEQUENCE:    DEC_DIGIT+;
 ID:                  [a-zA-Z_#][a-zA-Z_#$@0-9]*;
 STRING:              N? '\'' (~'\'' | '\'\'')* '\'';
-BINARY:              '0' X HEX_DIGIT*;
-FLOAT:               DEC_DOT_DEC;
-REAL:                DEC_DOT_DEC (E [+-]? DEC_DIGIT+)?;
+HEX_SEQUENCE:        '0' X HEX_DIGIT*;
+FLOAT_SEQUENCE:      DEC_DOT_DEC;
+REAL_SEQUENCE:       DEC_DOT_DEC (E [+-]? DEC_DIGIT+)?;
 
 EQUAL:               '=';
 
