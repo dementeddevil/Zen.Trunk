@@ -73,12 +73,9 @@ namespace Zen.Trunk.Storage.Query
     /// and execute a series of asynchronous blocks.
     /// Each block is an asynchronous operation or composite (where BEGIN/END is used).
     /// </remarks>
-    public class SqlBatchOperationBuilder : TrunkSqlBaseVisitor<CompoundOperation>
+    public class SqlBatchOperationBuilder : TrunkSqlBaseVisitor<Expression<Func<ExecutionContext, Task>>>
     {
         private readonly MasterDatabaseDevice _masterDatabase;
-        private CompoundFile _file;
-        private BatchedCompoundOperation _currentBatch;
-        private CompoundOperation _currentOperation;
         private DatabaseDevice _activeDatabase;
 
         private IsolationLevel _currentIsolationLevel;
@@ -91,32 +88,30 @@ namespace Zen.Trunk.Storage.Query
             _masterDatabase = masterDatabase;
         }
 
-        public CompoundFile File => _file;
+        protected override Expression<Func<ExecutionContext, Task>> DefaultResult => null;
 
-        public override CompoundOperation VisitTsql_file([NotNull] TrunkSqlParser.Tsql_fileContext context)
+        public override Expression<Func<ExecutionContext, Task>> VisitTsql_file([NotNull] TrunkSqlParser.Tsql_fileContext context)
         {
-            base.VisitTsql_file(context);
-            return _file;
+            return base.VisitTsql_file(context);
         }
 
-        public override CompoundOperation VisitUse_statement(TrunkSqlParser.Use_statementContext context)
+        public override Expression<Func<ExecutionContext, Task>> VisitUse_statement(TrunkSqlParser.Use_statementContext context)
         {
             var dbName = context.database.ToString();
-            _operations.Add((ec) => ExecuteUseDatabase(ec, dbName));
-            return base.VisitUse_statement(context);
+            return ec => ExecuteUseDatabase(ec, dbName);
         }
 
-        public override CompoundOperation VisitBegin_transaction_statement([NotNull] TrunkSqlParser.Begin_transaction_statementContext context)
+        public override Expression<Func<ExecutionContext, Task>> VisitBegin_transaction_statement([NotNull] TrunkSqlParser.Begin_transaction_statementContext context)
         {
             return base.VisitBegin_transaction_statement(context);
         }
 
-        public override CompoundOperation VisitCommit_transaction_statement([NotNull] TrunkSqlParser.Commit_transaction_statementContext context)
+        public override Expression<Func<ExecutionContext, Task>> VisitCommit_transaction_statement([NotNull] TrunkSqlParser.Commit_transaction_statementContext context)
         {
             return base.VisitCommit_transaction_statement(context);
         }
 
-        public override CompoundOperation VisitSet_transaction_isolation_level_statement([NotNull] TrunkSqlParser.Set_transaction_isolation_level_statementContext context)
+        public override Expression<Func<ExecutionContext, Task>> VisitSet_transaction_isolation_level_statement([NotNull] TrunkSqlParser.Set_transaction_isolation_level_statementContext context)
         {
             /*if (context.ChildCount > 4 &&
                 context.GetChild(0) == context.SET() &&
@@ -156,7 +151,7 @@ namespace Zen.Trunk.Storage.Query
             return base.VisitSet_transaction_isolation_level_statement(context);
         }
 
-        public override CompoundOperation VisitCreate_database(TrunkSqlParser.Create_databaseContext context)
+        public override Expression<Func<ExecutionContext, Task>> VisitCreate_database(TrunkSqlParser.Create_databaseContext context)
         {
             var attachDatabaseParameters = new AttachDatabaseParameters();
             attachDatabaseParameters.Name = context.database.ToString();
@@ -226,8 +221,36 @@ namespace Zen.Trunk.Storage.Query
                 }
             }
 
-            _operations.Add((ec) => ec.MasterDatabase.AttachDatabase(attachDatabaseParameters));
-            return _currentBatch;
+            return (ec) => ec.MasterDatabase.AttachDatabase(attachDatabaseParameters);
+        }
+
+        protected override Expression<Func<ExecutionContext, Task>> AggregateResult(
+            Expression<Func<ExecutionContext, Task>> aggregate,
+            Expression<Func<ExecutionContext, Task>> childToAdd)
+        {
+            if (aggregate == null)
+            {
+                return childToAdd;
+            }
+
+            if (childToAdd == null)
+            {
+                return aggregate;
+            }
+
+            // TODO: Replace this with better expression reduction logic
+            return ec => ExecuteCompositeExpression(ec, aggregate, childToAdd);
+        }
+
+        private async Task ExecuteCompositeExpression(
+            ExecutionContext executionContext,
+            Expression<Func<ExecutionContext, Task>> lhs,
+            Expression<Func<ExecutionContext, Task>> rhs)
+        {
+            var compiledLeft = lhs.Compile();
+            var compiledRight = rhs.Compile();
+            await compiledLeft(executionContext).ConfigureAwait(false);
+            await compiledRight(executionContext).ConfigureAwait(false);
         }
 
         private FileSpec GetNativeFileSpecFromFileSpec(TrunkSqlParser.File_specContext fileSpecContext)
@@ -320,177 +343,133 @@ namespace Zen.Trunk.Storage.Query
         }
     }
 
-    public class CompoundFile : CompoundOperation
+    public class SymbolTableValidator : TrunkSqlBaseVisitor<bool>
     {
-        private readonly IList<BatchedCompoundOperation> _batches =
-            new List<BatchedCompoundOperation>();
+        private readonly GlobalSymbolScope _globalScope =
+            new GlobalSymbolScope();
+        private readonly Stack<SymbolScope> _scopeStack =
+            new Stack<SymbolScope>();
 
-        public CompoundFile(MasterDatabaseDevice masterDatabase, DatabaseDevice activeDatabase = null)
-            : base(masterDatabase, activeDatabase)
-        {
-        }
+        public GlobalSymbolScope GlobalSymbolScope => _globalScope;
 
-        public void Add(BatchedCompoundOperation batchedOperation)
-        {
-            _batches.Add(batchedOperation);
-        }
+        public SymbolScope CurrentSymbolScope => _scopeStack.Count > 0 ? _scopeStack.Peek() : _globalScope;
 
-        protected override async Task ExecuteCoreAsync()
+        public FunctionSymbolScope CurrentFunctionSymbolScope => CurrentSymbolScope as FunctionSymbolScope;
+
+        public override bool VisitCreate_procedure(TrunkSqlParser.Create_procedureContext context)
         {
-            foreach (var batch in _batches)
+            // TODO: Look for matching symbol matching context name
+            if (CurrentSymbolScope.Find(context.func_proc_name().GetText()) != null)
             {
-                await batch.ExecuteAsync().ConfigureAwait(false);
+                // TODO: Throw information should include symbol location
+                throw new Exception("proc name is not unique");
             }
+
+            _scopeStack.Push(new FunctionSymbolScope(GlobalSymbolScope, context.func_proc_name().GetText()));
+
+            // TODO: Create proc symbol and prepare for getting parameters
+            //  and return value
+
+            var result = base.VisitCreate_procedure(context);
+
+            // Pop function scope off stack
+            _scopeStack.Pop();
+            return result;
+        }
+
+        public override bool VisitBlock_statement(TrunkSqlParser.Block_statementContext context)
+        {
+            _scopeStack.Push(new BlockSymbolScope(CurrentSymbolScope));
+
+            var result = base.VisitBlock_statement(context);
+
+            _scopeStack.Pop();
+            return result;
         }
     }
 
-    public class BatchedCompoundOperation : CompoundOperation
+    public class SymbolScope
     {
-        private IsolationLevel _isolationLevel = IsolationLevel.ReadCommitted;
-        private BatchedCompoundOperation _parentBatch;
+        private readonly IDictionary<string, Symbol> _symbolTable =
+            new Dictionary<string, Symbol>(StringComparer.OrdinalIgnoreCase);
 
-        public BatchedCompoundOperation(
-            MasterDatabaseDevice masterDatabase,
-            DatabaseDevice activeDatabase = null)
-            : base(masterDatabase, activeDatabase)
+        protected SymbolScope(SymbolScope parentScope = null)
         {
+            ParentScope = parentScope;
         }
 
-        private BatchedCompoundOperation(
-            BatchedCompoundOperation parentBatch,
-            MasterDatabaseDevice masterDatabase,
-            DatabaseDevice activeDatabase = null)
-            : base(masterDatabase, activeDatabase)
+        public virtual SymbolScope ParentScope { get; }
+
+        public void AddSymbol(Symbol symbol)
         {
+            ValidateSymbol(symbol);
+            _symbolTable.Add(symbol.Name, symbol);
         }
 
-        public IsolationLevel TransactionIsolationLevel => _isolationLevel;
-
-        protected override Task PreExecuteAsync()
+        public virtual Symbol Find(string symbolName)
         {
-            TrunkTransactionContext.BeginTransaction(
-                MasterDatabase.LifetimeScope,
-                _isolationLevel,
-                TimeSpan.FromSeconds(30));
-
-            return base.PreExecuteAsync();
-        }
-
-        protected override async Task PostExecuteAsync(bool commit)
-        {
-            await base.PostExecuteAsync(commit).ConfigureAwait(false);
-
-            if (commit)
+            if (_symbolTable.ContainsKey(symbolName))
             {
-                await TrunkTransactionContext.Commit().ConfigureAwait(false);
-            }
-            else
-            {
-                await TrunkTransactionContext.Rollback().ConfigureAwait(false);
-            }
-        }
-
-        public void SetTransactionIsolationLevel(IsolationLevel level)
-        {
-            _isolationLevel = level;
-        }
-
-        public BatchedCompoundOperation PushNestedBatch()
-        {
-            var childBatch = new BatchedCompoundOperation(this, MasterDatabase, ActiveDatabase);
-            childBatch.SetTransactionIsolationLevel(_isolationLevel);
-            return childBatch;
-        }
-
-        public BatchedCompoundOperation PopNestedBatch()
-        {
-            if (_parentBatch == null)
-            {
-                throw new InvalidOperationException("Not in a transaction");
+                return _symbolTable[symbolName];
             }
 
-            return _parentBatch;
+            if (ParentScope != null)
+            {
+                return ParentScope.Find(symbolName);
+            }
+
+            return null;
+        }
+
+        protected virtual void ValidateSymbol(Symbol symbol)
+        {
         }
     }
 
-    public class CompoundOperation
+    public class GlobalSymbolScope : SymbolScope
     {
-        private readonly IList<Func<Task>> _operations = new List<Func<Task>>();
-        private readonly MasterDatabaseDevice _masterDatabase;
-        private DatabaseDevice _activeDatabase;
+    }
 
-        public CompoundOperation(
-            MasterDatabaseDevice masterDatabase,
-            DatabaseDevice activeDatabase = null)
+    public class ChildSymbolScope : SymbolScope
+    {
+        protected ChildSymbolScope(SymbolScope parentScope)
         {
-            _masterDatabase = masterDatabase;
-            _activeDatabase = activeDatabase ?? _masterDatabase;
+        }
+    }
+
+    public class FunctionSymbolScope : ChildSymbolScope
+    {
+        public FunctionSymbolScope(GlobalSymbolScope globalScope, string functionName)
+            : base(globalScope)
+        {
+            Name = functionName;
         }
 
-        public MasterDatabaseDevice MasterDatabase => _masterDatabase;
+        public string Name { get; }
 
-        public DatabaseDevice ActiveDatabase => _activeDatabase;
-
-        public bool IsEmpty => _operations.Count == 0;
-
-        public virtual async Task ExecuteAsync()
+        protected override void ValidateSymbol(Symbol symbol)
         {
-            await PreExecuteAsync().ConfigureAwait(false);
+            base.ValidateSymbol(symbol);
 
-            bool okayToCommit = true;
-            try
-            {
-                await ExecuteCoreAsync().ConfigureAwait(false);
-            }
-            catch
-            {
-                okayToCommit = false;
-                throw;
-            }
-            finally
-            {
-                await PostExecuteAsync(okayToCommit).ConfigureAwait(false);
-            }
+            // TODO: Validate things allowed in proc/func parameter list
+        }
+    }
+
+    public class BlockSymbolScope : ChildSymbolScope
+    {
+        public BlockSymbolScope(SymbolScope parentScope)
+            : base(parentScope)
+        {
+        }
+    }
+
+    public class Symbol
+    {
+        public Symbol(string name)
+        {
+            Name = name;
         }
 
-        public void PushDatabaseSwitch(string databaseName)
-        {
-            _operations.Add(
-                () =>
-                {
-                    _activeDatabase = _masterDatabase.GetDatabaseDevice(databaseName);
-                    return Task.FromResult(true);
-                });
-        }
-
-        public void PushAttachDatabase(AttachDatabaseParameters attachParameters)
-        {
-            _operations.Add(() => _masterDatabase.AttachDatabase(attachParameters));
-        }
-
-        public void PushNestedOperation(CompoundOperation operation)
-        {
-            if (operation == null)
-            {
-                throw new ArgumentNullException(nameof(operation));
-            }
-
-            _operations.Add(operation.ExecuteAsync);
-        }
-
-        protected virtual Task PreExecuteAsync()
-        {
-            return Task.FromResult(true);
-        }
-
-        protected virtual Task ExecuteCoreAsync()
-        {
-            return Task.FromResult(true);
-        }
-
-        protected virtual Task PostExecuteAsync(bool commit)
-        {
-            return Task.FromResult(true);
-        }
+        public string Name { get; }
     }
 }
