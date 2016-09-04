@@ -26,7 +26,7 @@ namespace Zen.Trunk.Storage
                 // Create the root index page
                 var rootPage = new TestIndexPage();
                 rootPage.FileGroupId = rootIndexInfo.IndexFileGroupId;
-                rootPage.ObjectId = rootIndexInfo.OwnerObjectId;
+                rootPage.ObjectId = rootIndexInfo.ObjectId;
                 rootPage.IndexType = IndexType.Root | IndexType.Leaf;
                 this.Database.InitFileGroupPage(
                     new InitFileGroupPageParameters(null, rootPage, true, false, true, true)).ConfigureAwait(false);
@@ -220,7 +220,7 @@ namespace Zen.Trunk.Storage
                     var indexInfo = new RootIndexInfo
                     {
                         Name = "PK_Test",
-                        OwnerObjectId = new ObjectId(100),
+                        ObjectId = new ObjectId(100),
                         RootIndexDepth = 0,
                         IndexFileGroupId = addFgDevice.FileGroupId,
                     };

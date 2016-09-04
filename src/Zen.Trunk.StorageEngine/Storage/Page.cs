@@ -70,7 +70,6 @@ namespace Zen.Trunk.Storage
 	    private readonly BufferFieldBitVector32 _status;
 		private readonly NewPageInterceptorField _newPageField;
 		private BitVector32.Section _pageType;
-		private BitVector32.Section _indexType;
 		private bool _managedData = true;
 		private bool _headerDirty;
 		private bool _dataDirty;
@@ -208,111 +207,6 @@ namespace Zen.Trunk.Storage
 				CheckReadOnly();
 				_status.SetValue(_pageType, (int)value);
 				SetHeaderDirty();
-			}
-		}
-
-		/// <summary>
-		/// Gets or sets the type of the index.
-		/// </summary>
-		/// <value>The type of the index.</value>
-		public IndexType IndexType
-		{
-			get
-			{
-				if (this.PageType != PageType.Index)
-				{
-					throw new InvalidOperationException("Not valid for non-index pages.");
-				}
-				return (IndexType)_status.Value[_indexType];
-			}
-			set
-			{
-				CheckReadOnly();
-				if (this.PageType != PageType.New && this.PageType != PageType.Index)
-				{
-					throw new InvalidOperationException("Not valid for non-index pages.");
-				}
-				_status.SetValue(_indexType, (int)value);
-				SetHeaderDirty();
-			}
-		}
-
-		/// <summary>
-		/// Gets or sets a value indicating whether this instance is a root
-		/// index page.
-		/// </summary>
-		/// <value>
-		/// <see langword="true"/> if this instance is root index; otherwise,
-		/// <see langword="false"/>.
-		/// </value>
-		public bool IsRootIndex
-		{
-			get
-			{
-				return (IndexType & IndexType.Root) != 0;
-			}
-			set
-			{
-				if (value)
-				{
-					IndexType |= IndexType.Root;
-				}
-				else
-				{
-					IndexType &= ~IndexType.Root;
-				}
-			}
-		}
-
-		/// <summary>
-		/// Gets or sets a value indicating whether this instance is an 
-		/// intermediate index page.
-		/// </summary>
-		/// <value>
-		/// <see langword="true"/> if this instance is root index; otherwise,
-		/// <see langword="false"/>.
-		/// </value>
-		public bool IsIntermediateIndex
-		{
-			get
-			{
-				return (IndexType & IndexType.Intermediate) != 0;
-			}
-			set
-			{
-				if (value)
-				{
-					IndexType |= IndexType.Intermediate;
-				}
-				else
-				{
-					IndexType &= ~IndexType.Intermediate;
-				}
-			}
-		}
-
-		/// <summary>
-		/// Gets or sets a value indicating whether this instance is a root index page.
-		/// </summary>
-		/// <value>
-		/// <see langword="true"/> if this instance is root index; otherwise, <see langword="false"/>.
-		/// </value>
-		public bool IsLeafIndex
-		{
-			get
-			{
-				return (IndexType & IndexType.Leaf) != 0;
-			}
-			set
-			{
-				if (value)
-				{
-					IndexType |= IndexType.Leaf;
-				}
-				else
-				{
-					IndexType &= ~IndexType.Leaf;
-				}
 			}
 		}
 
@@ -767,6 +661,11 @@ namespace Zen.Trunk.Storage
 				handler(this, e);
 			}
 		}
+
+        protected virtual BitVector32.Section CreateStatusSections(BitVector32 status, BitVector32.Section previousSection)
+        {
+            return previousSection;
+        }
 		#endregion
 
 		#region Private Methods
@@ -774,7 +673,7 @@ namespace Zen.Trunk.Storage
 		{
 			_status.Value = new BitVector32(value);
 			_pageType = BitVector32.CreateSection((short)PageType.Index);
-			_indexType = BitVector32.CreateSection((short)IndexType.Leaf, _pageType);
+            CreateStatusSections(_status.Value, _pageType);
 		}
 
 		private void SetDirtyCore(bool headerDirty, bool dataDirty)

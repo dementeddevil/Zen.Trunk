@@ -139,24 +139,24 @@ namespace Zen.Trunk.Storage.Locking
 		#endregion
 
 		#region Index Lock/Unlock
-		public void LockRootIndex(ObjectId objectId, bool writable, TimeSpan timeout)
+		public void LockRootIndex(ObjectId objectId, IndexId indexId, bool writable, TimeSpan timeout)
 		{
-			_globalLockManager.LockRootIndex(_dbId, objectId, writable, timeout);
+			_globalLockManager.LockRootIndex(_dbId, objectId, indexId, writable, timeout);
 		}
 
-		public void UnlockRootIndex(ObjectId objectId, bool writable)
+		public void UnlockRootIndex(ObjectId objectId, IndexId indexId, bool writable)
 		{
-			_globalLockManager.UnlockRootIndex(_dbId, objectId, writable);
+			_globalLockManager.UnlockRootIndex(_dbId, objectId, indexId, writable);
 		}
 
-		public void LockInternalIndex(ObjectId objectId, LogicalPageId logicalId, bool writable, TimeSpan timeout)
+		public void LockInternalIndex(ObjectId objectId, IndexId indexId, LogicalPageId logicalId, bool writable, TimeSpan timeout)
 		{
-			_globalLockManager.LockInternalIndex(_dbId, objectId, logicalId, writable, timeout);
+			_globalLockManager.LockInternalIndex(_dbId, objectId, indexId, logicalId, writable, timeout);
 		}
 
-		public void UnlockInternalIndex(ObjectId objectId, LogicalPageId logicalId, bool writable)
+		public void UnlockInternalIndex(ObjectId objectId, IndexId indexId, LogicalPageId logicalId, bool writable)
 		{
-			_globalLockManager.UnlockInternalIndex(_dbId, objectId, logicalId, writable);
+			_globalLockManager.UnlockInternalIndex(_dbId, objectId, indexId, logicalId, writable);
 		}
 		#endregion
 

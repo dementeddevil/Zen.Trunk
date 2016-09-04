@@ -42,13 +42,13 @@ namespace Zen.Trunk.Storage.Locking
 
         SchemaLock GetSchemaLock(DatabaseId dbId, ObjectId objectId);
 
-        void LockRootIndex(DatabaseId dbId, ObjectId objectId, bool writable, TimeSpan timeout);
+        void LockRootIndex(DatabaseId dbId, ObjectId objectId, IndexId indexId, bool writable, TimeSpan timeout);
 
-        void UnlockRootIndex(DatabaseId dbId, ObjectId objectId, bool writable);
+        void UnlockRootIndex(DatabaseId dbId, ObjectId objectId, IndexId indexId, bool writable);
 
-        void LockInternalIndex(DatabaseId dbId, ObjectId objectId, LogicalPageId logicalId, bool writable, TimeSpan timeout);
+        void LockInternalIndex(DatabaseId dbId, ObjectId objectId, IndexId indexId, LogicalPageId logicalId, bool writable, TimeSpan timeout);
 
-        void UnlockInternalIndex(DatabaseId dbId, ObjectId objectId, LogicalPageId logicalId, bool writable);
+        void UnlockInternalIndex(DatabaseId dbId, ObjectId objectId, IndexId indexId, LogicalPageId logicalId, bool writable);
 
         void LockData(DatabaseId dbId, ObjectId objectId, LogicalPageId logicalId, DataLockType lockType, TimeSpan timeout);
 

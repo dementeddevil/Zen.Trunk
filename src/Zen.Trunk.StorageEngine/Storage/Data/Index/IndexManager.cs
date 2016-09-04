@@ -1,10 +1,8 @@
-﻿using Autofac;
+﻿using System.Collections.Generic;
+using Autofac;
 
 namespace Zen.Trunk.Storage.Data.Index
 {
-	using System;
-	using System.Collections.Generic;
-
 	/// <summary>
 	/// <c>IndexManager</c> is a base class for all index manager classes.
 	/// </summary>
@@ -78,8 +76,8 @@ namespace Zen.Trunk.Storage.Data.Index
 		where IndexRootClass : RootIndexInfo
 	{
 		#region Private Fields
-		private readonly Dictionary<ObjectId, IndexRootClass> _indices =
-			new Dictionary<ObjectId, IndexRootClass>();
+		private readonly Dictionary<IndexId, IndexRootClass> _indices =
+			new Dictionary<IndexId, IndexRootClass>();
 		#endregion
 
 		#region Protected Constructors
@@ -95,18 +93,17 @@ namespace Zen.Trunk.Storage.Data.Index
 
 		#region Internal Properties
 		internal IEnumerable<IndexRootClass> Indices => _indices.Values;
-
 	    #endregion
 
 		#region Internal Methods
-		internal IndexRootClass GetIndexInfo(ObjectId objectId)
+		internal IndexRootClass GetIndexInfo(IndexId objectId)
 		{
 			return _indices[objectId];
 		}
 
 		internal void AddIndexInfo(IndexRootClass index)
 		{
-			_indices.Add(index.ObjectId, index);
+			_indices.Add(index.IndexId, index);
 		}
 		#endregion
 	}

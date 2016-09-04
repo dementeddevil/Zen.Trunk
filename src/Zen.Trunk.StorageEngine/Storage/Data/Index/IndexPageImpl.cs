@@ -47,7 +47,6 @@
 		/// </summary>
 		/// <value></value>
 		public override uint MinHeaderSize => base.MinHeaderSize + 2;
-
 	    #endregion
 
 		#region Internal Properties
@@ -56,7 +55,6 @@
 		/// </summary>
 		/// <value>The index entries.</value>
 		internal List<IndexClass> IndexEntries => _indexEntries;
-
 	    #endregion
 
 		#region Protected Properties
@@ -214,7 +212,7 @@
 					{
 						_lastInternalLockWritable = true;
 					}
-					lm.LockRootIndex(ObjectId, _lastInternalLockWritable, LockTimeout);
+					lm.LockRootIndex(ObjectId, IndexId, _lastInternalLockWritable, LockTimeout);
 					break;
 
 				case IndexType.Intermediate:
@@ -223,7 +221,7 @@
 					{
 						_lastInternalLockWritable = true;
 					}
-					lm.LockInternalIndex(ObjectId, LogicalId, _lastInternalLockWritable, LockTimeout);
+					lm.LockInternalIndex(ObjectId, IndexId, LogicalId, _lastInternalLockWritable, LockTimeout);
 					break;
 
 				case IndexType.Leaf:
@@ -241,12 +239,11 @@
 			switch (IndexType)
 			{
 				case IndexType.Root:
-					lm.UnlockRootIndex(ObjectId, _lastInternalLockWritable);
+					lm.UnlockRootIndex(ObjectId, IndexId, _lastInternalLockWritable);
 					break;
 
 				case IndexType.Intermediate:
-					lm.UnlockInternalIndex(ObjectId, LogicalId,
-						_lastInternalLockWritable);
+					lm.UnlockInternalIndex(ObjectId, IndexId, LogicalId, _lastInternalLockWritable);
 					break;
 
 				case IndexType.Leaf:

@@ -7,8 +7,8 @@
 	{
 		#region Private Fields
 		private FileGroupId _indexFileGroupId;	// not serialized
+		private readonly BufferFieldIndexId _indexId;
 		private readonly BufferFieldObjectId _objectId;
-		private readonly BufferFieldObjectId _ownerObjectId;
 		private readonly BufferFieldStringFixed _name;
 		private readonly BufferFieldLogicalPageId _rootLogicalId;
 		private readonly BufferFieldByte _rootIndexDepth;
@@ -19,7 +19,7 @@
 		/// Initializes a new instance of the <see cref="RootIndexInfo"/> class.
 		/// </summary>
 		public RootIndexInfo()
-			: this(ObjectId.Zero)
+			: this(IndexId.Zero)
 		{
 		}
 
@@ -27,11 +27,11 @@
 		/// Initializes a new instance of the <see cref="RootIndexInfo"/> class.
 		/// </summary>
 		/// <param name="objectId">The object id.</param>
-		public RootIndexInfo(ObjectId objectId)
+		public RootIndexInfo(IndexId indexId)
 		{
-			_objectId = new BufferFieldObjectId(objectId);
-			_ownerObjectId = new BufferFieldObjectId(_objectId);
-			_name = new BufferFieldStringFixed(_ownerObjectId, 16);
+			_indexId = new BufferFieldIndexId(indexId);
+			_objectId = new BufferFieldObjectId(_indexId, ObjectId.Zero);
+			_name = new BufferFieldStringFixed(_objectId, 16);
 			_rootLogicalId = new BufferFieldLogicalPageId(_name);
 			_rootIndexDepth = new BufferFieldByte(_rootLogicalId);
 		}
@@ -42,22 +42,16 @@
 		/// Gets the index id.
 		/// </summary>
 		/// <value>The index id.</value>
-		public ObjectId ObjectId => _objectId.Value;
+		public IndexId IndexId => _indexId.Value;
 
 	    /// <summary>
-		/// Gets or sets the owner object id.
+		/// Gets or sets the object id.
 		/// </summary>
 		/// <value>The owner object id.</value>
-		public ObjectId OwnerObjectId
+		public ObjectId ObjectId
 		{
-			get
-			{
-				return _ownerObjectId.Value;
-			}
-			set
-			{
-				_ownerObjectId.Value = value;
-			}
+			get { return _objectId.Value; }
+			set { _objectId.Value = value; }
 		}
 
 		/// <summary>
@@ -66,14 +60,8 @@
 		/// <value>The name.</value>
 		public string Name
 		{
-			get
-			{
-				return _name.Value;
-			}
-			set
-			{
-				_name.Value = value;
-			}
+			get { return _name.Value; }
+			set { _name.Value = value; }
 		}
 
 		/// <summary>
@@ -82,14 +70,8 @@
 		/// <value>The index file group id.</value>
 		public FileGroupId IndexFileGroupId
 		{
-			get
-			{
-				return _indexFileGroupId;
-			}
-			set
-			{
-				_indexFileGroupId = value;
-			}
+			get { return _indexFileGroupId; }
+			set { _indexFileGroupId = value; }
 		}
 
 		/// <summary>
@@ -98,14 +80,8 @@
 		/// <value>The root logical id.</value>
 		public LogicalPageId RootLogicalId
 		{
-			get
-			{
-				return _rootLogicalId.Value;
-			}
-			set
-			{
-				_rootLogicalId.Value = value;
-			}
+			get { return _rootLogicalId.Value; }
+			set { _rootLogicalId.Value = value; }
 		}
 
 		/// <summary>
@@ -130,7 +106,7 @@
 		/// Gets the first buffer field object.
 		/// </summary>
 		/// <value>A <see cref="T:BufferField"/> object.</value>
-		protected override BufferField FirstField => _objectId;
+		protected override BufferField FirstField => _indexId;
 
 	    /// <summary>
 		/// Gets the last buffer field object.

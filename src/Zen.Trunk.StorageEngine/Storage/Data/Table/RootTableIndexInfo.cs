@@ -1,8 +1,8 @@
-﻿namespace Zen.Trunk.Storage.Data.Table
-{
-	using System;
-	using Zen.Trunk.Storage.Data.Index;
+﻿using System;
+using Zen.Trunk.Storage.Data.Index;
 
+namespace Zen.Trunk.Storage.Data.Table
+{
 	/// <summary>
 	/// TableIndexSubType defines the sub-type of table index.
 	/// </summary>
@@ -73,9 +73,9 @@
 		/// <summary>
 		/// Initializes a new instance of the <see cref="RootTableIndexInfo"/> class.
 		/// </summary>
-		/// <param name="objectId">The object identifier.</param>
-		public RootTableIndexInfo(ObjectId objectId)
-			: base(objectId)
+		/// <param name="indexId">The index identifier.</param>
+		public RootTableIndexInfo(IndexId indexId)
+			: base(indexId)
 		{
 			_indexSubType = new BufferFieldByte(base.LastField);
 			_columnIDs = new BufferFieldByteArrayUnbounded(_indexSubType);

@@ -19,7 +19,7 @@ namespace Zen.Trunk.Storage.Locking
 		/// <returns></returns>
 		public static string GetDatabaseKey(DatabaseId dbId)
 		{
-			return $"DBK:{dbId.Value:X}";
+			return $"DBK:{dbId.Value:X4}";
 		}
 
 		/// <summary>
@@ -30,7 +30,7 @@ namespace Zen.Trunk.Storage.Locking
 		/// <returns></returns>
 		public static string GetFileGroupRootKey(DatabaseId dbId, FileGroupId fileGroupId)
 		{
-			return $"FRK:{dbId.Value:X}${fileGroupId.Value:X}";
+			return $"FRK:{dbId.Value:X4}${fileGroupId.Value:X2}";
 		}
 
 		/// <summary>
@@ -41,7 +41,7 @@ namespace Zen.Trunk.Storage.Locking
 		/// <returns></returns>
 		public static string GetDistributionKey(DatabaseId dbId, VirtualPageId virtualPageId)
 		{
-			return $"DLK:{dbId.Value:X}${virtualPageId.Value:X}";
+			return $"DLK:{dbId.Value:X4}${virtualPageId.Value:X16}";
 		}
 
 		/// <summary>
@@ -53,7 +53,7 @@ namespace Zen.Trunk.Storage.Locking
 		/// <returns></returns>
 		public static string GetExtentLockKey(DatabaseId dbId, VirtualPageId virtualPageId, uint extentIndex)
 		{
-			return $"ELK:{dbId.Value:X}${virtualPageId.Value:X}${extentIndex}";
+			return $"ELK:{dbId.Value:X4}${virtualPageId.Value:X16}${extentIndex}";
 		}
 
 		/// <summary>
@@ -62,9 +62,9 @@ namespace Zen.Trunk.Storage.Locking
 		/// <param name="dbId">The db id.</param>
 		/// <param name="objectId">The object id.</param>
 		/// <returns></returns>
-		public static string GetIndexKey(DatabaseId dbId, ObjectId objectId)
+		public static string GetIndexKey(DatabaseId dbId, ObjectId objectId, IndexId indexId)
 		{
-			return $"IK:{dbId.Value:X}${objectId.Value:X}";
+			return $"IK:{dbId.Value:X4}${objectId.Value:X8}${indexId.Value:X8}";
 		}
 
         /// <summary>
@@ -73,9 +73,9 @@ namespace Zen.Trunk.Storage.Locking
         /// <param name="dbId">The db id.</param>
         /// <param name="objectId">The object id.</param>
         /// <returns></returns>
-        public static string GetIndexRootKey(DatabaseId dbId, ObjectId objectId)
+        public static string GetIndexRootKey(DatabaseId dbId, ObjectId objectId, IndexId indexId)
 		{
-			return $"IRK:{dbId.Value:X}${objectId.Value:X}";
+			return $"IRK:{dbId.Value:X4}${objectId.Value:X8}${indexId.Value:X8}";
 		}
 
         /// <summary>
@@ -85,9 +85,9 @@ namespace Zen.Trunk.Storage.Locking
         /// <param name="objectId">The object id.</param>
         /// <param name="logicalId">The logical id.</param>
         /// <returns></returns>
-        public static string GetIndexInternalKey(DatabaseId dbId, ObjectId objectId, LogicalPageId logicalId)
+        public static string GetIndexInternalKey(DatabaseId dbId, ObjectId objectId, IndexId indexId, LogicalPageId logicalId)
 		{
-			return $"IIK:{dbId.Value:X}${objectId.Value:X}${logicalId.Value:X}";
+			return $"IIK:{dbId.Value:X4}${objectId.Value:X8}${indexId.Value:X8}${logicalId.Value:X16}";
 		}
 
         /// <summary>
@@ -97,9 +97,9 @@ namespace Zen.Trunk.Storage.Locking
         /// <param name="objectId">The object id.</param>
         /// <param name="logicalId">The logical id.</param>
         /// <returns></returns>
-        public static string GetIndexLeafKey(DatabaseId dbId, ObjectId objectId, LogicalPageId logicalId)
+        public static string GetIndexLeafKey(DatabaseId dbId, ObjectId objectId, IndexId indexId, LogicalPageId logicalId)
 		{
-			return $"ILK:{dbId.Value:X}${objectId.Value:X}${logicalId.Value:X}";
+			return $"ILK:{dbId.Value:X4}${objectId.Value:X8}${indexId.Value:X8}${logicalId.Value:X16}";
 		}
 
 		/// <summary>
@@ -110,7 +110,7 @@ namespace Zen.Trunk.Storage.Locking
 		/// <returns></returns>
 		public static string GetObjectLockKey(DatabaseId dbId, ObjectId objectId)
 		{
-			return $"OLK:{dbId.Value:X}${objectId.Value:X}";
+			return $"OLK:{dbId.Value:X4}${objectId.Value:X8}";
 		}
 
 		/// <summary>
@@ -121,7 +121,7 @@ namespace Zen.Trunk.Storage.Locking
 		/// <returns></returns>
 		public static string GetSchemaLockKey(DatabaseId dbId, ObjectId objectId)
 		{
-			return $"OSK:{dbId.Value:X}${objectId.Value:X}";
+			return $"OSK:{dbId.Value:X4}${objectId.Value:X8}";
 		}
 
 		/// <summary>
@@ -133,7 +133,7 @@ namespace Zen.Trunk.Storage.Locking
 		/// <returns></returns>
 		public static string GetDataLockKey(DatabaseId dbId, ObjectId objectId, LogicalPageId logicalId)
 		{
-			return $"ODK:{dbId.Value:X}${objectId.Value:X}${logicalId.Value:X}";
+			return $"ODK:{dbId.Value:X4}${objectId.Value:X8}${logicalId.Value:X16}";
 		}
 	}
 }

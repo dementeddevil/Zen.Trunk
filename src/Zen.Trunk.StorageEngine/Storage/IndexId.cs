@@ -3,24 +3,24 @@
 namespace Zen.Trunk.Storage
 {
     /// <summary>
-    /// Simple value type which represents an Object Identifier.
+    /// Simple value type which represents an Index Identifier.
     /// </summary>
     [Serializable]
-    public struct ObjectId : IComparable, ICloneable
+    public struct IndexId : IComparable, ICloneable
     {
         #region Public Fields
-        public static readonly ObjectId Zero = new ObjectId(0);
+        public static readonly IndexId Zero = new IndexId(0);
         #endregion
 
         #region Public Constructors
         /// <summary>
-        /// Initializes a new instance of the <see cref="ObjectId"/> struct.
+        /// Initializes a new instance of the <see cref="IndexId"/> struct.
         /// </summary>
-        /// <param name="objectId">The object id.</param>
+        /// <param name="indexId">The index id.</param>
         [CLSCompliant(false)]
-        public ObjectId(uint objectId)
+        public IndexId(uint indexId)
         {
-            Value = objectId;
+            Value = indexId;
         }
         #endregion
 
@@ -39,7 +39,7 @@ namespace Zen.Trunk.Storage
         /// <returns></returns>
         public override string ToString()
         {
-            return $"ObjectId[{Value:X8}]";
+            return $"IndexId[{Value:X8}]";
         }
 
         /// <summary>
@@ -50,9 +50,9 @@ namespace Zen.Trunk.Storage
         public override bool Equals(object obj)
         {
             var equal = false;
-            if (obj is ObjectId)
+            if (obj is IndexId)
             {
-                var rhs = (ObjectId)obj;
+                var rhs = (IndexId)obj;
                 if (Value == rhs.Value)
                 {
                     equal = true;
@@ -81,27 +81,27 @@ namespace Zen.Trunk.Storage
         /// <b>=0</b> this object sorts the same as obj.
         /// <b>&gt;0</b> this object sorts higher than obj.
         /// </returns>
-        public int CompareTo(ObjectId obj)
+        public int CompareTo(IndexId obj)
         {
             var order = Value.CompareTo(obj.Value);
             return order;
         }
 
-        public static bool operator <(ObjectId left, ObjectId right)
+        public static bool operator <(IndexId left, IndexId right)
         {
             return (left.Value < right.Value);
         }
 
-        public static bool operator >(ObjectId left, ObjectId right)
+        public static bool operator >(IndexId left, IndexId right)
         {
             return (left.Value > right.Value);
         }
 
-        public static bool operator ==(ObjectId left, ObjectId right)
+        public static bool operator ==(IndexId left, IndexId right)
         {
             return (left.Value == right.Value);
         }
-        public static bool operator !=(ObjectId left, ObjectId right)
+        public static bool operator !=(IndexId left, IndexId right)
         {
             return (left.Value != right.Value);
         }
@@ -111,22 +111,22 @@ namespace Zen.Trunk.Storage
         int IComparable.CompareTo(object obj)
         {
             var order = -1;
-            if (obj is ObjectId)
+            if (obj is IndexId)
             {
-                order = ((ObjectId)this).CompareTo((ObjectId)obj);
+                order = ((IndexId)this).CompareTo((IndexId)obj);
             }
             return order;
         }
         #endregion
 
         #region ICloneable Members
-        public ObjectId Clone()
+        public IndexId Clone()
         {
-            return (ObjectId)MemberwiseClone();
+            return (IndexId)MemberwiseClone();
         }
         object ICloneable.Clone()
         {
-            return ((ObjectId)this).Clone();
+            return ((IndexId)this).Clone();
         }
         #endregion
     }

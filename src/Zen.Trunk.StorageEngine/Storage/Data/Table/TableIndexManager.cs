@@ -143,7 +143,7 @@ namespace Zen.Trunk.Storage.Data.Table
 			// Sanity checks
 			foreach (var def in Indices)
 			{
-				if (def.ObjectId == request.Message.ObjectId)
+				if (def.IndexId == request.Message.IndexId)
 				{
 					throw new CoreException("Duplicate index ID found.");
 				}
@@ -160,7 +160,7 @@ namespace Zen.Trunk.Storage.Data.Table
 			}
 
 			// Initialise definition parameters
-			request.Message.OwnerObjectId = _ownerTable.ObjectId;
+			request.Message.ObjectId = _ownerTable.ObjectId;
 			request.Message.RootIndexDepth = 0;
 
 			// Switch off clustered index during initial index population if table has data
@@ -172,11 +172,12 @@ namespace Zen.Trunk.Storage.Data.Table
 				request.Message.IndexSubType &= ~TableIndexSubType.Clustered;
 			}
 
-			// Create the root index page
-		    var rootPage = new TableIndexPage
-		    {
-		        FileGroupId = request.Message.IndexFileGroupId,
-		        ObjectId = request.Message.OwnerObjectId,
+            // Create the root index page
+            var rootPage = new TableIndexPage
+            {
+                FileGroupId = request.Message.IndexFileGroupId,
+                ObjectId = request.Message.ObjectId,
+                IndexId = request.Message.IndexId,
 		        IndexType = IndexType.Root | IndexType.Leaf
 		    };
 		    await Database
@@ -365,6 +366,8 @@ namespace Zen.Trunk.Storage.Data.Table
 
 			// Make sure split page will use same file-group as original
 			splitPage.FileGroupId = currentPage.FileGroupId;
+            splitPage.ObjectId = currentPage.ObjectId;
+            splitPage.IndexId = currentPage.IndexId;
 			await Database.InitFileGroupPage(
 				new InitFileGroupPageParameters(null, splitPage)).ConfigureAwait(false);
 
@@ -376,8 +379,11 @@ namespace Zen.Trunk.Storage.Data.Table
 				// Initialise new page
 				var newRootPage = new TableIndexPage();
 				newRootPage.FileGroupId = currentPage.FileGroupId;
-				await Database.InitFileGroupPage(
-					new InitFileGroupPageParameters(null, newRootPage)).ConfigureAwait(false);
+                newRootPage.ObjectId = currentPage.ObjectId;
+                newRootPage.IndexId = currentPage.IndexId;
+                await Database
+                    .InitFileGroupPage(new InitFileGroupPageParameters(null, newRootPage))
+                    .ConfigureAwait(false);
 
 				// Split page is the new root - so create entry in
 				//	new root pointing to this page and then split this
@@ -402,11 +408,14 @@ namespace Zen.Trunk.Storage.Data.Table
 					currentPage.IndexType = IndexType.Intermediate;
 				}
 
+                // Split page created earlier must share the index type of current page
+                splitPage.IndexType = currentPage.IndexType;
+
 				// Setup pointer to old root in new page
 				newRootPage.AddLinkToPage(splitPage, out updateParentPage);
 
 				// Notify index manager
-				var root = GetIndexInfo(request.Message.IndexObjectId);
+				var root = GetIndexInfo(request.Message.IndexId);
 				root.RootLogicalId = newRootPage.LogicalId;
 				root.RootIndexDepth = newRootPage.Depth;
 				parentPage = newRootPage;
@@ -473,8 +482,9 @@ namespace Zen.Trunk.Storage.Data.Table
 			        FileGroupId = request.Message.RootInfo.IndexFileGroupId,
 			        LogicalId = logicalId
 			    };
-			    await Database.LoadFileGroupPage(
-					new LoadFileGroupPageParameters(null, indexPage, false, true)).ConfigureAwait(false);
+			    await Database
+                    .LoadFileGroupPage(new LoadFileGroupPageParameters(null, indexPage, false, true))
+                    .ConfigureAwait(false);
 
 				// Perform crab-search through index table entries
 				// If we are inserting then split page as required
@@ -485,8 +495,8 @@ namespace Zen.Trunk.Storage.Data.Table
 					{
 						// Split the index page
 						var newPage = new TableIndexPage();
-						var split = new SplitTableIndexPageParameters(parentPage, indexPage,
-							newPage);
+						var split = new SplitTableIndexPageParameters(
+                            parentPage, indexPage, newPage);
 						splitTask = SplitPageAsync(split);
 					}
 				}
@@ -521,7 +531,7 @@ namespace Zen.Trunk.Storage.Data.Table
 							// Wait for split if we started one
 							if (splitTask != null)
 							{
-								await splitTask;
+								await splitTask.ConfigureAwait(false);
 							}
 
 							// Return whatever we found
@@ -570,8 +580,8 @@ namespace Zen.Trunk.Storage.Data.Table
 							// Wait for split if we started one
 							if (splitTask != null)
 							{
-								await splitTask;
-							}
+								await splitTask.ConfigureAwait(false);
+                            }
 
 							// We have a result
 							return new FindTableIndexResult(
@@ -591,7 +601,7 @@ namespace Zen.Trunk.Storage.Data.Table
 				// If we split the page then ensure page split has been completed
 				if (splitTask != null)
 				{
-					await splitTask;
+					await splitTask.ConfigureAwait(false);
 				}
 
 				// If we have a next page then go
@@ -639,7 +649,6 @@ namespace Zen.Trunk.Storage.Data.Table
 					    var nextPage = new TableIndexPage
 					    {
 					        FileGroupId = indexPage.FileGroupId,
-					        ObjectId = indexPage.ObjectId,
 					        LogicalId = indexPage.NextLogicalId
 					    };
 					    var loadParams = new LoadFileGroupPageParameters(null, nextPage, false, true, false);
@@ -677,7 +686,7 @@ namespace Zen.Trunk.Storage.Data.Table
 	public class SplitTableIndexPageParameters
 	{
 		#region Private Fields
-		private readonly ObjectId _indexObjectId;
+		private readonly IndexId _indexId;
 		private readonly TableIndexPage _parentPage;
 		private readonly TableIndexPage _pageToSplit;
 		private readonly TableIndexPage _splitPage;
@@ -688,11 +697,11 @@ namespace Zen.Trunk.Storage.Data.Table
 		/// Initialises an instance of <see cref="T:SplitTableIndexPageParameters" />.
 		/// </summary>
 		public SplitTableIndexPageParameters(
-			ObjectId indexObjectId,
+			IndexId indexId,
 			TableIndexPage pageToSplit,
 			TableIndexPage splitPage)
 		{
-			_indexObjectId = indexObjectId;
+			_indexId = indexId;
 			_pageToSplit = pageToSplit;
 			_splitPage = splitPage;
 		}
@@ -712,7 +721,7 @@ namespace Zen.Trunk.Storage.Data.Table
 		#endregion
 
 		#region Public Properties
-		public ObjectId IndexObjectId => _indexObjectId;
+		public IndexId IndexId => _indexId;
 
 	    /// <summary>
 		/// Gets the parent page.
@@ -731,7 +740,6 @@ namespace Zen.Trunk.Storage.Data.Table
 		/// </summary>
 		/// <value>The split page.</value>
 		public TableIndexPage SplitPage => _splitPage;
-
 	    #endregion
 	}
 

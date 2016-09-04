@@ -288,27 +288,27 @@ namespace Zen.Trunk.Storage.Locking
 		#endregion
 
 		#region Index Lock/Unlock
-		public void LockRootIndex(DatabaseId dbId, ObjectId objectId, bool writable, TimeSpan timeout)
+		public void LockRootIndex(DatabaseId dbId, ObjectId objectId, IndexId indexId, bool writable, TimeSpan timeout)
 		{
-			var resourceKey = LockIdent.GetIndexRootKey(dbId, objectId);
+			var resourceKey = LockIdent.GetIndexRootKey(dbId, objectId, indexId);
 			LockResource(resourceKey, writable, timeout);
 		}
 
-		public void UnlockRootIndex(DatabaseId dbId, ObjectId objectId, bool writable)
+		public void UnlockRootIndex(DatabaseId dbId, ObjectId objectId, IndexId indexId, bool writable)
 		{
-			var resourceKey = LockIdent.GetIndexRootKey(dbId, objectId);
+			var resourceKey = LockIdent.GetIndexRootKey(dbId, objectId, indexId);
 			UnlockResource(resourceKey, writable);
 		}
 
-		public void LockInternalIndex(DatabaseId dbId, ObjectId objectId, LogicalPageId logicalId, bool writable, TimeSpan timeout)
+		public void LockInternalIndex(DatabaseId dbId, ObjectId objectId, IndexId indexId, LogicalPageId logicalId, bool writable, TimeSpan timeout)
 		{
-			var resourceKey = LockIdent.GetIndexInternalKey(dbId, objectId, logicalId);
+			var resourceKey = LockIdent.GetIndexInternalKey(dbId, objectId, indexId, logicalId);
 			LockResource(resourceKey, writable, timeout);
 		}
 
-		public void UnlockInternalIndex(DatabaseId dbId, ObjectId objectId, LogicalPageId logicalId, bool writable)
+		public void UnlockInternalIndex(DatabaseId dbId, ObjectId objectId, IndexId indexId, LogicalPageId logicalId, bool writable)
 		{
-			var resourceKey = LockIdent.GetIndexInternalKey(dbId, objectId, logicalId);
+			var resourceKey = LockIdent.GetIndexInternalKey(dbId, objectId, indexId, logicalId);
 			UnlockResource(resourceKey, writable);
 		}
 		#endregion
