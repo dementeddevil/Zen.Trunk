@@ -293,7 +293,7 @@ namespace Zen.Trunk.Storage.Data
 			}
 		}
 
-		public override PageType PageType => PageType.Distribution;
+        public override PageType PageType => PageType.Distribution;
 	    #endregion
 
 		#region Private Properties
@@ -634,11 +634,7 @@ namespace Zen.Trunk.Storage.Data
 		{
 			// Save locked extents and page information unless this
 			//	is a new page
-			var hasExclusiveLock = false;
-			if (DistributionLock == ObjectLockType.Exclusive)
-			{
-				hasExclusiveLock = true;
-			}
+			bool hasExclusiveLock = DistributionLock == ObjectLockType.Exclusive;
 			for (uint index = 0; index < ExtentTrackingCount; ++index)
 			{
 				if (_lockedExtents != null && !hasExclusiveLock)
@@ -939,4 +935,5 @@ namespace Zen.Trunk.Storage.Data
 		}
 		#endregion
 	}
+
 }

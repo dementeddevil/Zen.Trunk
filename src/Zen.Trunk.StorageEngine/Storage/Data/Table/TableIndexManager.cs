@@ -108,9 +108,9 @@ namespace Zen.Trunk.Storage.Data.Table
 	    #endregion
 
 		#region Public Methods
-		public Task<bool> CreateIndexAsync(RootTableIndexInfo rootInfo)
+		public Task<bool> CreateIndexAsync(RootTableIndexInfo parameters)
 		{
-			var request = new CreateTableIndex(rootInfo);
+			var request = new CreateTableIndex(parameters);
 			_createIndexPort.Post(request);
 			return request.Task;
 		}

@@ -1124,14 +1124,6 @@ namespace Zen.Trunk.Storage
 		#endregion
 
 		#region Internal Methods
-		internal void ReadFrom(VirtualBuffer buffer, uint offset)
-		{
-			using (var stream = buffer.GetBufferStream((int)offset, (int)TotalFieldLength, true))
-			{
-				ReadFrom(stream);
-			}
-		}
-
 		internal void ReadFrom(Stream stream)
 		{
 			using (var streamManager = new BufferReaderWriter(stream))

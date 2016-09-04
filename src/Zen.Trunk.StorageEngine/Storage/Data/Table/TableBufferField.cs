@@ -1,20 +1,15 @@
-﻿namespace Zen.Trunk.Storage.Data.Table
-{
-	using System;
-	using System.Collections;
-	using Zen.Trunk.Storage.IO;
+﻿using System;
+using System.Collections;
+using Zen.Trunk.Storage.IO;
 
+namespace Zen.Trunk.Storage.Data.Table
+{
 	/// <summary>
 	/// The <b>BufferFieldColumn</b> encapsulates persisting a table column 
 	/// data value.
 	/// </summary>
 	public class BufferFieldColumn : SimpleBufferField<object>
 	{
-		#region Private Fields
-		private TableColumnInfo _fieldDef;
-		private bool _indexMode;
-		#endregion
-
 		#region Public Constructors
 		/// <summary>
 		/// Initializes a new instance of the <see cref="BufferFieldColumn"/> class.
@@ -23,21 +18,12 @@
 		{
 		}
 
-		/// <summary>
-		/// Initializes a new instance of the <see cref="BufferFieldColumn"/> class.
-		/// </summary>
-		/// <param name="prev">The previous.</param>
-		public BufferFieldColumn(BufferField prev)
-			: this(prev, null)
-		{
-		}
-
-		/// <summary>
+	    /// <summary>
 		/// Initializes a new instance of the <see cref="BufferFieldColumn"/> class.
 		/// </summary>
 		/// <param name="prev">The previous.</param>
 		/// <param name="value">The value.</param>
-		public BufferFieldColumn(BufferField prev, object value)
+		public BufferFieldColumn(BufferField prev, object value = null)
 			: base(prev, value)
 		{
 		}
@@ -50,19 +36,9 @@
 		/// <value>
 		/// The column information.
 		/// </value>
-		public TableColumnInfo ColumnInfo
-		{
-			get
-			{
-				return _fieldDef;
-			}
-			set
-			{
-				_fieldDef = value;
-			}
-		}
+		public TableColumnInfo ColumnInfo { get; set; }
 
-		/// <summary>
+	    /// <summary>
 		/// Gets or sets a value indicating whether to persist using index 
 		/// semantics.
 		/// </summary>
@@ -70,25 +46,15 @@
 		/// <c>true</c> to use index mode; otherwise, <c>false</c>.
 		/// </value>
 		/// <remarks><seealso cref="FieldLength"/></remarks>
-		public bool IndexMode
-		{
-			get
-			{
-				return _indexMode;
-			}
-			set
-			{
-				_indexMode = value;
-			}
-		}
+		public bool IndexMode { get; set; }
 
-		/// <summary>
+	    /// <summary>
 		/// Gets the size of a single element of this field
 		/// </summary>
 		/// <value>
 		/// The size of the data.
 		/// </value>
-		public override int DataSize => _fieldDef.MaxDataSize;
+		public override int DataSize => ColumnInfo.MaxDataSize;
 
 	    /// <summary>
 		/// Gets the maximum length of this field.
@@ -108,11 +74,11 @@
 			{
 				if (IndexMode)
 				{
-					return _fieldDef.Length;
+					return ColumnInfo.Length;
 				}
 				else
 				{
-					return _fieldDef.GetActualDataSize(Value);
+					return ColumnInfo.GetActualDataSize(Value);
 				}
 			}
 		}
@@ -125,7 +91,7 @@
 		/// <param name="streamManager">The stream manager.</param>
 		public void WriteData(BufferReaderWriter streamManager)
 		{
-			_fieldDef.WriteData(streamManager, Value);
+			ColumnInfo.WriteData(streamManager, Value);
 		}
 
 		/// <summary>
@@ -134,7 +100,7 @@
 		/// <param name="streamManager">The stream manager.</param>
 		public void ReadData(BufferReaderWriter streamManager)
 		{
-			Value = _fieldDef.ReadData(streamManager);
+			Value = ColumnInfo.ReadData(streamManager);
 		}
 		#endregion
 
@@ -156,51 +122,51 @@
 		/// </exception>
 		protected override bool OnValueChanging(BufferFieldChangingEventArgs e)
 		{
-			if (_fieldDef != null)
+			if (ColumnInfo != null)
 			{
 				// Check for nulls.
 				if (e.NewValue == null)
 				{
-					if (!_fieldDef.Nullable)
+					if (!ColumnInfo.Nullable)
 					{
 						throw new ArgumentException(
-						    $"Column {_fieldDef.Name} does not allow nulls.", "value");
+						    $"Column {ColumnInfo.Name} does not allow nulls.", "value");
 					}
 					e.NewValue = DBNull.Value;
 				}
 
 				// If not null then check for matching type information.
-				else if (!_fieldDef.ColumnType.IsAssignableFrom(e.NewValue.GetType()))
+				else if (!ColumnInfo.ColumnType.IsInstanceOfType(e.NewValue))
 				{
 					throw new ArgumentException(
-					    $"Column {_fieldDef.Name} expects CLR type {_fieldDef.ColumnType.FullName} and {e.NewValue.GetType().FullName} is not a convertable type.", "value");
+					    $"Column {ColumnInfo.Name} expects CLR type {ColumnInfo.ColumnType.FullName} and {e.NewValue.GetType().FullName} is not a convertable type.", "value");
 				}
 
 				// Truncate or pad fixed length fields
 				if (e.NewValue != DBNull.Value)
 				{
-					if (_fieldDef.DataType == TableColumnDataType.Char ||
-						_fieldDef.DataType == TableColumnDataType.NChar)
+					if (ColumnInfo.DataType == TableColumnDataType.Char ||
+						ColumnInfo.DataType == TableColumnDataType.NChar)
 					{
 						var tempValue = (string)e.NewValue;
-						if (tempValue.Length > _fieldDef.Length)
+						if (tempValue.Length > ColumnInfo.Length)
 						{
-							e.NewValue = tempValue.Substring(0, _fieldDef.Length);
+							e.NewValue = tempValue.Substring(0, ColumnInfo.Length);
 						}
-						else if (tempValue.Length < _fieldDef.Length)
+						else if (tempValue.Length < ColumnInfo.Length)
 						{
-							e.NewValue += new string(' ', _fieldDef.Length - tempValue.Length);
+							e.NewValue += new string(' ', ColumnInfo.Length - tempValue.Length);
 						}
 					}
 
 					// Truncate variable length fields
-					if (_fieldDef.DataType == TableColumnDataType.VarChar ||
-						_fieldDef.DataType == TableColumnDataType.NVarChar)
+					if (ColumnInfo.DataType == TableColumnDataType.VarChar ||
+						ColumnInfo.DataType == TableColumnDataType.NVarChar)
 					{
 						var tempValue = (string)e.NewValue;
-						if (tempValue.Length > _fieldDef.Length)
+						if (tempValue.Length > ColumnInfo.Length)
 						{
-							e.NewValue = tempValue.Substring(0, _fieldDef.Length);
+							e.NewValue = tempValue.Substring(0, ColumnInfo.Length);
 						}
 					}
 				}
@@ -218,7 +184,7 @@
 		/// </remarks>
 		protected override void OnRead(BufferReaderWriter streamManager)
 		{
-			Value = _fieldDef.ReadData(streamManager);
+			Value = ColumnInfo.ReadData(streamManager);
 		}
 
 		/// <summary>
@@ -230,7 +196,7 @@
 		/// </remarks>
 		protected override void OnWrite(BufferReaderWriter streamManager)
 		{
-			_fieldDef.WriteData(streamManager, Value);
+			ColumnInfo.WriteData(streamManager, Value);
 		}
 		#endregion
 	}

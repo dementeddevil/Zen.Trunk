@@ -24,8 +24,6 @@ namespace Zen.Trunk.Storage.Query
             _masterDevice = masterDevice;
         }
 
-        public CompoundFile File { get; private set; }
-
         public async Task Execute(string statementBatch, bool onlyPrepare = false)
         {
             // Tokenise the input character stream
@@ -39,7 +37,7 @@ namespace Zen.Trunk.Storage.Query
 
             // Build query batch pipeline from the AST
             var visitor = new SqlBatchOperationBuilder(_masterDevice);
-            File = (CompoundFile)compileUnit.Accept(visitor);
+            var expression = compileUnit.Accept(visitor);
 
             if (onlyPrepare)
             {
@@ -47,7 +45,8 @@ namespace Zen.Trunk.Storage.Query
             }
 
             // Walk the batches and execute each one
-            await File.ExecuteAsync().ConfigureAwait(false);
+            var executionContext = new ExecutionContext(_masterDevice);
+            await expression.Compile()(executionContext).ConfigureAwait(false);
         }
     }
 

@@ -149,6 +149,7 @@
     <Compile Include="Storage\PageDevice.cs" />
     <Compile Include="Storage\Range.cs" />
     <Compile Include="Storage\StatefulBufferScope.cs" />
+    <Compile Include="Storage\StorageEngineConfiguration.cs" />
     <Compile Include="Storage\StorageEngineException.cs" />
     <Compile Include="Storage\DeviceExceptions.cs" />
     <Compile Include="Storage\DeviceInfo.cs" />

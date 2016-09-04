@@ -1,17 +1,16 @@
-﻿using Autofac;
+﻿using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
+using Autofac;
+using Zen.Trunk.Storage.Locking;
 using Zen.Trunk.Storage.Data.Index;
 
 namespace Zen.Trunk.Storage.Data.Table
 {
-	using System;
-	using System.Collections.Generic;
-	using System.Collections.ObjectModel;
-	using System.ComponentModel;
-	using System.IO;
-	using System.Linq;
-	using System.Threading.Tasks;
-	using Zen.Trunk.Storage.Locking;
-
 	/// <summary>
 	/// Represents a database table
 	/// </summary>
@@ -22,8 +21,8 @@ namespace Zen.Trunk.Storage.Data.Table
 		{
 			#region Private Fields
 			private readonly DatabaseTable _owner;
-			private bool _skipInsertChecks;
-			#endregion
+
+		    #endregion
 
 			#region Public Constructors
 			public ColumnCollection(DatabaseTable owner)
@@ -33,25 +32,15 @@ namespace Zen.Trunk.Storage.Data.Table
 			#endregion
 
 			#region Internal Properties
-			internal bool SkipInsertChecks
-			{
-				get
-				{
-					return _skipInsertChecks;
-				}
-				set
-				{
-					_skipInsertChecks = value;
-				}
-			}
-			#endregion
+			internal bool SkipInsertChecks { get; set; }
+		    #endregion
 
 			#region Protected Methods
 			protected override void InsertItem(int index, TableColumnInfo item)
 			{
 				VerifyColumnsUpdatable();
 
-				if (!_skipInsertChecks)
+				if (!SkipInsertChecks)
 				{
 					// Validate column information
 					if (string.IsNullOrEmpty(item.Name))
@@ -347,11 +336,11 @@ namespace Zen.Trunk.Storage.Data.Table
 			}
 			#endregion
 		}
-		#endregion
+        #endregion
 
-		#region Private Fields
-		private readonly FileGroupDevice _owner;
-	    private ILifetimeScope _lifetimeScope;
+        #region Private Fields
+        private readonly FileGroupDevice _owner;
+	    private readonly ILifetimeScope _lifetimeScope;
 
 		private byte _nextColumnId = 1;
 
@@ -360,13 +349,12 @@ namespace Zen.Trunk.Storage.Data.Table
 		private ReadOnlyCollection<TableColumnInfo> _columns;
 		private ConstraintCollection _updatedConstraints;
 		private ReadOnlyCollection<RowConstraint> _constraints;
+	    private Collection<RootTableIndexInfo> _indices;
 
-		private ObjectId _objectId;
-		private TimeSpan _lockTimeout;
-		private InclusiveRange _rowSize;
+	    private InclusiveRange _rowSize;
 		private ushort _rowsPerPage;
 
-		private readonly List<TableSchemaPage> _tableDef;
+		private readonly List<TableSchemaPage> _tableDef = new List<TableSchemaPage>();
         #endregion
 
         #region Public Constructors
@@ -385,11 +373,10 @@ namespace Zen.Trunk.Storage.Data.Table
                         .As<TableIndexManager>()
 		                .SingleInstance();
 		        });
-			_tableDef = new List<TableSchemaPage>();
 #if DEBUG
-			_lockTimeout = TimeSpan.FromSeconds(30);
+			LockTimeout = TimeSpan.FromSeconds(30);
 #else
-			_lockTimeout = TimeSpan.FromSeconds(10);
+			LockTimeout = TimeSpan.FromSeconds(10);
 #endif
 
 			FileGroupId = FileGroupId.Invalid;
@@ -401,48 +388,26 @@ namespace Zen.Trunk.Storage.Data.Table
 		/// Gets or sets the file group id.
 		/// </summary>
 		/// <value>The file group id.</value>
-		public FileGroupId FileGroupId
-		{
-			get;
-			set;
-		}
+		public FileGroupId FileGroupId { get; set; }
 
 		/// <summary>
 		/// Gets or sets the name of the file group.
 		/// </summary>
 		/// <value>The name of the file group.</value>
-		public string FileGroupName
-		{
-			get;
-			set;
-		}
+		public string FileGroupName { get; set; }
 
 		/// <summary>
 		/// Gets the table object ID.
 		/// </summary>
-		public ObjectId ObjectId
-		{
-			get
-			{
-				return _objectId;
-			}
-			internal set
-			{
-				_objectId = value;
-			}
-		}
+		public ObjectId ObjectId { get; internal set; }
 
-		/// <summary>
+	    /// <summary>
 		/// Gets a value indicating whether this instance is a system table.
 		/// </summary>
 		/// <value>
 		/// <c>true</c> if system table; otherwise, <c>false</c>.
 		/// </value>
-		public bool IsSystemTable
-		{
-			get;
-			internal set;
-		}
+		public bool IsSystemTable { get; internal set; }
 
 		/// <summary>
 		/// Gets or sets a value indicating whether this instance is loading.
@@ -450,11 +415,7 @@ namespace Zen.Trunk.Storage.Data.Table
 		/// <value>
 		/// <c>true</c> if this instance is loading; otherwise, <c>false</c>.
 		/// </value>
-		public bool IsLoading
-		{
-			get;
-			internal set;
-		}
+		public bool IsLoading { get; internal set; }
 
 		/// <summary>
 		/// Gets or sets a value indicating whether this instance is new table.
@@ -462,11 +423,7 @@ namespace Zen.Trunk.Storage.Data.Table
 		/// <value>
 		/// 	<c>true</c> if this instance is new table; otherwise, <c>false</c>.
 		/// </value>
-		public bool IsNewTable
-		{
-			get;
-			internal set;
-		}
+		public bool IsNewTable { get; internal set; }
 
 		/// <summary>
 		/// Gets the schema first logical identifier.
@@ -474,11 +431,7 @@ namespace Zen.Trunk.Storage.Data.Table
 		/// <value>
 		/// The schema first logical identifier.
 		/// </value>
-		public LogicalPageId SchemaFirstLogicalId
-		{
-			get;
-			internal set;
-		}
+		public LogicalPageId SchemaFirstLogicalId { get; internal set; }
 
 		/// <summary>
 		/// Gets the schema last logical identifier.
@@ -486,11 +439,7 @@ namespace Zen.Trunk.Storage.Data.Table
 		/// <value>
 		/// The schema last logical identifier.
 		/// </value>
-		public LogicalPageId SchemaLastLogicalId
-		{
-			get;
-			internal set;
-		}
+		public LogicalPageId SchemaLastLogicalId { get; internal set; }
 
 		/// <summary>
 		/// Gets or sets the first logical page identifier for table data.
@@ -554,11 +503,7 @@ namespace Zen.Trunk.Storage.Data.Table
 		/// Gets/sets a value controlling whether explicitly setting the 
 		/// identity column on insert operations is supported.
 		/// </summary>
-		public bool AllowIdentityInsert
-		{
-			get;
-			set;
-		}
+		public bool AllowIdentityInsert { get; set; }
 
 		/// <summary>
 		/// Gets a value indicating whether this instance is heap.
@@ -569,11 +514,7 @@ namespace Zen.Trunk.Storage.Data.Table
 		/// <value>
 		/// <c>true</c> if this instance is heap; otherwise, <c>false</c>.
 		/// </value>
-		public bool IsHeap
-		{
-			get;
-			private set;
-		}
+		public bool IsHeap { get; private set; }
 
 		/// <summary>
 		/// Gets the clustered index definition.
@@ -581,11 +522,7 @@ namespace Zen.Trunk.Storage.Data.Table
 		/// <value>
 		/// The clustered index definition or null if this is a heap.
 		/// </value>
-		public RootTableIndexInfo ClusteredIndex
-		{
-			get;
-			private set;
-		}
+		public RootTableIndexInfo ClusteredIndex { get; private set; }
 
 		/// <summary>
 		/// Gets a value indicating whether this table instance has any data.
@@ -629,19 +566,9 @@ namespace Zen.Trunk.Storage.Data.Table
 		/// Gets or sets the lock timeout.
 		/// </summary>
 		/// <value>The lock timeout.</value>
-		public TimeSpan LockTimeout
-		{
-			get
-			{
-				return _lockTimeout;
-			}
-			set
-			{
-				_lockTimeout = value;
-			}
-		}
+		public TimeSpan LockTimeout { get; set; }
 
-		/// <summary>
+	    /// <summary>
 		/// Gets the columns defined on this table.
 		/// </summary>
 		/// <value>The columns.</value>
@@ -690,7 +617,7 @@ namespace Zen.Trunk.Storage.Data.Table
 		/// </summary>
 		/// <param name="firstLogicalId">The first logical id.</param>
 		/// <returns></returns>
-		public async Task Load(LogicalPageId firstLogicalId)
+		public async Task LoadAsync(LogicalPageId firstLogicalId)
 		{
 			SchemaFirstLogicalId = firstLogicalId;
 			IsLoading = true;
@@ -720,8 +647,9 @@ namespace Zen.Trunk.Storage.Data.Table
 					page.ObjectId = ObjectId;
 					page.ObjectLock = ObjectLockType.Shared;
 					page.SchemaLock = SchemaLockType.SchemaStability;
-					await _owner.LoadDataPage(
-						new LoadDataPageParameters(page, false, true)).ConfigureAwait(false);
+					await _owner
+                        .LoadDataPage(new LoadDataPageParameters(page, false, true))
+                        .ConfigureAwait(false);
 
 					// Add to definitions
 					AddTableDefinition(page);
@@ -933,7 +861,7 @@ namespace Zen.Trunk.Storage.Data.Table
 			var lm = LockingManager;
 			if (IsNewTable)
 			{
-				await CreateTableDefinition();
+				await CreateTableDefinition().ConfigureAwait(false);
 			}
 			else if (!IsLoading)
 			{
@@ -981,7 +909,7 @@ namespace Zen.Trunk.Storage.Data.Table
 						{
 							if (rootPage == null)
 							{
-								rootPage = await CreateRootPageAndLink(prevRootPage, firstPage);
+								rootPage = await CreateRootPageAndLinkAsync(prevRootPage, firstPage);
 								if (firstPage)
 								{
 									initialPage = (TableSchemaRootPage)rootPage;
@@ -1016,7 +944,7 @@ namespace Zen.Trunk.Storage.Data.Table
 						{
 							if (rootPage == null)
 							{
-								rootPage = await CreateRootPageAndLink(prevRootPage, firstPage);
+								rootPage = await CreateRootPageAndLinkAsync(prevRootPage, firstPage);
 								if (firstPage)
 								{
 									initialPage = (TableSchemaRootPage)rootPage;
@@ -1330,9 +1258,8 @@ namespace Zen.Trunk.Storage.Data.Table
 
 			var columnIndex = 0;
 			var constraintIndex = 0;
-			//int indexIndex = 0;
+			var indexIndex = 0;
 			TableSchemaPage currentPage = null;
-			TableSchemaRootPage initialPage = null;
 			var needNewPage = true;
 			var firstPage = true;
 			var complete = false;
@@ -1342,28 +1269,26 @@ namespace Zen.Trunk.Storage.Data.Table
 				if (needNewPage)
 				{
 					// Create new page and link with any current page
-					currentPage = await CreateRootPageAndLink(currentPage, firstPage).ConfigureAwait(false);
+					currentPage = await CreateRootPageAndLinkAsync(currentPage, firstPage).ConfigureAwait(false);
+                    _tableDef.Add(currentPage);
 					needNewPage = false;
 
 					// If this is the first page then update first logical page
 					//	for the table
-					if (firstPage)
-					{
-						initialPage = (TableSchemaRootPage)currentPage;
-						firstPage = false;
-						SchemaFirstLogicalId = currentPage.LogicalId;
-						SchemaLastLogicalId = currentPage.LogicalId;
-					}
-					else
-					{
-						SchemaLastLogicalId = currentPage.LogicalId;
-					}
+				    if (firstPage)
+				    {
+				        firstPage = false;
+				        SchemaFirstLogicalId = currentPage.LogicalId;
+				    }
+
+                    // Always update last schema logical page identifier
+				    SchemaLastLogicalId = currentPage.LogicalId;
 				}
 
 				try
 				{
 					// Keep writing column information until we run out of 
-					//	columns to write or space in the page...
+					//	columns to write or space in the schema page...
 					while (columnIndex < _updatedColumns.Count)
 					{
 						currentPage.Columns.Add(_updatedColumns[columnIndex]);
@@ -1386,11 +1311,20 @@ namespace Zen.Trunk.Storage.Data.Table
 						++constraintIndex;
 					}
 
-					// TODO: Write index info...
-					//while (indexIndex < )
+                    // Keep writing index information until we run out of indices
+                    //  to write or space in the page...
+				    while (indexIndex < _indices.Count)
+				    {
+				        currentPage.Indices.Add(_indices[indexIndex]);
 
-					// If we get this far then we must be complete
-					complete = true;
+                        // If we get this far then there was room on the page
+                        //	for the column data and therefore the add succeeded
+                        //	so now it is safe to increment the column index...
+				        ++indexIndex;
+				    }
+
+                    // If we get this far then we must be complete
+                    complete = true;
 				}
 				catch (PageException)
 				{
@@ -1404,29 +1338,21 @@ namespace Zen.Trunk.Storage.Data.Table
 			}
 		}
 
-		private async Task<TableSchemaPage> CreateRootPage(bool firstPage)
+		private async Task<TableSchemaPage> CreateRootPageAsync(bool firstPage)
 		{
-			TableSchemaPage rootPage;
-			if (firstPage)
-			{
-				rootPage = new TableSchemaRootPage();
-			}
-			else
-			{
-				rootPage = new TableSchemaPage();
-			}
-
+		    var rootPage = firstPage ? new TableSchemaRootPage() : new TableSchemaPage();
 			rootPage.ReadOnly = false;
 			rootPage.ObjectId = ObjectId;
 			rootPage.FileGroupId = FileGroupId;
-			await _owner.InitDataPage(
-				new InitDataPageParameters(rootPage, true, true, true, true)).ConfigureAwait(true);
+			await _owner
+                .InitDataPage(new InitDataPageParameters(rootPage, true, true, true, true))
+                .ConfigureAwait(true);
 			return rootPage;
 		}
 
-		private async Task<TableSchemaPage> CreateRootPageAndLink(TableSchemaPage prevRootPage, bool firstPage)
+		private async Task<TableSchemaPage> CreateRootPageAndLinkAsync(TableSchemaPage prevRootPage, bool firstPage)
 		{
-			var rootPage = await CreateRootPage(firstPage);
+			var rootPage = await CreateRootPageAsync(firstPage).ConfigureAwait(false);
 
 			// Setup pointer to previous table definition
 			//	page (if any)
@@ -1466,16 +1392,18 @@ namespace Zen.Trunk.Storage.Data.Table
 					{
 						currentReadPage = new TableDataPage();
 						currentReadPage.LogicalId = readLogicalId;
-						await _owner.LoadDataPage(
-							new LoadDataPageParameters(currentReadPage, false, true)).ConfigureAwait(false);
+						await _owner
+                            .LoadDataPage(new LoadDataPageParameters(currentReadPage, false, true))
+                            .ConfigureAwait(false);
 					}
 
-					// Issue write request as required
+					// Issue init request as required
 					if (currentWritePage == null)
 					{
 						currentWritePage = new TableDataPage();
-						await _owner.InitDataPage(
-							new InitDataPageParameters(currentWritePage, true, true, true, true)).ConfigureAwait(false);
+						await _owner
+                            .InitDataPage(new InitDataPageParameters(currentWritePage, true, true, true, true))
+                            .ConfigureAwait(false);
 					}
 
 					// Create row reader and row writer objects

@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Autofac;
@@ -19,7 +20,7 @@ namespace Zen.Trunk.Storage.Data
     {
         #region Public Fields
         public static readonly string[] ReservedDatabaseNames =
-            new[] { "MASTER", "TEMPDB" };
+            { "MASTER", "TEMPDB", "MODEL" };
         #endregion
 
         #region Private Fields
@@ -33,10 +34,6 @@ namespace Zen.Trunk.Storage.Data
         /// <summary>
         /// Initializes a new instance of the <see cref="MasterDatabaseDevice"/> class.
         /// </summary>
-        /// <remarks>
-        /// The parent lifetime scope must be able to resolve the following interfaces;
-        /// 1. IVirtualBufferFactory
-        /// </remarks>
         public MasterDatabaseDevice()
             : base(DatabaseId.Master)
         {
@@ -89,6 +86,37 @@ namespace Zen.Trunk.Storage.Data
                 throw new ArgumentException("Database with same name already exists.");
             }
 
+            // Setup file defaults
+            if (request.IsCreate)
+            {
+                if (request.FileGroups.Count == 0)
+                {
+                    request.AddDataFile("PRIMARY", 
+                        new FileSpec
+                        {
+                            Name = request.Name,
+                            FileName = Path.Combine(
+                                ResolveDeviceService<StorageEngineConfiguration>().DefaultDataFilePath,
+                                $"{request.Name}.mdf"),
+                            Size = new FileSize(1, FileSize.FileSizeUnit.MegaBytes),
+                            FileGrowth = new FileSize(1, FileSize.FileSizeUnit.MegaBytes)
+                        });
+                }
+                if (request.LogFiles.Count == 0)
+                {
+                    request.AddLogFile(
+                        new FileSpec
+                        {
+                            Name = request.Name,
+                            FileName = Path.Combine(
+                                ResolveDeviceService<StorageEngineConfiguration>().DefaultLogFilePath,
+                                $"{request.Name}_log.ldf"),
+                            Size = new FileSize(1, FileSize.FileSizeUnit.MegaBytes),
+                            FileGrowth = new FileSize(1, FileSize.FileSizeUnit.MegaBytes)
+                        });
+                }
+            }
+
             // Get the page size so we can calculate the number of pages
             //	needed for the device (in create scenarios only)
             uint pageSize;
@@ -128,8 +156,7 @@ namespace Zen.Trunk.Storage.Data
             // Walk the list of log files
             foreach (var file in request.LogFiles)
             {
-                var pageCount = (uint)
-                    (file.Size.HasValue ? file.Size.Value.GetSizeAsPages(pageSize) : 0);
+                var pageCount = file.Size?.GetSizeAsPages(pageSize) ?? 0;
 
                 var deviceParams = new AddLogDeviceParameters(
                     file.Name, file.FileName, DeviceId.Zero, pageCount);
@@ -176,80 +203,12 @@ namespace Zen.Trunk.Storage.Data
             }
         }
 
-        private static async Task AttachDatabaseFileGroupDeviceAsync(
-            AttachDatabaseParameters request,
-            FileSpec file,
-            uint pageSize,
-            bool mountingPrimary,
-            bool needToCreateMasterFilegroup,
-            DatabaseDevice device,
-            KeyValuePair<string, IList<FileSpec>> fileGroup,
-            DeviceId deviceId)
-        {
-            string primaryName;
-            string primaryFileName;
-
-            // Determine number of pages to use if we are creating devices
-            uint createPageCount = 0;
-            if (request.IsCreate)
-            {
-                createPageCount =
-                    file.Size.HasValue ? file.Size.Value.GetSizeAsPages(pageSize) : 0;
-            }
-
-            if (mountingPrimary)
-            {
-                if (needToCreateMasterFilegroup)
-                {
-                    await device
-                        .AddFileGroupDevice(
-                            new AddFileGroupDeviceParameters(
-                                FileGroupId.Master,
-                                fileGroup.Key,
-                                file.Name,
-                                file.FileName,
-                                deviceId,
-                                createPageCount))
-                        .ConfigureAwait(false);
-                }
-                else
-                {
-                    await device
-                        .AddFileGroupDevice(
-                            new AddFileGroupDeviceParameters(
-                                FileGroupId.Primary,
-                                fileGroup.Key,
-                                file.Name,
-                                file.FileName,
-                                deviceId,
-                                createPageCount))
-                        .ConfigureAwait(false);
-                }
-
-                primaryName = file.Name;
-                primaryFileName = file.FileName;
-            }
-            else
-            {
-                await device
-                    .AddFileGroupDevice(
-                        new AddFileGroupDeviceParameters(
-                            FileGroupId.Invalid,
-                            fileGroup.Key,
-                            file.Name,
-                            file.FileName,
-                            deviceId,
-                            createPageCount))
-                    .ConfigureAwait(false);
-            }
-        }
-
         public Task DetachDatabase(string name)
         {
             // Check for reserved database names
             foreach (var reserved in ReservedDatabaseNames)
             {
-                if (string.Equals(reserved, name))
+                if (string.Equals(reserved, name, StringComparison.OrdinalIgnoreCase))
                 {
                     throw new ArgumentException("System databases are always online.");
                 }
@@ -399,6 +358,76 @@ namespace Zen.Trunk.Storage.Data
 
             // Finally close the master device
             await base.OnClose().ConfigureAwait(false);
+        }
+        #endregion
+
+        #region Private Methods
+        private static async Task AttachDatabaseFileGroupDeviceAsync(
+            AttachDatabaseParameters request,
+            FileSpec file,
+            uint pageSize,
+            bool mountingPrimary,
+            bool needToCreateMasterFilegroup,
+            DatabaseDevice device,
+            KeyValuePair<string, IList<FileSpec>> fileGroup,
+            DeviceId deviceId)
+        {
+            string primaryName;
+            string primaryFileName;
+
+            // Determine number of pages to use if we are creating devices
+            uint createPageCount = 0;
+            if (request.IsCreate)
+            {
+                createPageCount =
+                    file.Size?.GetSizeAsPages(pageSize) ?? 0;
+            }
+
+            if (mountingPrimary)
+            {
+                if (needToCreateMasterFilegroup)
+                {
+                    await device
+                        .AddFileGroupDevice(
+                            new AddFileGroupDeviceParameters(
+                                FileGroupId.Master,
+                                fileGroup.Key,
+                                file.Name,
+                                file.FileName,
+                                deviceId,
+                                createPageCount))
+                        .ConfigureAwait(false);
+                }
+                else
+                {
+                    await device
+                        .AddFileGroupDevice(
+                            new AddFileGroupDeviceParameters(
+                                FileGroupId.Primary,
+                                fileGroup.Key,
+                                file.Name,
+                                file.FileName,
+                                deviceId,
+                                createPageCount))
+                        .ConfigureAwait(false);
+                }
+
+                primaryName = file.Name;
+                primaryFileName = file.FileName;
+            }
+            else
+            {
+                await device
+                    .AddFileGroupDevice(
+                        new AddFileGroupDeviceParameters(
+                            FileGroupId.Invalid,
+                            fileGroup.Key,
+                            file.Name,
+                            file.FileName,
+                            deviceId,
+                            createPageCount))
+                    .ConfigureAwait(false);
+            }
         }
         #endregion
     }
