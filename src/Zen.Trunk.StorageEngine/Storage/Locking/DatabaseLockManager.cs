@@ -158,10 +158,20 @@ namespace Zen.Trunk.Storage.Locking
 		{
 			_globalLockManager.UnlockInternalIndex(_dbId, objectId, indexId, logicalId, writable);
 		}
-		#endregion
 
-		#region Data Lock/Unlock
-		public void LockData(ObjectId objectId, LogicalPageId logicalId, DataLockType lockType, TimeSpan timeout)
+        public void LockLeafIndex(ObjectId objectId, IndexId indexId, LogicalPageId logicalId, bool writable, TimeSpan timeout)
+        {
+            _globalLockManager.LockLeafIndex(_dbId, objectId, indexId, logicalId, writable, timeout);
+        }
+
+        public void UnlockLeafIndex(ObjectId objectId, IndexId indexId, LogicalPageId logicalId, bool writable)
+        {
+            _globalLockManager.UnlockLeafIndex(_dbId, objectId, indexId, logicalId, writable);
+        }
+        #endregion
+
+        #region Data Lock/Unlock
+        public void LockData(ObjectId objectId, LogicalPageId logicalId, DataLockType lockType, TimeSpan timeout)
 		{
 			_globalLockManager.LockData(_dbId, objectId, logicalId, lockType, timeout);
 		}

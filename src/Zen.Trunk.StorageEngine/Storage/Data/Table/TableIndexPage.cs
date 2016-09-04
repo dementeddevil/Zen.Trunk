@@ -104,13 +104,14 @@
 		/// is a normal index operating over a clustered index
 		/// </summary>
 		/// <value>
-		/// 	<c>true</c> if [is normal over clustered index]; otherwise, <c>false</c>.
+		/// <c>true</c> if the associated index is a normal index operating
+        /// over a clustered index; otherwise, <c>false</c>.
 		/// </value>
 		public bool IsNormalOverClusteredIndex
 		{
 			get
 			{
-				if (_ownerTable.IsHeap || (_rootIndex.IndexSubType & TableIndexSubType.Clustered) != 0)
+				if (_ownerTable.IsHeap || (_rootIndex.IndexSubType & TableIndexSubType.Clustered) == 0)
 				{
 					return false;
 				}
@@ -120,6 +121,11 @@
 				}
 			}
 		}
+
+        /// <summary>
+        /// Gets a value indicating whether the owner table has a clustered index.
+        /// </summary>
+        public bool IsOwnerTableClustered => !_ownerTable.IsHeap;
 		#endregion
 
 		#region Public Methods
@@ -157,22 +163,28 @@
 		{
 			if (IsLeafIndex)
 			{
-				if (IsNormalOverClusteredIndex)
-				{
-					// Normal index over table with clustered key have something different
-					// clustered key length is based on the number of fields in the clustered index
-					//	we need a pointer to that information in the owner table
-					return new TableIndexNormalOverClusteredLeafInfo(
-						IndexEntries[0].KeyLength, _ownerTable.ClusteredIndex.ColumnIDs.Length);
-				}
-				else
-				{
-					// Heaps and clustered index have leaf info pointing to row index 
-					return new TableIndexNormalOrClusteredLeafInfo(IndexEntries[0].KeyLength);
+                if (IsNormalOverClusteredIndex)
+                {
+                    // Normal index over table with clustered key have something different
+                    // clustered key length is based on the number of fields in the clustered index
+                    //	we need a pointer to that information in the owner table
+                    return new TableIndexNormalOverClusteredLeafInfo(
+                        IndexEntries[0].KeyLength, _ownerTable.ClusteredIndex.ColumnIDs.Length);
+                }
+                else if (IsOwnerTableClustered)
+                {
+                    // Clustered index leaf info just uses logical id to point to data page
+                    return new TableIndexClusteredLeafInfo(IndexEntries[0].KeyLength);
+                }
+                else
+                {
+					// Heaps have leaf info pointing to row index 
+					return new TableIndexNormalLeafInfo(IndexEntries[0].KeyLength);
 				}
 			}
 			else
 			{
+                // Root and intermediate pages use logical info
 				return new TableIndexLogicalInfo(IndexEntries[0].KeyLength);
 			}
 		}

@@ -1,24 +1,14 @@
-﻿namespace Zen.Trunk.Storage.Data.Table
+﻿using System;
+using Zen.Trunk.Storage.IO;
+
+namespace Zen.Trunk.Storage.Data.Table
 {
-	using System;
-	using Zen.Trunk.Storage.IO;
-
 	/// <summary>
-	/// 
+	/// <c>TableIndexLeafInfo</c> serves as a base class for all leaf index
+    /// information.
 	/// </summary>
-	/// <remarks>
-	/// This class is used for leaf index entries for non-clustered indices on
-	/// tables that do not have a clustered index.
-	/// It is also used for leaf nodes on a clustered index.
-	/// A different class must be used for leaf index entries of non-clustered
-	/// indices on tables that do have a clustered index as the row id is replaced
-	/// with the clustered index key.
-	/// </remarks>
-	public class TableIndexLeafInfo : TableIndexInfo
+	public class TableIndexLeafInfo : TableIndexLogicalInfo
 	{
-		#region Private Fields
-		#endregion
-
 		#region Public Constructors
 		/// <summary>
 		/// Initializes a new instance of the <see cref="TableIndexLeafInfo"/> class.
@@ -37,67 +27,107 @@
 			: base(keys)
 		{
 		}
-		#endregion
 
-		#region Public Properties
-		#endregion
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TableIndexLeafInfo"/> class.
+        /// </summary>
+        /// <param name="keySize">Size of the key.</param>
+        public TableIndexLeafInfo(int keySize, LogicalPageId logicalId)
+            : base(keySize, logicalId)
+        {
+        }
 
-		#region Protected Properties
-		#endregion
-	}
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TableIndexLeafInfo" /> class.
+        /// </summary>
+        /// <param name="keys">The keys.</param>
+        public TableIndexLeafInfo(object[] keys, LogicalPageId logicalId)
+            : base(keys, logicalId)
+        {
+        }
+        #endregion
+    }
 
-	public class TableIndexNormalOrClusteredLeafInfo : TableIndexLeafInfo
-	{
-		#region Private Fields
-		private readonly BufferFieldLogicalPageId _logicalId;
-		private readonly BufferFieldUInt16 _rowId;
-		#endregion
-
-		#region Public Constructors
-		/// <summary>
-		/// Initializes a new instance of the <see cref="TableIndexLeafInfo"/> class.
-		/// </summary>
-		/// <param name="keySize">Size of the key.</param>
-		public TableIndexNormalOrClusteredLeafInfo(int keySize)
+    /// <summary>
+    /// <c>TableIndexClusteredLeafInfo</c> describes clustered index information
+    /// for a table that contains a clustered index.
+    /// </summary>
+    public class TableIndexClusteredLeafInfo : TableIndexLeafInfo
+    {
+        #region Public Constructors
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TableIndexClusteredLeafInfo"/> class.
+        /// </summary>
+        /// <param name="keySize">Size of the key.</param>
+        public TableIndexClusteredLeafInfo(int keySize)
 			: base(keySize)
 		{
-			_logicalId = new BufferFieldLogicalPageId(base.LastField);
-			_rowId = new BufferFieldUInt16(_logicalId);
-		}
+        }
 
-	    /// <summary>
-		/// Initializes a new instance of the <see cref="TableIndexLeafInfo"/> class.
-		/// </summary>
-		/// <param name="keys">The keys.</param>
-		/// <param name="logicalId">The logical identifier.</param>
-		/// <param name="rowId">The row identifier.</param>
-		public TableIndexNormalOrClusteredLeafInfo(object[] keys, LogicalPageId logicalId, ushort rowId = 0)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TableIndexClusteredLeafInfo" /> class.
+        /// </summary>
+        /// <param name="keys">The keys.</param>
+        public TableIndexClusteredLeafInfo(object[] keys)
 			: base(keys)
 		{
-			_logicalId = new BufferFieldLogicalPageId(base.LastField, logicalId);
-			_rowId = new BufferFieldUInt16(_logicalId, rowId);
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TableIndexClusteredLeafInfo"/> class.
+        /// </summary>
+        /// <param name="keySize">Size of the key.</param>
+        public TableIndexClusteredLeafInfo(int keySize, LogicalPageId logicalId)
+            : base(keySize, logicalId)
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TableIndexClusteredLeafInfo" /> class.
+        /// </summary>
+        /// <param name="keys">The keys.</param>
+        public TableIndexClusteredLeafInfo(object[] keys, LogicalPageId logicalId)
+            : base(keys, logicalId)
+        {
+        }
+        #endregion
+    }
+
+    /// <summary>
+    /// <c>TableIndexNormalLeafInfo</c> describes leaf index information for a
+    /// table that does not contain a clustered index.
+    /// </summary>
+	public class TableIndexNormalLeafInfo : TableIndexLeafInfo
+	{
+		#region Private Fields
+		private readonly BufferFieldUInt16 _rowId;
+        #endregion
+
+        #region Public Constructors
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TableIndexHeapLeafInfo"/> class.
+        /// </summary>
+        /// <param name="keySize">Size of the key.</param>
+        public TableIndexNormalLeafInfo(int keySize)
+			: base(keySize)
+		{
+			_rowId = new BufferFieldUInt16(base.LastField);
+		}
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TableIndexHeapLeafInfo"/> class.
+        /// </summary>
+        /// <param name="keys">The keys.</param>
+        /// <param name="logicalId">The logical identifier.</param>
+        /// <param name="rowId">The row identifier.</param>
+        public TableIndexNormalLeafInfo(object[] keys, LogicalPageId logicalId, ushort rowId = 0)
+			: base(keys, logicalId)
+		{
+			_rowId = new BufferFieldUInt16(base.LastField, rowId);
 		}
 		#endregion
 
 		#region Public Properties
-		/// <summary>
-		/// Gets or sets the logical identifier.
-		/// </summary>
-		/// <value>
-		/// The logical identifier.
-		/// </value>
-		public LogicalPageId LogicalId
-		{
-			get
-			{
-				return _logicalId.Value;
-			}
-			set
-			{
-				_logicalId.Value = value;
-			}
-		}
-
 		/// <summary>
 		/// Gets or sets the row identifier.
 		/// </summary>
@@ -128,6 +158,10 @@
 	    #endregion
 	}
 
+    /// <summary>
+    /// <c>TableIndexNormalOverClusteredLeafInfo</c> describes a normal index
+    /// for a table that contains a clustered index.
+    /// </summary>
 	public class TableIndexNormalOverClusteredLeafInfo : TableIndexLeafInfo
 	{
 		#region Private Fields

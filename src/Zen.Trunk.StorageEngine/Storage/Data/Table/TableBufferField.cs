@@ -384,7 +384,6 @@
 		protected override BufferField FirstField => _keys[0];
 
 	    protected override BufferField LastField => _keys[_keys.Length - 1];
-
 	    #endregion
 
 		#region Private Methods

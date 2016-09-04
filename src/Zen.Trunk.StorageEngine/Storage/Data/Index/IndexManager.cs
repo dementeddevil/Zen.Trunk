@@ -96,10 +96,15 @@ namespace Zen.Trunk.Storage.Data.Index
 	    #endregion
 
 		#region Internal Methods
-		internal IndexRootClass GetIndexInfo(IndexId objectId)
+		internal IndexRootClass GetIndexInfo(IndexId indexId)
 		{
-			return _indices[objectId];
+			return _indices[indexId];
 		}
+
+        internal bool TryGetIndexInfo(IndexId indexId, out IndexRootClass indexInfo)
+        {
+            return _indices.TryGetValue(indexId, out indexInfo);
+        }
 
 		internal void AddIndexInfo(IndexRootClass index)
 		{

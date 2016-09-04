@@ -80,5 +80,4 @@ namespace Zen.Trunk.Storage
 		/// </remarks>
 		Leaf = 4,
 	}
-
 }

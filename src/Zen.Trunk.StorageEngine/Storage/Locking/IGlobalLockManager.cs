@@ -50,6 +50,10 @@ namespace Zen.Trunk.Storage.Locking
 
         void UnlockInternalIndex(DatabaseId dbId, ObjectId objectId, IndexId indexId, LogicalPageId logicalId, bool writable);
 
+        void LockLeafIndex(DatabaseId dbId, ObjectId objectId, IndexId indexId, LogicalPageId logicalId, bool writable, TimeSpan timeout);
+
+        void UnlockLeafIndex(DatabaseId dbId, ObjectId objectId, IndexId indexId, LogicalPageId logicalId, bool writable);
+
         void LockData(DatabaseId dbId, ObjectId objectId, LogicalPageId logicalId, DataLockType lockType, TimeSpan timeout);
 
         void UnlockData(DatabaseId dbId, ObjectId objectId, LogicalPageId logicalId);

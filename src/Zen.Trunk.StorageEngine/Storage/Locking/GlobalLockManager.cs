@@ -311,10 +311,22 @@ namespace Zen.Trunk.Storage.Locking
 			var resourceKey = LockIdent.GetIndexInternalKey(dbId, objectId, indexId, logicalId);
 			UnlockResource(resourceKey, writable);
 		}
-		#endregion
 
-		#region Data Lock/Unlock
-		public void LockData(DatabaseId dbId, ObjectId objectId, LogicalPageId logicalId, DataLockType lockType, TimeSpan timeout)
+        public void LockLeafIndex(DatabaseId dbId, ObjectId objectId, IndexId indexId, LogicalPageId logicalId, bool writable, TimeSpan timeout)
+        {
+            var resourceKey = LockIdent.GetIndexLeafKey(dbId, objectId, indexId, logicalId);
+            LockResource(resourceKey, writable, timeout);
+        }
+
+        public void UnlockLeafIndex(DatabaseId dbId, ObjectId objectId, IndexId indexId, LogicalPageId logicalId, bool writable)
+        {
+            var resourceKey = LockIdent.GetIndexLeafKey(dbId, objectId, indexId, logicalId);
+            UnlockResource(resourceKey, writable);
+        }
+        #endregion
+
+        #region Data Lock/Unlock
+        public void LockData(DatabaseId dbId, ObjectId objectId, LogicalPageId logicalId, DataLockType lockType, TimeSpan timeout)
 		{
 			var dataLock = GetDataLock(dbId, objectId, logicalId);
 			try

@@ -64,10 +64,14 @@
         void LockInternalIndex(ObjectId objectId, IndexId indexId, LogicalPageId logicalId, bool writable, TimeSpan timeout);
 
         void UnlockInternalIndex(ObjectId objectId, IndexId indexId, LogicalPageId logicalId, bool writable);
-		#endregion
 
-		#region Data Lock/Unlock
-		void LockData(ObjectId objectId, LogicalPageId logicalId, DataLockType lockType, TimeSpan timeout);
+        void LockLeafIndex(ObjectId objectId, IndexId indexId, LogicalPageId logicalId, bool writable, TimeSpan timeout);
+
+        void UnlockLeafIndex(ObjectId objectId, IndexId indexId, LogicalPageId logicalId, bool writable);
+        #endregion
+
+        #region Data Lock/Unlock
+        void LockData(ObjectId objectId, LogicalPageId logicalId, DataLockType lockType, TimeSpan timeout);
 
         void UnlockData(ObjectId objectId, LogicalPageId logicalId);
 

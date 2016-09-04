@@ -1,10 +1,9 @@
-﻿namespace Zen.Trunk.Storage.Data.Table
-{
-	using System;
-	using System.Collections;
-	using Zen.Trunk.Storage.Data.Index;
-	using Zen.Trunk.Storage.IO;
+﻿using System;
+using Zen.Trunk.Storage.Data.Index;
+using Zen.Trunk.Storage.IO;
 
+namespace Zen.Trunk.Storage.Data.Table
+{
 	/// <summary>
 	/// 
 	/// </summary>
@@ -178,6 +177,10 @@
 		#endregion
 	}
 
+    /// <summary>
+    /// <c>TableIndexLogicalInfo</c> is used to describe root and intermediate
+    /// index pages.
+    /// </summary>
 	public class TableIndexLogicalInfo : TableIndexInfo
 	{
 		#region Private Fields
