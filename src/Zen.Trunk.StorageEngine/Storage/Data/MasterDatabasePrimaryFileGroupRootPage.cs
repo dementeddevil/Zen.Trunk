@@ -10,7 +10,7 @@ namespace Zen.Trunk.Storage.Data
 	using System.Collections.Generic;
 	using System.Linq;
 	using System.Text;
-	using Zen.Trunk.Storage.IO;
+	using IO;
 
 	/// <summary>
 	/// TODO: Update summary.

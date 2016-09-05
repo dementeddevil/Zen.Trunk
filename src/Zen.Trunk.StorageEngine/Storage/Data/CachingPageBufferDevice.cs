@@ -9,6 +9,10 @@ using Zen.Trunk.Logging;
 
 namespace Zen.Trunk.Storage.Data
 {
+    /// <summary>
+    /// <c>CachingPageBufferDevice</c> handles the lifetime persistence of
+    /// <see cref="PageBuffer"/> objects.
+    /// </summary>
     public sealed class CachingPageBufferDevice : ICachingPageBufferDevice
     {
         #region Private Types

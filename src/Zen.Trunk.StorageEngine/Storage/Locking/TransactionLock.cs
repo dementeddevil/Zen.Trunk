@@ -791,12 +791,12 @@ namespace Zen.Trunk.Storage.Locking
 		#region IReferenceLock Members
 		void IReferenceLock.AddRefLock()
 		{
-			this.AddRefLock();
+			AddRefLock();
 		}
 
 		void IReferenceLock.ReleaseLock()
 		{
-			this.ReleaseRefLock();
+			ReleaseRefLock();
 		}
 		#endregion
 	}

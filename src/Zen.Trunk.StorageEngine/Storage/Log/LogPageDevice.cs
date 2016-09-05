@@ -10,8 +10,8 @@ namespace Zen.Trunk.Storage.Log
 	using System.Threading.Tasks;
 	using System.Threading.Tasks.Dataflow;
 	using System.Threading.Tasks.Schedulers;
-	using Zen.Trunk.Storage.Data;
-	using Zen.Trunk.Storage.IO;
+	using Data;
+	using IO;
 
 	/// <summary>
 	/// The <b>LogPageDevice</b> is page device designed to contain physical

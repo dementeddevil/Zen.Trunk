@@ -35,7 +35,7 @@ namespace System.Threading.Algorithms
             if (functions == null) throw new ArgumentNullException(nameof(functions));
 
             // Speculatively invoke each function
-            return ParallelAlgorithms.SpeculativeForEach(functions, options, function => function());
+            return SpeculativeForEach(functions, options, function => function());
         }
     }
 }

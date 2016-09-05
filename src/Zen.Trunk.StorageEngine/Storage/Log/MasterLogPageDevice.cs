@@ -450,7 +450,7 @@ namespace Zen.Trunk.Storage.Log
 				}
 				else
 				{
-					if (request.Message.DeviceId == Storage.DeviceId.Zero ||
+					if (request.Message.DeviceId == DeviceId.Zero ||
 						_secondaryDevices.ContainsKey(request.Message.DeviceId))
 					{
 						throw new ArgumentException("Log device id already allocated.");

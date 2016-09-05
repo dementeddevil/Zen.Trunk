@@ -113,7 +113,7 @@ namespace Zen.Trunk.Storage
             var order = -1;
             if (obj is IndexId)
             {
-                order = ((IndexId)this).CompareTo((IndexId)obj);
+                order = CompareTo((IndexId)obj);
             }
             return order;
         }
@@ -126,7 +126,7 @@ namespace Zen.Trunk.Storage
         }
         object ICloneable.Clone()
         {
-            return ((IndexId)this).Clone();
+            return Clone();
         }
         #endregion
     }

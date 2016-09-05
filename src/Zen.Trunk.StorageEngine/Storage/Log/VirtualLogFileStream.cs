@@ -2,7 +2,7 @@ namespace Zen.Trunk.Storage.Log
 {
 	using System;
 	using System.IO;
-	using Zen.Trunk.Storage.IO;
+	using IO;
 
 	internal class VirtualLogFileStream : Stream
 	{

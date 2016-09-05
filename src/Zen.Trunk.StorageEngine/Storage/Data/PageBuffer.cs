@@ -239,7 +239,7 @@ namespace Zen.Trunk.Storage.Data
 		{
 			public override PageBufferStateType StateType => PageBufferStateType.Free;
 
-		    public override Task SetFree(StatefulBuffer instance)
+		    public override Task SetFreeAsync(StatefulBuffer instance)
 			{
 				return CompletedTask.Default;
 			}
@@ -253,7 +253,7 @@ namespace Zen.Trunk.Storage.Data
 				instance.EnsureNewBufferAllocated();
 
 				// Switch to allocated state
-				return instance.SwitchState(PageBufferStateType.Allocated);
+				return instance.SwitchStateAsync(PageBufferStateType.Allocated);
 			}
 
 			public override Task RequestLoad(PageBuffer instance, VirtualPageId pageId, LogicalPageId logicalId)
@@ -262,7 +262,7 @@ namespace Zen.Trunk.Storage.Data
 				instance.LogicalId = logicalId;
 
 				// Switch to load state
-				return instance.SwitchState(PageBufferStateType.PendingLoad);
+				return instance.SwitchStateAsync(PageBufferStateType.PendingLoad);
 			}
 		}
 
@@ -274,7 +274,7 @@ namespace Zen.Trunk.Storage.Data
 			{
 				// Allocate the buffer if required and switch state
 				instance.EnsureNewBufferAllocated();
-				return instance.SwitchState(PageBufferStateType.Load);
+				return instance.SwitchStateAsync(PageBufferStateType.Load);
 			}
 		}
 
@@ -282,15 +282,15 @@ namespace Zen.Trunk.Storage.Data
 		{
 			public override PageBufferStateType StateType => PageBufferStateType.Load;
 
-		    public override async Task OnEnterState(StatefulBuffer instance, State lastState, object userState)
+		    public override async Task OnEnterStateAsync(StatefulBuffer instance, State lastState, object userState)
 			{
 				var pageBuffer = (PageBuffer)instance;
 				await pageBuffer
-					.DoLoad()
+					.LoadNewBufferAsync()
 					.ConfigureAwait(false);
 
 				await pageBuffer
-					.SwitchState(PageBufferStateType.Allocated)
+					.SwitchStateAsync(PageBufferStateType.Allocated)
 					.ConfigureAwait(false);
 			}
 		}
@@ -299,15 +299,15 @@ namespace Zen.Trunk.Storage.Data
 		{
 			public override PageBufferStateType StateType => PageBufferStateType.Allocated;
 
-		    public override Task SetFree(StatefulBuffer instance)
+		    public override Task SetFreeAsync(StatefulBuffer instance)
 			{
-				return ((PageBuffer)instance).SwitchState(PageBufferStateType.Free);
+				return ((PageBuffer)instance).SwitchStateAsync(PageBufferStateType.Free);
 			}
 
-			public override Task SetDirty(StatefulBuffer instance)
+			public override Task SetDirtyAsync(StatefulBuffer instance)
 			{
 				instance.IsDirty = true;
-				return ((PageBuffer)instance).SwitchState(PageBufferStateType.Dirty);
+				return ((PageBuffer)instance).SwitchStateAsync(PageBufferStateType.Dirty);
 			}
 		}
 
@@ -315,7 +315,7 @@ namespace Zen.Trunk.Storage.Data
 		{
 			public override PageBufferStateType StateType => PageBufferStateType.Dirty;
 
-		    public override Task SetDirty(StatefulBuffer instance)
+		    public override Task SetDirtyAsync(StatefulBuffer instance)
 			{
 				return CompletedTask.Default;
 			}
@@ -331,7 +331,7 @@ namespace Zen.Trunk.Storage.Data
 
 			public override Task Commit(PageBuffer instance, long timestamp)
 			{
-				return instance.SwitchState(PageBufferStateType.Log, timestamp);
+				return instance.SwitchStateAsync(PageBufferStateType.Log, timestamp);
 			}
 
 			public override Task Rollback(PageBuffer instance)
@@ -343,7 +343,7 @@ namespace Zen.Trunk.Storage.Data
 					instance._newBuffer = instance._oldBuffer;
 					instance._oldBuffer = null;
 				}
-				return instance.SwitchState(PageBufferStateType.Allocated);
+				return instance.SwitchStateAsync(PageBufferStateType.Allocated);
 			}
 		}
 
@@ -351,7 +351,7 @@ namespace Zen.Trunk.Storage.Data
 		{
 			public override PageBufferStateType StateType => PageBufferStateType.Log;
 
-		    public override async Task OnEnterState(StatefulBuffer instance, State lastState, object userState)
+		    public override async Task OnEnterStateAsync(StatefulBuffer instance, State lastState, object userState)
 			{
 				// Must have transaction context
 				if (TrunkTransactionContext.Current == null)
@@ -411,7 +411,7 @@ namespace Zen.Trunk.Storage.Data
 
 				// Switch to allocated state
 				await pageBufferInstance
-					.SwitchState(PageBufferStateType.AllocatedWritable)
+					.SwitchStateAsync(PageBufferStateType.AllocatedWritable)
 					.ConfigureAwait(false);
 			}
 		}
@@ -427,16 +427,16 @@ namespace Zen.Trunk.Storage.Data
 				instance._oldBuffer = null;
 
 				// Issue save on aliased buffer - do not wait
-				var taskNoWait = instance.DoSave(buffer);
+				var taskNoWait = instance.SaveBufferThenDisposeAsync(buffer);
 
 				// Switch to the allocated state now
-				return instance.SwitchState(PageBufferStateType.Allocated);
+				return instance.SwitchStateAsync(PageBufferStateType.Allocated);
 			}
 
-			public override Task SetDirty(StatefulBuffer instance)
+			public override Task SetDirtyAsync(StatefulBuffer instance)
 			{
 				instance.IsDirty = true;
-				return ((PageBuffer)instance).SwitchState(PageBufferStateType.Dirty);
+				return ((PageBuffer)instance).SwitchStateAsync(PageBufferStateType.Dirty);
 			}
 		}
 
@@ -494,7 +494,7 @@ namespace Zen.Trunk.Storage.Data
 			_newBuffer = _bufferDevice.BufferFactory.AllocateBuffer();
 
 			// Set initial state
-			SwitchState(PageBufferStateType.Free);
+			SwitchStateAsync(PageBufferStateType.Free);
 		}
 		#endregion
 
@@ -702,54 +702,51 @@ namespace Zen.Trunk.Storage.Data
 		#endregion
 
 		#region Private Methods
-		private Task DoLoad()
+		private Task LoadNewBufferAsync()
 		{
-			return DoLoad(_newBuffer);
+			return LoadBufferAsync(_newBuffer);
 		}
 
-		private Task DoLoad(IVirtualBuffer buffer)
+		private Task LoadBufferAsync(IVirtualBuffer buffer)
 		{
 			var mbd = _bufferDevice as IMultipleBufferDevice;
 			if (mbd != null)
 			{
 				return mbd.LoadBufferAsync(PageId, buffer);
 			}
-			else
-			{
-				var sbd = _bufferDevice as ISingleBufferDevice;
-				if (sbd != null)
-				{
-					return sbd.LoadBufferAsync(PageId.PhysicalPageId, buffer);
-				}
-				else
-				{
-					throw new InvalidOperationException();
-				}
-			}
+
+		    var sbd = _bufferDevice as ISingleBufferDevice;
+		    if (sbd != null)
+		    {
+		        return sbd.LoadBufferAsync(PageId.PhysicalPageId, buffer);
+		    }
+
+		    throw new InvalidOperationException();
 		}
 
-		private async Task DoSave(IVirtualBuffer buffer)
+		private async Task SaveBufferThenDisposeAsync(IVirtualBuffer buffer)
 		{
-			var mbd = _bufferDevice as IMultipleBufferDevice;
-			if (mbd != null)
-			{
-				await mbd.SaveBufferAsync(PageId, buffer);
-			}
-			else
-			{
-				var sbd = _bufferDevice as ISingleBufferDevice;
-				if (sbd != null)
-				{
-					await sbd.SaveBufferAsync(PageId.PhysicalPageId, buffer);
-				}
-				else
-				{
-					throw new InvalidOperationException();
-				}
-			}
-
-			// Save the buffer and dispose when complete
-			buffer.Dispose();
+		    try
+		    {
+			    var mbd = _bufferDevice as IMultipleBufferDevice;
+		        var sbd = _bufferDevice as ISingleBufferDevice;
+			    if (mbd != null)
+			    {
+				    await mbd.SaveBufferAsync(PageId, buffer).ConfigureAwait(false);
+			    }
+			    else if (sbd != null)
+			    {
+				    await sbd.SaveBufferAsync(PageId.PhysicalPageId, buffer).ConfigureAwait(false);
+			    }
+			    else
+			    {
+				    throw new InvalidOperationException();
+			    }
+		    }
+		    finally
+		    {
+    			buffer.Dispose();
+		    }
 		}
 
 		private void EnsureNewBufferAllocated()
@@ -760,17 +757,12 @@ namespace Zen.Trunk.Storage.Data
 			}
 		}
 
-		private Task SwitchState(PageBufferStateType newState)
+	    private Task SwitchStateAsync(PageBufferStateType newState, object userState = null)
 		{
-			return SwitchState(newState, null);
+			return SwitchStateAsync(PageBufferStateFactory.GetState(newState), userState);
 		}
 
-		private Task SwitchState(PageBufferStateType newState, object userState)
-		{
-			return SwitchState(PageBufferStateFactory.GetState(newState), userState);
-		}
-
-		private Task WaitForAnyState(params PageBufferStateType[] states)
+		private Task WaitForAnyStateAsync(params PageBufferStateType[] states)
 		{
 			if (states.Any(item => item == CurrentStateType))
 			{

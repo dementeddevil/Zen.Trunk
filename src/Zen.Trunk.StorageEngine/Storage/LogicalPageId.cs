@@ -114,7 +114,7 @@ namespace Zen.Trunk.Storage
             var order = -1;
             if (obj is LogicalPageId)
             {
-                order = ((LogicalPageId)this).CompareTo((LogicalPageId)obj);
+                order = CompareTo((LogicalPageId)obj);
             }
             return order;
         }
@@ -127,7 +127,7 @@ namespace Zen.Trunk.Storage
         }
         object ICloneable.Clone()
         {
-            return ((LogicalPageId)this).Clone();
+            return Clone();
         }
         #endregion
     }

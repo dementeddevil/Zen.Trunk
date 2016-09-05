@@ -6,12 +6,12 @@
 //
 //--------------------------------------------------------------------------
 
+using System.Collections.Concurrent;
+using System.IO;
+using System.Threading.Tasks;
+
 namespace System.Threading
 {
-	using System.Collections.Concurrent;
-	using System.IO;
-	using System.Threading.Tasks;
-
 	/// <summary>
 	/// Writeable stream for using a separate thread in a producer/consumer scenario.
 	/// </summary>

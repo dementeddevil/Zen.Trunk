@@ -145,7 +145,7 @@ namespace System.Threading.Tasks.Dataflow
 
         public virtual DataflowMessageStatus OfferMessage(DataflowMessageHeader message, TRequest value, ISourceBlock<TRequest> source, bool consumeToAccept)
         {
-            return ((ITargetBlock<TRequest>)_innerBlock).OfferMessage(message, value, source, consumeToAccept);
+            return _innerBlock.OfferMessage(message, value, source, consumeToAccept);
         }
 
         public virtual bool Post(TRequest item)

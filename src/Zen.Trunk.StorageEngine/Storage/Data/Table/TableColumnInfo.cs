@@ -3,7 +3,7 @@
 	using System;
 	using System.Collections;
 	using System.ComponentModel;
-	using Zen.Trunk.Storage.IO;
+	using IO;
 
 	public enum TableColumnDataType
 	{
@@ -544,7 +544,7 @@
 		/// Gets a Range object which represents the min and max data size
 		/// of this column in bytes.
 		/// </summary>
-		public InclusiveRange DataSize => new InclusiveRange((int)MinDataSize, (int)MaxDataSize);
+		public InclusiveRange DataSize => new InclusiveRange(MinDataSize, MaxDataSize);
 
 	    /// <summary>
 		/// Gets a Type object which represents the CLR version
@@ -720,7 +720,7 @@
 					}
 					else
 					{
-						value = streamManager.ReadBytes((int)Length);
+						value = streamManager.ReadBytes(Length);
 					}
 					break;
 				case TableColumnDataType.DateTime:
@@ -752,7 +752,7 @@
 					}
 					else
 					{
-						value = streamManager.ReadStringExact((int)Length);
+						value = streamManager.ReadStringExact(Length);
 					}
 					break;
 				case TableColumnDataType.NChar:
@@ -763,7 +763,7 @@
 					}
 					else
 					{
-						value = streamManager.ReadStringExact((int)Length);
+						value = streamManager.ReadStringExact(Length);
 					}
 					break;
 				case TableColumnDataType.Short:

@@ -4,7 +4,7 @@
 	using System.Collections.Generic;
 	using System.Collections.ObjectModel;
 	using System.IO;
-	using Zen.Trunk.Storage.IO;
+	using IO;
 
 	public enum RowConstraintType
 	{
@@ -136,7 +136,7 @@
 				base.InsertItem(index, item);
 				if (!_owner.TestWrite())
 				{
-					base.RemoveAt(index);
+					RemoveAt(index);
 					throw new PageException("Page is full.", _owner);
 				}
 				_owner.SetDirty();

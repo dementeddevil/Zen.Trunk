@@ -4,7 +4,7 @@
 	using System.Collections.Generic;
 	using System.IO;
 	using System.Threading.Tasks;
-	using Zen.Trunk.Storage.IO;
+	using IO;
 
 	public class TableDataPage : ObjectDataPage
 	{
@@ -46,7 +46,7 @@
 		/// </summary>
 		public TableDataPage()
 		{
-			_totalRowDataSize = new BufferFieldUInt16(base.LastHeaderField);
+			_totalRowDataSize = new BufferFieldUInt16(LastHeaderField);
 		}
 		#endregion
 
@@ -96,8 +96,8 @@
 		{
 			Stream rowStream = new MemoryStream(
 				_pageData,
-				(int)_rowInfo[(int)rowIndex].Offset,
-				(int)_rowInfo[(int)rowIndex].Length,
+				_rowInfo[(int)rowIndex].Offset,
+				_rowInfo[(int)rowIndex].Length,
 				canWrite);
 			return new RowReaderWriter(rowStream, rowDef);
 		}
@@ -343,9 +343,9 @@
 					splitSize);
 
 				// Move row information
-				nextPage._rowInfo.AddRange(_rowInfo.GetRange((int)splitRowIndex,
-					(int)splitRows));
-				_rowInfo.RemoveRange((int)splitRowIndex, (int)splitRows);
+				nextPage._rowInfo.AddRange(_rowInfo.GetRange(splitRowIndex,
+					splitRows));
+				_rowInfo.RemoveRange(splitRowIndex, splitRows);
 
 				// Clear source page
 				Array.Clear(_pageData, _rowInfo[splitRowIndex].Offset,
@@ -634,7 +634,7 @@
 			{
 				// Read row data
 				ushort rowDataOffset = _pageData[--offset];
-				rowDataOffset |= (ushort)(((ushort)_pageData[--offset]) << 8);
+				rowDataOffset |= (ushort)(_pageData[--offset] << 8);
 				if (rowDataOffset == 0)
 				{
 					break;

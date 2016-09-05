@@ -83,7 +83,7 @@ namespace System.Threading.Tasks.Schedulers
                 }
                 else return;
             }
-            base.TryExecuteTask(t);
+            TryExecuteTask(t);
         }
 
         /// <summary>Executes the specified task inline.</summary>

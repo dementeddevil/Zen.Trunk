@@ -218,7 +218,7 @@ namespace Zen.Trunk.Storage.Data.Table
 						}
 
 						// Remove from linear collection
-						var index = base.IndexOf(constraint);
+						var index = IndexOf(constraint);
 						base.RemoveItem(index);
 					}
 					_constraints.Remove(columnId);

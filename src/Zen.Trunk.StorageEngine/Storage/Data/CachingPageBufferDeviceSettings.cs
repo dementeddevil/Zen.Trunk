@@ -2,6 +2,10 @@
 
 namespace Zen.Trunk.Storage.Data
 {
+    /// <summary>
+    /// <c>CachingPageBufferDeviceSettings</c> define configurable settings
+    /// that dictate how the <see cref="CachingPageBufferDevice"/> operates.
+    /// </summary>
     public class CachingPageBufferDeviceSettings
     {
         /// <summary>

@@ -6,6 +6,8 @@
 //
 //--------------------------------------------------------------------------
 
+using System.Threading.Tasks;
+
 namespace System.Threading
 {
     /// <summary>Provides a simple, reference type wrapper for SpinLock.</summary>
@@ -38,6 +40,22 @@ namespace System.Threading
             {
                 Enter(ref lockTaken);
                 runUnderLock();
+            }
+            finally
+            {
+                if (lockTaken) Exit();
+            }
+        }
+
+        /// <summary>Runs the specified delegate under the lock.</summary>
+        /// <param name="runUnderLock">The delegate to be executed while holding the lock.</param>
+        public async Task ExecuteAsync(Func<Task> runUnderLock)
+        {
+            var lockTaken = false;
+            try
+            {
+                Enter(ref lockTaken);
+                await runUnderLock().ConfigureAwait(false);
             }
             finally
             {

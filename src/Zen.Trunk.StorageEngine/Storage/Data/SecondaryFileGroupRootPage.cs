@@ -5,8 +5,8 @@ namespace Zen.Trunk.Storage.Data
 	using System.IO;
 	using System.Text;
 
-	using Zen.Trunk.Storage;
-	using Zen.Trunk.Storage.IO;
+	using Storage;
+	using IO;
 	
 	/// <summary>
 	/// The <b>DatabaseFileGroupRootPage</b> is the root page class for

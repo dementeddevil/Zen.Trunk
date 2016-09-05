@@ -113,7 +113,7 @@ namespace System.Threading.Tasks.Schedulers
 
             protected override bool TryExecuteTaskInline(Task task, bool taskWasPreviouslyQueued)
             {
-                return base.TryExecuteTask(task);
+                return TryExecuteTask(task);
             }
 
             internal void RunQueuedTask(Task task) { TryExecuteTask(task); }

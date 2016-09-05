@@ -938,7 +938,7 @@ namespace Zen.Trunk.Storage.Data
                 else
                 {
                     growthPages = (uint)
-                        ((double)rootPage.AllocatedPages *
+                        (rootPage.AllocatedPages *
                         rootPage.GrowthPercent /
                         100.0);
                 }

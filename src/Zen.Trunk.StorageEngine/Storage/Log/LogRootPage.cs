@@ -2,7 +2,7 @@ namespace Zen.Trunk.Storage.Log
 {
 	using System;
 	using System.Collections.Generic;
-	using Zen.Trunk.Storage.IO;
+	using IO;
 
 	public class LogRootPage : LogPage
 	{
@@ -286,7 +286,7 @@ namespace Zen.Trunk.Storage.Log
 				throw new ArgumentOutOfRangeException(nameof(index));
 			}
 
-			return _logFiles[(int)index];
+			return _logFiles[index];
 		}
 		#endregion
 

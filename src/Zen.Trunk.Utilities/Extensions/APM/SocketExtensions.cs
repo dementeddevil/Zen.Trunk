@@ -1,9 +1,9 @@
 ﻿namespace System.Net.Sockets
 {
 	using System;
-	using System.Collections.Generic;
-	using System.Net;
-	using System.Threading.Tasks;
+	using Collections.Generic;
+	using Net;
+	using Threading.Tasks;
 
 	public static class SocketExtensions
 	{

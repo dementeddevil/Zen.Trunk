@@ -6,8 +6,8 @@
 	public class RootIndexInfo : BufferFieldWrapper
 	{
 		#region Private Fields
-		private FileGroupId _indexFileGroupId;	// not serialized
-		private readonly BufferFieldIndexId _indexId;
+
+	    private readonly BufferFieldIndexId _indexId;
 		private readonly BufferFieldObjectId _objectId;
 		private readonly BufferFieldStringFixed _name;
 		private readonly BufferFieldLogicalPageId _rootLogicalId;
@@ -26,7 +26,7 @@
 		/// <summary>
 		/// Initializes a new instance of the <see cref="RootIndexInfo"/> class.
 		/// </summary>
-		/// <param name="objectId">The object id.</param>
+		/// <param name="indexId">The index id.</param>
 		public RootIndexInfo(IndexId indexId)
 		{
 			_indexId = new BufferFieldIndexId(indexId);
@@ -64,17 +64,7 @@
 			set { _name.Value = value; }
 		}
 
-		/// <summary>
-		/// Gets or sets the index file group id.
-		/// </summary>
-		/// <value>The index file group id.</value>
-		public FileGroupId IndexFileGroupId
-		{
-			get { return _indexFileGroupId; }
-			set { _indexFileGroupId = value; }
-		}
-
-		/// <summary>
+	    /// <summary>
 		/// Gets or sets the root logical id.
 		/// </summary>
 		/// <value>The root logical id.</value>
@@ -90,15 +80,15 @@
 		/// <value>The root index depth.</value>
 		public byte RootIndexDepth
 		{
-			get
-			{
-				return _rootIndexDepth.Value;
-			}
-			set
-			{
-				_rootIndexDepth.Value = value;
-			}
+			get { return _rootIndexDepth.Value; }
+			set { _rootIndexDepth.Value = value; }
 		}
+
+		/// <summary>
+		/// Gets or sets the index file group id.
+		/// </summary>
+		/// <value>The index file group id.</value>
+		public FileGroupId IndexFileGroupId { get; set; }
 		#endregion
 
 		#region Protected Properties

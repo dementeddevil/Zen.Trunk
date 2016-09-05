@@ -1,7 +1,7 @@
 namespace Zen.Trunk.Storage.Data
 {
 	using System;
-	using Zen.Trunk.Storage.Locking;
+	using Locking;
 
 	/// <summary>
 	/// <c>SchemaPage</c> extends <see cref="T:ObjectPage"/> to add support
@@ -88,7 +88,7 @@ namespace Zen.Trunk.Storage.Data
 		/// This mechanism ensures that all lock states have been set prior to
 		/// the first call to LockPage.
 		/// </remarks>
-		protected override void OnPreInit(System.EventArgs e)
+		protected override void OnPreInit(EventArgs e)
 		{
 			if (SchemaLock == SchemaLockType.None)
 			{
@@ -110,7 +110,7 @@ namespace Zen.Trunk.Storage.Data
 		/// This mechanism ensures that all lock states have been set prior to
 		/// the first call to LockPage.
 		/// </remarks>
-		protected override void OnPreLoad(System.EventArgs e)
+		protected override void OnPreLoad(EventArgs e)
 		{
 			if (SchemaLock == SchemaLockType.None)
 			{

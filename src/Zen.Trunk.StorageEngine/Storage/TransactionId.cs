@@ -111,7 +111,7 @@ namespace Zen.Trunk.Storage
             var order = -1;
             if (obj is TransactionId)
             {
-                order = ((TransactionId)this).CompareTo((TransactionId)obj);
+                order = CompareTo((TransactionId)obj);
             }
             return order;
         }
@@ -124,7 +124,7 @@ namespace Zen.Trunk.Storage
         }
         object ICloneable.Clone()
         {
-            return ((TransactionId)this).Clone();
+            return Clone();
         }
         #endregion
     }

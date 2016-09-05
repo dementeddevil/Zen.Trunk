@@ -6,8 +6,8 @@ namespace Zen.Trunk.Storage.Data
 	using System.Text;
 	using System.Threading.Tasks;
 	using System.Threading.Tasks.Dataflow;
-	using Zen.Trunk.Storage.Locking;
-	using Zen.Trunk.Storage.IO;
+	using Locking;
+	using IO;
 	//using Zen.Trunk.Storage.Database.Index;
 
 	/// <summary>

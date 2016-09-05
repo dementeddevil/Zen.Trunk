@@ -127,20 +127,20 @@ namespace Zen.Trunk.Storage
 		/// <summary>
 		/// Reads this instance from the specified steam manager.
 		/// </summary>
-		/// <param name="steamManager">A <see cref="T:BufferReaderWriter"/> object.</param>
-		public void Read(BufferReaderWriter steamManager)
+		/// <param name="streamManager">A <see cref="T:BufferReaderWriter"/> object.</param>
+		public void Read(BufferReaderWriter streamManager)
 		{
-			OnRead(steamManager);
+			OnRead(streamManager);
 			if (_next != null && _next.CanContinue(true))
 			{
-				_next.Read(steamManager);
+				_next.Read(streamManager);
 			}
 		}
 
 		/// <summary>
 		/// Writes the specified stream manager.
 		/// </summary>
-		/// <param name="steamManager">A <see cref="T:BufferReaderWriter"/> object.</param>
+		/// <param name="streamManager">A <see cref="T:BufferReaderWriter"/> object.</param>
 		public void Write(BufferReaderWriter streamManager)
 		{
 			streamManager.IsWritable = IsWriteable;
@@ -211,7 +211,7 @@ namespace Zen.Trunk.Storage
 		/// <summary>
 		/// Called when reading from the specified stream manager.
 		/// </summary>
-		/// <param name="steamManager">A <see cref="T:BufferReaderWriter"/> object.</param>
+		/// <param name="streamManager">A <see cref="T:BufferReaderWriter"/> object.</param>
 		/// <remarks>
 		/// Derived classes must provide an implementation for this method.
 		/// </remarks>
@@ -220,7 +220,7 @@ namespace Zen.Trunk.Storage
 		/// <summary>
 		/// Called when writing to the specified stream manager.
 		/// </summary>
-		/// <param name="steamManager">A <see cref="T:BufferReaderWriter"/> object.</param>
+		/// <param name="streamManager">A <see cref="T:BufferReaderWriter"/> object.</param>
 		/// <remarks>
 		/// Derived classes must provide an implementation for this method.
 		/// </remarks>
@@ -540,7 +540,7 @@ namespace Zen.Trunk.Storage
 			var length = streamManager.ReadByte();
 			if (length > 0)
 			{
-				Value = streamManager.ReadBytes((int)length);
+				Value = streamManager.ReadBytes(length);
 			}
 			else
 			{
@@ -878,9 +878,9 @@ namespace Zen.Trunk.Storage
 		#region Public Methods
 		public bool GetBit(byte index)
 		{
-			if (index < 0 || index > 7)
+			if (index > 7)
 			{
-				throw new ArgumentOutOfRangeException("Index out of range (0-7)");
+				throw new ArgumentOutOfRangeException(nameof(index), "Index out of range (0-7)");
 			}
 			var mask = (byte)(1 << index);
 			return (Value & mask) != 0;
@@ -888,9 +888,9 @@ namespace Zen.Trunk.Storage
 
 		public void SetBit(byte index, bool on)
 		{
-			if (index < 0 || index > 7)
+			if (index > 7)
 			{
-				throw new ArgumentOutOfRangeException("Index out of range (0-7)");
+				throw new ArgumentOutOfRangeException(nameof(index), "Index out of range (0-7)");
 			}
 			var mask = (byte)(1 << index);
 			if (on)

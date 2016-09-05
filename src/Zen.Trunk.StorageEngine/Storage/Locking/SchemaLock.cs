@@ -50,10 +50,10 @@ namespace Zen.Trunk.Storage.Locking
 	public class SchemaLock : ChildTransactionLock<SchemaLockType, ObjectLock>
 	{
 		#region Private Fields
-		private static readonly NoneState noneState;
-		private static readonly SchemaStabilityState schemaStabilityState;
-		private static readonly BulkUpdateState bulkUpdateState;
-		private static readonly SchemaModificationState schemaModificationState;
+		private static readonly NoneState NoneStateObject = new NoneState();
+		private static readonly SchemaStabilityState SchemaStabilityStateObject = new SchemaStabilityState();
+		private static readonly BulkUpdateState BulkUpdateStateObject = new BulkUpdateState();
+		private static readonly SchemaModificationState SchemaModificationStateObject = new SchemaModificationState();
 		#endregion
 
 		#region Schema Lock State
@@ -106,14 +106,6 @@ namespace Zen.Trunk.Storage.Locking
         #endregion
 
         #region Public Constructors
-        static SchemaLock ()
-		{
-			noneState = new NoneState ();
-			schemaStabilityState = new SchemaStabilityState ();
-			bulkUpdateState = new BulkUpdateState ();
-			schemaModificationState = new SchemaModificationState ();
-		}
-
 		public SchemaLock ()
 		{
 		}
@@ -121,25 +113,24 @@ namespace Zen.Trunk.Storage.Locking
 
 		#region Protected Properties
 		protected override SchemaLockType NoneLockType => SchemaLockType.None;
-
 	    #endregion
 
 		#region Protected Methods
-		protected override TransactionLock<SchemaLockType>.State GetStateFromType (SchemaLockType lockType)
+		protected override State GetStateFromType (SchemaLockType lockType)
 		{
 			switch (lockType)
 			{
 				case SchemaLockType.None:
-					return noneState;
+					return NoneStateObject;
 
 				case SchemaLockType.SchemaStability:
-					return schemaStabilityState;
+					return SchemaStabilityStateObject;
 
 				case SchemaLockType.BulkUpdate:
-					return bulkUpdateState;
+					return BulkUpdateStateObject;
 
 				case SchemaLockType.SchemaModification:
-					return schemaModificationState;
+					return SchemaModificationStateObject;
 
 				default:
 					throw new InvalidOperationException ();

@@ -96,8 +96,8 @@
 		{
 			return string.Concat(new[]
 				{
-					"{Min=", this.Min.ToString (CultureInfo.CurrentCulture),
-					",Max=", this.Max.ToString (CultureInfo.CurrentCulture),
+					"{Min=", Min.ToString (CultureInfo.CurrentCulture),
+					",Max=", Max.ToString (CultureInfo.CurrentCulture),
 					"}" 
 				});
 		}
@@ -235,8 +235,8 @@
 		{
 			return string.Concat(new[]
 				{
-					"{Min=", this.Min.ToString (CultureInfo.CurrentCulture),
-					",Max=", this.Max.ToString (CultureInfo.CurrentCulture),
+					"{Min=", Min.ToString (CultureInfo.CurrentCulture),
+					",Max=", Max.ToString (CultureInfo.CurrentCulture),
 					"}" 
 				});
 		}

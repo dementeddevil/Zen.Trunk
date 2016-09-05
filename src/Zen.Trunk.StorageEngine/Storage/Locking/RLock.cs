@@ -19,10 +19,23 @@ namespace Zen.Trunk.Storage.Locking
 		#endregion
 
 		#region Public Properties
+        /// <summary>
+        /// Gets the current lock count.
+        /// </summary>
 		public int LockCount => _lockCount;
 	    #endregion
 
 		#region Public Methods
+        /// <summary>
+        /// Locks the resource protected by this lock.
+        /// </summary>
+        /// <param name="writable">
+        /// <c>true</c> for a writable lock; otherwise <c>false</c> for a readable lock.
+        /// </param>
+        /// <param name="timeout"></param>
+        /// <remarks>
+        /// This operation will block for as long as necessary until the resource becomes available.
+        /// </remarks>
 		public void Lock(bool writable, TimeSpan timeout)
 		{
 			Interlocked.Increment(ref _lockCount);
@@ -78,6 +91,13 @@ namespace Zen.Trunk.Storage.Locking
 			}
 		}
 
+        /// <summary>
+        /// Unlocks the resource protected by this lock.
+        /// </summary>
+        /// <param name="writable">
+        /// <c>true</c> for a writable lock; otherwise <c>false</c> for a readable lock.
+        /// </param>
+        /// <returns></returns>
 		public bool Unlock(bool writable)
 		{
 			if (!writable)

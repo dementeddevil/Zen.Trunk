@@ -3,7 +3,7 @@
 	using System;
 	using System.Threading.Tasks;
 	using System.Transactions;
-	using Zen.Trunk.Storage.Log;
+	using Log;
 
 	public interface ITrunkTransaction : IDisposable
 	{

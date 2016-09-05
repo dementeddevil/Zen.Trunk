@@ -169,7 +169,7 @@ namespace Zen.Trunk.Storage.IO
         public uint ExpandDevice(int pageCount)
         {
             var oldPageCapacity = PageCount;
-            var newPageCapacity = (uint)((long)oldPageCapacity + pageCount);
+            var newPageCapacity = (uint)(oldPageCapacity + pageCount);
             var fileLengthInBytes = _bufferFactory.BufferSize * newPageCapacity;
 
             if (_fileStream != null)

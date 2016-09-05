@@ -84,7 +84,7 @@ namespace Zen.Trunk.Storage.Log
 		{
 			public override LogBufferStateType StateType => LogBufferStateType.Load;
 
-		    public override async Task OnEnterState(StatefulBuffer instance, State lastState, object userState)
+		    public override async Task OnEnterStateAsync(StatefulBuffer instance, State lastState, object userState)
 			{
 				// Ask page buffer to load from underlying device.
 				var logPage = (LogBuffer)instance;
@@ -99,12 +99,12 @@ namespace Zen.Trunk.Storage.Log
 		{
 			public override LogBufferStateType StateType => LogBufferStateType.Allocated;
 
-		    public override Task SetFree(StatefulBuffer instance)
+		    public override Task SetFreeAsync(StatefulBuffer instance)
 			{
 				return ((LogBuffer)instance).SwitchState(LogBufferStateType.Free);
 			}
 
-			public override Task SetDirty(StatefulBuffer instance)
+			public override Task SetDirtyAsync(StatefulBuffer instance)
 			{
 				return ((LogBuffer)instance).SwitchState(LogBufferStateType.Dirty);
 			}
@@ -128,7 +128,7 @@ namespace Zen.Trunk.Storage.Log
 		    #endregion
 
 			#region Public Methods
-			public override Task SetDirty(StatefulBuffer instance)
+			public override Task SetDirtyAsync(StatefulBuffer instance)
 			{
 				// Ignore - we're already dirty
 				return CompletedTask.Default;
@@ -262,7 +262,7 @@ namespace Zen.Trunk.Storage.Log
 
 		private Task SwitchState(LogBufferStateType newState, object userState)
 		{
-			return SwitchState(LogBufferStateFactory.GetState(newState), userState);
+			return SwitchStateAsync(LogBufferStateFactory.GetState(newState), userState);
 		}
 		#endregion
 	}

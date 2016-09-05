@@ -1,7 +1,7 @@
 namespace Zen.Trunk.Storage.Data
 {
 	using System;
-	using Zen.Trunk.Storage.Locking;
+	using Locking;
 
 	/// <summary>
 	/// Represents an owned database page.

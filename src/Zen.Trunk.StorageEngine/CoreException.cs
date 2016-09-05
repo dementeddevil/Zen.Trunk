@@ -78,7 +78,7 @@ namespace Zen.Trunk
 		protected CoreException (SerializationInfo info, StreamingContext context)
 			: base (info, context)
 		{
-			_subSystem = (string) info.GetString ("SubSystem");
+			_subSystem = info.GetString ("SubSystem");
 		}
 		#endregion
 

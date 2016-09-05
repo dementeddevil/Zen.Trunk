@@ -47,7 +47,7 @@ namespace System.Threading.Algorithms
             {
                 // Run an iteration.  When it completes, store (box) 
                 // the result, and cancel the rest
-                Interlocked.CompareExchange(ref result, (object)body(item), null);
+                Interlocked.CompareExchange(ref result, body(item), null);
                 loopState.Stop();
             });
 

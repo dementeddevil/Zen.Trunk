@@ -2,8 +2,8 @@
 {
 	using System;
 	using System.Collections.Generic;
-	using Zen.Trunk.Storage.IO;
-	using Zen.Trunk.Storage.Locking;
+	using IO;
+	using Locking;
 
 	/// <summary>
 	/// Abstract class containing the generic implementation for index page

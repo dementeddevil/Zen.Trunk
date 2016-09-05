@@ -1,4 +1,4 @@
-//===============================================================================
+﻿//===============================================================================
 // LibLog
 //
 // https://github.com/damianh/LibLog
@@ -56,7 +56,7 @@ namespace Zen.Trunk.Logging
 #if LIBLOG_PROVIDERS_ONLY
     using Zen.Trunk.LibLog.LogProviders;
 #else
-    using Zen.Trunk.Logging.LogProviders;
+    using LogProviders;
 #endif
     using System;
 #if !LIBLOG_PROVIDERS_ONLY

@@ -4,7 +4,7 @@
 	using System.Collections.Generic;
 	using System.IO;
 	using System.Linq;
-	using Zen.Trunk.Storage.IO;
+	using IO;
 
 	public class RowReaderWriter
 	{
@@ -68,7 +68,7 @@
 					.Zip<TableColumnInfo, object, int>(
 						_rowDef,
 						_rowValues,
-						(def, val) => (int)def.GetActualDataSize(val))
+						(def, val) => def.GetActualDataSize(val))
 					.Sum();
 			}
 		}

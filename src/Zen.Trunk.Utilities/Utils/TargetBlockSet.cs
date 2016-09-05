@@ -1,9 +1,9 @@
 ﻿namespace System.Threading.Tasks.Dataflow
 {
 	using System;
-	using System.Collections.Generic;
-	using System.Linq;
-	using System.Text;
+	using Collections.Generic;
+	using Linq;
+	using Text;
 
 	public interface ITargetBlockSet : ITargetBlock<object>
 	{

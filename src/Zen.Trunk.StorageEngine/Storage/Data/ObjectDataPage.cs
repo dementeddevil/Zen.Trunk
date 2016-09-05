@@ -2,7 +2,7 @@ namespace Zen.Trunk.Storage.Data
 {
 	using System;
 	using System.Transactions;
-	using Zen.Trunk.Storage.Locking;
+	using Locking;
 
 	/// <summary>
 	/// <b>ObjectDataPage</b> objects have a concept of being owned by
@@ -140,7 +140,7 @@ namespace Zen.Trunk.Storage.Data
 							{
 								PageLock = DataLockType.Exclusive;
 							}
-							else if (PageType == Storage.PageType.Data)
+							else if (PageType == PageType.Data)
 							{
 								PageLock = DataLockType.Shared;
 							}

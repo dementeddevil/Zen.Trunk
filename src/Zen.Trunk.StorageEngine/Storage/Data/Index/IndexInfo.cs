@@ -144,7 +144,7 @@
 			{
 				return -1;
 			}
-			return ((IndexInfo)this).CompareTo((IndexInfo)obj);
+			return CompareTo((IndexInfo)obj);
 		}
 		#endregion
 	}

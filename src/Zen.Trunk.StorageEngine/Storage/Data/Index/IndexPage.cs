@@ -34,7 +34,7 @@
             _parentLogicalPageId = new BufferFieldLogicalPageId(_rightLogicalPageId);
             _depth = new BufferFieldByte(_parentLogicalPageId);
 
-            this.PageType = PageType.Index;
+            PageType = PageType.Index;
         }
         #endregion
 

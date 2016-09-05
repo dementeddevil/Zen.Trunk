@@ -60,7 +60,7 @@ namespace System.Threading.Tasks.Schedulers
             // rather than queueing it.
             if ((task.CreationOptions & TaskCreationOptions.LongRunning) != 0)
             {
-                new Thread(state => base.TryExecuteTask((Task)state)) { IsBackground = true }.Start(task);
+                new Thread(state => TryExecuteTask((Task)state)) { IsBackground = true }.Start(task);
             }
             else
             {

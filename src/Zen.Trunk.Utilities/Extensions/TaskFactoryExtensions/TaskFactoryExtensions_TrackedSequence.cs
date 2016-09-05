@@ -8,7 +8,7 @@
 
 namespace System.Threading.Tasks
 {
-	using System.Collections.Generic;
+	using Collections.Generic;
 
 	public static partial class TaskFactoryExtensions
 	{

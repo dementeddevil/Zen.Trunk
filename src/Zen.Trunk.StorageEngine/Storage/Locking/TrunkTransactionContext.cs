@@ -36,10 +36,10 @@ namespace Zen.Trunk.Storage.Locking
 
 			public TrunkTransactionScope(ITrunkTransaction newContext)
 			{
-				_oldContext = TrunkTransactionContext.Current;
-				TrunkTransactionContext.Current = newContext;
+				_oldContext = Current;
+				Current = newContext;
 
-                TraceTransaction("Enter", _oldContext, TrunkTransactionContext.Current);
+                TraceTransaction("Enter", _oldContext, Current);
 			}
 
             public void Dispose()
@@ -53,10 +53,10 @@ namespace Zen.Trunk.Storage.Locking
 				{
 					_disposed = true;
 
-					var prevContext = TrunkTransactionContext.Current;
-					TrunkTransactionContext.Current = _oldContext;
+					var prevContext = Current;
+					Current = _oldContext;
 
-				    TraceTransaction("Leave", prevContext, TrunkTransactionContext.Current);
+				    TraceTransaction("Leave", prevContext, Current);
 				}
 
 				_oldContext = null;
@@ -105,7 +105,7 @@ namespace Zen.Trunk.Storage.Locking
         {
             get
             {
-                var privTxn = TrunkTransactionContext.Current as ITrunkTransactionPrivate;
+                var privTxn = Current as ITrunkTransactionPrivate;
                 return privTxn?.TransactionLocks;
             }
         }

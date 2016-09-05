@@ -53,7 +53,7 @@ namespace Zen.Trunk.Storage.IO
 			}
 
 			// Calculate number of pages to reserve
-			_reservationPages = (int)((((long)reservationMb) * OneMegaByte) /
+			_reservationPages = (int)((reservationMb * OneMegaByte) /
 				VirtualBuffer.SystemPageSize);
 
 			// Determine maximum number of pages

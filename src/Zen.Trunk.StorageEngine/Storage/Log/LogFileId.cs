@@ -22,7 +22,7 @@ namespace Zen.Trunk.Storage.Log
 		{
 			DeviceId = deviceId;
 			Index = index;
-			FileId = (uint)((((uint) DeviceId.Value) << 16) | (((uint)Index) & 0xffff));
+			FileId = (((uint) DeviceId.Value) << 16) | (((uint)Index) & 0xffff);
 		}
 		#endregion
 
@@ -131,7 +131,7 @@ namespace Zen.Trunk.Storage.Log
 			var order = -1;
 			if (obj is LogFileId)
 			{
-				order = ((LogFileId) this).CompareTo ((LogFileId) obj);
+				order = CompareTo ((LogFileId) obj);
 			}
 			return order;
 		}
@@ -144,7 +144,7 @@ namespace Zen.Trunk.Storage.Log
 		}
 		object ICloneable.Clone ()
 		{
-			return ((LogFileId) this).Clone ();
+			return Clone ();
 		}
 		#endregion
 	}

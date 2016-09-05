@@ -40,10 +40,18 @@ namespace Zen.Trunk.Storage
             #endregion
 
             #region Public Methods
+            /// <summary>
+            /// Performs state specific buffer add-ref logic.
+            /// </summary>
+            /// <param name="instance"></param>
             public virtual void AddRef(StatefulBuffer instance)
             {
             }
 
+            /// <summary>
+            /// Performs state specific buffer release-ref logic.
+            /// </summary>
+            /// <param name="instance"></param>
             public virtual void Release(StatefulBuffer instance)
             {
             }
@@ -52,7 +60,7 @@ namespace Zen.Trunk.Storage
             /// Performs state specific buffer deallocation
             /// </summary>
             /// <param name="instance"></param>
-            public virtual Task SetFree(StatefulBuffer instance)
+            public virtual Task SetFreeAsync(StatefulBuffer instance)
             {
                 InvalidState();
                 return CompletedTask.Default;
@@ -62,7 +70,7 @@ namespace Zen.Trunk.Storage
             /// Performs state specific buffer dirty operation.
             /// </summary>
             /// <param name="instance"></param>
-            public virtual Task SetDirty(StatefulBuffer instance)
+            public virtual Task SetDirtyAsync(StatefulBuffer instance)
             {
                 InvalidState();
                 return CompletedTask.Default;
@@ -74,7 +82,7 @@ namespace Zen.Trunk.Storage
             /// <param name="instance"></param>
             /// <param name="lastState"></param>
             /// <param name="userState"></param>
-            public virtual Task OnEnterState(StatefulBuffer instance, State lastState, object userState)
+            public virtual Task OnEnterStateAsync(StatefulBuffer instance, State lastState, object userState)
             {
                 return CompletedTask.Default;
             }
@@ -85,7 +93,7 @@ namespace Zen.Trunk.Storage
             /// <param name="instance"></param>
             /// <param name="nextState"></param>
             /// <param name="userState"></param>
-            public virtual Task OnLeaveState(StatefulBuffer instance, State nextState, object userState)
+            public virtual Task OnLeaveStateAsync(StatefulBuffer instance, State nextState, object userState)
             {
                 return CompletedTask.Default;
             }
@@ -104,7 +112,7 @@ namespace Zen.Trunk.Storage
         #endregion
 
         #region Private Fields
-        private readonly object _syncState = new object();
+        private readonly SpinLockClass _sync = new SpinLockClass();
         private State _currentState;
         private int _refCount;
         private bool _isDisposed;
@@ -219,7 +227,7 @@ namespace Zen.Trunk.Storage
         /// </summary>
         public Task SetDirtyAsync()
         {
-            return _currentState.SetDirty(this);
+            return _currentState.SetDirtyAsync(this);
         }
 
         /// <summary>
@@ -227,7 +235,7 @@ namespace Zen.Trunk.Storage
         /// </summary>
         public Task SetFreeAsync()
         {
-            return _currentState.SetFree(this);
+            return _currentState.SetFreeAsync(this);
         }
 
         /// <summary>
@@ -268,54 +276,45 @@ namespace Zen.Trunk.Storage
         /// <param name="userState">
         /// Optional state information to pass to both state objects.
         /// </param>
-        protected async Task SwitchState(State newState, object userState)
+        protected async Task SwitchStateAsync(State newState, object userState)
         {
             if (_currentState != newState)
             {
-                var lockTaken = false;
-                //Monitor.TryEnter(_syncState, ref lockTaken);
-                //if (lockTaken)
-                {
-                    try
-                    {
-                        if (_currentState != newState)
+                await _sync
+                    .ExecuteAsync(
+                        async () =>
                         {
-                            var oldState = _currentState;
-                            try
+                            if (_currentState != newState)
                             {
-                                // Notify old buffer state
-                                if (oldState != null)
+                                var oldState = _currentState;
+                                try
                                 {
-                                    // Wait for leave state work to complete
-                                    await oldState.OnLeaveState(this, newState, userState);
+                                    // Notify old buffer state
+                                    if (oldState != null)
+                                    {
+                                        // Wait for leave state work to complete
+                                        await oldState.OnLeaveStateAsync(this, newState, userState).ConfigureAwait(false);
+                                    }
+
+                                    // Swap
+                                    _currentState = newState;
+
+                                    // Notify new buffer state
+                                    if (newState != null)
+                                    {
+                                        // Do not wait for new state work to complete
+                                        await newState.OnEnterStateAsync(this, oldState, userState).ConfigureAwait(false);
+                                    }
                                 }
-
-                                // Swap
-                                _currentState = newState;
-
-                                // Notify new buffer state
-                                if (newState != null)
+                                catch
                                 {
-                                    // Do not wait for new state work to complete
-                                    await newState.OnEnterState(this, oldState, userState);
+                                    // In the event of an error; restore previous state
+                                    _currentState = oldState;
+                                    throw;
                                 }
                             }
-                            catch
-                            {
-                                // In the event of an error; restore previous state
-                                _currentState = oldState;
-                                throw;
-                            }
-                        }
-                    }
-                    finally
-                    {
-                        if (lockTaken)
-                        {
-                            Monitor.Exit(_syncState);
-                        }
-                    }
-                }
+                        })
+                    .ConfigureAwait(false);
             }
         }
         #endregion

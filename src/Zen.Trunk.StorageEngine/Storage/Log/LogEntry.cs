@@ -51,7 +51,7 @@ namespace Zen.Trunk.Storage.Log
 		#endregion
 
 		#region Public Properties
-		public virtual uint RawSize => (uint)(base.TotalFieldLength + 1);
+		public virtual uint RawSize => (uint)(TotalFieldLength + 1);
 
 	    public uint LogId
 		{
@@ -290,7 +290,7 @@ namespace Zen.Trunk.Storage.Log
 		{
 			get
 			{
-				var rawSize = base.RawSize + (uint)2;
+				var rawSize = base.RawSize + 2;
 				if (activeTransactions != null)
 				{
 					rawSize += (uint)(activeTransactions.Count * 14);

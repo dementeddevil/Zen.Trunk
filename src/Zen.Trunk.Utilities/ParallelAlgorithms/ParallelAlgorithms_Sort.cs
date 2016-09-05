@@ -18,7 +18,7 @@ namespace System.Threading.Algorithms
         /// <param name="array">The array to be sorted.</param>
         public static void Sort<T>(T [] array)
         {
-            Sort(array, (IComparer<T>)null);
+            Sort(array, null);
         }
 
         /// <summary>Sorts an array in parallel.</summary>
@@ -38,7 +38,7 @@ namespace System.Threading.Algorithms
         /// <param name="length">The number of elements to be sorted, starting at the start index.</param>
         public static void Sort<T>(T [] array, Int32 index, Int32 length)
         {
-            Sort<T, object>(array, null, index, length, (IComparer<T>)null);
+            Sort<T, object>(array, null, index, length, null);
         }
 
         /// <summary>Sorts an array in parallel.</summary>
@@ -59,7 +59,7 @@ namespace System.Threading.Algorithms
         /// <param name="items">The items to be sorted based on the corresponding keys.</param>
         public static void Sort<TKey, TValue>(TKey[] keys, TValue[] items)
         {
-            Sort(keys, items, 0, keys.Length, (IComparer<TKey>)null);
+            Sort(keys, items, 0, keys.Length, null);
         }
 
         /// <summary>Sorts key/value arrays in parallel.</summary>
@@ -83,7 +83,7 @@ namespace System.Threading.Algorithms
         /// <param name="length">The number of elements to be sorted, starting at the start index.</param>
         public static void Sort<TKey, TValue>(TKey[] keys, TValue[] items, Int32 index, Int32 length)
         {
-            Sort(keys, items, index, length, (IComparer<TKey>)null);
+            Sort(keys, items, index, length, null);
         }
 
         /// <summary>Sorts key/value arrays in parallel.</summary>

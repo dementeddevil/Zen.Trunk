@@ -23,7 +23,7 @@ namespace System.Threading.Tasks
 		/// <summary>Initializes a Task.</summary>
 		static CompletedTask()
 		{
-			Default = Task<TResult>.FromResult(default(TResult));
+			Default = Task.FromResult(default(TResult));
 		}
 
 		/// <summary>Gets a completed Task.</summary>

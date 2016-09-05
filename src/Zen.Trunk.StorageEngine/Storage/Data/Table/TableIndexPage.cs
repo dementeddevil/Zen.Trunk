@@ -1,7 +1,7 @@
 ﻿namespace Zen.Trunk.Storage.Data.Table
 {
 	using System;
-	using Zen.Trunk.Storage.Data.Index;
+	using Index;
 
 	/// <summary>
 	/// Class containing the implementation for index page splitting for

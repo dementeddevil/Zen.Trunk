@@ -204,7 +204,7 @@ namespace Zen.Trunk.Storage.IO
 			lo = SetFilePointerWin32(handle, lo, &hi, (int)origin);
 			if ((lo == -1) && ((hr = Marshal.GetLastWin32Error()) != 0))
 			{
-				return (long)(-1);
+				return -1;
 			}
 			return (long)(((ulong)hi << 0x20) | ((uint)lo));
 		}
@@ -491,7 +491,7 @@ namespace Zen.Trunk.Storage.IO
 		[PrePrepareMethod]
 		internal void SetHandleInternal(IntPtr handle)
 		{
-			this.SetHandle(handle);
+			SetHandle(handle);
 		}
 	}
 
@@ -528,8 +528,8 @@ namespace Zen.Trunk.Storage.IO
 		[PrePrepareMethod]
 		internal void SetHandleInternal(IntPtr handle, UIntPtr totalBytes)
 		{
-			this.SetHandle(handle);
-			this._totalBytes = totalBytes;
+			SetHandle(handle);
+			_totalBytes = totalBytes;
 		}
 	}
 }

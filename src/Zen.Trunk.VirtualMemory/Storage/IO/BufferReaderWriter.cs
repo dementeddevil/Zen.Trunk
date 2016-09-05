@@ -180,7 +180,7 @@ namespace Zen.Trunk.Storage.IO
 		{
 			CheckDisposed();
 			var byteCount = _reader.ReadUInt16();
-			var buffer = _reader.ReadBytes((int)byteCount);
+			var buffer = _reader.ReadBytes(byteCount);
 			return _currentEncoding.GetString(buffer);
 		}
 

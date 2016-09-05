@@ -345,8 +345,8 @@ namespace Zen.Trunk.Storage.IO
 					}
 				}
 
-				var totalLength = (((long)highSize) << 0x20) | ((long)(fileSize));
-				if ((_writePos > 0) && ((_pos + _writePos) > totalLength))
+                var totalLength = (((long)highSize) << 0x20) | ((long)(fileSize));
+                if ((_writePos > 0) && ((_pos + _writePos) > totalLength))
 				{
 					totalLength = _writePos + _pos;
 				}
@@ -621,7 +621,7 @@ namespace Zen.Trunk.Storage.IO
 				{
 					num = count;
 				}
-				Array.Copy(this._buffer, this._readPos, buffer, offset, num);
+				Array.Copy(_buffer, _readPos, buffer, offset, num);
 				_readPos += num;
 				result = AdvancedStreamAsyncResult.CreateBufferedReadResult(
 					num, callback, state);
@@ -1285,7 +1285,7 @@ namespace Zen.Trunk.Storage.IO
 					}
 					if (_readLen > 0)
 					{
-						SeekCore((long)_readLen, SeekOrigin.Current);
+						SeekCore(_readLen, SeekOrigin.Current);
 					}
 					return num2;
 				}
@@ -1297,7 +1297,7 @@ namespace Zen.Trunk.Storage.IO
 					_readPos = 0;
 					if (_readLen > 0)
 					{
-						SeekCore((long)_readLen, SeekOrigin.Current);
+						SeekCore(_readLen, SeekOrigin.Current);
 					}
 					return num2;
 				}
@@ -1583,10 +1583,10 @@ namespace Zen.Trunk.Storage.IO
 			{
 				throw new InvalidOperationException("AdvancedFileStream is only supported on NT platforms.");
 			}
-			if ((enableScatterGatherIO) && ((bufferSize % AdvancedFileStream.SystemPageSize) != 0))
+			if ((enableScatterGatherIO) && ((bufferSize % SystemPageSize) != 0))
 			{
 				throw new ArgumentException(
-				    $"Buffer size must be multiple of system page size ({AdvancedFileStream.SystemPageSize}) bytes).", nameof(bufferSize));
+				    $"Buffer size must be multiple of system page size ({SystemPageSize}) bytes).", nameof(bufferSize));
 			}
 
 			// Ensure we have absolute path
@@ -1918,7 +1918,7 @@ namespace Zen.Trunk.Storage.IO
 				}
 				overlappedPtr->OffsetLow = (int)_pos;
 				overlappedPtr->OffsetHigh = (int)(_pos >> 0x20);
-				SeekCore((long)numBytes, SeekOrigin.Current);
+				SeekCore(numBytes, SeekOrigin.Current);
 			}
 			var hr = 0;
 			if ((ReadFileNative(_handle, bytes, offset, numBytes, overlappedPtr, out hr) == -1) && (numBytes != -1))
@@ -1935,7 +1935,7 @@ namespace Zen.Trunk.Storage.IO
 				}
 				if (!_handle.IsClosed && CanSeek)
 				{
-					SeekCore((long)0, SeekOrigin.Current);
+					SeekCore(0, SeekOrigin.Current);
 				}
 				if (hr == ERROR_HANDLE_EOF)
 				{
@@ -2019,7 +2019,7 @@ namespace Zen.Trunk.Storage.IO
 				}
 				if (!_handle.IsClosed && CanSeek)
 				{
-					SeekCore((long)0, SeekOrigin.Current);
+					SeekCore(0, SeekOrigin.Current);
 				}
 				if (hr == ERROR_HANDLE_EOF)
 				{
@@ -2063,7 +2063,7 @@ namespace Zen.Trunk.Storage.IO
 				}
 				overlappedPtr->OffsetLow = (int)_pos;
 				overlappedPtr->OffsetHigh = (int)(_pos >> 0x20);
-				SeekCore((long)numBytes, SeekOrigin.Current);
+				SeekCore(numBytes, SeekOrigin.Current);
 			}
 			var hr = 0;
 			if ((WriteFileNative(_handle, buffer, offset, numBytes, overlappedPtr, out hr) == -1) && (numBytes != -1))
@@ -2079,7 +2079,7 @@ namespace Zen.Trunk.Storage.IO
 				}
 				if (!_handle.IsClosed && CanSeek)
 				{
-					SeekCore((long)0, SeekOrigin.Current);
+					SeekCore(0, SeekOrigin.Current);
 				}
 				if (hr == ERROR_HANDLE_EOF)
 				{
@@ -2163,7 +2163,7 @@ namespace Zen.Trunk.Storage.IO
 				}
 				if (!_handle.IsClosed && CanSeek)
 				{
-					SeekCore((long)0, SeekOrigin.Current);
+					SeekCore(0, SeekOrigin.Current);
 				}
 				if (hr == ERROR_HANDLE_EOF)
 				{
@@ -2179,7 +2179,7 @@ namespace Zen.Trunk.Storage.IO
 		{
 			if ((_readPos - _readLen) != 0)
 			{
-				SeekCore((long)(_readPos - _readLen), SeekOrigin.Current);
+				SeekCore(_readPos - _readLen, SeekOrigin.Current);
 			}
 			_readPos = 0;
 			_readLen = 0;
@@ -2249,9 +2249,9 @@ namespace Zen.Trunk.Storage.IO
 				IAsyncResult asyncResult = BeginReadCore(buffer, offset, count, null, null, 0);
 				return EndRead(asyncResult);
 			}
-			if (this._exposedHandle)
+			if (_exposedHandle)
 			{
-				this.VerifyOSHandlePosition();
+				VerifyOSHandlePosition();
 			}
 			int hr = 0, num2;
 			unsafe
@@ -2345,7 +2345,7 @@ namespace Zen.Trunk.Storage.IO
 				}
 				overlapped->OffsetLow = (int)_pos;
 				overlapped->OffsetHigh = (int)(_pos >> 0x20);
-				SeekCore((long)numBytes, SeekOrigin.Current);
+				SeekCore(numBytes, SeekOrigin.Current);
 			}
 
 			if (!SafeNativeMethods.ReadFileScatter(_handle, elements,
@@ -2423,7 +2423,7 @@ namespace Zen.Trunk.Storage.IO
 				}
 				else
 				{
-					SeekCore((long)0, SeekOrigin.End);
+					SeekCore(0, SeekOrigin.End);
 				}
 			}
 		}
@@ -2433,7 +2433,7 @@ namespace Zen.Trunk.Storage.IO
 			if (CanSeek)
 			{
 				var num = _pos;
-				if (SeekCore((long)0, SeekOrigin.Current) != num)
+				if (SeekCore(0, SeekOrigin.Current) != num)
 				{
 					_readPos = 0;
 					_readLen = 0;
@@ -2546,7 +2546,7 @@ namespace Zen.Trunk.Storage.IO
 				}
 				overlapped->OffsetLow = (int)_pos;
 				overlapped->OffsetHigh = (int)(_pos >> 0x20);
-				SeekCore((long)numBytes, SeekOrigin.Current);
+				SeekCore(numBytes, SeekOrigin.Current);
 			}
 
 			if (!SafeNativeMethods.WriteFileGather(_handle, elements,

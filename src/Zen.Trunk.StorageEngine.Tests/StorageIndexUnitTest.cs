@@ -28,7 +28,7 @@ namespace Zen.Trunk.Storage
                 rootPage.FileGroupId = rootIndexInfo.IndexFileGroupId;
                 rootPage.ObjectId = rootIndexInfo.ObjectId;
                 rootPage.IndexType = IndexType.Root | IndexType.Leaf;
-                this.Database.InitFileGroupPage(
+                Database.InitFileGroupPage(
                     new InitFileGroupPageParameters(null, rootPage, true, false, true, true)).ConfigureAwait(false);
 
                 // Setup root index page

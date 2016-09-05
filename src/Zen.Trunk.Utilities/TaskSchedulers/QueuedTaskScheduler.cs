@@ -40,7 +40,7 @@ namespace System.Threading.Tasks.Schedulers
                 get
                 {
                     var tasks = (_scheduler._targetScheduler != null) ?
-                        (IEnumerable<Task>)_scheduler._nonthreadsafeTaskQueue :
+                        _scheduler._nonthreadsafeTaskQueue :
                         (IEnumerable<Task>)_scheduler._blockingTaskQueue;
                     return tasks.Where(t => t != null).ToList();
                 }
@@ -96,7 +96,7 @@ namespace System.Threading.Tasks.Schedulers
         // ***
 
         /// <summary>Initializes the scheduler.</summary>
-        public QueuedTaskScheduler() : this(TaskScheduler.Default, 0) { }
+        public QueuedTaskScheduler() : this(Default, 0) { }
 
         /// <summary>Initializes the scheduler.</summary>
         /// <param name="targetScheduler">The target underlying scheduler onto which this sceduler's work is queued.</param>
@@ -258,7 +258,7 @@ namespace System.Threading.Tasks.Schedulers
             get
             {
                 return (_targetScheduler != null ? 
-                    (IEnumerable<Task>)_nonthreadsafeTaskQueue : (IEnumerable<Task>)_blockingTaskQueue)
+                    _nonthreadsafeTaskQueue : (IEnumerable<Task>)_blockingTaskQueue)
                     .Where(t => t != null).Count();
             }
         }

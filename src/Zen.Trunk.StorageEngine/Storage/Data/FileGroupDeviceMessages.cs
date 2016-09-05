@@ -2,8 +2,8 @@
 {
 	using System;
 	using System.Collections.Generic;
-	using Zen.Trunk.Storage;
-	using Zen.Trunk.Storage.Data.Table;
+	using Storage;
+	using Table;
 
 	public class AddDataDeviceParameters : AddDeviceParameters
 	{

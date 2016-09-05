@@ -1,7 +1,7 @@
 namespace Zen.Trunk.Storage.Log
 {
 	using System.IO;
-	using Zen.Trunk.Storage.IO;
+	using IO;
 
 	public class LogPage : Page
 	{
