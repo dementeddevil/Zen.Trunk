@@ -48,34 +48,12 @@ namespace Zen.Trunk.Storage.Data
 		#endregion
 
 		#region Public Properties
-		/// <summary>
-		/// Gets or sets the type of the lock.
-		/// </summary>
-		/// <value>The type of the lock.</value>
-		public RootLockType RootLock
-		{
-			get
-			{
-				return _rootLock;
-			}
-			set
-			{
-				if (_rootLock != value)
-				{
-					var oldLock = _rootLock;
-					try
-					{
-						_rootLock = value;
-						LockPageAsync();
-					}
-					catch
-					{
-						_rootLock = oldLock;
-						throw;
-					}
-				}
-			}
-		}
+
+	    /// <summary>
+	    /// Gets or sets the type of the lock.
+	    /// </summary>
+	    /// <value>The type of the lock.</value>
+	    public RootLockType RootLock { get { return _rootLock; } }
 
 		/// <summary>
 		/// Overridden. Gets/sets the page status.
@@ -245,6 +223,31 @@ namespace Zen.Trunk.Storage.Data
         }
         #endregion
 
+        #region Public Methods
+        /// <summary>
+        /// Sets the root lock.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <returns></returns>
+        public async Task SetRootLockAsync(RootLockType value)
+        {
+            if (_rootLock != value)
+            {
+                var oldLock = _rootLock;
+                try
+                {
+                    _rootLock = value;
+                    await LockPageAsync().ConfigureAwait(false);
+                }
+                catch
+                {
+                    _rootLock = oldLock;
+                    throw;
+                }
+            }
+        }
+        #endregion
+
         #region Protected Methods
         /// <summary>
         /// Performs operations on this instance prior to being initialised.
@@ -258,10 +261,10 @@ namespace Zen.Trunk.Storage.Data
         /// This mechanism ensures that all lock states have been set prior to
         /// the first call to LockPage.
         /// </remarks>
-        protected override Task OnPreInitAsync(EventArgs e)
+        protected override async Task OnPreInitAsync(EventArgs e)
 		{
-			RootLock = RootLockType.Exclusive;
-			return base.OnPreInitAsync(e);
+			await SetRootLockAsync(RootLockType.Exclusive).ConfigureAwait(false);
+			await base.OnPreInitAsync(e).ConfigureAwait(false);
 		}
 
 		/// <summary>
@@ -277,13 +280,13 @@ namespace Zen.Trunk.Storage.Data
 		/// This mechanism ensures that all lock states have been set prior to
 		/// the first call to LockPage.
 		/// </remarks>
-		protected override Task OnPreLoadAsync(EventArgs e)
+		protected override async Task OnPreLoadAsync(EventArgs e)
 		{
 			if (RootLock == RootLockType.None)
 			{
-				RootLock = RootLockType.Shared;
+				await SetRootLockAsync(RootLockType.Shared).ConfigureAwait(false);
 			}
-			return base.OnPreLoadAsync(e);
+			await base.OnPreLoadAsync(e).ConfigureAwait(false);
 		}
 
 		/// <summary>

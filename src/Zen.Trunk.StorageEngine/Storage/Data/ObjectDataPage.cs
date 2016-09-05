@@ -102,7 +102,7 @@ namespace Zen.Trunk.Storage.Data
 		/// This mechanism ensures that all lock states have been set prior to
 		/// the first call to LockPage.
 		/// </remarks>
-		protected override Task OnPreLoadAsync(EventArgs e)
+		protected override async Task OnPreLoadAsync(EventArgs e)
 		{
 			// NOTE: We do not apply a default lock here unless we have an 
 			//	active transaction context...
@@ -132,7 +132,7 @@ namespace Zen.Trunk.Storage.Data
 						{
 							// This will block any other serialzable transaction
 							//	from the owner object.
-							ObjectLock = ObjectLockType.SharedIntentExclusive;
+							await SetObjectLockAsync(ObjectLockType.SharedIntentExclusive).ConfigureAwait(false);
 						}
 
 						// Ensure we have the correct type of page lock
@@ -154,7 +154,7 @@ namespace Zen.Trunk.Storage.Data
 						break;
 				}
 			}
-			return base.OnPreLoadAsync(e);
+			await base.OnPreLoadAsync(e).ConfigureAwait(false);
 		}
 
 		protected override async Task OnPostLoadAsync(EventArgs e)

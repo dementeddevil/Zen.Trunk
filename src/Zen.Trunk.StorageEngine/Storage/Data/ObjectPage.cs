@@ -64,35 +64,12 @@ namespace Zen.Trunk.Storage.Data
 			}
 		}
 
-		/// <summary>
-		/// Gets or sets the object lock.
-		/// </summary>
-		/// <value>The object lock.</value>
-		public ObjectLockType ObjectLock
-		{
-			get
-			{
-				return _objectLock;
-			}
-			set
-			{
-				if (_objectLock != value)
-				{
-					var oldLock = _objectLock;
-					try
-					{
-						_objectLock = value;
-						LockPageAsync();
-					}
-					catch
-					{
-						_objectLock = oldLock;
-						throw;
-					}
-				}
-			}
-		}
-		#endregion
+	    /// <summary>
+	    /// Gets or sets the object lock.
+	    /// </summary>
+	    /// <value>The object lock.</value>
+	    public ObjectLockType ObjectLock => _objectLock;
+	    #endregion
 
 		#region Internal Properties
 		internal DataLockOwnerBlock LockBlock
@@ -119,14 +96,34 @@ namespace Zen.Trunk.Storage.Data
 		/// </summary>
 		/// <value>The last header field.</value>
 		protected override BufferField LastHeaderField => _objectId;
-	    #endregion
+        #endregion
 
-		#region Protected Methods
-		/// <summary>
-		/// Overridden. Called to apply suitable locks to this page.
-		/// </summary>
-		/// <param name="lm">A reference to the <see cref="IDatabaseLockManager"/>.</param>
-		protected override async Task OnLockPageAsync(IDatabaseLockManager lm)
+        #region Public Method
+        public async Task SetObjectLockAsync(ObjectLockType value)
+        {
+            if (_objectLock != value)
+            {
+                var oldLock = _objectLock;
+                try
+                {
+                    _objectLock = value;
+                    await LockPageAsync().ConfigureAwait(false);
+                }
+                catch
+                {
+                    _objectLock = oldLock;
+                    throw;
+                }
+            }
+        }
+        #endregion
+
+        #region Protected Methods
+        /// <summary>
+        /// Overridden. Called to apply suitable locks to this page.
+        /// </summary>
+        /// <param name="lm">A reference to the <see cref="IDatabaseLockManager"/>.</param>
+        protected override async Task OnLockPageAsync(IDatabaseLockManager lm)
 		{
 			// Perform base class locking first
 			await base.OnLockPageAsync(lm).ConfigureAwait(false);
@@ -177,14 +174,14 @@ namespace Zen.Trunk.Storage.Data
 		/// This mechanism ensures that all lock states have been set prior to
 		/// the first call to LockPage.
 		/// </remarks>
-		protected override Task OnPreInitAsync(EventArgs e)
+		protected override async Task OnPreInitAsync(EventArgs e)
 		{
 			// If no lock is specified then try to obtain intent-exclusive lock.
 			if (ObjectLock == ObjectLockType.None)
 			{
-				ObjectLock = ObjectLockType.IntentExclusive;
+				await SetObjectLockAsync(ObjectLockType.IntentExclusive);
 			}
-			return base.OnPreInitAsync(e);
+			await base.OnPreInitAsync(e).ConfigureAwait(false);
 		}
 
 		/// <summary>
@@ -200,14 +197,14 @@ namespace Zen.Trunk.Storage.Data
 		/// This mechanism ensures that all lock states have been set prior to
 		/// the first call to LockPage.
 		/// </remarks>
-		protected override Task OnPreLoadAsync(EventArgs e)
+		protected override async Task OnPreLoadAsync(EventArgs e)
 		{
 			// If no lock is specified then try to obtain intent-shared lock.
 			if (ObjectLock == ObjectLockType.None)
 			{
-				ObjectLock = ObjectLockType.IntentShared;
+				await SetObjectLockAsync(ObjectLockType.IntentShared).ConfigureAwait(false);
 			}
-			return base.OnPreLoadAsync(e);
+			await base.OnPreLoadAsync(e).ConfigureAwait(false);
 		}
 		#endregion
 	}
