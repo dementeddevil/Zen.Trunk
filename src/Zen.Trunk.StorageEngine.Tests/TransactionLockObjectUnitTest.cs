@@ -34,26 +34,26 @@ namespace Zen.Trunk.Storage
 		    var firstTransactionId = new TransactionId(5);
             var secondTransactionId = new TransactionId(6);
 
-			dataLock.Lock(firstTransactionId, DataLockType.Shared, TimeSpan.FromSeconds(30));
-			Assert.True(dataLock.HasLock(firstTransactionId, DataLockType.Shared));
-			dataLock.Lock(firstTransactionId, DataLockType.Update, TimeSpan.FromSeconds(30));
-			Assert.True(dataLock.HasLock(firstTransactionId, DataLockType.Update));
-			dataLock.Lock(firstTransactionId, DataLockType.Exclusive, TimeSpan.FromSeconds(30));
-			Assert.True(dataLock.HasLock(firstTransactionId, DataLockType.Exclusive));
+			dataLock.LockAsync(firstTransactionId, DataLockType.Shared, TimeSpan.FromSeconds(30));
+			Assert.True(dataLock.HasLockAsync(firstTransactionId, DataLockType.Shared));
+			dataLock.LockAsync(firstTransactionId, DataLockType.Update, TimeSpan.FromSeconds(30));
+			Assert.True(dataLock.HasLockAsync(firstTransactionId, DataLockType.Update));
+			dataLock.LockAsync(firstTransactionId, DataLockType.Exclusive, TimeSpan.FromSeconds(30));
+			Assert.True(dataLock.HasLockAsync(firstTransactionId, DataLockType.Exclusive));
 
-			dataLock.Unlock(firstTransactionId, DataLockType.None);
-			Assert.False(dataLock.HasLock(firstTransactionId, DataLockType.None));
+			dataLock.UnlockAsync(firstTransactionId, DataLockType.None);
+			Assert.False(dataLock.HasLockAsync(firstTransactionId, DataLockType.None));
 
-			dataLock.Lock(firstTransactionId, DataLockType.Shared, TimeSpan.FromSeconds(30));
-			Assert.True(dataLock.HasLock(firstTransactionId, DataLockType.Shared));
-			dataLock.Lock(secondTransactionId, DataLockType.Shared, TimeSpan.FromSeconds(30));
-			Assert.True(dataLock.HasLock(secondTransactionId, DataLockType.Shared));
+			dataLock.LockAsync(firstTransactionId, DataLockType.Shared, TimeSpan.FromSeconds(30));
+			Assert.True(dataLock.HasLockAsync(firstTransactionId, DataLockType.Shared));
+			dataLock.LockAsync(secondTransactionId, DataLockType.Shared, TimeSpan.FromSeconds(30));
+			Assert.True(dataLock.HasLockAsync(secondTransactionId, DataLockType.Shared));
 
-			dataLock.Lock(secondTransactionId, DataLockType.Update, TimeSpan.FromSeconds(5));
-			Assert.True(dataLock.HasLock(secondTransactionId, DataLockType.Update));
+			dataLock.LockAsync(secondTransactionId, DataLockType.Update, TimeSpan.FromSeconds(5));
+			Assert.True(dataLock.HasLockAsync(secondTransactionId, DataLockType.Update));
 			try
 			{
-				dataLock.Lock(firstTransactionId, DataLockType.Update, TimeSpan.FromSeconds(5));
+				dataLock.LockAsync(firstTransactionId, DataLockType.Update, TimeSpan.FromSeconds(5));
 				Assert.True(false, "First transaction should not be able to acquire update lock.");
 			}
 			catch (TimeoutException)
@@ -62,20 +62,20 @@ namespace Zen.Trunk.Storage
 
 			try
 			{
-				dataLock.Lock(secondTransactionId, DataLockType.Exclusive, TimeSpan.FromSeconds(5));
+				dataLock.LockAsync(secondTransactionId, DataLockType.Exclusive, TimeSpan.FromSeconds(5));
 				Assert.True(false, "Second transaction should not be able to acquire exclusive lock.");
 			}
 			catch (TimeoutException)
 			{
 			}
 
-			dataLock.Unlock(firstTransactionId, DataLockType.None);
-			Assert.False(dataLock.HasLock(firstTransactionId, DataLockType.None));
+			dataLock.UnlockAsync(firstTransactionId, DataLockType.None);
+			Assert.False(dataLock.HasLockAsync(firstTransactionId, DataLockType.None));
 
 			try
 			{
-				dataLock.Lock(secondTransactionId, DataLockType.Exclusive, TimeSpan.FromSeconds(5));
-				Assert.True(dataLock.HasLock(secondTransactionId, DataLockType.Exclusive));
+				dataLock.LockAsync(secondTransactionId, DataLockType.Exclusive, TimeSpan.FromSeconds(5));
+				Assert.True(dataLock.HasLockAsync(secondTransactionId, DataLockType.Exclusive));
 			}
 			catch (TimeoutException)
 			{
@@ -110,18 +110,18 @@ namespace Zen.Trunk.Storage
             var secondTransactionId = new TransactionId(6);
 
             // Acquire shared database locks for both transactions
-            databaseLock.Lock(firstTransactionId, DatabaseLockType.Shared, TimeSpan.FromSeconds(30));
-			Assert.True(databaseLock.HasLock(firstTransactionId, DatabaseLockType.Shared), "Transaction #1 cannot gain shared database lock.");
-			databaseLock.Lock(secondTransactionId, DatabaseLockType.Shared, TimeSpan.FromSeconds(30));
-			Assert.True(databaseLock.HasLock(secondTransactionId, DatabaseLockType.Shared), "Transaction #2 cannot gain shared database lock.");
+            databaseLock.LockAsync(firstTransactionId, DatabaseLockType.Shared, TimeSpan.FromSeconds(30));
+			Assert.True(databaseLock.HasLockAsync(firstTransactionId, DatabaseLockType.Shared), "Transaction #1 cannot gain shared database lock.");
+			databaseLock.LockAsync(secondTransactionId, DatabaseLockType.Shared, TimeSpan.FromSeconds(30));
+			Assert.True(databaseLock.HasLockAsync(secondTransactionId, DatabaseLockType.Shared), "Transaction #2 cannot gain shared database lock.");
 
 			// Acquire shared object lock and escalate to exclusive
-			objectLock.Lock(firstTransactionId, ObjectLockType.Exclusive, TimeSpan.FromSeconds(30));
-			Assert.True(objectLock.HasLock(firstTransactionId, ObjectLockType.Exclusive), "Transaction #1 cannot gain exclusive object lock.");
+			objectLock.LockAsync(firstTransactionId, ObjectLockType.Exclusive, TimeSpan.FromSeconds(30));
+			Assert.True(objectLock.HasLockAsync(firstTransactionId, ObjectLockType.Exclusive), "Transaction #1 cannot gain exclusive object lock.");
 
 			try
 			{
-				objectLock.Lock(secondTransactionId, ObjectLockType.Shared, TimeSpan.FromSeconds(5));
+				objectLock.LockAsync(secondTransactionId, ObjectLockType.Shared, TimeSpan.FromSeconds(5));
 				Assert.True(false, "Second transaction should not be able to gain shared object lock.");
 			}
 			catch
@@ -129,8 +129,8 @@ namespace Zen.Trunk.Storage
 			}
 
 			// First transaction should already have an exclusive lock on data
-			dataLock.Lock(firstTransactionId, DataLockType.Exclusive, TimeSpan.FromSeconds(30));
-			Assert.True(dataLock.HasLock(firstTransactionId, DataLockType.Exclusive), "Transaction #1 does not have exclusive data lock.");
+			dataLock.LockAsync(firstTransactionId, DataLockType.Exclusive, TimeSpan.FromSeconds(30));
+			Assert.True(dataLock.HasLockAsync(firstTransactionId, DataLockType.Exclusive), "Transaction #1 does not have exclusive data lock.");
 		}
 	}
 }

@@ -45,7 +45,7 @@ namespace Zen.Trunk.Storage
                         // Release buffer and verify it has disposed
                         pageBuffer.Release();
 
-                        await TrunkTransactionContext.Commit().ConfigureAwait(true);
+                        await TrunkTransactionContext.CommitAsync().ConfigureAwait(true);
                     }
                 }
             }
@@ -89,7 +89,7 @@ namespace Zen.Trunk.Storage
                         // Release buffer and verify it has disposed
                         pageBuffer.Release();
 
-                        await TrunkTransactionContext.Commit().ConfigureAwait(true);
+                        await TrunkTransactionContext.CommitAsync().ConfigureAwait(true);
                     }
 
                     await device.CloseAsync().ConfigureAwait(true);
@@ -138,7 +138,7 @@ namespace Zen.Trunk.Storage
                         await pageBuffer.SetDirtyAsync().ConfigureAwait(false);
                         Assert.True(pageBuffer.CurrentStateType == PageBuffer.PageBufferStateType.Dirty);
 
-                        await TrunkTransactionContext.Commit().ConfigureAwait(true);
+                        await TrunkTransactionContext.CommitAsync().ConfigureAwait(true);
                         Assert.Equal(PageBuffer.PageBufferStateType.AllocatedWritable, pageBuffer.CurrentStateType);
 
                         await pageBuffer.SaveAsync().ConfigureAwait(true);

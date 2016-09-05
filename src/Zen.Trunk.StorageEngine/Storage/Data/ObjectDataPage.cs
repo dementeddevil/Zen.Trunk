@@ -1,3 +1,5 @@
+using System.Threading.Tasks;
+
 namespace Zen.Trunk.Storage.Data
 {
 	using System;
@@ -48,7 +50,7 @@ namespace Zen.Trunk.Storage.Data
 					try
 					{
 						_pageLock = value;
-						LockPage();
+						LockPageAsync();
 					}
 					catch
 					{
@@ -80,11 +82,11 @@ namespace Zen.Trunk.Storage.Data
 		/// This mechanism ensures that all lock states have been set prior to
 		/// the first call to LockPage.
 		/// </remarks>
-		protected override void OnPreInit(EventArgs e)
+		protected override Task OnPreInitAsync(EventArgs e)
 		{
 			// NOTE: We do not apply a default lock here because we wish to
 			//	support reading uncommitted data....
-			base.OnPreInit(e);
+			return base.OnPreInitAsync(e);
 		}
 
 		/// <summary>
@@ -100,7 +102,7 @@ namespace Zen.Trunk.Storage.Data
 		/// This mechanism ensures that all lock states have been set prior to
 		/// the first call to LockPage.
 		/// </remarks>
-		protected override void OnPreLoad(EventArgs e)
+		protected override Task OnPreLoadAsync(EventArgs e)
 		{
 			// NOTE: We do not apply a default lock here unless we have an 
 			//	active transaction context...
@@ -152,10 +154,10 @@ namespace Zen.Trunk.Storage.Data
 						break;
 				}
 			}
-			base.OnPreLoad(e);
+			return base.OnPreLoadAsync(e);
 		}
 
-		protected override void OnPostLoad(EventArgs e)
+		protected override async Task OnPostLoadAsync(EventArgs e)
 		{
 			// Shared read locks on readcommitted are released after
 			//	load unless we are requested to hold the lock
@@ -163,15 +165,15 @@ namespace Zen.Trunk.Storage.Data
 				TrunkTransactionContext.Current != null &&
 				TrunkTransactionContext.Current.IsolationLevel == IsolationLevel.ReadCommitted)
 			{
-				UnlockPage();
+				await UnlockPageAsync().ConfigureAwait(false);
 			}
-			base.OnPostLoad(e);
+			await base.OnPostLoadAsync(e).ConfigureAwait(false);
 		}
 
-		protected override void OnLockPage(IDatabaseLockManager lm)
+		protected override async Task OnLockPageAsync(IDatabaseLockManager lm)
 		{
 			// Perform base class locking first
-			base.OnLockPage(lm);
+			await base.OnLockPageAsync(lm).ConfigureAwait(false);
 			try
 			{
 				// Lock data via lock owner block
@@ -180,16 +182,16 @@ namespace Zen.Trunk.Storage.Data
 				{
 					throw new InvalidOperationException("Cannot obtain lock owner block for this transaction.");
 				}
-				lob.LockItem(LogicalId, PageLock, LockTimeout);
+				await lob.LockItemAsync(LogicalId, PageLock, LockTimeout).ConfigureAwait(false);
 			}
 			catch
 			{
-				base.OnUnlockPage(lm);
+				await base.OnUnlockPageAsync(lm).ConfigureAwait(false);
 				throw;
 			}
 		}
 
-		protected override void OnUnlockPage(IDatabaseLockManager lm)
+		protected override async Task OnUnlockPageAsync(IDatabaseLockManager lm)
 		{
 			try
 			{
@@ -197,13 +199,13 @@ namespace Zen.Trunk.Storage.Data
 				var lob = LockBlock;
 				if (lob != null)
 				{
-					lob.UnlockItem(LogicalId);
+					await lob.UnlockItemAsync(LogicalId).ConfigureAwait(false);
 				}
 			}
 			finally
 			{
 				// Perform base class unlock last
-				base.OnUnlockPage(lm);
+				await base.OnUnlockPageAsync(lm).ConfigureAwait(false);
 			}
 		}
 		#endregion

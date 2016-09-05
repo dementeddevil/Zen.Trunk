@@ -1,15 +1,10 @@
+using System;
+using System.Threading.Tasks;
+using Zen.Trunk.Storage.IO;
+using Zen.Trunk.Storage.Locking;
+
 namespace Zen.Trunk.Storage.Data
 {
-	using System;
-	using System.Collections.Generic;
-	using System.Linq;
-	using System.Text;
-	using System.Threading.Tasks;
-	using System.Threading.Tasks.Dataflow;
-	using Locking;
-	using IO;
-	//using Zen.Trunk.Storage.Database.Index;
-
 	/// <summary>
 	/// <b>RootPage</b> is the first page held on the primary device of a file
 	/// group.
@@ -26,8 +21,6 @@ namespace Zen.Trunk.Storage.Data
 		#endregion
 
 		#region Private Fields
-		private RootLockType _rootLock;
-
 		private readonly BufferFieldUInt64 _signature;
 		private readonly BufferFieldUInt32 _schemaVersion;
 		private readonly BufferFieldBitVector8 _status;
@@ -35,14 +28,14 @@ namespace Zen.Trunk.Storage.Data
 		private readonly BufferFieldUInt32 _maximumPages;
 		private readonly BufferFieldUInt32 _growthPages;
 		private readonly BufferFieldDouble _growthPercent;
+		private RootLockType _rootLock;
 		#endregion
 
-		#region Public Constructors
+		#region Protected Constructors
 		/// <summary>
 		/// Initialises an instance of <see cref="T:RootPage"/>.
 		/// </summary>
-		/// <param name="owner">The owner.</param>
-		public RootPage()
+		protected RootPage()
 		{
 			_signature = new BufferFieldUInt64(base.LastHeaderField, RootPageSignature);
 			_schemaVersion = new BufferFieldUInt32(_signature, RootPageSchemaVersion);
@@ -73,7 +66,7 @@ namespace Zen.Trunk.Storage.Data
 					try
 					{
 						_rootLock = value;
-						LockPage();
+						LockPageAsync();
 					}
 					catch
 					{
@@ -207,25 +200,6 @@ namespace Zen.Trunk.Storage.Data
 		}
 		#endregion
 
-		#region Internal Properties
-		internal RootLock TrackedLock
-		{
-			get
-			{
-				if (TrunkTransactionContext.Current == null)
-				{
-					throw new InvalidOperationException("No current transaction.");
-				}
-
-				// If we have no transaction locks then we should be in dispose
-				var txnLocks = TrunkTransactionContext.TransactionLocks;
-
-			    // Return the lock-owner block for this object instance
-				return txnLocks?.GetOrCreateRootLock(FileGroupId);
-			}
-		}
-		#endregion
-
 		#region Protected Properties
 		/// <summary>
 		/// Gets the last header field.
@@ -250,28 +224,44 @@ namespace Zen.Trunk.Storage.Data
 		{
 			get;
 		}
-		#endregion
+        #endregion
 
-		#region Public Methods
-		#endregion
+        #region Private Properties
+        private RootLock TrackedLock
+        {
+            get
+            {
+                if (TrunkTransactionContext.Current == null)
+                {
+                    throw new InvalidOperationException("No current transaction.");
+                }
 
-		#region Protected Methods
-		/// <summary>
-		/// Performs operations on this instance prior to being initialised.
-		/// </summary>
-		/// <param name="e">The <see cref="System.EventArgs"/> instance containing the event data.</param>
-		/// <remarks>
-		/// Overrides to this method must set their desired lock prior to
-		/// calling the base class.
-		/// The base class method will enable the locking primitives and call
-		/// LockPage.
-		/// This mechanism ensures that all lock states have been set prior to
-		/// the first call to LockPage.
-		/// </remarks>
-		protected override void OnPreInit(EventArgs e)
+                // If we have no transaction locks then we should be in dispose
+                var txnLocks = TrunkTransactionContext.TransactionLocks;
+
+                // Return the lock-owner block for this object instance
+                return txnLocks?.GetOrCreateRootLock(FileGroupId);
+            }
+        }
+        #endregion
+
+        #region Protected Methods
+        /// <summary>
+        /// Performs operations on this instance prior to being initialised.
+        /// </summary>
+        /// <param name="e">The <see cref="System.EventArgs"/> instance containing the event data.</param>
+        /// <remarks>
+        /// Overrides to this method must set their desired lock prior to
+        /// calling the base class.
+        /// The base class method will enable the locking primitives and call
+        /// LockPage.
+        /// This mechanism ensures that all lock states have been set prior to
+        /// the first call to LockPage.
+        /// </remarks>
+        protected override Task OnPreInitAsync(EventArgs e)
 		{
 			RootLock = RootLockType.Exclusive;
-			base.OnPreInit(e);
+			return base.OnPreInitAsync(e);
 		}
 
 		/// <summary>
@@ -287,13 +277,13 @@ namespace Zen.Trunk.Storage.Data
 		/// This mechanism ensures that all lock states have been set prior to
 		/// the first call to LockPage.
 		/// </remarks>
-		protected override void OnPreLoad(EventArgs e)
+		protected override Task OnPreLoadAsync(EventArgs e)
 		{
 			if (RootLock == RootLockType.None)
 			{
 				RootLock = RootLockType.Shared;
 			}
-			base.OnPreLoad(e);
+			return base.OnPreLoadAsync(e);
 		}
 
 		/// <summary>
@@ -342,17 +332,16 @@ namespace Zen.Trunk.Storage.Data
 		/// Called to apply suitable locks to this page.
 		/// </summary>
 		/// <param name="lm">A reference to the <see cref="IDatabaseLockManager"/>.</param>
-		protected override void OnLockPage(IDatabaseLockManager lm)
+		protected override async Task OnLockPageAsync(IDatabaseLockManager lm)
 		{
-			base.OnLockPage(lm);
+			await base.OnLockPageAsync(lm).ConfigureAwait(false);
 			try
 			{
-				TrackedLock.Lock(RootLock, LockTimeout);
-				//lm.LockRoot(FileGroupId, RootLock, LockTimeout);
+				await TrackedLock.LockAsync(RootLock, LockTimeout).ConfigureAwait(false);
 			}
 			catch
 			{
-				base.OnUnlockPage(lm);
+				await base.OnUnlockPageAsync(lm).ConfigureAwait(false);
 				throw;
 			}
 		}
@@ -362,15 +351,11 @@ namespace Zen.Trunk.Storage.Data
 		/// <see cref="M:DatabasePage.OnLockPage"/>.
 		/// </summary>
 		/// <param name="lm">A reference to the <see cref="IDatabaseLockManager"/>.</param>
-		protected override void OnUnlockPage(IDatabaseLockManager lm)
+		protected override async Task OnUnlockPageAsync(IDatabaseLockManager lm)
 		{
-			TrackedLock.Unlock();
-			//lm.UnlockRoot(FileGroupId);
-			base.OnUnlockPage(lm);
+			await TrackedLock.UnlockAsync().ConfigureAwait(false);
+			await base.OnUnlockPageAsync(lm).ConfigureAwait(false);
 		}
-		#endregion
-
-		#region Private Methods
 		#endregion
 	}
 }

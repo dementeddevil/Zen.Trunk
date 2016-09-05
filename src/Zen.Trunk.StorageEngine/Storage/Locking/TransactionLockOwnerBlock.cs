@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Zen.Trunk.Storage.Locking
 {
@@ -112,14 +113,14 @@ namespace Zen.Trunk.Storage.Locking
 		/// This method is called by transaction cleanup code after all buffers
 		/// enlisted in the current transaction have been committed.
 		/// </remarks>
-		public void ReleaseAll()
+		public async Task ReleaseAllAsync()
 		{
 			while (_rootLocks.Count > 0)
 			{
 				RootLock lockObject;
 				if (_rootLocks.TryRemove(_rootLocks.Keys.First(), out lockObject))
 				{
-					lockObject.Unlock();
+					await lockObject.UnlockAsync().ConfigureAwait(false);
 					lockObject.ReleaseRefLock();
 				}
 			}
@@ -129,7 +130,7 @@ namespace Zen.Trunk.Storage.Locking
 				SchemaLock lockObject;
 				if (_schemaLocks.TryRemove(_schemaLocks.Keys.First(), out lockObject))
 				{
-					lockObject.Unlock();
+					await lockObject.UnlockAsync().ConfigureAwait(false);
 					lockObject.ReleaseRefLock();
 				}
 			}
@@ -139,17 +140,17 @@ namespace Zen.Trunk.Storage.Locking
 				DistributionLockOwnerBlock block;
 				if (_distributionOwnerBlocks.TryRemove(_distributionOwnerBlocks.Keys.First(), out block))
 				{
-					block.ReleaseLocks();
+					await block.ReleaseLocksAsync().ConfigureAwait(false);
 					block.Dispose();
 				}
 			}
 
 			while (_dataOwnerBlocks.Count > 0)
 			{
-				DataLockOwnerBlock block = null;
+				DataLockOwnerBlock block;
 				if (_dataOwnerBlocks.TryRemove(_dataOwnerBlocks.Keys.First(), out block))
 				{
-					block.ReleaseLocks();
+					await block.ReleaseLocksAsync().ConfigureAwait(false);
 					block.Dispose();
 				}
 			}

@@ -1,4 +1,6 @@
-﻿namespace Zen.Trunk.Storage.Data.Table
+﻿using System.Threading.Tasks;
+
+namespace Zen.Trunk.Storage.Data.Table
 {
 	using System;
 	using System.Collections.Generic;
@@ -342,10 +344,10 @@
 		/// <remarks>
 		/// Sets the page type to "Table".
 		/// </remarks>
-		protected override void OnInit(EventArgs e)
+		protected override Task OnInitAsync(EventArgs e)
 		{
 			PageType = PageType.Table;
-			base.OnInit(e);
+			return base.OnInitAsync(e);
 		}
 
 		protected override void WriteHeader(BufferReaderWriter streamManager)

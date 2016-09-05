@@ -136,7 +136,7 @@ Then the allocation fails.")]
 			for (uint index = 0; index < extentsToTest; ++index)
 			{
 				// This allocation must succeed
-				virtualId = page.AllocatePage(
+				virtualId = page.AllocatePageAsync(
 					new AllocateDataPageParameters(
                         new LogicalPageId(1024 + index),
                         new ObjectId(1 + index),
@@ -146,7 +146,7 @@ Then the allocation fails.")]
 			}
 
 			// This allocation must fail
-			virtualId = page.AllocatePage(
+			virtualId = page.AllocatePageAsync(
 				new AllocateDataPageParameters(
                     new LogicalPageId(1024 + extentsToTest),
                     new ObjectId(1 + extentsToTest),
@@ -154,7 +154,7 @@ Then the allocation fails.")]
                     false));
 			Assert.True(virtualId == VirtualPageId.Zero, "Expected allocation to fail.");
 
-			return TrunkTransactionContext.Commit();
+			return TrunkTransactionContext.CommitAsync();
 		}
 	}
 }

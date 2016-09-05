@@ -1,13 +1,5 @@
 namespace Zen.Trunk.Storage.Data
 {
-	using System;
-	using System.Collections.Generic;
-	using System.IO;
-	using System.Text;
-
-	using Storage;
-	using IO;
-	
 	/// <summary>
 	/// The <b>DatabaseFileGroupRootPage</b> is the root page class for
 	/// file-group devices. It is <b>always</b> positioned at the first logical
@@ -22,8 +14,8 @@ namespace Zen.Trunk.Storage.Data
 	public class SecondaryFileGroupRootPage : RootPage
 	{
 		#region Private Fields
-		internal const ulong DBSignature = 0x2948f3d3a123e501;
-		internal const uint DBSchemaVersion = 0x01000001;
+	    private const ulong DBSignature = 0x2948f3d3a123e501;
+	    private const uint DBSchemaVersion = 0x01000001;
 		#endregion
 
 		#region Public Constructors
@@ -33,20 +25,10 @@ namespace Zen.Trunk.Storage.Data
 		}
 		#endregion
 
-		#region Public Properties
-		#endregion
-
 		#region Protected Properties
 		protected override ulong RootPageSignature => DBSignature;
 
 	    protected override uint RootPageSchemaVersion => DBSchemaVersion;
-
 	    #endregion
-
-		#region Public Methods
-		#endregion
-
-		#region Protected Methods
-		#endregion
 	}
 }

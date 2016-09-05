@@ -684,8 +684,7 @@ namespace Zen.Trunk.Storage.Data.Table
 
 			// Get exclusive schema lock
 			var lm = LockingManager;
-			lm.LockSchema(ObjectId, SchemaLockType.SchemaModification,
-				LockTimeout);
+			lm.LockSchemaAsync(ObjectId, SchemaLockType.SchemaModification, LockTimeout);
 
 			// Copy columns for performing diff checks
 			_updatedColumns = new ColumnCollection(this);

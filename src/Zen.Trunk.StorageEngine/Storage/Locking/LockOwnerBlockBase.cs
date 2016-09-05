@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using Zen.Trunk.Logging;
 
 namespace Zen.Trunk.Storage.Locking
@@ -30,7 +31,7 @@ namespace Zen.Trunk.Storage.Locking
 		#region Private Types
 		private class ItemLockDictionary : Dictionary<TItemLockIdType, DataLock>
 		{
-			public bool TryReleaseLock(TItemLockIdType key)
+			public async Task<bool> TryReleaseLockAsync(TItemLockIdType key)
 			{
 				var removed = false;
 				if (ContainsKey(key))
@@ -38,7 +39,7 @@ namespace Zen.Trunk.Storage.Locking
 					var lockObject = this[key];
 					if (lockObject != null)
 					{
-						lockObject.Unlock();
+						await lockObject.UnlockAsync().ConfigureAwait(false);
 						lockObject.ReleaseRefLock();
 					}
 					removed = Remove(key);
@@ -46,14 +47,14 @@ namespace Zen.Trunk.Storage.Locking
 				return removed;
 			}
 
-			public void ReleaseLocks(Action nullLockAction)
+			public async Task ReleaseLocksAsync(Action nullLockAction)
 			{
 				foreach (var key in Keys.ToArray())
 				{
 					var lockObject = this[key];
 					if (lockObject != null)
 					{
-						lockObject.Unlock();
+						await lockObject.UnlockAsync().ConfigureAwait(false);
 						lockObject.ReleaseRefLock();
 					}
 					else
@@ -113,7 +114,7 @@ namespace Zen.Trunk.Storage.Locking
 		/// </summary>
 		public void Dispose()
 		{
-			DisposeManagedObjects();
+			Dispose(true);
 		}
 
 		/// <summary>
@@ -121,12 +122,12 @@ namespace Zen.Trunk.Storage.Locking
 		/// </summary>
 		/// <param name="lockType">Type of the lock.</param>
 		/// <param name="timeout">The timeout.</param>
-		public void LockOwner(ObjectLockType lockType, TimeSpan timeout)
+		public Task LockOwnerAsync(ObjectLockType lockType, TimeSpan timeout)
 		{
 			ThrowIfDisposed();
 
 			// TODO: Validate lock request
-			_ownerLock.Lock(lockType, timeout);
+			return _ownerLock.LockAsync(lockType, timeout);
 		}
 
 		/// <summary>
@@ -135,7 +136,7 @@ namespace Zen.Trunk.Storage.Locking
 		/// <param name="key">The key.</param>
 		/// <param name="lockType">Type of the lock.</param>
 		/// <param name="timeout">The timeout.</param>
-		public void LockItem(TItemLockIdType key, DataLockType lockType, TimeSpan timeout)
+		public async Task LockItemAsync(TItemLockIdType key, DataLockType lockType, TimeSpan timeout)
 		{
 			ThrowIfDisposed();
 
@@ -145,22 +146,22 @@ namespace Zen.Trunk.Storage.Locking
 				return;
 			}
 
-			_syncBlock.Execute(
-				() =>
+			await _syncBlock.ExecuteAsync(
+				async () =>
 				{
 					if (lockType == DataLockType.Shared && !_readLocks.ContainsKey(key))
 					{
-						LockItemShared(key, timeout);
+						await LockItemSharedAsync(key, timeout).ConfigureAwait(false);
 					}
 					else if (lockType == DataLockType.Update && !_updateLocks.ContainsKey(key))
 					{
-						LockItemUpdate(key, timeout);
+						await LockItemUpdateAsync(key, timeout).ConfigureAwait(false);
 					}
 					else if (lockType == DataLockType.Exclusive && !_writeLocks.ContainsKey(key))
 					{
-						LockItemExclusive(key, timeout);
+						await LockItemExclusiveAsync(key, timeout).ConfigureAwait(false);
 					}
-				});
+				}).ConfigureAwait(false);
 		}
 
 		/// <summary>
@@ -169,14 +170,14 @@ namespace Zen.Trunk.Storage.Locking
 		/// </summary>
 		/// <param name="lockType">Type of the lock.</param>
 		/// <returns></returns>
-		public bool HasOwnerLock(ObjectLockType lockType)
+		public Task<bool> HasOwnerLockAsync(ObjectLockType lockType)
 		{
 			if (lockType == ObjectLockType.None)
 			{
-				return true;
+				return Task.FromResult(true);
 			}
 
-			return _ownerLock.HasLock(lockType);
+			return _ownerLock.HasLockAsync(lockType);
 		}
 
 		/// <summary>
@@ -186,7 +187,7 @@ namespace Zen.Trunk.Storage.Locking
 		/// <param name="key">The key.</param>
 		/// <param name="lockType">Type of the lock.</param>
 		/// <returns></returns>
-		public bool HasItemLock(TItemLockIdType key, DataLockType lockType)
+		public async Task<bool> HasItemLockAsync(TItemLockIdType key, DataLockType lockType)
 		{
 			switch (lockType)
 			{
@@ -194,8 +195,8 @@ namespace Zen.Trunk.Storage.Locking
 					return true;
 
 				case DataLockType.Shared:
-					if (_ownerLock.HasLock(ObjectLockType.Shared)||
-						_ownerLock.HasLock(ObjectLockType.Exclusive))
+					if (await _ownerLock.HasLockAsync(ObjectLockType.Shared).ConfigureAwait(false) ||
+						await _ownerLock.HasLockAsync(ObjectLockType.Exclusive).ConfigureAwait(false))
 					{
 						return true;
 					}
@@ -208,7 +209,7 @@ namespace Zen.Trunk.Storage.Locking
 					break;
 
 				case DataLockType.Update:
-					if (_ownerLock.HasLock(ObjectLockType.Exclusive))
+					if (await _ownerLock.HasLockAsync(ObjectLockType.Exclusive).ConfigureAwait(false))
 					{
 						return true;
 					}
@@ -220,7 +221,7 @@ namespace Zen.Trunk.Storage.Locking
 					break;
 
 				case DataLockType.Exclusive:
-					if (_ownerLock.HasLock(ObjectLockType.Exclusive))
+					if (await _ownerLock.HasLockAsync(ObjectLockType.Exclusive).ConfigureAwait(false))
 					{
 						return true;
 					}
@@ -238,27 +239,27 @@ namespace Zen.Trunk.Storage.Locking
 		/// Unlocks the item.
 		/// </summary>
 		/// <param name="key">The key.</param>
-		public void UnlockItem(TItemLockIdType key)
+		public async Task UnlockItemAsync(TItemLockIdType key)
 		{
 			ThrowIfDisposed();
 
 			// Locate id in tables
-			_syncBlock.Execute(
-				() =>
+			await _syncBlock.ExecuteAsync(
+				async () =>
 				{
-					if (_readLocks.TryReleaseLock(key) ||
-						_updateLocks.TryReleaseLock(key) ||
-						_writeLocks.TryReleaseLock(key))
+					if (await _readLocks.TryReleaseLockAsync(key).ConfigureAwait(false) ||
+						await _updateLocks.TryReleaseLockAsync(key).ConfigureAwait(false) ||
+						await _writeLocks.TryReleaseLockAsync(key).ConfigureAwait(false))
 					{
 						--_ownerLockCount;
 					}
-				});
+				}).ConfigureAwait(false);
 		}
 
 		/// <summary>
 		/// Unlocks the owner.
 		/// </summary>
-		public void UnlockOwner()
+		public async Task UnlockOwnerAsync()
 		{
 			ThrowIfDisposed();
 
@@ -266,7 +267,7 @@ namespace Zen.Trunk.Storage.Locking
 			{
 				//Tracer.WriteVerboseLine(
 				//    "Unlocking lock owner block for object {0}", _objectId);
-				_ownerLock.Unlock();
+				await _ownerLock.UnlockAsync().ConfigureAwait(false);
 			}
 			else
 			{
@@ -279,15 +280,15 @@ namespace Zen.Trunk.Storage.Locking
 		/// <summary>
 		/// Releases all the held locks.
 		/// </summary>
-		public void ReleaseLocks()
+		public async Task ReleaseLocksAsync()
 		{
 			ThrowIfDisposed();
 
-			_writeLocks.ReleaseLocks(() => --_ownerLockCount);
-			_updateLocks.ReleaseLocks(() => --_ownerLockCount);
-			_readLocks.ReleaseLocks(() => --_ownerLockCount);
-			UnlockOwner();
-		}
+			await _writeLocks.ReleaseLocksAsync(() => --_ownerLockCount).ConfigureAwait(false);
+			await _updateLocks.ReleaseLocksAsync(() => --_ownerLockCount).ConfigureAwait(false);
+            await _readLocks.ReleaseLocksAsync(() => --_ownerLockCount).ConfigureAwait(false);
+            await UnlockOwnerAsync().ConfigureAwait(false);
+        }
 		#endregion
 
 		#region Protected Methods
@@ -306,7 +307,7 @@ namespace Zen.Trunk.Storage.Locking
 		/// <summary>
 		/// Disposes the managed objects.
 		/// </summary>
-		protected virtual void DisposeManagedObjects()
+		protected virtual void Dispose(bool disposing)
 		{
 			if (_ownerLock != null)
 			{
@@ -334,10 +335,10 @@ namespace Zen.Trunk.Storage.Locking
 		#endregion
 
 		#region Private Methods
-		private void LockItemShared(TItemLockIdType key, TimeSpan timeout)
+		private async Task LockItemSharedAsync(TItemLockIdType key, TimeSpan timeout)
 		{
-			if (_ownerLock.HasLock(ObjectLockType.Shared) ||
-				_ownerLock.HasLock(ObjectLockType.Exclusive))
+			if (await _ownerLock.HasLockAsync(ObjectLockType.Shared).ConfigureAwait(false) ||
+                await _ownerLock.HasLockAsync(ObjectLockType.Exclusive).ConfigureAwait(false))
 			{
 				// We already have the desired lock on the
 				//	owner, so increment the owner lock count
@@ -354,11 +355,11 @@ namespace Zen.Trunk.Storage.Locking
 
 			// We require a minimum of an intent shared
 			//	lock on the owner at this point
-			if (!_ownerLock.HasLock(ObjectLockType.SharedIntentExclusive) &&
-				!_ownerLock.HasLock(ObjectLockType.IntentExclusive) &&
-				!_ownerLock.HasLock(ObjectLockType.IntentShared))
+			if (!await _ownerLock.HasLockAsync(ObjectLockType.SharedIntentExclusive).ConfigureAwait(false) &&
+				!await _ownerLock.HasLockAsync(ObjectLockType.IntentExclusive).ConfigureAwait(false) &&
+				!await _ownerLock.HasLockAsync(ObjectLockType.IntentShared).ConfigureAwait(false))
 			{
-				_ownerLock.Lock(ObjectLockType.IntentShared, timeout);
+				await _ownerLock.LockAsync(ObjectLockType.IntentShared, timeout).ConfigureAwait(false);
 			}
 
 			// Obtain an object data lock for the given key
@@ -367,7 +368,7 @@ namespace Zen.Trunk.Storage.Locking
 			{
 				// Get data lock object then lock accordingly
 				var lockObj = GetItemLock(key); // lock is already addref'ed
-				lockObj.Lock(DataLockType.Shared, timeout);
+				await lockObj.LockAsync(DataLockType.Shared, timeout).ConfigureAwait(false);
 				_ownerLockCount++;
 
 				// Add lock to the read-lock list
@@ -385,7 +386,7 @@ namespace Zen.Trunk.Storage.Locking
 					try
 					{
 						// Acquire full shared lock on owner
-						_ownerLock.Lock(ObjectLockType.Shared, timeout);
+						await _ownerLock.LockAsync(ObjectLockType.Shared, timeout).ConfigureAwait(false);
 						hasEscalatedLock = true;
 					}
 					catch
@@ -401,7 +402,7 @@ namespace Zen.Trunk.Storage.Locking
 							// Unlock and release reference
 							// NOTE: We must leave a hanging key so we correctly
 							//	decrement the owner lock count during unlock
-							lockPair.Value.Unlock();
+							await lockPair.Value.UnlockAsync().ConfigureAwait(false);
 							lockPair.Value.ReleaseRefLock();
 							_readLocks[lockPair.Key] = null;
 						}
@@ -410,9 +411,9 @@ namespace Zen.Trunk.Storage.Locking
 			}
 		}
 
-		private void LockItemUpdate(TItemLockIdType key, TimeSpan timeout)
+		private async Task LockItemUpdateAsync(TItemLockIdType key, TimeSpan timeout)
 		{
-			if (_ownerLock.HasLock(ObjectLockType.Exclusive))
+			if (await _ownerLock.HasLockAsync(ObjectLockType.Exclusive).ConfigureAwait(false))
 			{
 				_ownerLockCount++;
 				return;
@@ -426,16 +427,16 @@ namespace Zen.Trunk.Storage.Locking
 
 			// We require a minimum of a shared intent exclusive lock on the
 			//	owner at this point
-			if (!_ownerLock.HasLock(ObjectLockType.SharedIntentExclusive) &&
-				!_ownerLock.HasLock(ObjectLockType.IntentExclusive))
+			if (!await _ownerLock.HasLockAsync(ObjectLockType.SharedIntentExclusive).ConfigureAwait(false) &&
+				!await _ownerLock.HasLockAsync(ObjectLockType.IntentExclusive).ConfigureAwait(false))
 			{
-				if (_ownerLock.HasLock(ObjectLockType.Shared))
+				if (await _ownerLock.HasLockAsync(ObjectLockType.Shared).ConfigureAwait(false))
 				{
-					_ownerLock.Lock(ObjectLockType.SharedIntentExclusive, timeout);
+					await _ownerLock.LockAsync(ObjectLockType.SharedIntentExclusive, timeout).ConfigureAwait(false);
 				}
 				else
 				{
-					_ownerLock.Lock(ObjectLockType.IntentExclusive, timeout);
+					await _ownerLock.LockAsync(ObjectLockType.IntentExclusive, timeout).ConfigureAwait(false);
 				}
 			}
 
@@ -456,7 +457,7 @@ namespace Zen.Trunk.Storage.Locking
 				// Attempt to upgrade the lock for this resource and remove
 				//	read lock reference
 				// NOTE: Do not update the reference count
-				lockObj.Lock(DataLockType.Update, timeout);
+				await lockObj.LockAsync(DataLockType.Update, timeout).ConfigureAwait(false);
 				_readLocks.Remove(key);
 			}
 			else
@@ -467,15 +468,15 @@ namespace Zen.Trunk.Storage.Locking
 
 				// TODO: Do we need to get a shared lock first?
 				//lockObj.Lock(DataLockType.Shared, timeout);
-				lockObj.Lock(DataLockType.Update, timeout);
+				await lockObj.LockAsync(DataLockType.Update, timeout).ConfigureAwait(false);
 				_ownerLockCount++;
 			}
 			_updateLocks.Add(key, lockObj);
 		}
 
-		private void LockItemExclusive(TItemLockIdType key, TimeSpan timeout)
+		private async Task LockItemExclusiveAsync(TItemLockIdType key, TimeSpan timeout)
 		{
-			if (_ownerLock.HasLock(ObjectLockType.Exclusive))
+			if (await _ownerLock.HasLockAsync(ObjectLockType.Exclusive).ConfigureAwait(false))
 			{
 				_ownerLockCount++;
 				return;
@@ -487,16 +488,16 @@ namespace Zen.Trunk.Storage.Locking
 
 			// We require a minimum of a shared intent exclusive lock on the
 			//	owner at this point
-			if (!_ownerLock.HasLock(ObjectLockType.SharedIntentExclusive) &&
-				!_ownerLock.HasLock(ObjectLockType.IntentExclusive))
+			if (!await _ownerLock.HasLockAsync(ObjectLockType.SharedIntentExclusive).ConfigureAwait(false) &&
+				!await _ownerLock.HasLockAsync(ObjectLockType.IntentExclusive).ConfigureAwait(false))
 			{
-				if (_ownerLock.HasLock(ObjectLockType.Shared))
+				if (await _ownerLock.HasLockAsync(ObjectLockType.Shared).ConfigureAwait(false))
 				{
-					_ownerLock.Lock(ObjectLockType.SharedIntentExclusive, timeout);
+					await _ownerLock.LockAsync(ObjectLockType.SharedIntentExclusive, timeout).ConfigureAwait(false);
 				}
 				else
 				{
-					_ownerLock.Lock(ObjectLockType.IntentExclusive, timeout);
+					await _ownerLock.LockAsync(ObjectLockType.IntentExclusive, timeout).ConfigureAwait(false);
 				}
 			}
 
@@ -509,7 +510,7 @@ namespace Zen.Trunk.Storage.Locking
 				// TODO: If ObjectLock ever supports escalation of update locks
 				//	then this code will need to be revised...
 				lockObj = _updateLocks[key];
-				lockObj.Lock(DataLockType.Exclusive, timeout);
+				await lockObj.LockAsync(DataLockType.Exclusive, timeout).ConfigureAwait(false);
 				_updateLocks.Remove(key);
 			}
 			else if (_readLocks.ContainsKey(key))
@@ -521,13 +522,13 @@ namespace Zen.Trunk.Storage.Locking
 					//	so get distinct lock object from manager
 					lockObj = GetItemLock(key);
 				}
-				lockObj.Lock(DataLockType.Exclusive, timeout);
+				await lockObj.LockAsync(DataLockType.Exclusive, timeout).ConfigureAwait(false);
 				_readLocks.Remove(key);
 			}
 			else
 			{
 				lockObj = GetItemLock(key);
-				lockObj.Lock(DataLockType.Exclusive, timeout);
+				await lockObj.LockAsync(DataLockType.Exclusive, timeout).ConfigureAwait(false);
 				_ownerLockCount++;
 			}
 			_writeLocks.Add(key, lockObj);
@@ -544,7 +545,7 @@ namespace Zen.Trunk.Storage.Locking
 				try
 				{
 					// Acquire full exclusive lock on owner
-					_ownerLock.Lock(ObjectLockType.Exclusive, timeout);
+					await _ownerLock.LockAsync(ObjectLockType.Exclusive, timeout).ConfigureAwait(false);
 					hasEscalated = true;
 				}
 				catch
@@ -557,19 +558,19 @@ namespace Zen.Trunk.Storage.Locking
 					// We get this far then we can release ALL existing locks
 					foreach (var lockPair in _readLocks.ToArray())
 					{
-						lockPair.Value.Unlock();
+						await lockPair.Value.UnlockAsync().ConfigureAwait(false);
 						lockPair.Value.ReleaseRefLock();
 						_readLocks[lockPair.Key] = null;
 					}
 					foreach (var lockPair in _updateLocks.ToArray())
 					{
-						lockPair.Value.Unlock();
+						await lockPair.Value.UnlockAsync().ConfigureAwait(false);
 						lockPair.Value.ReleaseRefLock();
 						_updateLocks[lockPair.Key] = null;
 					}
 					foreach (var lockPair in _writeLocks.ToArray())
 					{
-						lockPair.Value.Unlock();
+						await lockPair.Value.UnlockAsync().ConfigureAwait(false);
 						lockPair.Value.ReleaseRefLock();
 						_writeLocks[lockPair.Key] = null;
 					}

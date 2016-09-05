@@ -67,7 +67,7 @@ namespace Zen.Trunk.Storage.Data
 		/// Loads or create the device root page.
 		/// </summary>
 		/// <returns></returns>
-		public virtual async Task<RootPage> LoadOrCreateRootPage()
+		public virtual async Task<RootPage> LoadOrCreateRootPageAsync()
 		{
             if (Logger.IsDebugEnabled())
             {
@@ -121,14 +121,14 @@ namespace Zen.Trunk.Storage.Data
 		/// <param name="allocParams">The alloc parameters.</param>
 		/// <returns></returns>
 		/// <exception cref="DeviceFullException"></exception>
-		public async Task<VirtualPageId> AllocateDataPage(AllocateDataPageParameters allocParams)
+		public async Task<VirtualPageId> AllocateDataPageAsync(AllocateDataPageParameters allocParams)
 		{
 			// Keep looping until we allocate
 			var isExpand = false;
 			while (true)
 			{
 				// Load device root page
-				using (var rootPage = await LoadOrCreateRootPage())
+				using (var rootPage = await LoadOrCreateRootPageAsync().ConfigureAwait(false))
 				{
 					rootPage.RootLock = RootLockType.Shared;
 
@@ -154,7 +154,7 @@ namespace Zen.Trunk.Storage.Data
 								await LoadDistributionPage(distPage, distPageIndex).ConfigureAwait(false);
 
 								// Ask distribution page to allocate for object
-								var virtualId = distPage.AllocatePage(allocParams);
+								var virtualId = await distPage.AllocatePageAsync(allocParams).ConfigureAwait(false);
 								if (virtualId.Value > 0)
 								{
 									return virtualId;
@@ -197,7 +197,7 @@ namespace Zen.Trunk.Storage.Data
 		protected override async Task OnOpen()
 		{
 			using (var rootPage = (PrimaryFileGroupRootPage)
-				await LoadOrCreateRootPage().ConfigureAwait(false))
+				await LoadOrCreateRootPageAsync().ConfigureAwait(false))
 			{
 				if (IsCreate)
 				{

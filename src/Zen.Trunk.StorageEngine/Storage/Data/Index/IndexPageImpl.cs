@@ -1,4 +1,6 @@
-﻿namespace Zen.Trunk.Storage.Data.Index
+﻿using System.Threading.Tasks;
+
+namespace Zen.Trunk.Storage.Data.Index
 {
 	using System;
 	using System.Collections.Generic;
@@ -201,7 +203,7 @@
 		/// Called when [lock page].
 		/// </summary>
 		/// <param name="lm">The lm.</param>
-		protected override void OnLockPage(IDatabaseLockManager lm)
+		protected override async Task OnLockPageAsync(IDatabaseLockManager lm)
 		{
 			// Perform base class locking first
 			switch (IndexType)
@@ -225,7 +227,7 @@
 					break;
 
 				case IndexType.Leaf:
-					lm.LockData(ObjectId, LogicalId, PageLock, LockTimeout);
+					await lm.LockDataAsync(ObjectId, LogicalId, PageLock, LockTimeout).ConfigureAwait(false);
 					break;
 			}
 		}
@@ -234,7 +236,7 @@
 		/// Called when [unlock page].
 		/// </summary>
 		/// <param name="lm">The lm.</param>
-		protected override void OnUnlockPage(IDatabaseLockManager lm)
+		protected override async Task OnUnlockPageAsync(IDatabaseLockManager lm)
 		{
 			switch (IndexType)
 			{
@@ -247,7 +249,7 @@
 					break;
 
 				case IndexType.Leaf:
-					lm.UnlockData(ObjectId, LogicalId);
+					await lm.UnlockDataAsync(ObjectId, LogicalId).ConfigureAwait(false);
 					break;
 			}
 		}

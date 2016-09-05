@@ -9,8 +9,19 @@ namespace Zen.Trunk.Storage
     public struct FileGroupId : IComparable, ICloneable
     {
         #region Public Fields
+        /// <summary>
+        /// The invalid
+        /// </summary>
         public static readonly FileGroupId Invalid = new FileGroupId(0);
+
+        /// <summary>
+        /// The master
+        /// </summary>
         public static readonly FileGroupId Master = new FileGroupId(1);
+
+        /// <summary>
+        /// The primary
+        /// </summary>
         public static readonly FileGroupId Primary = new FileGroupId(2);
         #endregion
 
@@ -31,6 +42,12 @@ namespace Zen.Trunk.Storage
         /// </summary>
         public byte Value { get; }
 
+        /// <summary>
+        /// Gets a file-group identifier that is logically next in the sequence.
+        /// </summary>
+        /// <value>
+        /// The next.
+        /// </value>
         public FileGroupId Next
         {
             get
@@ -95,20 +112,52 @@ namespace Zen.Trunk.Storage
             return order;
         }
 
+        /// <summary>
+        /// Implements the operator &lt;.
+        /// </summary>
+        /// <param name="left">The left.</param>
+        /// <param name="right">The right.</param>
+        /// <returns>
+        /// The result of the operator.
+        /// </returns>
         public static bool operator <(FileGroupId left, FileGroupId right)
         {
             return (left.Value < right.Value);
         }
 
+        /// <summary>
+        /// Implements the operator &gt;.
+        /// </summary>
+        /// <param name="left">The left.</param>
+        /// <param name="right">The right.</param>
+        /// <returns>
+        /// The result of the operator.
+        /// </returns>
         public static bool operator >(FileGroupId left, FileGroupId right)
         {
             return (left.Value > right.Value);
         }
 
+        /// <summary>
+        /// Implements the operator ==.
+        /// </summary>
+        /// <param name="left">The left.</param>
+        /// <param name="right">The right.</param>
+        /// <returns>
+        /// The result of the operator.
+        /// </returns>
         public static bool operator ==(FileGroupId left, FileGroupId right)
         {
             return (left.Value == right.Value);
         }
+        /// <summary>
+        /// Implements the operator !=.
+        /// </summary>
+        /// <param name="left">The left.</param>
+        /// <param name="right">The right.</param>
+        /// <returns>
+        /// The result of the operator.
+        /// </returns>
         public static bool operator !=(FileGroupId left, FileGroupId right)
         {
             return (left.Value != right.Value);
@@ -128,6 +177,10 @@ namespace Zen.Trunk.Storage
         #endregion
 
         #region ICloneable Members
+        /// <summary>
+        /// Clones this instance.
+        /// </summary>
+        /// <returns></returns>
         public FileGroupId Clone()
         {
             return (FileGroupId)MemberwiseClone();

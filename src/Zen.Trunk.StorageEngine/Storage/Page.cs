@@ -2,6 +2,7 @@ using System;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.IO;
+using System.Threading.Tasks;
 using Autofac;
 using Zen.Trunk.Logging;
 using Zen.Trunk.Storage.IO;
@@ -343,12 +344,12 @@ namespace Zen.Trunk.Storage
         #region Internal Methods
         internal void PreInitInternal()
 		{
-			OnPreInit(EventArgs.Empty);
+			OnPreInitAsync(EventArgs.Empty);
 		}
 
 		internal void OnInitInternal()
 		{
-			OnInit(EventArgs.Empty);
+			OnInitAsync(EventArgs.Empty);
 
 			// Initialised page must be read/write
 			ReadOnly = false;
@@ -361,7 +362,7 @@ namespace Zen.Trunk.Storage
 
 		internal void PreLoadInternal()
 		{
-			OnPreLoad(EventArgs.Empty);
+			OnPreLoadAsync(EventArgs.Empty);
 		}
 
 		internal void PostLoadInternal()
@@ -374,7 +375,7 @@ namespace Zen.Trunk.Storage
 
 			SuppressDirty = false;
 			_headerDirty = _dataDirty = false;
-			OnPostLoad(EventArgs.Empty);
+			OnPostLoadAsync(EventArgs.Empty);
 		}
 
 		internal void SetDirty()
@@ -575,56 +576,60 @@ namespace Zen.Trunk.Storage
 		/// Performs operations on this instance prior to being initialised.
 		/// </summary>
 		/// <param name="e">The <see cref="System.EventArgs"/> instance containing the event data.</param>
-		protected virtual void OnPreInit(EventArgs e)
+		protected virtual Task OnPreInitAsync(EventArgs e)
 		{
 			// Sanity check
 			System.Diagnostics.Debug.Assert(HeaderSize >= MinHeaderSize);
-		}
+            return Task.FromResult(true);
+        }
 
-		/// <summary>
-		/// Raises the <see cref="E:Init"/> event.
-		/// </summary>
-		/// <param name="e">The <see cref="System.EventArgs"/> instance containing the event data.</param>
-		protected virtual void OnInit(EventArgs e)
+        /// <summary>
+        /// Raises the <see cref="E:Init"/> event.
+        /// </summary>
+        /// <param name="e">The <see cref="System.EventArgs"/> instance containing the event data.</param>
+        protected virtual Task OnInitAsync(EventArgs e)
 		{
 			var handler = (EventHandler)Events[InitEvent];
 			if (handler != null)
 			{
 				handler(this, e);
 			}
-		}
+            return Task.FromResult(true);
+        }
 
-		/// <summary>
-		/// Performs operations on this instance prior to being loaded.
-		/// </summary>
-		/// <param name="e">The <see cref="System.EventArgs"/> instance containing the event data.</param>
-		protected virtual void OnPreLoad(EventArgs e)
+        /// <summary>
+        /// Performs operations on this instance prior to being loaded.
+        /// </summary>
+        /// <param name="e">The <see cref="System.EventArgs"/> instance containing the event data.</param>
+        protected virtual Task OnPreLoadAsync(EventArgs e)
 		{
 			// Sanity check
 			System.Diagnostics.Debug.Assert(HeaderSize >= MinHeaderSize);
+		    return Task.FromResult(true);
 		}
 
 		/// <summary>
 		/// Raises the <see cref="E:Load"/> event.
 		/// </summary>
 		/// <param name="e">The <see cref="System.EventArgs"/> instance containing the event data.</param>
-		protected virtual void OnPostLoad(EventArgs e)
+		protected virtual Task OnPostLoadAsync(EventArgs e)
 		{
 			var handler = (EventHandler)Events[LoadEvent];
 			if (handler != null)
 			{
 				handler(this, e);
 			}
-		}
+            return Task.FromResult(true);
+        }
 
-		/// <summary>
-		/// Performs operations prior to saving this page.
-		/// </summary>
-		/// <param name="e">The <see cref="System.EventArgs"/> instance containing the event data.</param>
-		/// <remarks>
-		/// If the header and/or data sections are dirty then they will be rewritten.
-		/// </remarks>
-		protected virtual void OnPreSave(EventArgs e)
+        /// <summary>
+        /// Performs operations prior to saving this page.
+        /// </summary>
+        /// <param name="e">The <see cref="System.EventArgs"/> instance containing the event data.</param>
+        /// <remarks>
+        /// If the header and/or data sections are dirty then they will be rewritten.
+        /// </remarks>
+        protected virtual void OnPreSave(EventArgs e)
 		{
 			if (_headerDirty)
 			{
@@ -662,6 +667,12 @@ namespace Zen.Trunk.Storage
 			}
 		}
 
+        /// <summary>
+        /// Creates the status sections.
+        /// </summary>
+        /// <param name="status">The status.</param>
+        /// <param name="previousSection">The previous section.</param>
+        /// <returns></returns>
         protected virtual BitVector32.Section CreateStatusSections(BitVector32 status, BitVector32.Section previousSection)
         {
             return previousSection;

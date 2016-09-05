@@ -51,7 +51,7 @@ namespace Zen.Trunk.Storage
                     await dbDevice.OpenAsync(true).ConfigureAwait(true);
                     Trace.WriteLine("DatabaseDevice.Open succeeded");
 
-                    await TrunkTransactionContext.Commit().ConfigureAwait(true);
+                    await TrunkTransactionContext.CommitAsync().ConfigureAwait(true);
                     Trace.WriteLine("Transaction commit succeeded");
 
                     await dbDevice.CloseAsync().ConfigureAwait(true);
@@ -96,7 +96,7 @@ namespace Zen.Trunk.Storage
 
                         await dbDevice.OpenAsync(true).ConfigureAwait(true);
 
-                        await TrunkTransactionContext.Commit().ConfigureAwait(true);
+                        await TrunkTransactionContext.CommitAsync().ConfigureAwait(true);
 
                         dbDevice.BeginTransaction();
 
@@ -185,11 +185,11 @@ namespace Zen.Trunk.Storage
 
                     if (rollback)
                     {
-                        await TrunkTransactionContext.Rollback().ConfigureAwait(true);
+                        await TrunkTransactionContext.RollbackAsync().ConfigureAwait(true);
                     }
                     else
                     {
-                        await TrunkTransactionContext.Commit().ConfigureAwait(true);
+                        await TrunkTransactionContext.CommitAsync().ConfigureAwait(true);
                     }
 
                     await dbDevice.CloseAsync().ConfigureAwait(true);
@@ -231,7 +231,7 @@ namespace Zen.Trunk.Storage
 
                     await dbDevice.OpenAsync(true).ConfigureAwait(true);
 
-                    await TrunkTransactionContext.Commit().ConfigureAwait(true);
+                    await TrunkTransactionContext.CommitAsync().ConfigureAwait(true);
 
                     dbDevice.BeginTransaction();
 
@@ -274,7 +274,7 @@ namespace Zen.Trunk.Storage
 
                     //table.EndColumnUpdate().Wait();
 
-                    await TrunkTransactionContext.Commit().ConfigureAwait(true);
+                    await TrunkTransactionContext.CommitAsync().ConfigureAwait(true);
 
                     // Insert some data
                     /*TrunkTransactionContext.BeginTransaction(dbDevice, TimeSpan.FromMinutes(5));

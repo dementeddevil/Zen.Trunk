@@ -212,7 +212,7 @@ namespace Zen.Trunk.Storage
 
                     await dbDevice.OpenAsync(true);
 
-                    await TrunkTransactionContext.Commit();
+                    await TrunkTransactionContext.CommitAsync();
 
                     dbDevice.BeginTransaction(TimeSpan.FromMinutes(10));
 
@@ -227,7 +227,7 @@ namespace Zen.Trunk.Storage
                     manager.CreateIndex(indexInfo);
                     //manager.
 
-                    await TrunkTransactionContext.Commit();
+                    await TrunkTransactionContext.CommitAsync();
                 }
                 finally
                 {

@@ -509,7 +509,7 @@ namespace Zen.Trunk.Storage.Data
 				}
 				await request.Task.ConfigureAwait(false);
 
-				await TrunkTransactionContext.Commit();
+				await TrunkTransactionContext.CommitAsync();
 				committed = true;
 			}
 			catch
@@ -517,7 +517,7 @@ namespace Zen.Trunk.Storage.Data
 			}
 			if (!committed)
 			{
-				await TrunkTransactionContext.Rollback();
+				await TrunkTransactionContext.RollbackAsync();
 			}
 
 			// Close all secondary file-groups in parallel

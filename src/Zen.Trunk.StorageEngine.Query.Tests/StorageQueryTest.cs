@@ -56,7 +56,7 @@ namespace Zen.Trunk.Storage
                     batch.AppendLine("go");
                     await executive.Execute(batch.ToString());
                     await manager.OpenAsync(true).ConfigureAwait(true);
-                    await TrunkTransactionContext.Commit().ConfigureAwait(true);
+                    await TrunkTransactionContext.CommitAsync().ConfigureAwait(true);
 
                     //batch.Clear();
 

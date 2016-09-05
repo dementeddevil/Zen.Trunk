@@ -27,8 +27,6 @@ namespace Zen.Trunk.Storage.Locking
 	/// </remarks>
 	public static class TrunkTransactionContext
 	{
-	    private const string LogicalContextName = "TrunkTransactionContext";
-
 	    private class TrunkTransactionScope : IDisposable
 		{
 			private ITrunkTransaction _oldContext;
@@ -44,10 +42,10 @@ namespace Zen.Trunk.Storage.Locking
 
             public void Dispose()
 			{
-				DisposeManagedObjects();
+				Dispose(true);
 			}
 
-			private void DisposeManagedObjects()
+			private void Dispose(bool disposing)
 			{
 				if (!_disposed)
 				{
@@ -65,14 +63,23 @@ namespace Zen.Trunk.Storage.Locking
 		    private void TraceTransaction(string action, ITrunkTransaction prev, ITrunkTransaction next)
 		    {
 		        var threadId = Thread.CurrentThread.ManagedThreadId;
-		        var prevTransactionId = prev != null ? prev.TransactionId.ToString() : "N/A";
-                var nextTransactionId = next != null ? next.TransactionId.ToString() : "N/A";
+		        var prevTransactionId = prev?.TransactionId.ToString() ?? "N/A";
+                var nextTransactionId = next?.TransactionId.ToString() ?? "N/A";
 		        Trace.TraceInformation(
 		            $"{action} transaction scope on thread {threadId} switching transaction from {prevTransactionId} to {nextTransactionId}");
 		    }
 		}
 
-		public static ITrunkTransaction Current
+	    private const string LogicalContextName = "TrunkTransactionContext";
+
+        /// <summary>
+        /// Gets the current trunk transaction.
+        /// </summary>
+        /// <value>
+        /// An instance of <see cref="ITrunkTransaction"/> representing the current transaction;
+        /// otherwise <c>null</c> if no transaction is in progress.
+        /// </value>
+        public static ITrunkTransaction Current
 		{
 			get
 			{
@@ -110,32 +117,56 @@ namespace Zen.Trunk.Storage.Locking
             }
         }
 
+        /// <summary>
+        /// Begins the transaction.
+        /// </summary>
+        /// <param name="lifetimeScope">The lifetime scope.</param>
         public static void BeginTransaction(ILifetimeScope lifetimeScope)
 		{
 			BeginTransaction(new TrunkTransaction(lifetimeScope));
 		}
 
-		public static void BeginTransaction(ILifetimeScope lifetimeScope, TransactionOptions transactionOptions)
+        /// <summary>
+        /// Begins the transaction.
+        /// </summary>
+        /// <param name="lifetimeScope">The lifetime scope.</param>
+        /// <param name="transactionOptions">The transaction options.</param>
+        public static void BeginTransaction(ILifetimeScope lifetimeScope, TransactionOptions transactionOptions)
 		{
 			BeginTransaction(new TrunkTransaction(lifetimeScope, transactionOptions));
 		}
 
-		public static void BeginTransaction(ILifetimeScope lifetimeScope, TimeSpan timeout)
+        /// <summary>
+        /// Begins the transaction.
+        /// </summary>
+        /// <param name="lifetimeScope">The lifetime scope.</param>
+        /// <param name="timeout">The timeout.</param>
+        public static void BeginTransaction(ILifetimeScope lifetimeScope, TimeSpan timeout)
 		{
 			BeginTransaction(new TrunkTransaction(lifetimeScope, timeout));
 		}
 
-		public static void BeginTransaction(ILifetimeScope lifetimeScope, IsolationLevel isoLevel, TimeSpan timeout)
+        /// <summary>
+        /// Begins the transaction.
+        /// </summary>
+        /// <param name="lifetimeScope">The lifetime scope.</param>
+        /// <param name="isoLevel">The iso level.</param>
+        /// <param name="timeout">The timeout.</param>
+        public static void BeginTransaction(ILifetimeScope lifetimeScope, IsolationLevel isoLevel, TimeSpan timeout)
 		{
 			BeginTransaction(new TrunkTransaction(lifetimeScope, isoLevel, timeout));
 		}
 
-		public static async Task Commit()
+        /// <summary>
+        /// Commits the current transaction.
+        /// </summary>
+        /// <returns></returns>
+        public static async Task CommitAsync()
 		{
 			var txn = Current as ITrunkTransactionPrivate;
 			if (txn != null)
 			{
-				var result = await txn.Commit().WithTimeout(txn.Timeout);
+				var result = await txn.Commit().WithTimeout(txn.Timeout).ConfigureAwait(false);
 				if (result)
 				{
 					Current = null;
@@ -143,12 +174,16 @@ namespace Zen.Trunk.Storage.Locking
 			}
 		}
 
-		public static async Task Rollback()
+        /// <summary>
+        /// Rollbacks the current transaction.
+        /// </summary>
+        /// <returns></returns>
+        public static async Task RollbackAsync()
 		{
 			var txn = Current as ITrunkTransactionPrivate;
 			if (txn != null)
 			{
-				var result = await txn.Rollback().WithTimeout(txn.Timeout);
+				var result = await txn.Rollback().WithTimeout(txn.Timeout).ConfigureAwait(false);
 				if (result)
 				{
 					Current = null;
@@ -156,7 +191,12 @@ namespace Zen.Trunk.Storage.Locking
 			}
 		}
 
-		internal static void BeginTransaction(ITrunkTransaction txn)
+		internal static IDisposable SwitchTransactionContext(ITrunkTransaction newContext)
+		{
+			return new TrunkTransactionScope(newContext);
+		}
+
+	    private static void BeginTransaction(ITrunkTransaction txn)
 		{
 			if (Current == null)
 			{
@@ -167,11 +207,6 @@ namespace Zen.Trunk.Storage.Locking
 				var priv = Current as ITrunkTransactionPrivate;
 			    priv?.BeginNestedTransaction();
 			}
-		}
-
-		internal static IDisposable SwitchTransactionContext(ITrunkTransaction newContext)
-		{
-			return new TrunkTransactionScope(newContext);
 		}
 	}
 }

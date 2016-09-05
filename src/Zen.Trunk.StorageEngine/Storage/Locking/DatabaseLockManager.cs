@@ -1,7 +1,8 @@
+using System;
+using System.Threading.Tasks;
+
 namespace Zen.Trunk.Storage.Locking
 {
-	using System;
-
 	/// <summary>
 	/// <c>DatabaseLockManager</c> represents an abstraction of the lock manager
 	/// that is directly associated with a given database instance.
@@ -29,141 +30,292 @@ namespace Zen.Trunk.Storage.Locking
 			_globalLockManager = globalLockManager;
 			_dbId = dbId;
 		}
-		#endregion
+        #endregion
 
-		#region Public Methods
-		#region Database Lock/Unlock
-		public void LockDatabase(DatabaseLockType lockType, TimeSpan timeout)
+        #region Public Methods
+        #region Database Lock/Unlock
+        /// <summary>
+        /// Locks the database.
+        /// </summary>
+        /// <param name="lockType">Type of the lock.</param>
+        /// <param name="timeout">The timeout.</param>
+        /// <returns></returns>
+        public Task LockDatabaseAsync(DatabaseLockType lockType, TimeSpan timeout)
 		{
-			_globalLockManager.LockDatabase(_dbId, lockType, timeout);
+			return _globalLockManager.LockDatabaseAsync(_dbId, lockType, timeout);
 		}
 
-		public void UnlockDatabase()
+        /// <summary>
+        /// Unlocks the database.
+        /// </summary>
+        /// <returns></returns>
+        public Task UnlockDatabaseAsync()
 		{
-			_globalLockManager.UnlockDatabase(_dbId);
+			return _globalLockManager.UnlockDatabaseAsync(_dbId);
 		}
-		#endregion
+        #endregion
 
-		#region Root Lock/Unlock
-		public void LockRoot(FileGroupId fileGroupId, RootLockType lockType, TimeSpan timeout)
+        #region Root Lock/Unlock
+        /// <summary>
+        /// Locks the root.
+        /// </summary>
+        /// <param name="fileGroupId">The file group identifier.</param>
+        /// <param name="lockType">Type of the lock.</param>
+        /// <param name="timeout">The timeout.</param>
+        /// <returns></returns>
+        public Task LockRootAsync(FileGroupId fileGroupId, RootLockType lockType, TimeSpan timeout)
 		{
-			_globalLockManager.LockRoot(_dbId, fileGroupId, lockType, timeout);
+			return _globalLockManager.LockRootAsync(_dbId, fileGroupId, lockType, timeout);
 		}
 
-		public void UnlockRoot(FileGroupId fileGroupId)
+        /// <summary>
+        /// Unlocks the root.
+        /// </summary>
+        /// <param name="fileGroupId">The file group identifier.</param>
+        /// <returns></returns>
+        public Task UnlockRootAsync(FileGroupId fileGroupId)
 		{
-			_globalLockManager.UnlockRoot(_dbId, fileGroupId);
+			return _globalLockManager.UnlockRootAsync(_dbId, fileGroupId);
 		}
 
-		public RootLock GetRootLock(FileGroupId fileGroupId)
+        /// <summary>
+        /// Gets the root lock.
+        /// </summary>
+        /// <param name="fileGroupId">The file group identifier.</param>
+        /// <returns></returns>
+        public RootLock GetRootLock(FileGroupId fileGroupId)
 		{
 			return _globalLockManager.GetRootLock(_dbId, fileGroupId);
 		}
-		#endregion
+        #endregion
 
-		#region Distribution Page Locks
-		public void LockDistributionPage(VirtualPageId virtualPageId, ObjectLockType lockType, TimeSpan timeout)
+        #region Distribution Page Locks
+        /// <summary>
+        /// Locks the distribution page.
+        /// </summary>
+        /// <param name="virtualPageId">The virtual page identifier.</param>
+        /// <param name="lockType">Type of the lock.</param>
+        /// <param name="timeout">The timeout.</param>
+        /// <returns></returns>
+        public Task LockDistributionPageAsync(VirtualPageId virtualPageId, ObjectLockType lockType, TimeSpan timeout)
 		{
-			_globalLockManager.LockDistributionPage(_dbId, virtualPageId, lockType, timeout);
+			return _globalLockManager.LockDistributionPageAsync(_dbId, virtualPageId, lockType, timeout);
 		}
 
-		public void UnlockDistributionPage(VirtualPageId virtualPageId)
+        /// <summary>
+        /// Unlocks the distribution page.
+        /// </summary>
+        /// <param name="virtualPageId">The virtual page identifier.</param>
+        /// <returns></returns>
+        public Task UnlockDistributionPageAsync(VirtualPageId virtualPageId)
 		{
-			_globalLockManager.UnlockDistributionPage(_dbId, virtualPageId);
+			return _globalLockManager.UnlockDistributionPageAsync(_dbId, virtualPageId);
 		}
 
-		public void LockDistributionExtent(VirtualPageId virtualPageId, uint extentIndex,
+        /// <summary>
+        /// Locks the distribution extent.
+        /// </summary>
+        /// <param name="virtualPageId">The virtual page identifier.</param>
+        /// <param name="extentIndex">Index of the extent.</param>
+        /// <param name="distLockType">Type of the dist lock.</param>
+        /// <param name="extentLockType">Type of the extent lock.</param>
+        /// <param name="timeout">The timeout.</param>
+        /// <returns></returns>
+        public Task LockDistributionExtentAsync(VirtualPageId virtualPageId, uint extentIndex,
 			ObjectLockType distLockType, DataLockType extentLockType, TimeSpan timeout)
 		{
-			_globalLockManager.LockDistributionExtent(_dbId, virtualPageId, extentIndex, distLockType, extentLockType, timeout);
+			return _globalLockManager.LockDistributionExtentAsync(_dbId, virtualPageId, extentIndex, distLockType, extentLockType, timeout);
 		}
 
-		public void UnlockDistributionExtent(VirtualPageId virtualPageId, uint extentIndex)
+        /// <summary>
+        /// Unlocks the distribution extent.
+        /// </summary>
+        /// <param name="virtualPageId">The virtual page identifier.</param>
+        /// <param name="extentIndex">Index of the extent.</param>
+        /// <returns></returns>
+        public Task UnlockDistributionExtentAsync(VirtualPageId virtualPageId, uint extentIndex)
 		{
-			_globalLockManager.UnlockDistributionExtent(_dbId, virtualPageId, extentIndex);
+			return _globalLockManager.UnlockDistributionExtentAsync(_dbId, virtualPageId, extentIndex);
 		}
 
-		public void LockDistributionHeader(VirtualPageId virtualPageId, TimeSpan timeout)
+        /// <summary>
+        /// Locks the distribution header.
+        /// </summary>
+        /// <param name="virtualPageId">The virtual page identifier.</param>
+        /// <param name="timeout">The timeout.</param>
+        public void LockDistributionHeader(VirtualPageId virtualPageId, TimeSpan timeout)
 		{
 			_globalLockManager.LockDistributionHeader(_dbId, virtualPageId, timeout);
 		}
 
-		public void UnlockDistributionHeader(VirtualPageId virtualPageId)
+        /// <summary>
+        /// Unlocks the distribution header.
+        /// </summary>
+        /// <param name="virtualPageId">The virtual page identifier.</param>
+        public void UnlockDistributionHeader(VirtualPageId virtualPageId)
 		{
 			_globalLockManager.UnlockDistributionHeader(_dbId, virtualPageId);
 		}
 
-		public ObjectLock GetDistributionLock(VirtualPageId virtualPageId)
+        /// <summary>
+        /// Gets the distribution lock.
+        /// </summary>
+        /// <param name="virtualPageId">The virtual page identifier.</param>
+        /// <returns></returns>
+        public ObjectLock GetDistributionLock(VirtualPageId virtualPageId)
 		{
 			return _globalLockManager.GetDistributionLock(_dbId, virtualPageId);
 		}
 
-		public DataLock GetExtentLock(VirtualPageId virtualPageId, uint extentIndex)
+        /// <summary>
+        /// Gets the extent lock.
+        /// </summary>
+        /// <param name="virtualPageId">The virtual page identifier.</param>
+        /// <param name="extentIndex">Index of the extent.</param>
+        /// <returns></returns>
+        public DataLock GetExtentLock(VirtualPageId virtualPageId, uint extentIndex)
 		{
 			return _globalLockManager.GetExtentLock(_dbId, virtualPageId, extentIndex);
 		}
-		#endregion
+        #endregion
 
-		#region Object Lock/Unlock
-		public void LockObject(ObjectId objectId, ObjectLockType lockType, TimeSpan timeout)
+        #region Object Lock/Unlock
+        /// <summary>
+        /// Locks the object.
+        /// </summary>
+        /// <param name="objectId">The object identifier.</param>
+        /// <param name="lockType">Type of the lock.</param>
+        /// <param name="timeout">The timeout.</param>
+        /// <returns></returns>
+        public Task LockObjectAsync(ObjectId objectId, ObjectLockType lockType, TimeSpan timeout)
 		{
-			_globalLockManager.LockObject(_dbId, objectId, lockType, timeout);
+			return _globalLockManager.LockObjectAsync(_dbId, objectId, lockType, timeout);
 		}
 
-		public void UnlockObject(ObjectId objectId)
+        /// <summary>
+        /// Unlocks the object.
+        /// </summary>
+        /// <param name="objectId">The object identifier.</param>
+        /// <returns></returns>
+        public Task UnlockObjectAsync(ObjectId objectId)
 		{
-			_globalLockManager.UnlockObject(_dbId, objectId);
+			return _globalLockManager.UnlockObjectAsync(_dbId, objectId);
 		}
 
-		public ObjectLock GetObjectLock(ObjectId objectId)
+        /// <summary>
+        /// Gets the object lock.
+        /// </summary>
+        /// <param name="objectId">The object identifier.</param>
+        /// <returns></returns>
+        public ObjectLock GetObjectLock(ObjectId objectId)
 		{
 			return _globalLockManager.GetObjectLock(_dbId, objectId);
 		}
-		#endregion
+        #endregion
 
-		#region Object-Schema Lock/Unlock
-		public void LockSchema(ObjectId objectId, SchemaLockType lockType, TimeSpan timeout)
+        #region Object-Schema Lock/Unlock
+        /// <summary>
+        /// Locks the schema.
+        /// </summary>
+        /// <param name="objectId">The object identifier.</param>
+        /// <param name="lockType">Type of the lock.</param>
+        /// <param name="timeout">The timeout.</param>
+        /// <returns></returns>
+        public Task LockSchemaAsync(ObjectId objectId, SchemaLockType lockType, TimeSpan timeout)
 		{
-			_globalLockManager.LockSchema(_dbId, objectId, lockType, timeout);
+			return _globalLockManager.LockSchemaAsync(_dbId, objectId, lockType, timeout);
 		}
 
-		public void UnlockSchema(ObjectId objectId)
+        /// <summary>
+        /// Unlocks the schema.
+        /// </summary>
+        /// <param name="objectId">The object identifier.</param>
+        /// <returns></returns>
+        public Task UnlockSchemaAsync(ObjectId objectId)
 		{
-			_globalLockManager.UnlockSchema(_dbId, objectId);
+			return _globalLockManager.UnlockSchemaAsync(_dbId, objectId);
 		}
 
-		public SchemaLock GetSchemaLock(ObjectId objectId)
+        /// <summary>
+        /// Gets the schema lock.
+        /// </summary>
+        /// <param name="objectId">The object identifier.</param>
+        /// <returns></returns>
+        public SchemaLock GetSchemaLock(ObjectId objectId)
 		{
 			return _globalLockManager.GetSchemaLock(_dbId, objectId);
 		}
-		#endregion
+        #endregion
 
-		#region Index Lock/Unlock
-		public void LockRootIndex(ObjectId objectId, IndexId indexId, bool writable, TimeSpan timeout)
+        #region Index Lock/Unlock
+        /// <summary>
+        /// Locks the index of the root.
+        /// </summary>
+        /// <param name="objectId">The object identifier.</param>
+        /// <param name="indexId">The index identifier.</param>
+        /// <param name="writable">if set to <c>true</c> [writable].</param>
+        /// <param name="timeout">The timeout.</param>
+        public void LockRootIndex(ObjectId objectId, IndexId indexId, bool writable, TimeSpan timeout)
 		{
 			_globalLockManager.LockRootIndex(_dbId, objectId, indexId, writable, timeout);
 		}
 
-		public void UnlockRootIndex(ObjectId objectId, IndexId indexId, bool writable)
+        /// <summary>
+        /// Unlocks the index of the root.
+        /// </summary>
+        /// <param name="objectId">The object identifier.</param>
+        /// <param name="indexId">The index identifier.</param>
+        /// <param name="writable">if set to <c>true</c> [writable].</param>
+        public void UnlockRootIndex(ObjectId objectId, IndexId indexId, bool writable)
 		{
 			_globalLockManager.UnlockRootIndex(_dbId, objectId, indexId, writable);
 		}
 
-		public void LockInternalIndex(ObjectId objectId, IndexId indexId, LogicalPageId logicalId, bool writable, TimeSpan timeout)
+        /// <summary>
+        /// Locks the index of the internal.
+        /// </summary>
+        /// <param name="objectId">The object identifier.</param>
+        /// <param name="indexId">The index identifier.</param>
+        /// <param name="logicalId">The logical identifier.</param>
+        /// <param name="writable">if set to <c>true</c> [writable].</param>
+        /// <param name="timeout">The timeout.</param>
+        public void LockInternalIndex(ObjectId objectId, IndexId indexId, LogicalPageId logicalId, bool writable, TimeSpan timeout)
 		{
 			_globalLockManager.LockInternalIndex(_dbId, objectId, indexId, logicalId, writable, timeout);
 		}
 
-		public void UnlockInternalIndex(ObjectId objectId, IndexId indexId, LogicalPageId logicalId, bool writable)
+        /// <summary>
+        /// Unlocks the index of the internal.
+        /// </summary>
+        /// <param name="objectId">The object identifier.</param>
+        /// <param name="indexId">The index identifier.</param>
+        /// <param name="logicalId">The logical identifier.</param>
+        /// <param name="writable">if set to <c>true</c> [writable].</param>
+        public void UnlockInternalIndex(ObjectId objectId, IndexId indexId, LogicalPageId logicalId, bool writable)
 		{
 			_globalLockManager.UnlockInternalIndex(_dbId, objectId, indexId, logicalId, writable);
 		}
 
+        /// <summary>
+        /// Locks the index of the leaf.
+        /// </summary>
+        /// <param name="objectId">The object identifier.</param>
+        /// <param name="indexId">The index identifier.</param>
+        /// <param name="logicalId">The logical identifier.</param>
+        /// <param name="writable">if set to <c>true</c> [writable].</param>
+        /// <param name="timeout">The timeout.</param>
         public void LockLeafIndex(ObjectId objectId, IndexId indexId, LogicalPageId logicalId, bool writable, TimeSpan timeout)
         {
             _globalLockManager.LockLeafIndex(_dbId, objectId, indexId, logicalId, writable, timeout);
         }
 
+        /// <summary>
+        /// Unlocks the index of the leaf.
+        /// </summary>
+        /// <param name="objectId">The object identifier.</param>
+        /// <param name="indexId">The index identifier.</param>
+        /// <param name="logicalId">The logical identifier.</param>
+        /// <param name="writable">if set to <c>true</c> [writable].</param>
         public void UnlockLeafIndex(ObjectId objectId, IndexId indexId, LogicalPageId logicalId, bool writable)
         {
             _globalLockManager.UnlockLeafIndex(_dbId, objectId, indexId, logicalId, writable);
@@ -171,17 +323,37 @@ namespace Zen.Trunk.Storage.Locking
         #endregion
 
         #region Data Lock/Unlock
-        public void LockData(ObjectId objectId, LogicalPageId logicalId, DataLockType lockType, TimeSpan timeout)
+        /// <summary>
+        /// Locks the data.
+        /// </summary>
+        /// <param name="objectId">The object identifier.</param>
+        /// <param name="logicalId">The logical identifier.</param>
+        /// <param name="lockType">Type of the lock.</param>
+        /// <param name="timeout">The timeout.</param>
+        /// <returns></returns>
+        public Task LockDataAsync(ObjectId objectId, LogicalPageId logicalId, DataLockType lockType, TimeSpan timeout)
 		{
-			_globalLockManager.LockData(_dbId, objectId, logicalId, lockType, timeout);
+			return _globalLockManager.LockDataAsync(_dbId, objectId, logicalId, lockType, timeout);
 		}
 
-		public void UnlockData(ObjectId objectId, LogicalPageId logicalId)
+        /// <summary>
+        /// Unlocks the data.
+        /// </summary>
+        /// <param name="objectId">The object identifier.</param>
+        /// <param name="logicalId">The logical identifier.</param>
+        /// <returns></returns>
+        public Task UnlockDataAsync(ObjectId objectId, LogicalPageId logicalId)
 		{
-			_globalLockManager.UnlockData(_dbId, objectId, logicalId);
+			return _globalLockManager.UnlockDataAsync(_dbId, objectId, logicalId);
 		}
 
-		public DataLock GetDataLock(ObjectId objectId, LogicalPageId logicalId)
+        /// <summary>
+        /// Gets the data lock.
+        /// </summary>
+        /// <param name="objectId">The object identifier.</param>
+        /// <param name="logicalId">The logical identifier.</param>
+        /// <returns></returns>
+        public DataLock GetDataLock(ObjectId objectId, LogicalPageId logicalId)
 		{
 			return _globalLockManager.GetDataLock(_dbId, objectId, logicalId);
 		}

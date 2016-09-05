@@ -525,7 +525,7 @@ namespace Zen.Trunk.Storage.Data
                 Logger.Info("OnOpen : Opening secondary devices");
             }
             using (var rootPage = (PrimaryFileGroupRootPage)
-                await _primaryDevice.LoadOrCreateRootPage().ConfigureAwait(false))
+                await _primaryDevice.LoadOrCreateRootPageAsync().ConfigureAwait(false))
             {
                 var bufferDevice = ResolveDeviceService<IMultipleBufferDevice>();
                 if (IsCreate)
@@ -998,7 +998,7 @@ namespace Zen.Trunk.Storage.Data
             {
                 // Load the root page and obtain update lock before we start
                 var pageDevice = GetDistributionPageDevice(request.DeviceId);
-                rootPage = await pageDevice.LoadOrCreateRootPage().ConfigureAwait(false);
+                rootPage = await pageDevice.LoadOrCreateRootPageAsync().ConfigureAwait(false);
                 rootPage.RootLock = RootLockType.Shared;
 
                 await ExpandDevice(request.DeviceId, rootPage, request.PageCount).ConfigureAwait(false);
@@ -1017,7 +1017,7 @@ namespace Zen.Trunk.Storage.Data
                     var pageDevice =
                         GetDistributionPageDevice(deviceId);
                     rootPage = await pageDevice
-                        .LoadOrCreateRootPage()
+                        .LoadOrCreateRootPageAsync()
                         .ConfigureAwait(false);
                     if (rootPage.IsExpandable)
                     {
@@ -1093,7 +1093,7 @@ namespace Zen.Trunk.Storage.Data
                 try
                 {
                     // Attempt to allocate (may fail)
-                    return await pageDevice.AllocateDataPage(request.Message).ConfigureAwait(false);
+                    return await pageDevice.AllocateDataPageAsync(request.Message).ConfigureAwait(false);
                 }
                 catch
                 {
@@ -1113,7 +1113,7 @@ namespace Zen.Trunk.Storage.Data
 
             // Load primary file-group root page
             using (var rootPage = (PrimaryFileGroupRootPage)
-                await _primaryDevice.LoadOrCreateRootPage())
+                await _primaryDevice.LoadOrCreateRootPageAsync())
             {
                 // Obtain object id for this table
                 rootPage.RootLock = RootLockType.Exclusive;

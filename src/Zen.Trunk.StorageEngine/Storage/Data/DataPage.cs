@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Transactions;
 using Zen.Trunk.Logging;
 using Zen.Trunk.Storage.Locking;
@@ -241,9 +242,9 @@ namespace Zen.Trunk.Storage.Data
 		/// This mechanism ensures that all lock states have been set prior to
 		/// the first call to LockPage.
 		/// </remarks>
-		protected override void OnPreInit(EventArgs e)
+		protected override async Task OnPreInitAsync(EventArgs e)
 		{
-			base.OnPreInit(e);
+			await base.OnPreInitAsync(e).ConfigureAwait(false);
 
 			// Enable the locking system
 			IsLockingEnabled = true;
@@ -251,7 +252,7 @@ namespace Zen.Trunk.Storage.Data
 			// Attempt to acquire lock
 			// NOTE: For new pages we always hold the lock until commit
 			HoldLock = true;
-			LockPage();
+			await LockPageAsync().ConfigureAwait(false);
 		}
 
 		/// <summary>
@@ -263,18 +264,18 @@ namespace Zen.Trunk.Storage.Data
 		/// Overrides to this method must set their desired lock prior to 
 		/// calling the base class.
 		/// The base class method will enable the locking primitives and call
-		/// <see cref="LockPage"/> as necessary.
+		/// <see cref="LockPageAsync"/> as necessary.
 		/// This mechanism ensures that all lock states have been set prior to
 		/// the first call to LockPage.
-		/// When the current isolation level is uncommitted read then <see cref="LockPage"/>
+		/// When the current isolation level is uncommitted read then <see cref="LockPageAsync"/>
 		/// will not be called.
 		/// When the current isolation level is repeatable read or serializable
 		/// then the <see cref="HoldLock"/> will be set to <c>true</c> prior to
-		/// calling <see cref="LockPage"/>.
+		/// calling <see cref="LockPageAsync"/>.
 		/// </remarks>
-		protected override void OnPreLoad(EventArgs e)
+		protected override async Task OnPreLoadAsync(EventArgs e)
 		{
-			base.OnPreLoad(e);
+			await base.OnPreLoadAsync(e).ConfigureAwait(false);
 
 			// Enable the locking system
 			IsLockingEnabled = true;
@@ -287,13 +288,13 @@ namespace Zen.Trunk.Storage.Data
 						break;
 
 					case IsolationLevel.ReadCommitted:
-						LockPage();
+						await LockPageAsync().ConfigureAwait(false);
 						break;
 
 					case IsolationLevel.RepeatableRead:
 					case IsolationLevel.Serializable:
 						HoldLock = true;
-						LockPage();
+						await LockPageAsync().ConfigureAwait(false);
 						break;
 
 					default:
@@ -302,9 +303,9 @@ namespace Zen.Trunk.Storage.Data
 			}
 		}
 
-		protected override void OnPostLoad(EventArgs e)
+		protected override async Task OnPostLoadAsync(EventArgs e)
 		{
-			base.OnPostLoad(e);
+			await base.OnPostLoadAsync(e).ConfigureAwait(false);
 
 			if (TrunkTransactionContext.Current != null)
 			{
@@ -316,7 +317,7 @@ namespace Zen.Trunk.Storage.Data
 					case IsolationLevel.ReadCommitted:
 						if (!HoldLock)
 						{
-							UnlockPage();
+							await UnlockPageAsync().ConfigureAwait(false);
 						}
 						break;
 
@@ -380,7 +381,7 @@ namespace Zen.Trunk.Storage.Data
 		/// <summary>
 		/// Locks the page.
 		/// </summary>
-		protected virtual void LockPage()
+		protected virtual async Task LockPageAsync()
 		{
 			if (IsLockingEnabled)
 			{
@@ -388,7 +389,7 @@ namespace Zen.Trunk.Storage.Data
 				var lm = GetService<IDatabaseLockManager>();
 				if (lm != null)
 				{
-					OnLockPage(lm);
+					await OnLockPageAsync(lm).ConfigureAwait(false);
 				}
 			}
 		}
@@ -397,8 +398,9 @@ namespace Zen.Trunk.Storage.Data
 		/// Called to apply suitable locks to this page.
 		/// </summary>
 		/// <param name="lm">A reference to the <see cref="IDatabaseLockManager"/>.</param>
-		protected virtual void OnLockPage(IDatabaseLockManager lm)
+		protected virtual Task OnLockPageAsync(IDatabaseLockManager lm)
 		{
+		    return Task.FromResult(true);
 		}
 
 		/// <summary>
@@ -406,14 +408,15 @@ namespace Zen.Trunk.Storage.Data
 		/// <see cref="M:DatabasePage.OnLockPage"/>.
 		/// </summary>
 		/// <param name="lm">A reference to the <see cref="IDatabaseLockManager"/>.</param>
-		protected virtual void OnUnlockPage(IDatabaseLockManager lm)
+		protected virtual Task OnUnlockPageAsync(IDatabaseLockManager lm)
 		{
-		}
+            return Task.FromResult(true);
+        }
 
-		/// <summary>
-		/// Unlocks the page.
-		/// </summary>
-		protected virtual void UnlockPage()
+        /// <summary>
+        /// Unlocks the page.
+        /// </summary>
+        protected virtual async Task UnlockPageAsync()
 		{
 			if (IsLockingEnabled && !HoldLock)
 			{
@@ -421,7 +424,7 @@ namespace Zen.Trunk.Storage.Data
                 var lm = GetService<IDatabaseLockManager>();
                 if (lm != null)
 				{
-					OnUnlockPage(lm);
+					await OnUnlockPageAsync(lm).ConfigureAwait(false);
 				}
 			}
 		}

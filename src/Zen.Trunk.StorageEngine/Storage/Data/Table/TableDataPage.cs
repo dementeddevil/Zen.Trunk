@@ -582,17 +582,17 @@
 		#endregion
 
 		#region Protected Methods
-		protected override void OnInit(EventArgs e)
+		protected override Task OnInitAsync(EventArgs e)
 		{
 			PageType = PageType.Table;
-			base.OnInit(e);
+			return base.OnInitAsync(e);
 		}
-		protected override void OnPreLoad(EventArgs e)
+		protected override Task OnPreLoadAsync(EventArgs e)
 		{
 			_pageData = null;
 			_rowInfo = null;
 			_totalRowDataSize.Value = 0;
-			base.OnPreLoad(e);
+			return base.OnPreLoadAsync(e);
 		}
 
 		protected override void ReadData(BufferReaderWriter streamManager)
@@ -600,11 +600,11 @@
 			_pageData = streamManager.ReadBytes((int)DataSize);
 		}
 
-		protected override void OnPostLoad(EventArgs e)
+		protected override Task OnPostLoadAsync(EventArgs e)
 		{
 			// Setup page row information
 			ReadPageInfo();
-			base.OnPostLoad(e);
+			return base.OnPostLoadAsync(e);
 		}
 
 		protected override void OnPreSave(EventArgs e)

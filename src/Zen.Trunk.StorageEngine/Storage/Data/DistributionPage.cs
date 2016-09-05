@@ -29,8 +29,17 @@ namespace Zen.Trunk.Storage.Data
 	/// </remarks>
 	public class DistributionPage : DataPage
 	{
-		#region Internal Objects
-		internal class ExtentInfo : BufferFieldWrapper
+        #region Internal Objects
+        private class AllocExtentResult
+        {
+            public bool HasAcquiredLock { get; set; }
+
+            public uint Extent { get; set; }
+
+            public bool UseExtent { get; set; }
+        }
+
+        internal class ExtentInfo : BufferFieldWrapper
 		{
 			// 5 bytes
 			private readonly BufferFieldBitVector8 _status;
@@ -282,7 +291,7 @@ namespace Zen.Trunk.Storage.Data
 					try
 					{
 						_distributionLock = value;
-						LockPage();
+						LockPageAsync();
 					}
 					catch
 					{
@@ -330,7 +339,7 @@ namespace Zen.Trunk.Storage.Data
 		/// This method will lock and unlock extents whilst searching
 		/// using the default lock timeout for the page.
 		/// </remarks>
-		public VirtualPageId AllocatePage(AllocateDataPageParameters allocParams)
+		public async Task<VirtualPageId> AllocatePageAsync(AllocateDataPageParameters allocParams)
 		{
 			System.Diagnostics.Debug.WriteLine(
 			    $"Allocate page via DistributionPage {VirtualId}");
@@ -344,16 +353,14 @@ namespace Zen.Trunk.Storage.Data
             // Look for extent we can use;
 			//   Phase #1: Look for existing extent we can use for this object
 			//   Phase #2: Look for a free extent we can use for this object
-			bool hasAcquiredLock, useExtent = false;
-			uint extent;
-		    if (TryFindUsableExistingExtent(allocParams, out hasAcquiredLock, out extent) ||
-		        TryFindUsableFreeExtent(allocParams, out hasAcquiredLock, out extent))
+            var result = await TryFindUsableExistingExtentAsync(allocParams).ConfigureAwait(false);
+		    if (!result.UseExtent)
 		    {
-		        useExtent = true;
+		        result = await TryFindUsableFreeExtentAsync().ConfigureAwait(false);
 		    }
 
 			// If we don't have a suitable extent
-		    if (!useExtent)
+		    if (!result.UseExtent)
 		    {
 		        return new VirtualPageId(0);
 		    }
@@ -371,11 +378,11 @@ namespace Zen.Trunk.Storage.Data
 		        // Escalate the extent lock if necessary
 		        if (DistributionLock != ObjectLockType.Exclusive)
 		        {
-		            var extentLock = LockManager.GetExtentLock(VirtualId, extent);
-		            if (!extentLock.HasLock(DataLockType.Exclusive))
+		            var extentLock = LockManager.GetExtentLock(VirtualId, result.Extent);
+		            if (!await extentLock.HasLockAsync(DataLockType.Exclusive).ConfigureAwait(false))
 		            {
-		                LockExtent(extent, DataLockType.Update);
-		                LockExtent(extent, DataLockType.Exclusive);
+		                await LockExtentAsync(result.Extent, DataLockType.Update).ConfigureAwait(false);
+		                await LockExtentAsync(result.Extent, DataLockType.Exclusive).ConfigureAwait(false);
 		            }
 		        }
 		    }
@@ -383,9 +390,9 @@ namespace Zen.Trunk.Storage.Data
 		    {
 		        // If we acquired the lock in this method then release
 		        //	before throwing...
-		        if (hasAcquiredLock)
+		        if (result.HasAcquiredLock)
 		        {
-		            UnlockExtent(extent);
+		            await UnlockExtentAsync(result.Extent).ConfigureAwait(false);
 		        }
 		        throw;
 		    }
@@ -393,7 +400,7 @@ namespace Zen.Trunk.Storage.Data
 		    // Check extent is still available and usable
 		    // NOTE: We do not need to reload since we've had (at a minimum)
 		    //	a shared read lock since identifying the extent...
-		    var info = _extents[extent];
+		    var info = _extents[result.Extent];
 		    if (info.IsFull || !info.IsUsable)
 		    {
                 return new VirtualPageId(0);
@@ -402,10 +409,10 @@ namespace Zen.Trunk.Storage.Data
             // Setup the extent info
             if (info.IsFree)
 		    {
-		        _extents[extent].IsMixedExtent = allocParams.MixedExtent;
+		        _extents[result.Extent].IsMixedExtent = allocParams.MixedExtent;
 		        if (!allocParams.MixedExtent)
 		        {
-		            _extents[extent].ObjectId = allocParams.ObjectId;
+		            _extents[result.Extent].ObjectId = allocParams.ObjectId;
 		        }
 		    }
 
@@ -421,7 +428,7 @@ namespace Zen.Trunk.Storage.Data
 		            info.Pages[index].ObjectType = allocParams.ObjectType;
 
 		            // Determine the virtual id for this page
-		            var pageIndex = (extent * PagesPerExtent) + index;
+		            var pageIndex = (result.Extent * PagesPerExtent) + index;
 		            virtPageId = VirtualId.Offset((int)(pageIndex + 1));
 		            break;
 		        }
@@ -448,7 +455,7 @@ namespace Zen.Trunk.Storage.Data
 		    return virtPageId;
 		}
 
-        public void FreePage(uint offset, TimeSpan timeout)
+        public async Task FreePageAsync(uint offset, TimeSpan timeout)
 		{
 			// Sanity checks
 			if (offset >= PageTrackingCount)
@@ -473,8 +480,8 @@ namespace Zen.Trunk.Storage.Data
 				if (!_lockedExtents.Contains(extent))
 				{
 					System.Diagnostics.Debug.Assert(extent < ExtentTrackingCount);
-					LockExtent(extent, DataLockType.Update);
-					LockExtent(extent, DataLockType.Exclusive);
+					await LockExtentAsync(extent, DataLockType.Update).ConfigureAwait(false);
+					await LockExtentAsync(extent, DataLockType.Exclusive).ConfigureAwait(false);
 				}
 
 				// Update page information
@@ -667,14 +674,19 @@ namespace Zen.Trunk.Storage.Data
 		/// This mechanism ensures that all lock states have been set prior to
 		/// the first call to LockPage.
 		/// </remarks>
-		protected override void OnPreInit(EventArgs e)
+		protected override Task OnPreInitAsync(EventArgs e)
 		{
 			// We need an exclusive lock
 			DistributionLock = ObjectLockType.Exclusive;
-			base.OnPreInit(e);
+			return base.OnPreInitAsync(e);
 		}
 
-		protected override void OnInit(EventArgs e)
+        /// <summary>
+        /// Raises the <see cref="E:Init" /> event.
+        /// </summary>
+        /// <param name="e">The <see cref="System.EventArgs" /> instance containing the event data.</param>
+        /// <returns></returns>
+        protected override Task OnInitAsync(EventArgs e)
 		{
 			// Reset allocation maps
 			for (var index = 0; index < ExtentTrackingCount; ++index)
@@ -688,34 +700,34 @@ namespace Zen.Trunk.Storage.Data
 					page.LogicalId = LogicalPageId.Zero;
 				}
 			}
-			base.OnInit(e);
+			return base.OnInitAsync(e);
 		}
 
-		protected override void OnPreLoad(EventArgs e)
+		protected override Task OnPreLoadAsync(EventArgs e)
 		{
 			// We need a shared read lock if nothing specified
 			if (DistributionLock == ObjectLockType.None)
 			{
 				DistributionLock = ObjectLockType.Shared;
 			}
-			base.OnPreLoad(e);
+			return base.OnPreLoadAsync(e);
 		}
 
 		/// <summary>
 		/// Called to apply suitable locks to this page.
 		/// </summary>
 		/// <param name="lm">A reference to the <see cref="IDatabaseLockManager"/>.</param>
-		protected override void OnLockPage(IDatabaseLockManager lm)
+		protected override async Task OnLockPageAsync(IDatabaseLockManager lm)
 		{
-			base.OnLockPage(lm);
+			await base.OnLockPageAsync(lm).ConfigureAwait(false);
 			try
 			{
 				// Lock owner via lock owner block
-				LockBlock.LockOwner(DistributionLock, LockTimeout);
+				await LockBlock.LockOwnerAsync(DistributionLock, LockTimeout).ConfigureAwait(false);
 			}
 			catch
 			{
-				base.OnUnlockPage(lm);
+				await base.OnUnlockPageAsync(lm).ConfigureAwait(false);
 				throw;
 			}
 		}
@@ -725,7 +737,7 @@ namespace Zen.Trunk.Storage.Data
 		/// call to <see cref="M:DatabasePage.OnLockPage"/>.
 		/// </summary>
 		/// <param name="lm">A reference to the <see cref="IDatabaseLockManager"/>.</param>
-		protected override void OnUnlockPage(IDatabaseLockManager lm)
+		protected override async Task OnUnlockPageAsync(IDatabaseLockManager lm)
 		{
 			try
 			{
@@ -734,7 +746,7 @@ namespace Zen.Trunk.Storage.Data
 					// Release all distribution page locks
 					foreach (var extent in _lockedExtents)
 					{
-						lm.UnlockDistributionExtent(VirtualId, extent);
+						await lm.UnlockDistributionExtentAsync(VirtualId, extent).ConfigureAwait(false);
 					}
 					_lockedExtents.Clear();
 					_lockedExtents = null;
@@ -744,29 +756,28 @@ namespace Zen.Trunk.Storage.Data
 				var lob = LockBlock;
 				if (lob != null)
 				{
-					LockBlock.UnlockOwner();
+					await LockBlock.UnlockOwnerAsync().ConfigureAwait(false);
 				}
 			}
 			finally
 			{
-				base.OnUnlockPage(lm);
+				await base.OnUnlockPageAsync(lm).ConfigureAwait(false);
 			}
 		}
         #endregion
 
         #region Private Methods
-        private bool TryFindUsableExistingExtent(AllocateDataPageParameters allocParams, out bool hasAcquiredLock, out uint extent)
+        private async Task<AllocExtentResult> TryFindUsableExistingExtentAsync(AllocateDataPageParameters allocParams)
         {
-            hasAcquiredLock = false;
-            extent = 0;
-
-            var useExtent = false;
-            for (uint index = 0; !useExtent && index < ExtentTrackingCount; ++index)
+            var result = new AllocExtentResult();
+            for (uint index = 0; !result.UseExtent && index < ExtentTrackingCount; ++index)
             {
                 try
                 {
                     // Get the extent information
-                    var info = GetLatestExtentInfoWithLock(LockManager, index, out hasAcquiredLock);
+                    var lockInfo = await GetLatestExtentInfoWithLockAsync(index).ConfigureAwait(false);
+                    var info = lockInfo.Item1;
+                    result.HasAcquiredLock = lockInfo.Item2;
 
                     // If this extent is unusable then stop as we have reached
                     //	the end of the device...
@@ -785,8 +796,8 @@ namespace Zen.Trunk.Storage.Data
                     if ((allocParams.MixedExtent && info.IsMixedExtent) ||
                         (!allocParams.MixedExtent && !info.IsMixedExtent && info.ObjectId == allocParams.ObjectId))
                     {
-                        extent = index;
-                        useExtent = true;
+                        result.Extent = index;
+                        result.UseExtent = true;
                     }
                 }
                 catch (LockException)
@@ -796,28 +807,27 @@ namespace Zen.Trunk.Storage.Data
                 {
                     // If we are not using this extent and we have a lock then
                     //	release the extent lock now.
-                    if (!useExtent && hasAcquiredLock)
+                    if (!result.UseExtent && result.HasAcquiredLock)
                     {
-                        UnlockExtent(index);
+                        await UnlockExtentAsync(index).ConfigureAwait(false);
                     }
                 }
             }
 
-            return useExtent;
+            return result;
         }
 
-        private bool TryFindUsableFreeExtent(AllocateDataPageParameters allocParams, out bool hasAcquiredLock, out uint extent)
+        private async Task<AllocExtentResult> TryFindUsableFreeExtentAsync()
         {
-            hasAcquiredLock = false;
-            extent = 0;
-
-            var useExtent = false;
-            for (uint index = 0; !useExtent && index < ExtentTrackingCount; ++index)
+            var result = new AllocExtentResult();
+            for (uint index = 0; !result.UseExtent && index < ExtentTrackingCount; ++index)
             {
                 try
                 {
                     // Get the extent information
-                    var info = GetLatestExtentInfoWithLock(LockManager, index, out hasAcquiredLock);
+                    var lockInfo = await GetLatestExtentInfoWithLockAsync(index).ConfigureAwait(false);
+                    var info = lockInfo.Item1;
+                    result.HasAcquiredLock = lockInfo.Item2;
 
                     // If this extent is unusable then stop as we have reached
                     //	the end of the device...
@@ -829,8 +839,8 @@ namespace Zen.Trunk.Storage.Data
                     // If extent is free then we will use it
                     if (info.IsFree)
                     {
-                        extent = index;
-                        useExtent = true;
+                        result.Extent = index;
+                        result.UseExtent = true;
                     }
                 }
                 catch (LockException)
@@ -840,19 +850,18 @@ namespace Zen.Trunk.Storage.Data
                 {
                     // If we are not using this extent and we have a lock then
                     //	release the extent lock now.
-                    if (!useExtent && hasAcquiredLock)
+                    if (!result.UseExtent && result.HasAcquiredLock)
                     {
-                        UnlockExtent(index);
+                        await UnlockExtentAsync(index).ConfigureAwait(false);
                     }
                 }
             }
-            return useExtent;
+            return result;
         }
 
-        private ExtentInfo GetLatestExtentInfoWithLock(
-			IDatabaseLockManager lm, uint extentIndex, out bool hasAcquiredLock)
+        private async Task<Tuple<ExtentInfo, bool>> GetLatestExtentInfoWithLockAsync(uint extentIndex)
 		{
-			hasAcquiredLock = false;
+			var hasAcquiredLock = false;
 
             // Check whether we already have this extent locked
             //	in case we are allocating more than once in the same txn
@@ -864,14 +873,14 @@ namespace Zen.Trunk.Storage.Data
 			if (!alreadyHasLock)
 			{
 				// NOTE: We only need to check for exclusive lock
-				var extentLock = lm.GetExtentLock(VirtualId, extentIndex);
-				alreadyHasLock = extentLock.HasLock(DataLockType.Exclusive);
+				var extentLock = LockManager.GetExtentLock(VirtualId, extentIndex);
+				alreadyHasLock = await extentLock.HasLockAsync(DataLockType.Exclusive).ConfigureAwait(false);
 			}
 
 			// Gain extent lock
 			if (!alreadyHasLock)
 			{
-				LockExtent(extentIndex, DataLockType.Shared);
+				await LockExtentAsync(extentIndex, DataLockType.Shared).ConfigureAwait(false);
 				hasAcquiredLock = true;
 			}
 
@@ -886,7 +895,7 @@ namespace Zen.Trunk.Storage.Data
 			{
 				info.ReadFrom(DataBuffer, HeaderSize, extentIndex);
 			}
-			return info;
+			return new Tuple<ExtentInfo, bool>(info, hasAcquiredLock);
 		}
 
 		private void CheckPageId(uint pageId)
@@ -900,9 +909,9 @@ namespace Zen.Trunk.Storage.Data
 			}
 		}
 
-		private void LockExtent(uint extentIndex, DataLockType lockType)
+		private async Task LockExtentAsync(uint extentIndex, DataLockType lockType)
 		{
-			LockBlock.LockItem(extentIndex, lockType, LockTimeout);
+			await LockBlock.LockItemAsync(extentIndex, lockType, LockTimeout).ConfigureAwait(false);
 			if (_lockedExtents == null)
 			{
 				_lockedExtents = new List<uint>();
@@ -913,11 +922,11 @@ namespace Zen.Trunk.Storage.Data
 			}
 		}
 
-		private void UnlockExtent(uint extentIndex)
+		private async Task UnlockExtentAsync(uint extentIndex)
 		{
 			try
 			{
-				LockBlock.UnlockItem(extentIndex);
+				await LockBlock.UnlockItemAsync(extentIndex).ConfigureAwait(false);
 			}
 			finally
 			{

@@ -197,9 +197,9 @@ namespace Zen.Trunk.Storage.Data
 			return request.Task;
 		}
 
-		public Task<LogicalPageId> AddLookupAsync(VirtualPageId pageId, LogicalPageId logicalId)
+		public Task<LogicalPageId> AddLookupAsync(VirtualPageId virtualPageId, LogicalPageId logicalPageId)
 		{
-			var request = new AddLookupRequest(pageId, logicalId);
+			var request = new AddLookupRequest(virtualPageId, logicalPageId);
 			if (!_addLookupPort.Post(request))
 			{
 				throw new BufferDeviceShuttingDownException();
@@ -207,9 +207,9 @@ namespace Zen.Trunk.Storage.Data
 			return request.Task;
 		}
 
-		public Task<LogicalPageId> GetLogicalAsync(VirtualPageId pageId)
+		public Task<LogicalPageId> GetLogicalAsync(VirtualPageId virtualPageId)
 		{
-			var request = new GetLogicalRequest(pageId);
+			var request = new GetLogicalRequest(virtualPageId);
 			if (!_getLogicalPort.Post(request))
 			{
 				throw new BufferDeviceShuttingDownException();
@@ -217,9 +217,9 @@ namespace Zen.Trunk.Storage.Data
 			return request.Task;
 		}
 
-		public Task<VirtualPageId> GetVirtualAsync(LogicalPageId logicalId)
+		public Task<VirtualPageId> GetVirtualAsync(LogicalPageId logicalPageId)
 		{
-			var request = new GetVirtualRequest(logicalId);
+			var request = new GetVirtualRequest(logicalPageId);
 			if (!_getVirtualPort.Post(request))
 			{
 				throw new BufferDeviceShuttingDownException();

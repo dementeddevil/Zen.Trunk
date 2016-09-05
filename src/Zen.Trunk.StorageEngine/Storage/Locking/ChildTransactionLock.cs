@@ -2,13 +2,20 @@ namespace Zen.Trunk.Storage.Locking
 {
 	using System;
 
-	public abstract class ChildTransactionLock<LockTypeEnum, ParentLockType> :
-		TransactionLock<LockTypeEnum>
-		where LockTypeEnum : struct, IComparable, IConvertible, IFormattable // enum
-		where ParentLockType : class, IReferenceLock
+    /// <summary>
+    /// <c>ChildTransactionLock</c> encapsulates the semantics necessary
+    /// for a lock object that has a parent lock.
+    /// </summary>
+    /// <typeparam name="TLockTypeEnum">The type of the ock type enum.</typeparam>
+    /// <typeparam name="TParentLockType">The type of the arent lock type.</typeparam>
+    /// <seealso cref="Zen.Trunk.Storage.Locking.TransactionLock{LockTypeEnum}" />
+    public abstract class ChildTransactionLock<TLockTypeEnum, TParentLockType> :
+		TransactionLock<TLockTypeEnum>
+		where TLockTypeEnum : struct, IComparable, IConvertible, IFormattable // enum
+		where TParentLockType : class, IReferenceLock
 	{
 		#region Private Fields
-		private ParentLockType _parentLock;
+		private TParentLockType _parentLock;
 		#endregion
 
 		#region Protected Constructors
@@ -27,7 +34,7 @@ namespace Zen.Trunk.Storage.Locking
 		/// Gets or sets the parent lock.
 		/// </summary>
 		/// <value>The parent.</value>
-		public ParentLockType Parent
+		public TParentLockType Parent
 		{
 			get
 			{
@@ -37,22 +44,19 @@ namespace Zen.Trunk.Storage.Locking
 			{
 				if (_parentLock != value)
 				{
-					if (_parentLock != null)
-					{
-						_parentLock.ReleaseLock();
-					}
-					_parentLock = value;
-					if (_parentLock != null)
-					{
-						_parentLock.AddRefLock();
-					}
+				    _parentLock?.ReleaseLock();
+				    _parentLock = value;
+				    _parentLock?.AddRefLock();
 				}
 			}
 		}
-		#endregion
+        #endregion
 
-		#region Protected Methods
-		protected override void OnFinalRelease()
+        #region Protected Methods
+        /// <summary>
+        /// Called when last reference to the lock is released.
+        /// </summary>
+        protected override void OnFinalRelease()
 		{
 			Parent = null;
 			base.OnFinalRelease();

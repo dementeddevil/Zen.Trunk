@@ -121,7 +121,7 @@ namespace Zen.Trunk.Storage
 
             // Act
             await pb.SetDirtyAsync().ConfigureAwait(true);
-            await TrunkTransactionContext.Commit().ConfigureAwait(true);
+            await TrunkTransactionContext.CommitAsync().ConfigureAwait(true);
             await Sut
                 .FlushPagesAsync(
                     new FlushCachingDeviceParameters(false, true, DeviceId.Zero))

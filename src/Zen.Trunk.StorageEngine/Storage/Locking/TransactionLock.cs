@@ -14,8 +14,13 @@ namespace Zen.Trunk.Storage.Locking
 		TransactionLockBase, IReferenceLock
 		where TLockTypeEnum : struct, IComparable, IConvertible, IFormattable // enum
 	{
-		#region Lock Messages
-		protected class LockRequestBase : TaskCompletionSource<bool>
+        #region Lock Messages
+        /// <summary>
+        /// <c>LockRequestBase</c> defines the base class for all lock request messages.
+        /// </summary>
+        /// <seealso cref="Zen.Trunk.Storage.Locking.TransactionLockBase" />
+        /// <seealso cref="Zen.Trunk.Storage.Locking.IReferenceLock" />
+        protected class LockRequestBase : TaskCompletionSource<bool>
 		{
 			#region Internal Constructors
 			internal LockRequestBase(TLockTypeEnum lockType, TransactionId transactionId)
@@ -25,13 +30,18 @@ namespace Zen.Trunk.Storage.Locking
 			}
 			#endregion
 
-			#region Public Properties
+			#region Internal Properties
 			internal TLockTypeEnum Lock { get; set; }
 
 			internal TransactionId TransactionId { get; }
 			#endregion
 		}
 
+        /// <summary>
+        /// <c>AcquireLock</c> is a message sent when acquiring a lock.
+        /// </summary>
+        /// <seealso cref="Zen.Trunk.Storage.Locking.TransactionLockBase" />
+        /// <seealso cref="Zen.Trunk.Storage.Locking.IReferenceLock" />
         protected class AcquireLock : LockRequestBase
 		{
 			#region Internal Constructors
@@ -42,6 +52,11 @@ namespace Zen.Trunk.Storage.Locking
 			#endregion
 		}
 
+        /// <summary>
+        /// <c>ReleaseLock</c> is a message sent when releasing a lock.
+        /// </summary>
+        /// <seealso cref="Zen.Trunk.Storage.Locking.TransactionLockBase" />
+        /// <seealso cref="Zen.Trunk.Storage.Locking.IReferenceLock" />
         protected class ReleaseLock : LockRequestBase
 		{
 			#region Internal Constructors
@@ -52,6 +67,11 @@ namespace Zen.Trunk.Storage.Locking
 			#endregion
 		}
 
+        /// <summary>
+        /// <c>QueryLock</c> is a message sent when querying lock state.
+        /// </summary>
+        /// <seealso cref="Zen.Trunk.Storage.Locking.TransactionLockBase" />
+        /// <seealso cref="Zen.Trunk.Storage.Locking.IReferenceLock" />
         protected class QueryLock : LockRequestBase
 		{
 			#region Internal Constructors
@@ -61,10 +81,15 @@ namespace Zen.Trunk.Storage.Locking
 			}
 			#endregion
 		}
-		#endregion
-		
-		#region Lock State
-		protected abstract class State
+        #endregion
+
+        #region Lock State
+        /// <summary>
+        /// <c>State</c> defines the base lock object state.
+        /// </summary>
+        /// <seealso cref="Zen.Trunk.Storage.Locking.TransactionLockBase" />
+        /// <seealso cref="Zen.Trunk.Storage.Locking.IReferenceLock" />
+        protected abstract class State
 		{
 			/// <summary>
 			/// Gets the lock type that this state represents.
@@ -187,8 +212,7 @@ namespace Zen.Trunk.Storage.Locking
 		private ActionBlock<AcquireLock> _acquireLockAction;
 		private ActionBlock<ReleaseLock> _releaseLockAction;
 		private ActionBlock<QueryLock> _queryLockAction;
-		private string _id;
-		private int _referenceCount = 0;
+	    private int _referenceCount;
 		private bool _initialised;
 		private readonly Dictionary<TransactionId, AcquireLock> _activeRequests = new Dictionary<TransactionId, AcquireLock>();
 		private AcquireLock _pendingExclusiveRequest;
@@ -216,28 +240,15 @@ namespace Zen.Trunk.Storage.Locking
 		/// <summary>
 		/// Gets/sets the lock Id.
 		/// </summary>
-		public string Id
-		{
-			get
-			{
-				return _id;
-			}
-			set
-			{
-				_id = value;
-			}
-		}
-		#endregion
+		public string Id { get; set; }
+        #endregion
 
 		#region Protected Properties
 		/// <summary>
 		/// Gets enumeration value for the lock representing the "none" lock.
 		/// </summary>
 		/// <value>The type of the none lock.</value>
-		protected abstract TLockTypeEnum NoneLockType
-		{
-			get;
-		}
+		protected abstract TLockTypeEnum NoneLockType { get; }
 		#endregion
 
 		#region Public Methods
@@ -340,13 +351,13 @@ namespace Zen.Trunk.Storage.Locking
 		/// This method will throw if the current thread does not have a
 		/// transaction context.
 		/// </remarks>
-		public bool HasLock(TLockTypeEnum lockType)
+		public Task<bool> HasLockAsync(TLockTypeEnum lockType)
 		{
 			// Retrieve connection id and create request object.
 			// Will throw if no connection information is available for the
 			//  calling thread.
 			var transactionId = GetThreadTransactionId(true);
-			return HasLock(transactionId, lockType);
+			return HasLockAsync(transactionId, lockType);
 		}
 
 		/// <summary>
@@ -364,21 +375,21 @@ namespace Zen.Trunk.Storage.Locking
 		/// specified timeout period.
 		/// </para>
 		/// </remarks>
-		public void Lock(TLockTypeEnum lockType, TimeSpan timeout)
+		public Task LockAsync(TLockTypeEnum lockType, TimeSpan timeout)
 		{
 			// Retrieve connection id and create request object.
 			// Will throw if no connection information is available for the
 			//  calling thread.
 			var transactionId = GetThreadTransactionId(true);
-			Lock(transactionId, lockType, timeout);
+			return LockAsync(transactionId, lockType, timeout);
 		}
 
 		/// <summary>
 		/// Releases the lock by downgrading to the none lock state
 		/// </summary>
-		public void Unlock()
+		public Task UnlockAsync()
 		{
-			Unlock(NoneLockType);
+			return UnlockAsync(NoneLockType);
 		}
 
 		/// <summary>
@@ -391,47 +402,38 @@ namespace Zen.Trunk.Storage.Locking
 		/// The lock timeout period is fixed at 10 seconds so get it
 		/// right!
 		/// </remarks>
-		public void Unlock(TLockTypeEnum newLockType)
+		public Task UnlockAsync(TLockTypeEnum newLockType)
 		{
 			// Retrieve connection id and create request object.
 			// Will throw if no connection information is available for the
 			//  calling thread.
 			var transactionId = GetThreadTransactionId(true);
-			Unlock(transactionId, newLockType);
+			return UnlockAsync(transactionId, newLockType);
 		}
 		#endregion
 
 		#region Internal Methods
-		internal void Lock(TransactionId transactionId, TLockTypeEnum lockType, TimeSpan timeout)
+		internal async Task LockAsync(TransactionId transactionId, TLockTypeEnum lockType, TimeSpan timeout)
 		{
 			// Post lock acquisition message
 			var request = new AcquireLock(lockType, transactionId);
 			_acquireLockAction.Post(request);
-			if (!request.Task.Wait(timeout))
-			{
-				request.TrySetResult(false);
-				throw new TimeoutException("Acquire lock timeout.");
-			}
-			if (request.Task.IsFaulted)
-			{
-				// Rethrow exception here
-				throw request.Task.Exception;
-			}
+
+            // Wait for task to complete
+		    await request.Task.WithTimeout(timeout).ConfigureAwait(false);
 
 			// Increment reference count on lock
 			AddRefLock();
 		}
 
-		internal void Unlock(TransactionId transactionId, TLockTypeEnum newLockType)
+		internal async Task UnlockAsync(TransactionId transactionId, TLockTypeEnum newLockType)
 		{
 			// Post lock acquisition message
 			var request = new ReleaseLock(newLockType, transactionId);
 			_releaseLockAction.Post(request);
-			request.Task.Wait();
-			if (request.Task.IsFaulted)
-			{
-				throw request.Task.Exception;
-			}
+
+            // Wait for task to complete
+            await request.Task.ConfigureAwait(false);
 
 			// Release reference count on lock
 			ReleaseRefLock();
@@ -442,17 +444,25 @@ namespace Zen.Trunk.Storage.Locking
 #if TRACE
 		protected override string GetTracePrefix()
 		{
-			return $"{base.GetTracePrefix()} ID: {_id} Rc: {_referenceCount} Txn:{GetThreadTransactionId(false)}";
+			return $"{base.GetTracePrefix()} ID: {Id} Rc: {_referenceCount} Txn:{GetThreadTransactionId(false)}";
 		}
 #endif
 
-		protected internal bool HasLock(TransactionId transactionId, TLockTypeEnum lockType)
+        /// <summary>
+        /// Determines whether the transaction associated with the specified
+        /// transaction identifier has given lock.
+        /// </summary>
+        /// <param name="transactionId">The transaction identifier.</param>
+        /// <param name="lockType">Type of the lock.</param>
+        /// <returns>
+        ///   <c>true</c> if the specified transaction identifier has lock; otherwise, <c>false</c>.
+        /// </returns>
+        protected internal Task<bool> HasLockAsync(TransactionId transactionId, TLockTypeEnum lockType)
 		{
 			// Post lock acquisition message
 			var request = new QueryLock(lockType, transactionId);
 			_queryLockAction.Post(request);
-			request.Task.Wait();
-			return request.Task.Result;
+            return request.Task;
 		}
 
 		/// <summary>

@@ -1,3 +1,5 @@
+using System.Threading.Tasks;
+
 namespace Zen.Trunk.Storage.Data
 {
 	using System;
@@ -80,7 +82,7 @@ namespace Zen.Trunk.Storage.Data
 					try
 					{
 						_objectLock = value;
-						LockPage();
+						LockPageAsync();
 					}
 					catch
 					{
@@ -124,18 +126,18 @@ namespace Zen.Trunk.Storage.Data
 		/// Overridden. Called to apply suitable locks to this page.
 		/// </summary>
 		/// <param name="lm">A reference to the <see cref="IDatabaseLockManager"/>.</param>
-		protected override void OnLockPage(IDatabaseLockManager lm)
+		protected override async Task OnLockPageAsync(IDatabaseLockManager lm)
 		{
 			// Perform base class locking first
-			base.OnLockPage(lm);
+			await base.OnLockPageAsync(lm).ConfigureAwait(false);
 			try
 			{
 				// Lock owner via lock owner block
-				LockBlock.LockOwner(ObjectLock, LockTimeout);
+				await LockBlock.LockOwnerAsync(ObjectLock, LockTimeout).ConfigureAwait(false);
 			}
 			catch
 			{
-				base.OnUnlockPage(lm);
+				await base.OnUnlockPageAsync(lm).ConfigureAwait(false);
 				throw;
 			}
 		}
@@ -145,7 +147,7 @@ namespace Zen.Trunk.Storage.Data
 		/// prior call to <see cref="M:DatabasePage.OnLockPage"/>.
 		/// </summary>
 		/// <param name="lm">A reference to the <see cref="IDatabaseLockManager"/>.</param>
-		protected override void OnUnlockPage(IDatabaseLockManager lm)
+		protected override async Task OnUnlockPageAsync(IDatabaseLockManager lm)
 		{
 			try
 			{
@@ -153,13 +155,13 @@ namespace Zen.Trunk.Storage.Data
 				var lob = LockBlock;
 				if (lob != null)
 				{
-					LockBlock.UnlockOwner();
+					await LockBlock.UnlockOwnerAsync().ConfigureAwait(false);
 				}
 			}
 			finally
 			{
 				// Perform base class unlock last
-				base.OnUnlockPage(lm);
+				await base.OnUnlockPageAsync(lm).ConfigureAwait(false);
 			}
 		}
 
@@ -175,14 +177,14 @@ namespace Zen.Trunk.Storage.Data
 		/// This mechanism ensures that all lock states have been set prior to
 		/// the first call to LockPage.
 		/// </remarks>
-		protected override void OnPreInit(EventArgs e)
+		protected override Task OnPreInitAsync(EventArgs e)
 		{
 			// If no lock is specified then try to obtain intent-exclusive lock.
 			if (ObjectLock == ObjectLockType.None)
 			{
 				ObjectLock = ObjectLockType.IntentExclusive;
 			}
-			base.OnPreInit(e);
+			return base.OnPreInitAsync(e);
 		}
 
 		/// <summary>
@@ -198,14 +200,14 @@ namespace Zen.Trunk.Storage.Data
 		/// This mechanism ensures that all lock states have been set prior to
 		/// the first call to LockPage.
 		/// </remarks>
-		protected override void OnPreLoad(EventArgs e)
+		protected override Task OnPreLoadAsync(EventArgs e)
 		{
 			// If no lock is specified then try to obtain intent-shared lock.
 			if (ObjectLock == ObjectLockType.None)
 			{
 				ObjectLock = ObjectLockType.IntentShared;
 			}
-			base.OnPreLoad(e);
+			return base.OnPreLoadAsync(e);
 		}
 		#endregion
 	}

@@ -147,6 +147,7 @@
     <Compile Include="Storage\ObjectId.cs" />
     <Compile Include="Storage\ObjectType.cs" />
     <Compile Include="Storage\PageDevice.cs" />
+    <Compile Include="Storage\ProcessId.cs" />
     <Compile Include="Storage\Range.cs" />
     <Compile Include="Storage\StatefulBufferScope.cs" />
     <Compile Include="Storage\StorageEngineConfiguration.cs" />

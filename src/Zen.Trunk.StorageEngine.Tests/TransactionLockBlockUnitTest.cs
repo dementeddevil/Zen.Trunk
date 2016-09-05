@@ -40,14 +40,14 @@ Then the attempt to gain an exclusive lock fails.")]
             using (var disp = TrunkTransactionContext.SwitchTransactionContext(firstTransaction))
             {
                 var dlob = firstTransactionLOB.GetOrCreateDataLockOwnerBlock(new ObjectId(1), 5);
-                dlob.LockItem(new LogicalPageId(1), DataLockType.Shared, TimeSpan.FromSeconds(5));
+                dlob.LockItemAsync(new LogicalPageId(1), DataLockType.Shared, TimeSpan.FromSeconds(5));
             }
 
             // Lock for shared read on txn 2
             using (var disp = TrunkTransactionContext.SwitchTransactionContext(secondTransaction))
             {
                 var dlob = secondTransactionLOB.GetOrCreateDataLockOwnerBlock(new ObjectId(1), 5);
-                dlob.LockItem(new LogicalPageId(1), DataLockType.Shared, TimeSpan.FromSeconds(5));
+                dlob.LockItemAsync(new LogicalPageId(1), DataLockType.Shared, TimeSpan.FromSeconds(5));
             }
 
             Assert.Throws<TimeoutException>(
@@ -57,8 +57,8 @@ Then the attempt to gain an exclusive lock fails.")]
                     using (var disp = TrunkTransactionContext.SwitchTransactionContext(secondTransaction))
                     {
                         var dlob = secondTransactionLOB.GetOrCreateDataLockOwnerBlock(new ObjectId(1), 5);
-                        dlob.LockItem(new LogicalPageId(1), DataLockType.Update, TimeSpan.FromSeconds(5));
-                        dlob.LockItem(new LogicalPageId(1), DataLockType.Exclusive, TimeSpan.FromSeconds(5));
+                        dlob.LockItemAsync(new LogicalPageId(1), DataLockType.Update, TimeSpan.FromSeconds(5));
+                        dlob.LockItemAsync(new LogicalPageId(1), DataLockType.Exclusive, TimeSpan.FromSeconds(5));
                     }
                 });
         }
@@ -89,20 +89,20 @@ Then the attempt to gain an exclusive lock fails.")]
                 var dlob = firstTransactionLOB.GetOrCreateDataLockOwnerBlock(new ObjectId(1), 5);
                 for (ulong logicalId = 0; logicalId < 5; ++logicalId)
                 {
-                    dlob.LockItem(new LogicalPageId(logicalId), DataLockType.Shared, TimeSpan.FromSeconds(5));
-                    Assert.True(dlob.HasItemLock(new LogicalPageId(logicalId), DataLockType.Shared), string.Format("First transaction should have shared lock on logical page {0}", logicalId));
+                    dlob.LockItemAsync(new LogicalPageId(logicalId), DataLockType.Shared, TimeSpan.FromSeconds(5));
+                    Assert.True(dlob.HasItemLockAsync(new LogicalPageId(logicalId), DataLockType.Shared), string.Format("First transaction should have shared lock on logical page {0}", logicalId));
                 }
 
-                dlob.LockItem(new LogicalPageId(5), DataLockType.Shared, TimeSpan.FromSeconds(5));
-                Assert.True(dlob.HasItemLock(new LogicalPageId(1), DataLockType.Shared), "First transaction should have shared lock on logical page 1");
+                dlob.LockItemAsync(new LogicalPageId(5), DataLockType.Shared, TimeSpan.FromSeconds(5));
+                Assert.True(dlob.HasItemLockAsync(new LogicalPageId(1), DataLockType.Shared), "First transaction should have shared lock on logical page 1");
             }
 
             // Lock for shared read on txn 2
             using (var disp = TrunkTransactionContext.SwitchTransactionContext(secondTransaction))
             {
                 var dlob = secondTransactionLOB.GetOrCreateDataLockOwnerBlock(new ObjectId(1), 5);
-                dlob.LockItem(new LogicalPageId(1), DataLockType.Shared, TimeSpan.FromSeconds(5));
-                Assert.True(dlob.HasItemLock(new LogicalPageId(1), DataLockType.Shared), "Second transaction should have shared lock on logical page 1");
+                dlob.LockItemAsync(new LogicalPageId(1), DataLockType.Shared, TimeSpan.FromSeconds(5));
+                Assert.True(dlob.HasItemLockAsync(new LogicalPageId(1), DataLockType.Shared), "Second transaction should have shared lock on logical page 1");
             }
 
             // Attempt to get exclusive lock on txn 2 (both update and exclusive fails)
@@ -115,14 +115,14 @@ Then the attempt to gain an exclusive lock fails.")]
                 Assert.Throws<TimeoutException>(
                     () =>
                     {
-                        dlob.LockItem(new LogicalPageId(1), DataLockType.Update, TimeSpan.FromSeconds(5));
-                        Assert.True(dlob.HasItemLock(new LogicalPageId(1), DataLockType.Update), "Second transaction should have update lock on logical page 1");
+                        dlob.LockItemAsync(new LogicalPageId(1), DataLockType.Update, TimeSpan.FromSeconds(5));
+                        Assert.True(dlob.HasItemLockAsync(new LogicalPageId(1), DataLockType.Update), "Second transaction should have update lock on logical page 1");
                     });
                 Assert.Throws<TimeoutException>(
                     () =>
                     {
-                        dlob.LockItem(new LogicalPageId(1), DataLockType.Exclusive, TimeSpan.FromSeconds(5));
-                        Assert.True(dlob.HasItemLock(new LogicalPageId(1), DataLockType.Exclusive), "Second transaction should not have exclusive lock on logical page 1");
+                        dlob.LockItemAsync(new LogicalPageId(1), DataLockType.Exclusive, TimeSpan.FromSeconds(5));
+                        Assert.True(dlob.HasItemLockAsync(new LogicalPageId(1), DataLockType.Exclusive), "Second transaction should not have exclusive lock on logical page 1");
                     });
             }
         }
@@ -132,7 +132,7 @@ Then the attempt to gain an exclusive lock fails.")]
             var lockObject = dlm.GetDataLock(new ObjectId(objectId), new LogicalPageId(logicalId));
             try
             {
-                Assert.True(lockObject.HasLock(lockType), message);
+                Assert.True(lockObject.HasLockAsync(lockType), message);
             }
             finally
             {
@@ -145,7 +145,7 @@ Then the attempt to gain an exclusive lock fails.")]
             var lockObject = dlm.GetDataLock(new ObjectId(objectId), new LogicalPageId(logicalId));
             try
             {
-                Assert.False(lockObject.HasLock(lockType), message);
+                Assert.False(lockObject.HasLockAsync(lockType), message);
             }
             finally
             {

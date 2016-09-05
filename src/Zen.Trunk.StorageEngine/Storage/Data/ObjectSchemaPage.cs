@@ -1,3 +1,5 @@
+using System.Threading.Tasks;
+
 namespace Zen.Trunk.Storage.Data
 {
 	using System;
@@ -44,7 +46,7 @@ namespace Zen.Trunk.Storage.Data
 					try
 					{
 						_schemaLock = value;
-						LockPage();
+						LockPageAsync();
 					}
 					catch
 					{
@@ -88,13 +90,13 @@ namespace Zen.Trunk.Storage.Data
 		/// This mechanism ensures that all lock states have been set prior to
 		/// the first call to LockPage.
 		/// </remarks>
-		protected override void OnPreInit(EventArgs e)
+		protected override Task OnPreInitAsync(EventArgs e)
 		{
 			if (SchemaLock == SchemaLockType.None)
 			{
 				SchemaLock = SchemaLockType.SchemaModification;
 			}
-			base.OnPreInit(e);
+			return base.OnPreInitAsync(e);
 		}
 
 		/// <summary>
@@ -110,32 +112,32 @@ namespace Zen.Trunk.Storage.Data
 		/// This mechanism ensures that all lock states have been set prior to
 		/// the first call to LockPage.
 		/// </remarks>
-		protected override void OnPreLoad(EventArgs e)
+		protected override Task OnPreLoadAsync(EventArgs e)
 		{
 			if (SchemaLock == SchemaLockType.None)
 			{
 				SchemaLock = SchemaLockType.SchemaModification;
 			}
-			base.OnPreLoad(e);
+			return base.OnPreLoadAsync(e);
 		}
 
 		/// <summary>
 		/// Overridden. Called to apply suitable locks to this page.
 		/// </summary>
 		/// <param name="lm">A reference to the <see cref="IDatabaseLockManager"/>.</param>
-		protected override void OnLockPage(IDatabaseLockManager lm)
+		protected override async Task OnLockPageAsync(IDatabaseLockManager lm)
 		{
 			// Perform base class locking first
-			base.OnLockPage(lm);
+			await base.OnLockPageAsync(lm).ConfigureAwait(false);
 			try
 			{
 				// Lock schema
-				TrackedLock.Lock(SchemaLock, LockTimeout);
+				await TrackedLock.LockAsync(SchemaLock, LockTimeout).ConfigureAwait(false);
 				//lm.LockSchema(ObjectId, SchemaLock, LockTimeout);
 			}
 			catch
 			{
-				base.OnUnlockPage(lm);
+				await base.OnUnlockPageAsync(lm).ConfigureAwait(false);
 				throw;
 			}
 		}
@@ -145,18 +147,18 @@ namespace Zen.Trunk.Storage.Data
 		/// prior call to <see cref="M:DatabasePage.OnLockPage"/>.
 		/// </summary>
 		/// <param name="lm">A reference to the <see cref="IDatabaseLockManager"/>.</param>
-		protected override void OnUnlockPage(IDatabaseLockManager lm)
+		protected override async Task OnUnlockPageAsync(IDatabaseLockManager lm)
 		{
 			// Unlock page based on schema
 			try
 			{
-				TrackedLock.Unlock();
+				await TrackedLock.UnlockAsync().ConfigureAwait(false);
 				//lm.UnlockSchema(ObjectId);
 			}
 			finally
 			{
 				// Perform base class unlock last
-				base.OnUnlockPage(lm);
+				await base.OnUnlockPageAsync(lm).ConfigureAwait(false);
 			}
 		}
 		#endregion

@@ -294,7 +294,7 @@ namespace Zen.Trunk.Storage.Locking
             //	haven't done any transactable work
             if (!_isBeginLogWritten && _subEnlistments.Count == 0)
             {
-                Release();
+                await ReleaseAsync().ConfigureAwait(false);
                 return true;
             }
 
@@ -497,7 +497,7 @@ namespace Zen.Trunk.Storage.Locking
                 }
 
                 // Release other objects
-                Release();
+                await ReleaseAsync().ConfigureAwait(false);
             }
             return true;
         }
@@ -578,7 +578,7 @@ namespace Zen.Trunk.Storage.Locking
             finally
             {
                 // Release locked data pages
-                Release();
+                await ReleaseAsync().ConfigureAwait(false);
             }
             return true;
         }
@@ -612,7 +612,7 @@ namespace Zen.Trunk.Storage.Locking
             }
         }
 
-        private void Release()
+        private async Task ReleaseAsync()
         {
             // Should already be set but just make sure...
             _isCompleting = true;
@@ -623,7 +623,7 @@ namespace Zen.Trunk.Storage.Locking
             // Release all locks
             if (TransactionLocks != null)
             {
-                TransactionLocks.ReleaseAll();
+                await TransactionLocks.ReleaseAllAsync().ConfigureAwait(false);
             }
 
             // Cleanup enlistments that implement IDisposable
