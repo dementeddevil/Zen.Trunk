@@ -88,7 +88,7 @@ namespace Zen.Trunk.Storage.IO
 				.ToArray();
 			var bufferSize = buffers[0].BufferSize;
 
-			Task task = null;
+			Task task;
 			lock (stream.SyncRoot)
 			{
 				// Adjust the file position and perform scatter/gather
@@ -133,7 +133,7 @@ namespace Zen.Trunk.Storage.IO
 			var bufferSize = buffers[0].BufferSize;
 
 			// Lock stream until we start async operation
-			Task task = null;
+			Task task;
 			lock (stream.SyncRoot)
 			{
 				// Adjust the file position and perform scatter/gather

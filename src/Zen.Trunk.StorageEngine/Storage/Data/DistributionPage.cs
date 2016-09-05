@@ -284,10 +284,10 @@ namespace Zen.Trunk.Storage.Data
 						_distributionLock = value;
 						LockPage();
 					}
-					catch (Exception e)
+					catch
 					{
 						_distributionLock = oldLock;
-						throw e;
+						throw;
 					}
 				}
 			}
@@ -344,7 +344,7 @@ namespace Zen.Trunk.Storage.Data
             // Look for extent we can use;
 			//   Phase #1: Look for existing extent we can use for this object
 			//   Phase #2: Look for a free extent we can use for this object
-			bool hasAcquiredLock = false, useExtent = false;
+			bool hasAcquiredLock, useExtent = false;
 			uint extent;
 		    if (TryFindUsableExistingExtent(allocParams, out hasAcquiredLock, out extent) ||
 		        TryFindUsableFreeExtent(allocParams, out hasAcquiredLock, out extent))
@@ -464,8 +464,6 @@ namespace Zen.Trunk.Storage.Data
 			var pageIndex = offset % PagesPerExtent;
 			if (_extents[extent].Pages[pageIndex].AllocationStatus)
 			{
-				var lm = GetService<IDatabaseLockManager>();
-
 				// We need extent lock before we can free page
 				if (DistributionLock != ObjectLockType.IntentExclusive &&
 					DistributionLock != ObjectLockType.Exclusive)

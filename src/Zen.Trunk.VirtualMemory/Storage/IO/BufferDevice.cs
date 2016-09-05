@@ -107,7 +107,8 @@ namespace Zen.Trunk.Storage.IO
 		/// </summary>
 		public void Dispose()
 		{
-			DisposeManagedObjects();
+			Dispose(true);
+		    GC.SuppressFinalize(this);
 		}
 		#endregion
 
@@ -115,7 +116,7 @@ namespace Zen.Trunk.Storage.IO
 		/// <summary>
 		/// Releases unmanaged and - optionally - managed resources
 		/// </summary>
-		protected virtual void DisposeManagedObjects()
+		protected virtual void Dispose(bool disposing)
 		{
 			Debug.Assert(
 				_deviceState == (int)MountableDeviceState.Closed,

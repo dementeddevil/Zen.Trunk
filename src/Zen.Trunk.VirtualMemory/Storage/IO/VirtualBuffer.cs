@@ -277,11 +277,11 @@ namespace Zen.Trunk.Storage.IO
 		private bool _disposed;
 		private bool _dirty;
 
-		private Dictionary<Stream, StreamInfo> _streams;
+		private IDictionary<Stream, StreamInfo> _streams;
 		#endregion
 
-		#region Public Constructors
-		internal unsafe VirtualBuffer(SafeCommitableMemoryHandle buffer, int bufferSize, VirtualBufferCache owner, int slot)
+		#region Internal Constructors
+		internal VirtualBuffer(SafeCommitableMemoryHandle buffer, int bufferSize, VirtualBufferCache owner, int slot)
 		{
 			if ((bufferSize % SystemPageSize) != 0)
 			{
@@ -463,9 +463,11 @@ namespace Zen.Trunk.Storage.IO
 		/// <summary>
 		/// Gets a tracked <see cref="T:Stream"/> backed by this instance.
 		/// </summary>
-		/// <param name="offset"></param>
-		/// <param name="count"></param>
-		/// <param name="readOnly"></param>
+		/// <param name="offset">Zero-based offset into buffer block to position the stream.</param>
+		/// <param name="count">Number of bytes for the stream length.</param>
+		/// <param name="writable">
+		/// <c>true</c> if the stream is to be writable; otherwise <c>false</c>.
+		/// </param>
 		/// <returns></returns>
 		/// <exception cref="T:InvalidOperationException">
 		/// Thrown if two tracked streams attempt to write to the same region.
@@ -482,7 +484,6 @@ namespace Zen.Trunk.Storage.IO
 		public Stream GetBufferStream(int offset, int count, bool writable)
 		{
 			CheckDisposed();
-			Stream stream = null;
 			if (_streams == null)
 			{
 				_streams = new Dictionary<Stream, StreamInfo>();
@@ -502,7 +503,7 @@ namespace Zen.Trunk.Storage.IO
 			}
 
 			// Construct memory stream on correct buffer object
-			stream = new BufferStream(this, offset, count, writable);
+			var stream = new BufferStream(this, offset, count, writable);
 			_streams.Add(stream, new StreamInfo(offset, count));
 			return stream;
 		}
@@ -718,7 +719,7 @@ namespace Zen.Trunk.Storage.IO
 			}
 		}
 
-		internal unsafe void Allocate()
+		internal void Allocate()
 		{
 			if (!_committed)
 			{
@@ -740,7 +741,7 @@ namespace Zen.Trunk.Storage.IO
 			}
 		}
 
-		private unsafe void Free()
+		private void Free()
 		{
 			if (_committed)
 			{

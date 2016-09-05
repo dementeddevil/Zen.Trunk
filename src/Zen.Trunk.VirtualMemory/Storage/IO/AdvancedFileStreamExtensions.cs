@@ -1,8 +1,7 @@
-﻿namespace Zen.Trunk.Storage.IO
-{
-	using System.IO;
-	using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
+namespace Zen.Trunk.Storage.IO
+{
 	public static class AdvancedFileStreamExtensions
 	{
 		public static Task WriteGatherAsync(

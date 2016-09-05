@@ -9,7 +9,6 @@ namespace Zen.Trunk
 {
     public class TempFileTracker : IDisposable
     {
-        private readonly string _basePath;
         private readonly string _testFolder;
         private readonly List<string> _trackedFiles = new List<string>();
 
@@ -18,19 +17,19 @@ namespace Zen.Trunk
             var assembly = Assembly.GetCallingAssembly();
 
             // Get path to executing assembly
-            _basePath = Path.GetDirectoryName(assembly
+            var basePath = Path.GetDirectoryName(assembly
                 .CodeBase
                 .Replace("file:///", string.Empty));
 
             // Get to the solution root folder
-            _basePath = new DirectoryInfo(_basePath).Parent.Parent.Parent.Parent.Parent.FullName;
+            basePath = new DirectoryInfo(basePath).Parent.Parent.Parent.Parent.Parent.FullName;
 
             // Setup test results and assembly folder
-            _basePath = Path.Combine(_basePath, "TestResults");
-            _basePath = Path.Combine(_basePath, assembly.GetName().Name.Replace(".", string.Empty));
+            basePath = Path.Combine(basePath, "TestResults");
+            basePath = Path.Combine(basePath, assembly.GetName().Name.Replace(".", string.Empty));
 
             // Setup folder for caller test class
-            _testFolder = Path.Combine(_basePath, methodName ?? Guid.NewGuid().ToString("N"));
+            _testFolder = Path.Combine(basePath, methodName ?? Guid.NewGuid().ToString("N"));
 
             // Create if it doesn't exist
             if (Directory.Exists(_testFolder))

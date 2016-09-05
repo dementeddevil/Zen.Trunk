@@ -338,7 +338,7 @@ namespace Zen.Trunk.Storage.Data
 		protected override void OnPreSave(EventArgs e)
 		{
 			// Every call to PreSaveInternal must update the timestamp
-			long updateTimestamp = 0;
+			long updateTimestamp;
 			PreUpdateTimestamp();
 			try
 			{

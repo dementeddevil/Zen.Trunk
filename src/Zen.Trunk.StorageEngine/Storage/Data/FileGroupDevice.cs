@@ -26,12 +26,9 @@ namespace Zen.Trunk.Storage.Data
         {
             #region Public Constructors
             /// <summary>
-            /// Initializes a new instance of the <see cref="AddDevice" /> class.
+            /// Initializes a new instance of the <see cref="AddDataDeviceRequest" /> class.
             /// </summary>
-            /// <param name="name">The name.</param>
-            /// <param name="pathName">Name of the path.</param>
-            /// <param name="createPageCount">The create page count.</param>
-            /// <param name="deviceId">The device id.</param>
+            /// <param name="deviceParams">The add data device parameters.</param>
             public AddDataDeviceRequest(AddDataDeviceParameters deviceParams)
                 : base(deviceParams)
             {
@@ -616,7 +613,7 @@ namespace Zen.Trunk.Storage.Data
         #region Private Methods
         private DistributionPageDevice GetDistributionPageDevice(DeviceId deviceId)
         {
-            DistributionPageDevice pageDevice = null;
+            DistributionPageDevice pageDevice;
             if (deviceId == _primaryDevice.DeviceId)
             {
                 pageDevice = _primaryDevice;
@@ -694,7 +691,7 @@ namespace Zen.Trunk.Storage.Data
             }
 
             // Create distribution page device wrapper and add to list
-            DistributionPageDevice newDevice = null;
+            DistributionPageDevice newDevice;
             if (priFileGroupDevice)
             {
                 _primaryDeviceId = deviceId;
@@ -957,8 +954,8 @@ namespace Zen.Trunk.Storage.Data
                 throw new DeviceFullException(deviceId);
             }
 
-            uint oldPageCount = 0;
-            uint newPageCount = 0;
+            uint oldPageCount;
+            uint newPageCount;
 
             // Place root page into update mode
             rootPage.RootLock = RootLockType.Update;

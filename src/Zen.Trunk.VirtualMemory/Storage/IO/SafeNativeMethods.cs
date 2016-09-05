@@ -276,12 +276,12 @@ namespace Zen.Trunk.Storage.IO
 			IntPtr overlapped_MustBeZero);
 
 		[DllImport("kernel32.dll", EntryPoint = "VirtualAlloc", SetLastError = true)]
-		private static extern unsafe IntPtr DoVirtualAlloc(IntPtr address,
+		private static extern IntPtr DoVirtualAlloc(IntPtr address,
 			UIntPtr numBytes, int commitOrReserve, int pageProtectionMode);
 
 		[ReliabilityContract(Consistency.WillNotCorruptState, Cer.MayFail)]
 		[PrePrepareMethod]
-		internal static unsafe SafeMemoryHandle VirtualReserve(
+		internal static SafeMemoryHandle VirtualReserve(
 			UIntPtr numBytes, int pageProtectionMode)
 		{
 			var result = new SafeMemoryHandle();
@@ -305,7 +305,7 @@ namespace Zen.Trunk.Storage.IO
 			return result;
 		}
 
-		internal static unsafe SafeCommitableMemoryHandle GetCommitableMemoryHandle(SafeMemoryHandle handle, int bufferSize)
+		internal static SafeCommitableMemoryHandle GetCommitableMemoryHandle(SafeMemoryHandle handle, int bufferSize)
 		{
 			var result = new SafeCommitableMemoryHandle();
 			var success = false;
@@ -353,7 +353,7 @@ namespace Zen.Trunk.Storage.IO
 			return result;
 		}
 
-		internal static unsafe void VirtualCommit(SafeCommitableMemoryHandle existingAddress, int pageProtectionMode)
+		internal static void VirtualCommit(SafeCommitableMemoryHandle existingAddress, int pageProtectionMode)
 		{
 			var success = false;
 			existingAddress.DangerousAddRef(ref success);
@@ -381,7 +381,7 @@ namespace Zen.Trunk.Storage.IO
 			}
 		}
 
-		internal static unsafe void VirtualDecommit(SafeCommitableMemoryHandle existingAddress)
+		internal static void VirtualDecommit(SafeCommitableMemoryHandle existingAddress)
 		{
 			var success = false;
 			existingAddress.DangerousAddRef(ref success);
@@ -409,7 +409,7 @@ namespace Zen.Trunk.Storage.IO
 		[ReliabilityContract(Consistency.WillNotCorruptState, Cer.MayFail),
 		DllImport("kernel32.dll", EntryPoint = "VirtualProtect", SetLastError = true)]
 		[return: MarshalAs(UnmanagedType.Bool)]
-		private static extern unsafe bool VirtualProtectInternal(
+		private static extern bool VirtualProtectInternal(
 			IntPtr address,
 			int numBytes,
 			int newPageProtectionMode,
@@ -427,7 +427,7 @@ namespace Zen.Trunk.Storage.IO
 			IntPtr oldPageProtectionMode);
 #endif
 
-		internal static unsafe int VirtualProtect(SafeCommitableMemoryHandle address, int newPageProtection)
+		internal static int VirtualProtect(SafeCommitableMemoryHandle address, int newPageProtection)
 		{
 			var success = false;
 			address.DangerousAddRef(ref success);
@@ -460,7 +460,7 @@ namespace Zen.Trunk.Storage.IO
 
 		[DllImport("kernel32.dll", SetLastError = true)]
 		[return: MarshalAs(UnmanagedType.Bool)]
-		internal static extern unsafe bool VirtualFree(IntPtr address, UIntPtr numBytes, int pageFreeMode);
+		internal static extern bool VirtualFree(IntPtr address, UIntPtr numBytes, int pageFreeMode);
 	}
 
 	public sealed class SafeMemoryHandle : SafeHandle

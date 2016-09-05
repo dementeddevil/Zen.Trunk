@@ -100,7 +100,7 @@ namespace Zen.Trunk.Storage.IO
 
 	    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2201:DoNotRaiseReservedExceptionTypes",
 			Justification = "Throwing an out of memory exception is an acceptable usage scenario for this method.")]
-		public unsafe IVirtualBuffer AllocateBuffer()
+		public IVirtualBuffer AllocateBuffer()
 		{
 			// Reserve page space as needed.
 			if (_reservationBaseAddress == null)

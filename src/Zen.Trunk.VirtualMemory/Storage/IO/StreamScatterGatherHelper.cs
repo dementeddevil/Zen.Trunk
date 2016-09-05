@@ -21,14 +21,17 @@ namespace Zen.Trunk.Storage.IO
 		private readonly List<ScatterGatherRequestArray> _requests =
 			new List<ScatterGatherRequestArray>();
 		private readonly object _syncCallback = new object();
-		#endregion
+        #endregion
 
-		#region Public Constructors
-		/// <summary>
-		/// Initializes a new instance of the <see cref="StreamGatherWriter"/> class.
-		/// </summary>
-		/// <param name="stream">The stream.</param>
-		public StreamScatterGatherHelper(AdvancedFileStream stream, bool isReader)
+        #region Public Constructors
+        /// <summary>
+        /// Initializes a new instance of the <see cref="StreamScatterGatherHelper"/> class.
+        /// </summary>
+        /// <param name="stream">The advanced file stream.</param>
+        /// <param name="isReader">
+        /// <c>true</c> if the helper is to work in read-mode; otherwise <c>false</c>.
+        /// </param>
+        public StreamScatterGatherHelper(AdvancedFileStream stream, bool isReader)
 		{
 			_stream = stream;
 			_isReader = isReader;
@@ -68,7 +71,6 @@ namespace Zen.Trunk.Storage.IO
 				if (!added)
 				{
 					_requests.Add(new ScatterGatherRequestArray(request));
-					added = true;
 				}
 			}
 

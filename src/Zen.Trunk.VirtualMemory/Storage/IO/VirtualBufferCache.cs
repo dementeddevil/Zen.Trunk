@@ -5,7 +5,7 @@ namespace Zen.Trunk.Storage.IO
 	internal class VirtualBufferCache
 	{
 		#region Private Fields
-		private static int _nextCacheId = 0;
+		private static int _nextCacheId;
 
 		private readonly int _cacheId;
 		private readonly SafeCommitableMemoryHandle _baseAddress;
@@ -22,7 +22,7 @@ namespace Zen.Trunk.Storage.IO
 		/// <param name="baseAddress">The base address.</param>
 		/// <param name="bufferSize">Size of the buffer.</param>
 		/// <param name="bufferSlots">The buffer slots.</param>
-		public unsafe VirtualBufferCache(SafeCommitableMemoryHandle baseAddress, int bufferSize, int bufferSlots)
+		public VirtualBufferCache(SafeCommitableMemoryHandle baseAddress, int bufferSize, int bufferSlots)
 		{
 			_cacheId = Interlocked.Increment(ref _nextCacheId);
 			_baseAddress = baseAddress;
@@ -60,8 +60,7 @@ namespace Zen.Trunk.Storage.IO
 		{
 			for (var index = 0; index < _bufferCacheSize; ++index)
 			{
-				var buffer = Interlocked.Exchange<VirtualBuffer>(
-					ref _buffers[index], null);
+				var buffer = Interlocked.Exchange(ref _buffers[index], null);
 				if (buffer != null)
 				{
 					buffer.Allocate();
@@ -74,7 +73,7 @@ namespace Zen.Trunk.Storage.IO
 
 		public void FreeBuffer(VirtualBuffer buffer)
 		{
-			Interlocked.Exchange<VirtualBuffer>(ref _buffers[buffer.CacheSlot], buffer);
+			Interlocked.Exchange(ref _buffers[buffer.CacheSlot], buffer);
 			Interlocked.Decrement(ref _usedBuffers);
 		}
 	}

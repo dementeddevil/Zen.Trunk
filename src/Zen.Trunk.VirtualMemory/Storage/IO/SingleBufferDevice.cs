@@ -40,7 +40,7 @@ namespace Zen.Trunk.Storage.IO
             PathName = pathName;
             RequiresCreate = createPageCount > 0;
             PageCount = createPageCount;
-            IsScatterGatherIOEnabled = enableScatterGatherIo;
+            IsScatterGatherIoEnabled = enableScatterGatherIo;
         }
         #endregion
 
@@ -91,7 +91,7 @@ namespace Zen.Trunk.Storage.IO
         /// <value>
         /// <c>true</c> if this instance has scatter/gather I/O enabled; otherwise, <c>false</c>.
         /// </value>
-        protected bool IsScatterGatherIOEnabled
+        protected bool IsScatterGatherIoEnabled
         {
             get;
         }
@@ -109,7 +109,7 @@ namespace Zen.Trunk.Storage.IO
         #region Public Methods
         public async Task LoadBufferAsync(uint physicalPageId, IVirtualBuffer buffer)
         {
-            if (IsScatterGatherIOEnabled)
+            if (IsScatterGatherIoEnabled)
             {
                 await _scatterGatherHelper
                     .ReadBufferAsync(physicalPageId, buffer)
@@ -124,14 +124,14 @@ namespace Zen.Trunk.Storage.IO
                     _fileStream.Seek(physicalPageId * _bufferFactory.BufferSize, SeekOrigin.Begin);
                     task = _fileStream.ReadAsync(rawBuffer, 0, _bufferFactory.BufferSize);
                 }
-                var bytesRead = await task.ConfigureAwait(false);
+                await task.ConfigureAwait(false);
                 buffer.InitFrom(rawBuffer);
             }
         }
 
         public async Task SaveBufferAsync(uint physicalPageId, IVirtualBuffer buffer)
         {
-            if (IsScatterGatherIOEnabled)
+            if (IsScatterGatherIoEnabled)
             {
                 await _scatterGatherHelper
                     .WriteBufferAsync(physicalPageId, buffer)
@@ -154,7 +154,7 @@ namespace Zen.Trunk.Storage.IO
 
         public async Task FlushBuffersAsync(bool flushReads, bool flushWrites)
         {
-            if (IsScatterGatherIOEnabled)
+            if (IsScatterGatherIoEnabled)
             {
                 await _scatterGatherHelper
                     .Flush(flushReads, flushWrites)
@@ -191,7 +191,7 @@ namespace Zen.Trunk.Storage.IO
         /// Releases unmanaged and - optionally - managed resources
         /// </summary>
         /// <param name="disposing"><c>true</c> to release both managed and unmanaged resources; <c>false</c> to release only unmanaged resources.</param>
-        protected override void DisposeManagedObjects()
+        protected override void Dispose(bool disposing)
         {
             if (_scatterGatherHelper != null)
             {
@@ -211,12 +211,12 @@ namespace Zen.Trunk.Storage.IO
                 _fileStream = null;
             }
 
-            base.DisposeManagedObjects();
+            base.Dispose(disposing);
         }
 
         protected override Task OnOpen()
         {
-            if (IsScatterGatherIOEnabled)
+            if (IsScatterGatherIoEnabled)
             {
                 // Create the stream object
                 _scatterGatherStream = new AdvancedFileStream(
@@ -266,7 +266,7 @@ namespace Zen.Trunk.Storage.IO
 
         protected override async Task OnClose()
         {
-            if (IsScatterGatherIOEnabled)
+            if (IsScatterGatherIoEnabled)
             {
                 await _scatterGatherHelper.Flush().ConfigureAwait(false);
                 _scatterGatherStream.Flush();

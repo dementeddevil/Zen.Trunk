@@ -10,7 +10,7 @@ namespace Zen.Trunk.Storage.IO
         private long _position;
         private readonly long _innerStartPosition;
         private readonly long _subStreamLength;
-        private readonly bool _leaveUnderlyingStreamAtEOFOnClose;
+        private readonly bool _leaveUnderlyingStreamAtEofOnClose;
         #endregion
 
         #region Public Constructors
@@ -22,7 +22,7 @@ namespace Zen.Trunk.Storage.IO
             _innerStream = innerStream;
             _innerStartPosition = _innerStream.Position;
             _subStreamLength = length;
-            _leaveUnderlyingStreamAtEOFOnClose = false;
+            _leaveUnderlyingStreamAtEofOnClose = false;
         }
 
         /// <summary>
@@ -33,7 +33,7 @@ namespace Zen.Trunk.Storage.IO
             _innerStream = innerStream;
             _innerStartPosition = startOffset;
             _subStreamLength = length;
-            _leaveUnderlyingStreamAtEOFOnClose = leaveUnderlyingStreamAtEofOnClose;
+            _leaveUnderlyingStreamAtEofOnClose = leaveUnderlyingStreamAtEofOnClose;
         }
         #endregion
 
@@ -120,7 +120,7 @@ namespace Zen.Trunk.Storage.IO
         /// </summary>
         public override void Close()
         {
-            if (_leaveUnderlyingStreamAtEOFOnClose && CanSeek)
+            if (_leaveUnderlyingStreamAtEofOnClose && CanSeek)
             {
                 // Advance stream to EOF
                 _innerStream.Position = _innerStartPosition + _subStreamLength;
