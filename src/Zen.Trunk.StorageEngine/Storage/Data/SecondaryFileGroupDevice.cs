@@ -9,12 +9,22 @@
 	/// </remarks>
 	public class SecondaryFileGroupDevice : FileGroupDevice
 	{
-		public SecondaryFileGroupDevice(FileGroupId id, string name)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SecondaryFileGroupDevice"/> class.
+        /// </summary>
+        /// <param name="id">The id.</param>
+        /// <param name="name">The name.</param>
+        public SecondaryFileGroupDevice(FileGroupId id, string name)
 			: base(id, name)
 		{
 		}
 
-		public override RootPage CreateRootPage(bool isPrimaryFile)
+        /// <summary>
+        /// Creates the root page.
+        /// </summary>
+        /// <param name="isPrimaryFile">if set to <c>true</c> [is primary file].</param>
+        /// <returns></returns>
+        public override RootPage CreateRootPage(bool isPrimaryFile)
 		{
 			return base.CreateRootPage(isPrimaryFile);
 		}

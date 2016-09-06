@@ -17,12 +17,21 @@ namespace Zen.Trunk.Storage.Data
 		TaskRequest<TResult>,
 		ITransactionContextTaskRequest
 	{
-		public TransactionContextTaskRequest()
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TransactionContextTaskRequest{TResult}"/> class.
+        /// </summary>
+        public TransactionContextTaskRequest()
 		{
 			TransactionContext = TrunkTransactionContext.Current;
 		}
 
-		public ITrunkTransaction TransactionContext
+        /// <summary>
+        /// Gets or sets the transaction context.
+        /// </summary>
+        /// <value>
+        /// The transaction context.
+        /// </value>
+        public ITrunkTransaction TransactionContext
 		{
 			get;
 			set;
@@ -38,55 +47,105 @@ namespace Zen.Trunk.Storage.Data
 		TaskRequest<TMessage, TResult>,
 		ITransactionContextTaskRequest
 	{
-		public TransactionContextTaskRequest()
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TransactionContextTaskRequest{TMessage, TResult}"/> class.
+        /// </summary>
+        public TransactionContextTaskRequest()
 		{
 			TransactionContext = TrunkTransactionContext.Current;
 		}
 
-		public TransactionContextTaskRequest(TMessage message)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TransactionContextTaskRequest{TMessage, TResult}"/> class.
+        /// </summary>
+        /// <param name="message">The message.</param>
+        public TransactionContextTaskRequest(TMessage message)
 			: base(message)
 		{
 			TransactionContext = TrunkTransactionContext.Current;
 		}
 
-		public ITrunkTransaction TransactionContext
+        /// <summary>
+        /// Gets or sets the transaction context.
+        /// </summary>
+        /// <value>
+        /// The transaction context.
+        /// </value>
+        public ITrunkTransaction TransactionContext
 		{
 			get;
 			set;
 		}
 	}
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <typeparam name="TRequest">The type of the request.</typeparam>
+    /// <typeparam name="TResult">The type of the result.</typeparam>
+    /// <seealso cref="Zen.Trunk.Utils.TaskRequestActionBlock{TRequest, TResult}" />
     [DebuggerStepThrough]
     public class TransactionContextActionBlock<TRequest, TResult> : TaskRequestActionBlock<TRequest, TResult>
 		where TRequest : TaskRequest<TResult>, ITransactionContextTaskRequest
 	{
-		public TransactionContextActionBlock(Func<TRequest, TResult> action)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TransactionContextActionBlock{TRequest, TResult}"/> class.
+        /// </summary>
+        /// <param name="action">The action.</param>
+        public TransactionContextActionBlock(Func<TRequest, TResult> action)
 			: this(action, new ExecutionDataflowBlockOptions())
 		{
 		}
 
-		public TransactionContextActionBlock(Func<TRequest, TResult> action, ExecutionDataflowBlockOptions dataflowBlockOptions)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TransactionContextActionBlock{TRequest, TResult}"/> class.
+        /// </summary>
+        /// <param name="action">The action.</param>
+        /// <param name="dataflowBlockOptions">The dataflow block options.</param>
+        public TransactionContextActionBlock(Func<TRequest, TResult> action, ExecutionDataflowBlockOptions dataflowBlockOptions)
 			: base(request => ExecuteActionWithContext(action, request), dataflowBlockOptions)
 		{
 		}
 
-		public TransactionContextActionBlock(Func<TRequest, Task<TResult>> action)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TransactionContextActionBlock{TRequest, TResult}"/> class.
+        /// </summary>
+        /// <param name="action">The action.</param>
+        public TransactionContextActionBlock(Func<TRequest, Task<TResult>> action)
 			: this(action, new ExecutionDataflowBlockOptions())
 		{
 		}
 
-		public TransactionContextActionBlock(Func<TRequest, Task<TResult>> action, ExecutionDataflowBlockOptions dataflowBlockOptions)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TransactionContextActionBlock{TRequest, TResult}"/> class.
+        /// </summary>
+        /// <param name="action">The action.</param>
+        /// <param name="dataflowBlockOptions">The dataflow block options.</param>
+        public TransactionContextActionBlock(Func<TRequest, Task<TResult>> action, ExecutionDataflowBlockOptions dataflowBlockOptions)
 			: base(request => ExecuteActionWithContextAsync(action, request), dataflowBlockOptions)
 		{
 		}
 
-		public override DataflowMessageStatus OfferMessage(DataflowMessageHeader message, TRequest value, ISourceBlock<TRequest> source, bool consumeToAccept)
+        /// <summary>
+        /// Offers the message.
+        /// </summary>
+        /// <param name="message">The message.</param>
+        /// <param name="value">The value.</param>
+        /// <param name="source">The source.</param>
+        /// <param name="consumeToAccept">if set to <c>true</c> [consume to accept].</param>
+        /// <returns></returns>
+        public override DataflowMessageStatus OfferMessage(DataflowMessageHeader message, TRequest value, ISourceBlock<TRequest> source, bool consumeToAccept)
 		{
 			EnsureTransactionContext(value);
 			return base.OfferMessage(message, value, source, consumeToAccept);
 		}
 
-		public override bool Post(TRequest item)
+        /// <summary>
+        /// Posts the specified item.
+        /// </summary>
+        /// <param name="item">The item.</param>
+        /// <returns></returns>
+        public override bool Post(TRequest item)
 		{
 			EnsureTransactionContext(item);
 			return base.Post(item);
@@ -123,37 +182,75 @@ namespace Zen.Trunk.Storage.Data
 		}
 	}
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <typeparam name="TRequest">The type of the request.</typeparam>
+    /// <typeparam name="TMessage">The type of the message.</typeparam>
+    /// <typeparam name="TResult">The type of the result.</typeparam>
+    /// <seealso cref="Zen.Trunk.Utils.TaskRequestActionBlock{TRequest, TResult}" />
     [DebuggerStepThrough]
     public class TransactionContextActionBlock<TRequest, TMessage, TResult> : TaskRequestActionBlock<TRequest, TResult>
 		where TRequest : TaskRequest<TMessage, TResult>, ITransactionContextTaskRequest
 	{
-		public TransactionContextActionBlock(Func<TRequest, TResult> action)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TransactionContextActionBlock{TRequest, TMessage, TResult}"/> class.
+        /// </summary>
+        /// <param name="action">The action.</param>
+        public TransactionContextActionBlock(Func<TRequest, TResult> action)
 			: this(action, new ExecutionDataflowBlockOptions())
 		{
 		}
 
-		public TransactionContextActionBlock(Func<TRequest, TResult> action, ExecutionDataflowBlockOptions dataflowBlockOptions)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TransactionContextActionBlock{TRequest, TMessage, TResult}"/> class.
+        /// </summary>
+        /// <param name="action">The action.</param>
+        /// <param name="dataflowBlockOptions">The dataflow block options.</param>
+        public TransactionContextActionBlock(Func<TRequest, TResult> action, ExecutionDataflowBlockOptions dataflowBlockOptions)
 			: base(request => ExecuteActionWithContext(action, request), dataflowBlockOptions)
 		{
 		}
 
-		public TransactionContextActionBlock(Func<TRequest, Task<TResult>> action)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TransactionContextActionBlock{TRequest, TMessage, TResult}"/> class.
+        /// </summary>
+        /// <param name="action">The action.</param>
+        public TransactionContextActionBlock(Func<TRequest, Task<TResult>> action)
 			: this(action, new ExecutionDataflowBlockOptions())
 		{
 		}
 
-		public TransactionContextActionBlock(Func<TRequest, Task<TResult>> action, ExecutionDataflowBlockOptions dataflowBlockOptions)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TransactionContextActionBlock{TRequest, TMessage, TResult}"/> class.
+        /// </summary>
+        /// <param name="action">The action.</param>
+        /// <param name="dataflowBlockOptions">The dataflow block options.</param>
+        public TransactionContextActionBlock(Func<TRequest, Task<TResult>> action, ExecutionDataflowBlockOptions dataflowBlockOptions)
 			: base(request => ExecuteActionWithContextAsync(action, request), dataflowBlockOptions)
 		{
 		}
 
-		public override DataflowMessageStatus OfferMessage(DataflowMessageHeader message, TRequest value, ISourceBlock<TRequest> source, bool consumeToAccept)
+        /// <summary>
+        /// Offers the message.
+        /// </summary>
+        /// <param name="message">The message.</param>
+        /// <param name="value">The value.</param>
+        /// <param name="source">The source.</param>
+        /// <param name="consumeToAccept">if set to <c>true</c> [consume to accept].</param>
+        /// <returns></returns>
+        public override DataflowMessageStatus OfferMessage(DataflowMessageHeader message, TRequest value, ISourceBlock<TRequest> source, bool consumeToAccept)
 		{
 			EnsureTransactionContext(value);
 			return base.OfferMessage(message, value, source, consumeToAccept);
 		}
 
-		public override bool Post(TRequest item)
+        /// <summary>
+        /// Posts the specified item.
+        /// </summary>
+        /// <param name="item">The item.</param>
+        /// <returns></returns>
+        public override bool Post(TRequest item)
 		{
 			EnsureTransactionContext(item);
 			return base.Post(item);

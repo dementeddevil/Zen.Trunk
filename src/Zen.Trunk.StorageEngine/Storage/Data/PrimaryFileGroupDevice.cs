@@ -9,7 +9,12 @@
 	/// </remarks>
 	public class PrimaryFileGroupDevice : FileGroupDevice
 	{
-		public PrimaryFileGroupDevice(FileGroupId id, string name)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="PrimaryFileGroupDevice"/> class.
+        /// </summary>
+        /// <param name="id">The id.</param>
+        /// <param name="name">The name.</param>
+        public PrimaryFileGroupDevice(FileGroupId id, string name)
 			: base(id, name)
 		{
 		}

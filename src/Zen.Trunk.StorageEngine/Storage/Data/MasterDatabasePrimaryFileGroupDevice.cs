@@ -10,12 +10,22 @@
 	/// </remarks>
 	public class MasterDatabasePrimaryFileGroupDevice : FileGroupDevice
 	{
-		public MasterDatabasePrimaryFileGroupDevice(FileGroupId id, string name)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="MasterDatabasePrimaryFileGroupDevice"/> class.
+        /// </summary>
+        /// <param name="id">The id.</param>
+        /// <param name="name">The name.</param>
+        public MasterDatabasePrimaryFileGroupDevice(FileGroupId id, string name)
 			: base(id, name)
 		{
 		}
 
-		public override RootPage CreateRootPage(bool isPrimaryFile)
+        /// <summary>
+        /// Creates the root page.
+        /// </summary>
+        /// <param name="isPrimaryFile">if set to <c>true</c> [is primary file].</param>
+        /// <returns></returns>
+        public override RootPage CreateRootPage(bool isPrimaryFile)
 		{
 			if (isPrimaryFile)
 			{

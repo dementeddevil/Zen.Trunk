@@ -17,10 +17,13 @@ namespace Zen.Trunk.Storage.Data
 		private LogicalPageId _logicalId;
 		private readonly BufferFieldLogicalPageId _prevLogicalId;
 		private readonly BufferFieldLogicalPageId _nextLogicalId;
-		#endregion
+        #endregion
 
-		#region Public Constructors
-		public LogicalPage()
+        #region Public Constructors
+        /// <summary>
+        /// Initializes a new instance of the <see cref="LogicalPage"/> class.
+        /// </summary>
+        public LogicalPage()
 		{
 			_prevLogicalId = new BufferFieldLogicalPageId(base.LastHeaderField, LogicalPageId.Zero);
 			_nextLogicalId = new BufferFieldLogicalPageId(_prevLogicalId, LogicalPageId.Zero);
@@ -105,11 +108,16 @@ namespace Zen.Trunk.Storage.Data
 				}
 			}
 		}
-		#endregion
+        #endregion
 
-		#region Protected Properties
-		protected override BufferField LastHeaderField => _nextLogicalId;
-
+        #region Protected Properties
+        /// <summary>
+        /// Gets the last header field.
+        /// </summary>
+        /// <value>
+        /// The last header field.
+        /// </value>
+        protected override BufferField LastHeaderField => _nextLogicalId;
 	    #endregion
 	}
 }

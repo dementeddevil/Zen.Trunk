@@ -106,35 +106,51 @@ namespace Zen.Trunk.Storage.Data
 
 		private readonly Dictionary<DatabaseId, DatabaseRefInfo> _databases =
             new Dictionary<DatabaseId, DatabaseRefInfo>();
-		#endregion
+        #endregion
 
-		#region Public Constructors
-		public MasterDatabasePrimaryFileGroupRootPage()
+        #region Public Constructors
+        /// <summary>
+        /// Initializes a new instance of the <see cref="MasterDatabasePrimaryFileGroupRootPage"/> class.
+        /// </summary>
+        public MasterDatabasePrimaryFileGroupRootPage()
 		{
 			_databaseCount = new BufferFieldInt32(base.LastHeaderField);
 		}
-		#endregion
+        #endregion
 
-		#region Public Properties
-		public override uint MinHeaderSize => base.MinHeaderSize + 4;
+        #region Public Properties
+        /// <summary>
+        /// Gets the minimum size of the header.
+        /// </summary>
+        /// <value>
+        /// The minimum size of the header.
+        /// </value>
+        public override uint MinHeaderSize => base.MinHeaderSize + 4;
+        #endregion
 
-	    #endregion
+        #region Protected Properties
+        /// <summary>
+        /// Gets the root page signature.
+        /// </summary>
+        /// <value>
+        /// The root page signature.
+        /// </value>
+        protected override ulong RootPageSignature => DbMasterSignature;
 
-		#region Protected Properties
-		protected override ulong RootPageSignature => DbMasterSignature;
-
-	    protected override uint RootPageSchemaVersion => DbMasterSchemaVersion;
+        /// <summary>
+        /// Gets the root page schema version.
+        /// </summary>
+        /// <value>
+        /// The root page schema version.
+        /// </value>
+        protected override uint RootPageSchemaVersion => DbMasterSchemaVersion;
 
 	    /// <summary>
 		/// Overridden. Gets the last header field.
 		/// </summary>
 		/// <value>The last header field.</value>
 		protected override BufferField LastHeaderField => _databaseCount;
-
 	    #endregion
-
-		#region Public Methods
-		#endregion
 
 		#region Internal Methods
 		internal IEnumerable<DatabaseRefInfo> GetDatabaseEnumerator()

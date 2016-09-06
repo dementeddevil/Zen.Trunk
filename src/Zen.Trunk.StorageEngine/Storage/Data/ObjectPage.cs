@@ -99,6 +99,11 @@ namespace Zen.Trunk.Storage.Data
         #endregion
 
         #region Public Method
+        /// <summary>
+        /// Sets the object lock asynchronous.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <returns></returns>
         public async Task SetObjectLockAsync(ObjectLockType value)
         {
             if (_objectLock != value)
@@ -179,7 +184,7 @@ namespace Zen.Trunk.Storage.Data
 			// If no lock is specified then try to obtain intent-exclusive lock.
 			if (ObjectLock == ObjectLockType.None)
 			{
-				await SetObjectLockAsync(ObjectLockType.IntentExclusive);
+				await SetObjectLockAsync(ObjectLockType.IntentExclusive).ConfigureAwait(false);
 			}
 			await base.OnPreInitAsync(e).ConfigureAwait(false);
 		}

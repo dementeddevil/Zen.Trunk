@@ -18,9 +18,16 @@ using Zen.Trunk.Utils;
 
 namespace Zen.Trunk.Storage.Data
 {
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <seealso cref="Zen.Trunk.Storage.Data.DatabaseDevice" />
     public class MasterDatabaseDevice : DatabaseDevice
     {
         #region Public Fields
+        /// <summary>
+        /// The reserved database names
+        /// </summary>
         public static readonly string[] ReservedDatabaseNames =
             { "MASTER", "TEMPDB", "MODEL" };
         #endregion
@@ -51,6 +58,18 @@ namespace Zen.Trunk.Storage.Data
         #endregion
 
         #region Public Methods
+        /// <summary>
+        /// Attaches the database.
+        /// </summary>
+        /// <param name="request">The request.</param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentException">
+        /// First database attached must be master database.
+        /// or
+        /// Master database has already been attached.
+        /// or
+        /// Database with same name already exists.
+        /// </exception>
         public async Task AttachDatabase(AttachDatabaseParameters request)
         {
             // Determine whether we are attaching the master database
@@ -205,6 +224,16 @@ namespace Zen.Trunk.Storage.Data
             }
         }
 
+        /// <summary>
+        /// Detaches the database.
+        /// </summary>
+        /// <param name="name">The name.</param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentException">
+        /// System databases are always online.
+        /// or
+        /// Database not found.
+        /// </exception>
         public Task DetachDatabase(string name)
         {
             // Check for reserved database names
@@ -239,6 +268,16 @@ namespace Zen.Trunk.Storage.Data
             return CompletedTask.Default;
         }
 
+        /// <summary>
+        /// Changes the database status.
+        /// </summary>
+        /// <param name="request">The request.</param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentException">
+        /// System databases are always online.
+        /// or
+        /// Database not found.
+        /// </exception>
         public Task ChangeDatabaseStatus(ChangeDatabaseStatusParameters request)
         {
             // Check for reserved database names
@@ -269,6 +308,12 @@ namespace Zen.Trunk.Storage.Data
             return CompletedTask.Default;
         }
 
+        /// <summary>
+        /// Gets the database device.
+        /// </summary>
+        /// <param name="databaseName">Name of the database.</param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentException">Database not found</exception>
         public DatabaseDevice GetDatabaseDevice(string databaseName)
         {
             if (string.Equals(databaseName, "master", StringComparison.OrdinalIgnoreCase))
@@ -286,6 +331,10 @@ namespace Zen.Trunk.Storage.Data
         #endregion
 
         #region Protected Methods
+        /// <summary>
+        /// Builds the device lifetime scope.
+        /// </summary>
+        /// <param name="builder">The builder.</param>
         protected override void BuildDeviceLifetimeScope(ContainerBuilder builder)
         {
             base.BuildDeviceLifetimeScope(builder);

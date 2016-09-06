@@ -115,36 +115,61 @@ namespace Zen.Trunk.Storage.Data
 		private readonly Dictionary<DeviceId, DeviceInfo> _devices = new Dictionary<DeviceId, DeviceInfo>();
 		//private Dictionary<uint, IndexRefInfo> _indices = new Dictionary<uint,IndexRefInfo> ();
 		private readonly Dictionary<ObjectId, ObjectRefInfo> _objects = new Dictionary<ObjectId, ObjectRefInfo>();
-		#endregion
+        #endregion
 
-		#region Public Constructors
-		public PrimaryFileGroupRootPage()
+        #region Public Constructors
+        /// <summary>
+        /// Initializes a new instance of the <see cref="PrimaryFileGroupRootPage"/> class.
+        /// </summary>
+        public PrimaryFileGroupRootPage()
 		{
 			_deviceCount = new BufferFieldInt32(base.LastHeaderField);
 			_indexCount = new BufferFieldInt32(_deviceCount);
 			_objectCount = new BufferFieldInt32(_indexCount);
 		}
-		#endregion
+        #endregion
 
-		#region Public Properties
-		public override uint MinHeaderSize => base.MinHeaderSize + 12;
+        #region Public Properties
+        /// <summary>
+        /// Gets the minimum size of the header.
+        /// </summary>
+        /// <value>
+        /// The minimum size of the header.
+        /// </value>
+        public override uint MinHeaderSize => base.MinHeaderSize + 12;
 
-	    public IEnumerable<DeviceInfo> Devices => from item in _devices.Values
-	        select new DeviceInfo(item);
+        /// <summary>
+        /// Gets the devices.
+        /// </summary>
+        /// <value>
+        /// The devices.
+        /// </value>
+        public IEnumerable<DeviceInfo> Devices => from item in _devices.Values
+                                                  select new DeviceInfo(item);
+        #endregion
 
-	    #endregion
+        #region Protected Properties
+        /// <summary>
+        /// Gets the root page signature.
+        /// </summary>
+        /// <value>
+        /// The root page signature.
+        /// </value>
+        protected override ulong RootPageSignature => DbSignature;
 
-		#region Protected Properties
-		protected override ulong RootPageSignature => DbSignature;
-
-	    protected override uint RootPageSchemaVersion => DbSchemaVersion;
+        /// <summary>
+        /// Gets the root page schema version.
+        /// </summary>
+        /// <value>
+        /// The root page schema version.
+        /// </value>
+        protected override uint RootPageSchemaVersion => DbSchemaVersion;
 
 	    /// <summary>
 		/// Overridden. Gets the last header field.
 		/// </summary>
 		/// <value>The last header field.</value>
 		protected override BufferField LastHeaderField => _objectCount;
-
 	    #endregion
 
 		#region Public Methods
@@ -188,7 +213,12 @@ namespace Zen.Trunk.Storage.Data
 			return true;
 		}
 
-		public bool UpdateDeviceInfo(DeviceInfo info)
+        /// <summary>
+        /// Updates the device information.
+        /// </summary>
+        /// <param name="info">The information.</param>
+        /// <returns></returns>
+        public bool UpdateDeviceInfo(DeviceInfo info)
 		{
 			var result = false;
 			CheckReadOnly();
@@ -222,13 +252,23 @@ namespace Zen.Trunk.Storage.Data
 			}
 		}
 
-		public DeviceInfo GetDevice(DeviceId id)
+        /// <summary>
+        /// Gets the device.
+        /// </summary>
+        /// <param name="id">The identifier.</param>
+        /// <returns></returns>
+        public DeviceInfo GetDevice(DeviceId id)
 		{
 			// Return clone of the data held in the root page.
 			return new DeviceInfo(_devices[id]);
 		}
 
-		public bool AddObjectInfo(ObjectRefInfo info)
+        /// <summary>
+        /// Adds the object information.
+        /// </summary>
+        /// <param name="info">The information.</param>
+        /// <returns></returns>
+        public bool AddObjectInfo(ObjectRefInfo info)
 		{
 			CheckReadOnly();
 
@@ -241,7 +281,12 @@ namespace Zen.Trunk.Storage.Data
 			return true;
 		}
 
-		public bool UpdateObjectInfo(ObjectRefInfo info)
+        /// <summary>
+        /// Updates the object information.
+        /// </summary>
+        /// <param name="info">The information.</param>
+        /// <returns></returns>
+        public bool UpdateObjectInfo(ObjectRefInfo info)
 		{
 			var result = false;
 			CheckReadOnly();
@@ -254,7 +299,12 @@ namespace Zen.Trunk.Storage.Data
 			return result;
 		}
 
-		public ObjectRefInfo GetObject(string name)
+        /// <summary>
+        /// Gets the object.
+        /// </summary>
+        /// <param name="name">The name.</param>
+        /// <returns></returns>
+        public ObjectRefInfo GetObject(string name)
 		{
 			return _objects.Values.FirstOrDefault(item => item.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
 		}

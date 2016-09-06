@@ -16,12 +16,24 @@ namespace Zen.Trunk.Storage.Data
 		#region Private Fields
 	    private const ulong DbSignature = 0x2948f3d3a123e501;
 	    private const uint DbSchemaVersion = 0x01000001;
-		#endregion
+        #endregion
 
-		#region Protected Properties
-		protected override ulong RootPageSignature => DbSignature;
+        #region Protected Properties
+        /// <summary>
+        /// Gets the root page signature.
+        /// </summary>
+        /// <value>
+        /// The root page signature.
+        /// </value>
+        protected override ulong RootPageSignature => DbSignature;
 
-	    protected override uint RootPageSchemaVersion => DbSchemaVersion;
+        /// <summary>
+        /// Gets the root page schema version.
+        /// </summary>
+        /// <value>
+        /// The root page schema version.
+        /// </value>
+        protected override uint RootPageSchemaVersion => DbSchemaVersion;
 	    #endregion
 	}
 }

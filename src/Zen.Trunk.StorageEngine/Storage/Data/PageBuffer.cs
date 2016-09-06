@@ -22,7 +22,10 @@ namespace Zen.Trunk.Storage.Data
 	/// </remarks>
 	public sealed class PageBuffer : StatefulBuffer, IPageEnlistmentNotification
 	{
-		public enum PageBufferStateType
+        /// <summary>
+        /// 
+        /// </summary>
+        public enum PageBufferStateType
 		{
 			/// <summary>
 			/// Buffer is free.
@@ -539,17 +542,38 @@ namespace Zen.Trunk.Storage.Data
 		/// </value>
 		public bool IsReadPending => CurrentStateType == PageBufferStateType.PendingLoad;
 
-	    public LogicalPageId LogicalId
+        /// <summary>
+        /// Gets the logical identifier.
+        /// </summary>
+        /// <value>
+        /// The logical identifier.
+        /// </value>
+        public LogicalPageId LogicalId
 		{
 			get;
 			internal set;
 		}
 
-		public override int BufferSize => _bufferDevice.BufferFactory.BufferSize;
+        /// <summary>
+        /// Gets the size of the buffer.
+        /// </summary>
+        /// <value>
+        /// The size of the buffer.
+        /// </value>
+        public override int BufferSize => _bufferDevice.BufferFactory.BufferSize;
 
-	    public override bool CanFree => CurrentStateType == PageBufferStateType.Allocated;
+        /// <summary>
+        /// Gets a boolean value indicating whether this buffer can be freed.
+        /// </summary>
+        public override bool CanFree => CurrentStateType == PageBufferStateType.Allocated;
 
-	    public long Timestamp
+        /// <summary>
+        /// Gets or sets the timestamp.
+        /// </summary>
+        /// <value>
+        /// The timestamp.
+        /// </value>
+        public long Timestamp
 		{
 			get
 			{
@@ -568,12 +592,15 @@ namespace Zen.Trunk.Storage.Data
 		#endregion
 
 		#region Private Properties
-
 	    private PageBufferState CurrentPageBufferState => (PageBufferState)CurrentState;
-	    #endregion
+        #endregion
 
-		#region Public Methods
-		public void EnlistInTransaction()
+        #region Public Methods
+        /// <summary>
+        /// Enlists the in transaction.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">Page buffer modification must occur within a transaction.</exception>
+        public void EnlistInTransaction()
 		{
 			// Sanity check
 			if (TrunkTransactionContext.Current == null)
@@ -586,22 +613,42 @@ namespace Zen.Trunk.Storage.Data
 		    priv?.Enlist(this);
 		}
 
-		public Task InitAsync(VirtualPageId pageId, LogicalPageId logicalId)
+        /// <summary>
+        /// Initializes the asynchronous.
+        /// </summary>
+        /// <param name="pageId">The page identifier.</param>
+        /// <param name="logicalId">The logical identifier.</param>
+        /// <returns></returns>
+        public Task InitAsync(VirtualPageId pageId, LogicalPageId logicalId)
 		{
 			return CurrentPageBufferState.Init(this, pageId, logicalId);
 		}
 
-		public Task RequestLoadAsync(VirtualPageId pageId, LogicalPageId logicalId)
+        /// <summary>
+        /// Requests the load asynchronous.
+        /// </summary>
+        /// <param name="pageId">The page identifier.</param>
+        /// <param name="logicalId">The logical identifier.</param>
+        /// <returns></returns>
+        public Task RequestLoadAsync(VirtualPageId pageId, LogicalPageId logicalId)
 		{
 			return CurrentPageBufferState.RequestLoad(this, pageId, logicalId);
 		}
 
-		public Task LoadAsync()
+        /// <summary>
+        /// Loads the asynchronous.
+        /// </summary>
+        /// <returns></returns>
+        public Task LoadAsync()
 		{
 			return CurrentPageBufferState.Load(this);
 		}
 
-		public Task SaveAsync()
+        /// <summary>
+        /// Saves the asynchronous.
+        /// </summary>
+        /// <returns></returns>
+        public Task SaveAsync()
 		{
 			return CurrentPageBufferState.Save(this);
 		}

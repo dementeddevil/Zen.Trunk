@@ -15,9 +15,16 @@ namespace Zen.Trunk.Storage.Data
 	/// </remarks>
 	public abstract class RootPage : LogicalPage
 	{
-		#region Public Constants
-		public const byte StatusIsExpandable = 1;
-		public const byte StatusIsExpandablePercent = 2;
+        #region Public Constants
+        /// <summary>
+        /// The status is expandable
+        /// </summary>
+        public const byte StatusIsExpandable = 1;
+        
+        /// <summary>
+        /// The status is expandable percent
+        /// </summary>
+        public const byte StatusIsExpandablePercent = 2;
 		#endregion
 
 		#region Private Fields
@@ -66,9 +73,18 @@ namespace Zen.Trunk.Storage.Data
 		/// </summary>
 		public override bool IsRootPage => true;
 
-	    public override uint MinHeaderSize => base.MinHeaderSize + 29;
+        /// <summary>
+        /// Gets the minimum number of bytes required for the header block.
+        /// </summary>
+        public override uint MinHeaderSize => base.MinHeaderSize + 29;
 
-	    public byte Status
+        /// <summary>
+        /// Gets or sets the status.
+        /// </summary>
+        /// <value>
+        /// The status.
+        /// </value>
+        public byte Status
 		{
 			get
 			{
@@ -81,7 +97,13 @@ namespace Zen.Trunk.Storage.Data
 			}
 		}
 
-		public uint AllocatedPages
+        /// <summary>
+        /// Gets or sets the allocated pages.
+        /// </summary>
+        /// <value>
+        /// The allocated pages.
+        /// </value>
+        public uint AllocatedPages
 		{
 			get
 			{
@@ -94,7 +116,13 @@ namespace Zen.Trunk.Storage.Data
 			}
 		}
 
-		public uint MaximumPages
+        /// <summary>
+        /// Gets or sets the maximum pages.
+        /// </summary>
+        /// <value>
+        /// The maximum pages.
+        /// </value>
+        public uint MaximumPages
 		{
 			get
 			{
@@ -107,7 +135,13 @@ namespace Zen.Trunk.Storage.Data
 			}
 		}
 
-		public uint GrowthPages
+        /// <summary>
+        /// Gets or sets the growth pages.
+        /// </summary>
+        /// <value>
+        /// The growth pages.
+        /// </value>
+        public uint GrowthPages
 		{
 			get
 			{
@@ -130,7 +164,13 @@ namespace Zen.Trunk.Storage.Data
 			}
 		}
 
-		public double GrowthPercent
+        /// <summary>
+        /// Gets or sets the growth percent.
+        /// </summary>
+        /// <value>
+        /// The growth percent.
+        /// </value>
+        public double GrowthPercent
 		{
 			get
 			{
@@ -153,7 +193,13 @@ namespace Zen.Trunk.Storage.Data
 			}
 		}
 
-		public bool IsExpandable
+        /// <summary>
+        /// Gets a value indicating whether this instance is expandable.
+        /// </summary>
+        /// <value>
+        /// <c>true</c> if this instance is expandable; otherwise, <c>false</c>.
+        /// </value>
+        public bool IsExpandable
 		{
 			get
 			{
@@ -165,7 +211,13 @@ namespace Zen.Trunk.Storage.Data
 			}
 		}
 
-		public bool IsExpandableByPercent
+        /// <summary>
+        /// Gets a value indicating whether this instance is expandable by percent.
+        /// </summary>
+        /// <value>
+        /// <c>true</c> if this instance is expandable by percent; otherwise, <c>false</c>.
+        /// </value>
+        public bool IsExpandableByPercent
 		{
 			get
 			{

@@ -9,6 +9,7 @@ namespace Zen.Trunk.Storage.Data
     /// <summary>
     /// TODO: Update summary.
     /// </summary>
+    /// <seealso cref="Zen.Trunk.Storage.BufferFieldWrapper" />
     public class ObjectRefInfo : BufferFieldWrapper
     {
         private readonly BufferFieldObjectId _objectId;
@@ -16,6 +17,9 @@ namespace Zen.Trunk.Storage.Data
         private readonly BufferFieldStringFixed _name;
         private readonly BufferFieldLogicalPageId _firstPageId;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ObjectRefInfo"/> class.
+        /// </summary>
         public ObjectRefInfo()
         {
             _objectId = new BufferFieldObjectId();
@@ -24,8 +28,20 @@ namespace Zen.Trunk.Storage.Data
             _firstPageId = new BufferFieldLogicalPageId(_name);
         }
 
+        /// <summary>
+        /// Gets the first buffer field object.
+        /// </summary>
+        /// <value>
+        /// A <see cref="T:BufferField" /> object.
+        /// </value>
         protected override BufferField FirstField => _objectId;
 
+        /// <summary>
+        /// Gets the last buffer field object.
+        /// </summary>
+        /// <value>
+        /// A <see cref="T:BufferField" /> object.
+        /// </value>
         protected override BufferField LastField => _firstPageId;
 
         /// <summary>
@@ -54,6 +70,12 @@ namespace Zen.Trunk.Storage.Data
             set;
         }
 
+        /// <summary>
+        /// Gets or sets the object identifier.
+        /// </summary>
+        /// <value>
+        /// The object identifier.
+        /// </value>
         public ObjectId ObjectId
         {
             get
@@ -66,6 +88,12 @@ namespace Zen.Trunk.Storage.Data
             }
         }
 
+        /// <summary>
+        /// Gets or sets the type of the object.
+        /// </summary>
+        /// <value>
+        /// The type of the object.
+        /// </value>
         public ObjectType ObjectType
         {
             get
@@ -78,6 +106,12 @@ namespace Zen.Trunk.Storage.Data
             }
         }
 
+        /// <summary>
+        /// Gets or sets the name.
+        /// </summary>
+        /// <value>
+        /// The name.
+        /// </value>
         public string Name
         {
             get
@@ -90,6 +124,12 @@ namespace Zen.Trunk.Storage.Data
             }
         }
 
+        /// <summary>
+        /// Gets or sets the first page identifier.
+        /// </summary>
+        /// <value>
+        /// The first page identifier.
+        /// </value>
         public LogicalPageId FirstPageId
         {
             get
