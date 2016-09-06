@@ -16,7 +16,7 @@ namespace Zen.Trunk.CoordinationDataStructures
 	/// <summary>Provides a thread-safe object pool.</summary>
 	/// <typeparam name="T">Specifies the type of the elements stored in the pool.</typeparam>
 	[DebuggerDisplay("Count={Count}")]
-	[DebuggerTypeProxy(typeof(IProducerConsumerCollection_DebugView<>))]
+	[DebuggerTypeProxy(typeof(ProducerConsumerCollectionDebugView<>))]
 	public sealed class ObjectPool<T> : ProducerConsumerCollectionBase<T>
 	{
 		private readonly Func<T> _generator;

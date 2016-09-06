@@ -21,7 +21,7 @@ namespace Zen.Trunk.CoordinationDataStructures.AsyncCoordination
     {
         /// <summary>The current count.</summary>
         private int _currentCount;
-        /// <summary>The maximum count. If _maxCount isn't positive, the instance has been disposed.</remarks>
+        /// <summary>The maximum count. If _maxCount isn't positive, the instance has been disposed.</summary>
         private int _maxCount;
         /// <summary>Tasks waiting to be completed when the semaphore has count available.</summary>
         private readonly Queue<TaskCompletionSource<object>> _waitingTasks;

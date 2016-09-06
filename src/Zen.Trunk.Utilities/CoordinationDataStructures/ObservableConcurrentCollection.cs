@@ -19,7 +19,7 @@ namespace Zen.Trunk.CoordinationDataStructures
     /// </summary>
     /// <typeparam name="T">Specifies the type of the elements in this collection.</typeparam>
     [DebuggerDisplay("Count={Count}")]
-    [DebuggerTypeProxy(typeof(IProducerConsumerCollection_DebugView<>))]
+    [DebuggerTypeProxy(typeof(ProducerConsumerCollectionDebugView<>))]
     public class ObservableConcurrentCollection<T> : 
         ProducerConsumerCollectionBase<T>, INotifyCollectionChanged, INotifyPropertyChanged
     {

@@ -42,7 +42,7 @@ namespace Zen.Trunk.CoordinationDataStructures.AsyncCoordination
         public AsyncCall(Action<T> actionHandler, int maxDegreeOfParallelism = 1, int maxItemsPerTask = Int32.MaxValue, TaskScheduler scheduler = null) :
             this(maxDegreeOfParallelism, maxItemsPerTask, scheduler)
         {
-            if (actionHandler == null) throw new ArgumentNullException("handler");
+            if (actionHandler == null) throw new ArgumentNullException(nameof(actionHandler));
             _handler = actionHandler;
         }
 
@@ -56,7 +56,7 @@ namespace Zen.Trunk.CoordinationDataStructures.AsyncCoordination
         public AsyncCall(Func<T,Task> functionHandler, int maxDegreeOfParallelism = 1, TaskScheduler scheduler = null) :
             this(maxDegreeOfParallelism, 1, scheduler)
         {
-            if (functionHandler == null) throw new ArgumentNullException("handler");
+            if (functionHandler == null) throw new ArgumentNullException(nameof(functionHandler));
             _handler = functionHandler;
         }
 
@@ -220,7 +220,6 @@ namespace Zen.Trunk.CoordinationDataStructures.AsyncCoordination
         /// </summary>
         /// <param name="functionHandler">The function to run for every posted item.</param>
         /// <param name="maxDegreeOfParallelism">The maximum degree of parallelism to use.  If not specified, 1 is used for serial execution.</param>
-        /// <param name="maxItemsPerTask">The maximum number of items to be processed per task.  If not specified, Int32.MaxValue is used.</param>
         /// <param name="scheduler">The scheduler to use.  If null, the default scheduler is used.</param>
         public static AsyncCall<T> Create<T>(Func<T, Task> functionHandler, int maxDegreeOfParallelism = 1, TaskScheduler scheduler = null)
         {
@@ -228,6 +227,7 @@ namespace Zen.Trunk.CoordinationDataStructures.AsyncCoordination
         }
 
         /// <summary>Initializes the AsyncCall in the specified AppDomain with an action to execute for each element.</summary>
+        /// <param name="targetDomain">Target application domain.</param>
         /// <param name="actionHandler">The action to run for every posted item.</param>
         /// <param name="maxDegreeOfParallelism">The maximum degree of parallelism to use.  If not specified, 1 is used for serial execution.</param>
         /// <param name="maxItemsPerTask">The maximum number of items to be processed per task.  If not specified, Int32.MaxValue is used.</param>
@@ -244,6 +244,7 @@ namespace Zen.Trunk.CoordinationDataStructures.AsyncCoordination
         /// Initializes the AsyncCall in the specified AppDomain with a function to execute for each element.  
         /// The function returns an Task that represents the asynchronous completion of that element's processing.
         /// </summary>
+        /// <param name="targetDomain">Target application domain.</param>
         /// <param name="functionHandler">The action to run for every posted item.</param>
         /// <param name="maxDegreeOfParallelism">The maximum degree of parallelism to use.  If not specified, 1 is used for serial execution.</param>
         public static AsyncCall<T> CreateInTargetAppDomain<T>(AppDomain targetDomain, Func<T, Task> functionHandler, int maxDegreeOfParallelism = 1)

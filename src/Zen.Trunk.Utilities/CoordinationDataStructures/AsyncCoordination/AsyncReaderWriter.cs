@@ -25,9 +25,9 @@ namespace Zen.Trunk.CoordinationDataStructures.AsyncCoordination
         /// <summary>The queue of exclusive writers waiting to execute.</summary>
         private readonly Queue<Task> _waitingExclusive = new Queue<Task>();
         /// <summary>The number of concurrent readers currently executing.</summary>
-        private int _currentConcurrent = 0;
+        private int _currentConcurrent;
         /// <summary>The number of exclusive writers currently executing.</summary>
-        private bool _currentlyExclusive = false;
+        private bool _currentlyExclusive;
         /// <summary>The non-generic factory to use for task creation.</summary>
         private readonly TaskFactory _factory;
 

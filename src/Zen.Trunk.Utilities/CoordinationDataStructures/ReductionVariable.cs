@@ -19,7 +19,7 @@ namespace Zen.Trunk.CoordinationDataStructures
     /// <summary>Provides a reduction variable for aggregating data across multiple threads involved in a computation.</summary>
     /// <typeparam name="T">Specifies the type of the data being aggregated.</typeparam>
     [DebuggerDisplay("Count={_values.Count}")]
-    [DebuggerTypeProxy(typeof(ReductionVariable_DebugView<>))]
+    [DebuggerTypeProxy(typeof(ReductionVariableDebugView<>))]
     public sealed class ReductionVariable<T>
     {
         /// <summary>The factory used to initialize a value on a thread.</summary>
@@ -76,6 +76,7 @@ namespace Zen.Trunk.CoordinationDataStructures
         /// Applies an accumulator function over the values in this variable.
         /// The specified seed is used as the initial accumulator value.
         /// </summary>
+        /// <param name="seed"></param>
         /// <param name="function">An accumulator function to be invoked on each value.</param>
         /// <returns>The accumulated value.</returns>
         public TAccumulate Reduce<TAccumulate>(TAccumulate seed, Func<TAccumulate, T, TAccumulate> function)
@@ -86,11 +87,11 @@ namespace Zen.Trunk.CoordinationDataStructures
 
     /// <summary>Debug view for the reductino variable</summary>
     /// <typeparam name="T">Specifies the type of the data being aggregated.</typeparam>
-    internal sealed class ReductionVariable_DebugView<T>
+    internal sealed class ReductionVariableDebugView<T>
     {
         private readonly ReductionVariable<T> _variable;
 
-        public ReductionVariable_DebugView(ReductionVariable<T> variable)
+        public ReductionVariableDebugView(ReductionVariable<T> variable)
         {
             _variable = variable;
         }

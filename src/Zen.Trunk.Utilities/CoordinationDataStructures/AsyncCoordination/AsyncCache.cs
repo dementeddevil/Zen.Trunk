@@ -22,11 +22,11 @@ namespace Zen.Trunk.CoordinationDataStructures.AsyncCoordination
 	/// <summary>Debugger type proxy for AsyncCache.</summary>
 	/// <typeparam name="TKey">Specifies the type of the cache's keys.</typeparam>
 	/// <typeparam name="TValue">Specifies the type of the cache's values.</typeparam>
-	internal class AsyncCache_DebugView<TKey, TValue>
+	internal class AsyncCacheDebugView<TKey, TValue>
 	{
 		private readonly AsyncCache<TKey, TValue> _asyncCache;
 
-		internal AsyncCache_DebugView(AsyncCache<TKey, TValue> asyncCache)
+		internal AsyncCacheDebugView(AsyncCache<TKey, TValue> asyncCache)
 		{
 			_asyncCache = asyncCache;
 		}
@@ -38,7 +38,7 @@ namespace Zen.Trunk.CoordinationDataStructures.AsyncCoordination
 	/// <summary>Caches asynchronously retrieved data.</summary>
 	/// <typeparam name="TKey">Specifies the type of the cache's keys.</typeparam>
 	/// <typeparam name="TValue">Specifies the type of the cache's values.</typeparam>
-	[DebuggerTypeProxy(typeof(AsyncCache_DebugView<,>))]
+	[DebuggerTypeProxy(typeof(AsyncCacheDebugView<,>))]
 	[DebuggerDisplay("Count={Count}")]
 	public class AsyncCache<TKey, TValue> : ICollection<KeyValuePair<TKey, Task<TValue>>>
 	{
@@ -53,7 +53,7 @@ namespace Zen.Trunk.CoordinationDataStructures.AsyncCoordination
 		{
 			if (valueFactory == null)
 			{
-				throw new ArgumentNullException("loader");
+				throw new ArgumentNullException(nameof(valueFactory));
 			}
 
 			_valueFactory = valueFactory;
@@ -148,17 +148,16 @@ namespace Zen.Trunk.CoordinationDataStructures.AsyncCoordination
 			return _map.ContainsKey(item.Key);
 		}
 
-		/// <summary>
-		/// Copies the elements of the System.Collections.Generic.ICollection<T> to an
-		/// System.Array, starting at a particular System.Array index.
-		/// </summary>
-		/// <param name="array">
-		/// The one-dimensional System.Array that is the destination of the elements
-		/// copied from System.Collections.Generic.ICollection<T>. The System.Array must
-		/// have zero-based indexing.
-		/// </param>
-		/// <param name="arrayIndex">The zero-based index in array at which copying begins.</param>
-		void ICollection<KeyValuePair<TKey, Task<TValue>>>.CopyTo(KeyValuePair<TKey, Task<TValue>>[] array, int arrayIndex)
+        /// <summary>
+        /// Copies the elements of the cache to an System.Array, starting at a particular System.Array index.
+        /// </summary>
+        /// <param name="array">
+        /// The one-dimensional System.Array that is the destination of the elements
+        /// copied from cache. The System.Array must
+        /// have zero-based indexing.
+        /// </param>
+        /// <param name="arrayIndex">The zero-based index in array at which copying begins.</param>
+        void ICollection<KeyValuePair<TKey, Task<TValue>>>.CopyTo(KeyValuePair<TKey, Task<TValue>>[] array, int arrayIndex)
 		{
 			((ICollection<KeyValuePair<TKey, Task<TValue>>>)_map).CopyTo(array, arrayIndex);
 		}

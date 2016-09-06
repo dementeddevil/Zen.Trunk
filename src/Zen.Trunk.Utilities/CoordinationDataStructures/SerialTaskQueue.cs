@@ -37,7 +37,7 @@ namespace Zen.Trunk.CoordinationDataStructures
         private void EnqueueInternal(object taskOrFunction)
         {
             // Validate the task
-            if (taskOrFunction == null) throw new ArgumentNullException("task");
+            if (taskOrFunction == null) throw new ArgumentNullException(nameof(taskOrFunction));
             lock(_tasks)
             {
                 // If there is currently no task in flight, we'll start this one
