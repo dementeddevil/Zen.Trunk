@@ -6,12 +6,13 @@
 //
 //--------------------------------------------------------------------------
 
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
-using System.ComponentModel;
+using System.Threading;
+using System.Threading.Tasks;
 
-namespace System.Threading.Tasks.Schedulers
+namespace Zen.Trunk.TaskSchedulers
 {
     /// <summary>Provides a task scheduler that targets a specific SynchronizationContext.</summary>
     public sealed class SynchronizationContextTaskScheduler : TaskScheduler

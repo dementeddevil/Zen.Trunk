@@ -6,8 +6,9 @@
 //
 //--------------------------------------------------------------------------
 
+using System;
 
-namespace System
+namespace Zen.Trunk.Extensions
 {
 	internal class DelegateBasedObserver<T> : IObserver<T>
 	{

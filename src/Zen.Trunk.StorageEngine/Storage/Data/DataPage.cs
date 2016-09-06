@@ -3,6 +3,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Transactions;
+using Zen.Trunk.CoordinationDataStructures;
 using Zen.Trunk.Logging;
 using Zen.Trunk.Storage.Locking;
 

@@ -6,7 +6,11 @@
 //
 //--------------------------------------------------------------------------
 
-namespace System.Threading.Tasks
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+
+namespace Zen.Trunk.Extensions
 {
     /// <summary>Extension methods for TaskScheduler.</summary>
     public static class TaskSchedulerExtensions

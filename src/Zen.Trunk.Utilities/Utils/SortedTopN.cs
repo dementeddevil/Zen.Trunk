@@ -1,10 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Collections;
+using System.Collections.Generic;
 
-namespace System.Linq
+namespace Zen.Trunk.Utils
 {
     internal class SortedTopN<TKey, TValue> : IEnumerable<KeyValuePair<TKey, TValue>>
     {

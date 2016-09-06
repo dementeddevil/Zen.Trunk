@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using Zen.Trunk.CoordinationDataStructures;
 using Zen.Trunk.Logging;
 
 namespace Zen.Trunk.Storage.Locking

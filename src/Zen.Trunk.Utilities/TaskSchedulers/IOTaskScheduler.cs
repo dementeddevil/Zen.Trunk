@@ -6,11 +6,15 @@
 //
 //--------------------------------------------------------------------------
 
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using Zen.Trunk.CoordinationDataStructures;
 
-namespace System.Threading.Tasks.Schedulers
+namespace Zen.Trunk.TaskSchedulers
 {
     /// <summary>Provides a task scheduler that targets the I/O ThreadPool.</summary>
     public sealed class IOTaskScheduler : TaskScheduler, IDisposable

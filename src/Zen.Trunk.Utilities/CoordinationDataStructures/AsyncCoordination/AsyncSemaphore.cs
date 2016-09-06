@@ -6,11 +6,14 @@
 //
 //--------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using System.Diagnostics;
+using System.Threading;
+using System.Threading.Tasks;
+using Zen.Trunk.Extensions;
 
-namespace System.Threading.Async
+namespace Zen.Trunk.CoordinationDataStructures.AsyncCoordination
 {
     /// <summary>Provides an asynchronous semaphore.</summary>
     [DebuggerDisplay("CurrentCount={CurrentCount}, MaximumCount={MaximumCount}, WaitingCount={WaitingCount}")]

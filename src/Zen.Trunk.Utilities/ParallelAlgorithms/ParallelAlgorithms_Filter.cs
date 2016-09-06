@@ -6,10 +6,11 @@
 //
 //--------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace System.Threading.Algorithms
+namespace Zen.Trunk.ParallelAlgorithms
 {
     public static partial class ParallelAlgorithms
     {
@@ -18,7 +19,7 @@ namespace System.Threading.Algorithms
         /// <param name="input">The list to be filtered.</param>
         /// <param name="predicate">The predicate to use to determine which elements pass.</param>
         /// <returns>A new list containing all those elements from the input that passed the filter.</returns>
-        public static IList<T> Filter<T>(IList<T> input, Func<T, Boolean> predicate)
+        public static IList<T> Filter<T>(IList<T> input, Func<T, bool> predicate)
         {
             return Filter(input, s_defaultParallelOptions, predicate);
         }

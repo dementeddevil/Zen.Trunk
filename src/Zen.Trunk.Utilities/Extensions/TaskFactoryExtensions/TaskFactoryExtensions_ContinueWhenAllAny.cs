@@ -6,9 +6,9 @@
 //
 //--------------------------------------------------------------------------
 
-using System.Collections.Generic;
+using System.Threading.Tasks;
 
-namespace System.Threading.Tasks
+namespace Zen.Trunk.Extensions.TaskFactoryExtensions
 {
     public static partial class TaskFactoryExtensions
     {

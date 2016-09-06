@@ -6,10 +6,11 @@
 //
 //--------------------------------------------------------------------------
 
+using System;
 using System.Diagnostics;
 using System.Linq;
 
-namespace System
+namespace Zen.Trunk.Extensions
 {
 	/// <summary>Parallel extensions for the Delegate class.</summary>
 	public static class DelegateExtensions

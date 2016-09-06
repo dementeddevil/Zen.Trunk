@@ -1,11 +1,12 @@
-﻿namespace System.Net.Sockets
-{
-	using System;
-	using Collections.Generic;
-	using Net;
-	using Threading.Tasks;
+﻿using System;
+using System.Collections.Generic;
+using System.Net;
+using System.Net.Sockets;
+using System.Threading.Tasks;
 
-	public static class SocketExtensions
+namespace Zen.Trunk.Extensions.APM
+{
+    public static class SocketExtensions
 	{
 		public static Task ConnectAsync(
 			this Socket socket, EndPoint endpoint)

@@ -6,7 +6,10 @@
 //
 //--------------------------------------------------------------------------
 
-namespace System.Threading.Tasks
+using System;
+using System.Threading.Tasks;
+
+namespace Zen.Trunk.Extensions
 {
     /// <summary>Extension methods for TaskCompletionSource.</summary>
     public static class TaskCompletionSourceExtensions

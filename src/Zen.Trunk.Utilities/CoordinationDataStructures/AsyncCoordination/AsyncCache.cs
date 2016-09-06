@@ -6,6 +6,7 @@
 //
 //--------------------------------------------------------------------------
 
+using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -13,8 +14,10 @@ using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using Zen.Trunk.Extensions;
+using Zen.Trunk.Extensions.TaskFactoryExtensions;
 
-namespace System.Threading
+namespace Zen.Trunk.CoordinationDataStructures.AsyncCoordination
 {
 	/// <summary>Debugger type proxy for AsyncCache.</summary>
 	/// <typeparam name="TKey">Specifies the type of the cache's keys.</typeparam>

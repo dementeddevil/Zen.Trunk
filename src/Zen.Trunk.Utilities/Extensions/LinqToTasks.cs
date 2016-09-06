@@ -6,12 +6,14 @@
 //
 //--------------------------------------------------------------------------
 
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace System.Linq
+namespace Zen.Trunk.Extensions
 {
     /// <summary>
     /// Provides LINQ support for Tasks by implementing the primary standard query operators.

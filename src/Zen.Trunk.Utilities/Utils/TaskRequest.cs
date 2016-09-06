@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
+using System.Threading.Tasks;
 
-namespace System.Threading.Tasks.Dataflow
+namespace Zen.Trunk.Utils
 {
     [DebuggerStepThrough]
     public class TaskRequest<TResult> : TaskCompletionSource<TResult>, ITaskRequest

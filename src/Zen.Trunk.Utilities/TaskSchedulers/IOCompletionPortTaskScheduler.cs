@@ -6,13 +6,16 @@
 //
 //--------------------------------------------------------------------------
 
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Win32.SafeHandles;
 
-namespace System.Threading.Tasks.Schedulers
+namespace Zen.Trunk.TaskSchedulers
 {
     /// <summary>Provides a TaskScheduler that uses an I/O completion port for concurrency control.</summary>
     public sealed class IOCompletionPortTaskScheduler : TaskScheduler, IDisposable

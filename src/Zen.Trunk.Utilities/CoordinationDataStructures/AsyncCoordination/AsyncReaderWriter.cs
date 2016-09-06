@@ -6,11 +6,13 @@
 //
 //--------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using System.Diagnostics;
+using System.Threading.Tasks;
+using Zen.Trunk.Extensions.TaskFactoryExtensions;
 
-namespace System.Threading.Async
+namespace Zen.Trunk.CoordinationDataStructures.AsyncCoordination
 {
     /// <summary>Provides for asynchronous exclusive and concurrent execution support.</summary>
     [DebuggerDisplay("WaitingConcurrent={WaitingConcurrent}, WaitingExclusive={WaitingExclusive}, CurrentReaders={CurrentConcurrent}, Exclusive={CurrentlyExclusive}")]

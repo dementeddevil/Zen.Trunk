@@ -6,10 +6,12 @@
 //
 //--------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 
-namespace System.Threading.Algorithms
+namespace Zen.Trunk.ParallelAlgorithms
 {
     public static partial class ParallelAlgorithms
     {

@@ -6,11 +6,12 @@
 //
 //--------------------------------------------------------------------------
 
+using System;
 using System.Collections.Concurrent;
 using System.IO;
 using System.Threading.Tasks;
 
-namespace System.Threading
+namespace Zen.Trunk.CoordinationDataStructures
 {
 	/// <summary>
 	/// Writeable stream for using a separate thread in a producer/consumer scenario.

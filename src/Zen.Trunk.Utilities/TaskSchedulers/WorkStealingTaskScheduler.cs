@@ -6,9 +6,13 @@
 //
 //--------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+using Zen.Trunk.Extensions;
 
-namespace System.Threading.Tasks.Schedulers
+namespace Zen.Trunk.TaskSchedulers
 {
     /// <summary>Provides a work-stealing scheduler.</summary>
     public class WorkStealingTaskScheduler : TaskScheduler, IDisposable

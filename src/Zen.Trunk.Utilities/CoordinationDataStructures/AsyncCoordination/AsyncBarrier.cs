@@ -6,10 +6,12 @@
 //
 //--------------------------------------------------------------------------
 
+using System;
 using System.Diagnostics;
+using System.Threading;
 using System.Threading.Tasks;
 
-namespace System.Threading.Async
+namespace Zen.Trunk.CoordinationDataStructures.AsyncCoordination
 {
     /// <summary>Provides an asynchronous barrier.</summary>
     [DebuggerDisplay("ParticipantCount={ParticipantCount}, RemainingCount={RemainingCount}")]

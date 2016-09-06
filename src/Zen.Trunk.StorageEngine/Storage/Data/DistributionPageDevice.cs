@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Zen.Trunk.Logging;
 using Zen.Trunk.Storage.Locking;
+using Zen.Trunk.Utils;
 
 namespace Zen.Trunk.Storage.Data
 {

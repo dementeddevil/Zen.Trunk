@@ -4,6 +4,8 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+using Zen.Trunk.CoordinationDataStructures;
+
 namespace Zen.Trunk.Utils
 {
 	using System;

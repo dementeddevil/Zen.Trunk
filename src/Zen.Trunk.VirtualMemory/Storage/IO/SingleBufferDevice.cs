@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Threading.Tasks;
+using Zen.Trunk.Extensions;
 
 namespace Zen.Trunk.Storage.IO
 {

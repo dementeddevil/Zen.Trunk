@@ -6,10 +6,11 @@
 //
 //--------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
-using System.Diagnostics;
+using System.Threading.Tasks;
 
-namespace System.Threading.Tasks
+namespace Zen.Trunk.CoordinationDataStructures
 {
     /// <summary>Represents a queue of tasks to be started and executed serially.</summary>
     public class SerialTaskQueue

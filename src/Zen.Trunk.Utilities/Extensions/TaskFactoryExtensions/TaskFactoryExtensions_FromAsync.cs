@@ -6,7 +6,11 @@
 //
 //--------------------------------------------------------------------------
 
-namespace System.Threading.Tasks
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+
+namespace Zen.Trunk.Extensions.TaskFactoryExtensions
 {
     /// <summary>Extensions for TaskFactory.</summary>
     public static partial class TaskFactoryExtensions

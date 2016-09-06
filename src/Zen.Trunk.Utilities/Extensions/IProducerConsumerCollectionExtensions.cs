@@ -6,9 +6,12 @@
 //
 //--------------------------------------------------------------------------
 
+using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using Zen.Trunk.CoordinationDataStructures;
 
-namespace System.Collections.Concurrent
+namespace Zen.Trunk.Extensions
 {
 	/// <summary>Extension methods for IProducerConsumerCollection.</summary>
 	public static class ProducerConsumerCollectionExtensions

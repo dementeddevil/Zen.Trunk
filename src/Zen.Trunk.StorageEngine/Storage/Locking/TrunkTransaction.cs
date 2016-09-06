@@ -5,9 +5,11 @@ using System.Threading.Tasks;
 using System.Transactions;
 using Autofac;
 using Autofac.Core;
+using Zen.Trunk.Extensions;
 using Zen.Trunk.Logging;
 using Zen.Trunk.Storage.Data;
 using Zen.Trunk.Storage.Log;
+using Zen.Trunk.Utils;
 
 namespace Zen.Trunk.Storage.Locking
 {

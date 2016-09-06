@@ -8,8 +8,9 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
-namespace System.Threading.Tasks.Schedulers
+namespace Zen.Trunk.TaskSchedulers
 {
     /// <summary>Provides a task scheduler that runs tasks on the current thread.</summary>
     public sealed class CurrentThreadTaskScheduler : TaskScheduler

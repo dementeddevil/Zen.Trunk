@@ -6,11 +6,14 @@
 //
 //--------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
-namespace System.Threading.Tasks.Schedulers
+namespace Zen.Trunk.TaskSchedulers
 {
     /// <summary>Enables the creation of a group of schedulers that support round-robin scheduling for fairness.</summary>
     public sealed class RoundRobinSchedulerGroup

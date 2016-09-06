@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using Zen.Trunk.Extensions;
 using Zen.Trunk.Logging;
 
 namespace Zen.Trunk.Storage.IO

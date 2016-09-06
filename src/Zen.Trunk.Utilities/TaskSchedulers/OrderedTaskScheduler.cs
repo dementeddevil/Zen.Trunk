@@ -6,7 +6,7 @@
 //
 //--------------------------------------------------------------------------
 
-namespace System.Threading.Tasks.Schedulers
+namespace Zen.Trunk.TaskSchedulers
 {
     /// <summary>
     /// Provides a task scheduler that ensures only one task is executing at a time, and that tasks

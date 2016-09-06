@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using System.Transactions;
 using Autofac;
 using Autofac.Core;
+using Zen.Trunk.Extensions;
 using Zen.Trunk.Logging;
 using Zen.Trunk.Storage.Locking;
 

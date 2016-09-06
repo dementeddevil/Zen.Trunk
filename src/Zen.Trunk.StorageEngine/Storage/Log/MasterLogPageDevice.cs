@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 using Autofac;
 using Zen.Trunk.Storage.Data;
+using Zen.Trunk.Utils;
 
 namespace Zen.Trunk.Storage.Log
 {

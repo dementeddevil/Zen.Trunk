@@ -6,10 +6,12 @@
 //
 //--------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
+using System.Threading;
+using System.Threading.Tasks;
 
-namespace System.Threading.Tasks
+namespace Zen.Trunk.Extensions.TaskFactoryExtensions
 {
     public static partial class TaskFactoryExtensions
     {

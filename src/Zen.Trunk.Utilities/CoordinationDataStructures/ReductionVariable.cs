@@ -6,13 +6,15 @@
 //
 //--------------------------------------------------------------------------
 
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Threading;
 
-namespace System.Threading
+namespace Zen.Trunk.CoordinationDataStructures
 {
     /// <summary>Provides a reduction variable for aggregating data across multiple threads involved in a computation.</summary>
     /// <typeparam name="T">Specifies the type of the data being aggregated.</typeparam>

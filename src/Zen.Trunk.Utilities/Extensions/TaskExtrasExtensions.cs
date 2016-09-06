@@ -6,10 +6,14 @@
 //
 //--------------------------------------------------------------------------
 
+using System;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+
 //using System.Windows.Threading;
 
-namespace System.Threading.Tasks
+namespace Zen.Trunk.Extensions
 {
     /// <summary>Extensions methods for Task.</summary>
     public static class TaskExtrasExtensions

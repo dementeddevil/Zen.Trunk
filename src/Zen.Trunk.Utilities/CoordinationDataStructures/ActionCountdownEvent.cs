@@ -6,7 +6,10 @@
 //
 //--------------------------------------------------------------------------
 
-namespace System.Threading
+using System;
+using System.Threading;
+
+namespace Zen.Trunk.CoordinationDataStructures
 {
     /// <summary>Runs an action when the CountdownEvent reaches zero.</summary>
     public class ActionCountdownEvent : IDisposable

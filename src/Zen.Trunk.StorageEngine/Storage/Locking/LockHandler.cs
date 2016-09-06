@@ -1,3 +1,5 @@
+using Zen.Trunk.CoordinationDataStructures;
+
 namespace Zen.Trunk.Storage.Locking
 {
 	using System;

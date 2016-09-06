@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Transactions;
 using Autofac;
+using Zen.Trunk.Extensions;
 
 namespace Zen.Trunk.Storage.Locking
 {

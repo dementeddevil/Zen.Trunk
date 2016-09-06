@@ -1,9 +1,10 @@
-﻿namespace Zen.Trunk.Storage.IO
+﻿using Zen.Trunk.Utils;
+
+namespace Zen.Trunk.Storage.IO
 {
 	using System;
-	using System.Threading.Tasks.Dataflow;
 
-	[CLSCompliant(false)]
+    [CLSCompliant(false)]
 	public class ScatterGatherRequest : TaskRequest<object>
 	{
 		[CLSCompliant(false)]

@@ -6,7 +6,9 @@
 //
 //--------------------------------------------------------------------------
 
-namespace System.Threading.Tasks
+using System.Threading.Tasks;
+
+namespace Zen.Trunk.Extensions
 {
     /// <summary>Extension methods for ParallelOptions.</summary>
     public static class ParallelOptionsExtensions

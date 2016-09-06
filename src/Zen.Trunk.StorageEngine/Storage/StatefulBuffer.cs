@@ -3,6 +3,8 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Diagnostics;
+using Zen.Trunk.CoordinationDataStructures;
+using Zen.Trunk.Extensions;
 using Zen.Trunk.Storage.Data;
 
 namespace Zen.Trunk.Storage

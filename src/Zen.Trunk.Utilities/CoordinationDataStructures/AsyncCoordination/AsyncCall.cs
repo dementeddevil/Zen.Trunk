@@ -6,11 +6,13 @@
 //
 //--------------------------------------------------------------------------
 
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Threading.Tasks;
 
-namespace System.Threading.Tasks
+namespace Zen.Trunk.CoordinationDataStructures.AsyncCoordination
 {
     /// <summary>Asynchronously invokes a handler for every posted item.</summary>
     /// <typeparam name="T">Specifies the type of data processed by the instance.</typeparam>
@@ -233,7 +235,7 @@ namespace System.Threading.Tasks
         {
             return (AsyncCall<T>)targetDomain.CreateInstanceAndUnwrap(
                 typeof(AsyncCall<T>).Assembly.FullName, typeof(AsyncCall<T>).FullName,
-                false, Reflection.BindingFlags.CreateInstance, null,
+                false, System.Reflection.BindingFlags.CreateInstance, null,
                 new object[] { actionHandler, maxDegreeOfParallelism, maxItemsPerTask, null },
                 null, null);
         }
@@ -248,7 +250,7 @@ namespace System.Threading.Tasks
         {
             return (AsyncCall<T>)targetDomain.CreateInstanceAndUnwrap(
                 typeof(AsyncCall<T>).Assembly.FullName, typeof(AsyncCall<T>).FullName,
-                false, Reflection.BindingFlags.CreateInstance, null,
+                false, System.Reflection.BindingFlags.CreateInstance, null,
                 new object[] { functionHandler, maxDegreeOfParallelism, null },
                 null, null);
         }

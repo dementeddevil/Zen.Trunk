@@ -6,11 +6,14 @@
 //
 //--------------------------------------------------------------------------
 
+using System;
+using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Threading;
 using System.Linq;
+using System.Threading;
 
-namespace System.Collections.Concurrent
+namespace Zen.Trunk.Extensions
 {
 	/// <summary>Extension methods for BlockingCollection.</summary>
 	public static class BlockingCollectionExtensions

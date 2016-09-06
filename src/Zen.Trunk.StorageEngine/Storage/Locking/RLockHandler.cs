@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Threading;
+using Zen.Trunk.CoordinationDataStructures;
 
 namespace Zen.Trunk.Storage.Locking
 {

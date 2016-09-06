@@ -6,11 +6,12 @@
 //
 //--------------------------------------------------------------------------
 
+using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Threading.Tasks;
 
-namespace System.Threading.Async
+namespace Zen.Trunk.CoordinationDataStructures.AsyncCoordination
 {
     /// <summary>Provides an asynchronous producer/consumer collection.</summary>
     [DebuggerDisplay("Count={CurrentCount}")]

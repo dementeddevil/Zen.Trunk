@@ -6,10 +6,13 @@
 //
 //--------------------------------------------------------------------------
 
+using System;
+using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 
-namespace System.Collections.Concurrent
+namespace Zen.Trunk.CoordinationDataStructures
 {
     /// <summary>Debug view for the IProducerConsumerCollection.</summary>
     /// <typeparam name="T">Specifies the type of the data being aggregated.</typeparam>

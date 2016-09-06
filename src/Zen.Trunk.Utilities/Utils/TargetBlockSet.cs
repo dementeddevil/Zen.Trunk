@@ -1,11 +1,10 @@
-﻿namespace System.Threading.Tasks.Dataflow
-{
-	using System;
-	using Collections.Generic;
-	using Linq;
-	using Text;
+﻿using System;
+using System.Threading.Tasks;
+using System.Threading.Tasks.Dataflow;
 
-	public interface ITargetBlockSet : ITargetBlock<object>
+namespace Zen.Trunk.Utils
+{
+    public interface ITargetBlockSet : ITargetBlock<object>
 	{
 	}
 

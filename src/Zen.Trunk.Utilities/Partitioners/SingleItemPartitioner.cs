@@ -6,12 +6,15 @@
 //
 //--------------------------------------------------------------------------
 
+using System;
+using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 
-namespace System.Collections.Concurrent.Partitioners
+namespace Zen.Trunk.Partitioners
 {
     /// <summary>Partitions a data source one item at a time.</summary>
     public static class SingleItemPartitioner

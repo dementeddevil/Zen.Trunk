@@ -6,10 +6,13 @@
 //
 //--------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
-namespace System.Threading.Tasks.Schedulers
+namespace Zen.Trunk.TaskSchedulers
 {
     /// <summary>
     /// Provides a task scheduler that ensures a maximum concurrency level while

@@ -6,10 +6,13 @@
 //
 //--------------------------------------------------------------------------
 
+using System;
+using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 
-namespace System.Collections.Concurrent.Partitioners
+namespace Zen.Trunk.Partitioners
 {
     /// <summary>
     /// Partitions an enumerable into chunks based on user-supplied criteria.

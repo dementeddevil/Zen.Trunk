@@ -6,10 +6,10 @@
 //
 //--------------------------------------------------------------------------
 
-using System.Threading;
+using System;
 using System.Threading.Tasks;
 
-namespace System
+namespace Zen.Trunk.Extensions
 {
     /// <summary>Extension methods for Lazy.</summary>
     public static class LazyExtensions

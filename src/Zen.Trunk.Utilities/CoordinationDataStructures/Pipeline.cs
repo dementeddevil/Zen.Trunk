@@ -6,12 +6,14 @@
 //
 //--------------------------------------------------------------------------
 
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
-using System.Threading.Tasks.Schedulers;
+using Zen.Trunk.TaskSchedulers;
 
-namespace System.Threading
+namespace Zen.Trunk.CoordinationDataStructures
 {
 	/// <summary>Provides support for pipelined data processing.</summary>
 	public static class Pipeline

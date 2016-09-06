@@ -6,9 +6,10 @@
 //
 //--------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 
-namespace System
+namespace Zen.Trunk.Extensions
 {
     /// <summary>Extension methods for AggregateException.</summary>
     public static class AggregateExceptionExtensions

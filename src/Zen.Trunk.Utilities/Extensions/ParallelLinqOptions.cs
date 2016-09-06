@@ -6,10 +6,11 @@
 //
 //--------------------------------------------------------------------------
 
-using System.Threading;
+using System;
+using System.Linq;
 using System.Threading.Tasks;
 
-namespace System.Linq
+namespace Zen.Trunk.Extensions
 {
     /// <summary>Provides a grouping for common Parallel LINQ options.</summary>
     public sealed class ParallelLinqOptions : ParallelOptions

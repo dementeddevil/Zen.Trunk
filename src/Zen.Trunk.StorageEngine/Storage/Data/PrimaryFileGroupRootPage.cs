@@ -1,3 +1,5 @@
+using Zen.Trunk.Utils;
+
 namespace Zen.Trunk.Storage.Data
 {
 	using System;

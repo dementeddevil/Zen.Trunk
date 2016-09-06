@@ -1,4 +1,5 @@
 using Autofac;
+using Zen.Trunk.Extensions;
 
 namespace Zen.Trunk.Storage.Log
 {
@@ -9,7 +10,6 @@ namespace Zen.Trunk.Storage.Log
 	using System.Threading;
 	using System.Threading.Tasks;
 	using System.Threading.Tasks.Dataflow;
-	using System.Threading.Tasks.Schedulers;
 	using Data;
 	using IO;
 

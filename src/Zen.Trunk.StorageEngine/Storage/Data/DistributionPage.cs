@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Zen.Trunk.Storage.IO;
 using Zen.Trunk.Storage.Locking;
+using Zen.Trunk.Utils;
 
 namespace Zen.Trunk.Storage.Data
 {

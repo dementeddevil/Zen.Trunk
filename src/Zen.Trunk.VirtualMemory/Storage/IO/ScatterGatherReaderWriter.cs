@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Zen.Trunk.Utils;
 
 namespace Zen.Trunk.Storage.IO
 {

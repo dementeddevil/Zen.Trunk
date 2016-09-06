@@ -6,7 +6,10 @@
 //
 //--------------------------------------------------------------------------
 
-namespace System.IO
+using System;
+using System.IO;
+
+namespace Zen.Trunk.CoordinationDataStructures
 {
     /// <summary>Base stream class that implements all of Stream's abstract members.</summary>
     public abstract class AbstractStreamBase : Stream

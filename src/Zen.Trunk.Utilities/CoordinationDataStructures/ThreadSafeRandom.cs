@@ -8,8 +8,9 @@
 
 using System;
 using System.Security.Cryptography;
+using System.Threading;
 
-namespace System.Threading
+namespace Zen.Trunk.CoordinationDataStructures
 {
     /// <summary>
     /// Represents a thread-safe, pseudo-random number generator.

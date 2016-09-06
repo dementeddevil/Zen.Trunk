@@ -8,7 +8,7 @@
 
 using System.Threading.Tasks;
 
-namespace System.Threading.Algorithms
+namespace Zen.Trunk.ParallelAlgorithms
 {
     /// <summary>
     /// Provides parallelized algorithms for common operations.

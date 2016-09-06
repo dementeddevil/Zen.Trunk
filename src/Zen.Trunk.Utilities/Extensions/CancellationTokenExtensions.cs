@@ -6,10 +6,9 @@
 //
 //--------------------------------------------------------------------------
 
-using System.Collections.Concurrent.Partitioners;
-using System.Collections.Generic;
+using System.Threading;
 
-namespace System.Threading
+namespace Zen.Trunk.Extensions
 {
     /// <summary>Extension methods for CancellationToken.</summary>
     public static class CancellationTokenExtensions

@@ -1,4 +1,6 @@
-namespace System.Threading.Tasks.Dataflow
+using System.Threading.Tasks;
+
+namespace Zen.Trunk.Utils
 {
     public interface ITaskRequest
     {

@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Zen.Trunk.Extensions;
 using Zen.Trunk.Logging;
 using Zen.Trunk.Storage.Locking;
 using Zen.Trunk.Storage.Log;

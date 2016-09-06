@@ -6,9 +6,11 @@
 //
 //--------------------------------------------------------------------------
 
+using System;
+using System.Threading;
 using System.Threading.Tasks;
 
-namespace System.Threading
+namespace Zen.Trunk.CoordinationDataStructures
 {
     /// <summary>Provides a simple, reference type wrapper for SpinLock.</summary>
     public class SpinLockClass

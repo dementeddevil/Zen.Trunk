@@ -6,11 +6,13 @@
 //
 //--------------------------------------------------------------------------
 
-namespace System.Threading.Tasks
-{
-	using Collections.Generic;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
-	public static partial class TaskFactoryExtensions
+namespace Zen.Trunk.Extensions.TaskFactoryExtensions
+{
+    public static partial class TaskFactoryExtensions
 	{
 		/// <summary>Asynchronously executes a sequence of tasks, maintaining a list of all tasks processed.</summary>
 		/// <param name="factory">The TaskFactory to use to create the task.</param>
