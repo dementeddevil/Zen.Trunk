@@ -22,7 +22,7 @@ namespace Zen.Trunk.Extensions
 		public static void Clear<T>(this IProducerConsumerCollection<T> collection)
 		{
 			T ignored;
-			while (collection.TryTake(out ignored)) ;
+			while (collection.TryTake(out ignored));
 		}
 
 		/// <summary>Creates an enumerable which will consume and return elements from the collection.</summary>
@@ -55,10 +55,6 @@ namespace Zen.Trunk.Extensions
 		/// <typeparam name="T">Specifies the type of the elements in the collection.</typeparam>
 		/// <param name="target">The target collection to be augmented.</param>
 		/// <param name="source">The source observable containing the data to be added.</param>
-		/// <param name="completeAddingWhenDone">
-		/// Whether to mark the target collection as complete for adding when 
-		/// all elements of the source observable have been transfered.
-		/// </param>
 		/// <returns>An IDisposable that may be used to cancel the transfer.</returns>
 		public static IDisposable AddFromObservable<T>(this IProducerConsumerCollection<T> target, IObservable<T> source)
 		{

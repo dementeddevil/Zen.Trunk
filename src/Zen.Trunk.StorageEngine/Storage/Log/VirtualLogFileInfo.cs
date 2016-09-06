@@ -1,7 +1,5 @@
 namespace Zen.Trunk.Storage.Log
 {
-	using System;
-
 	public class VirtualLogFileInfo : BufferFieldWrapper
 	{
 		#region Private Fields

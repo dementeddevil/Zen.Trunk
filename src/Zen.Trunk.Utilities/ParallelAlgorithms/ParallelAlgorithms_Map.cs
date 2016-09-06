@@ -22,7 +22,7 @@ namespace Zen.Trunk.ParallelAlgorithms
         /// <returns>The output data, transformed using the transform function.</returns>
         public static TOutput[] Map<TInput, TOutput>(IList<TInput> input, Func<TInput, TOutput> transform)
         {
-            return Map(input, s_defaultParallelOptions, transform);
+            return Map(input, DefaultParallelOptions, transform);
         }
 
         /// <summary>Executes a map operation, converting an input list into an output list, in parallel.</summary>

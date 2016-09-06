@@ -21,7 +21,7 @@ namespace Zen.Trunk.ParallelAlgorithms
         public static void ParallelWhile(Func<bool> condition, Action body)
         {
             // Just delegate to the overload that accepts a ParallelOptions
-            ParallelWhile(s_defaultParallelOptions, condition, body);
+            ParallelWhile(DefaultParallelOptions, condition, body);
         }
 
         /// <summary>Repeatedly executes an operation in parallel while the specified condition evaluates to true.</summary>

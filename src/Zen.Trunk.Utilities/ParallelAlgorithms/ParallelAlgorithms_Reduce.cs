@@ -24,7 +24,7 @@ namespace Zen.Trunk.ParallelAlgorithms
             IList<T> input, T seed, 
             Func<T, T, T> associativeCommutativeOperation)
         {
-            return Reduce(input, s_defaultParallelOptions, seed, associativeCommutativeOperation);
+            return Reduce(input, DefaultParallelOptions, seed, associativeCommutativeOperation);
         }
 
         /// <summary>Reduces the input data using the specified aggregation operation.</summary>
@@ -54,7 +54,7 @@ namespace Zen.Trunk.ParallelAlgorithms
             int fromInclusive, int toExclusive, 
             Func<int, T> mapOperation, T seed, Func<T, T, T> associativeCommutativeOperation)
         {
-            return Reduce(fromInclusive, toExclusive, s_defaultParallelOptions, mapOperation, seed, associativeCommutativeOperation);
+            return Reduce(fromInclusive, toExclusive, DefaultParallelOptions, mapOperation, seed, associativeCommutativeOperation);
         }
 
         /// <summary>Reduces the input range using the specified aggregation operation.</summary>

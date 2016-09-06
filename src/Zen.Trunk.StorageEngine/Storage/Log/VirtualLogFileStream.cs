@@ -237,7 +237,7 @@ namespace Zen.Trunk.Storage.Log
 		/// <returns><see cref="T:LogEntry"/> object.</returns>
 		public LogEntry ReadEntry ()
 		{
-			LogEntry entry = null;
+			LogEntry entry;
 			EnsurePositionValid ();
 			try
 			{
@@ -345,7 +345,7 @@ namespace Zen.Trunk.Storage.Log
 				throw new InvalidOperationException ("Stream does not support reading at this time.");
 			}
 
-			var retVal = 0;
+			int retVal;
 			EnsurePositionValid ();
 			try
 			{
@@ -372,7 +372,7 @@ namespace Zen.Trunk.Storage.Log
 				throw new InvalidOperationException ("Stream does not support reading at this time.");
 			}
 
-			var retVal = 0;
+			int retVal;
 			EnsurePositionValid ();
 			try
 			{
@@ -467,7 +467,7 @@ namespace Zen.Trunk.Storage.Log
 				_writeFirstHeader = false;
 				return;
 			}
-			else if (valid2 && !valid1)
+			if (valid2 && !valid1)
 			{
 				_logFileInfo.CurrentHeader = info2;
 				_writeFirstHeader = true;
@@ -475,7 +475,7 @@ namespace Zen.Trunk.Storage.Log
 			}
 
 			// Check for no valid headers
-			else if (!valid1 && !valid2)
+			if (!valid1 && !valid2)
 			{
 				throw new InvalidOperationException ("No valid file header.");
 			}

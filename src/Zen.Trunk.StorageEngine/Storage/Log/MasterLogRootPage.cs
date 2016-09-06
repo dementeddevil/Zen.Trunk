@@ -4,14 +4,12 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+using System;
+using System.Collections.Generic;
+using Zen.Trunk.Storage.IO;
+
 namespace Zen.Trunk.Storage.Log
 {
-	using System;
-	using System.Collections.Generic;
-	using System.Linq;
-	using System.Text;
-	using IO;
-
 	/// <summary>
 	/// TODO: Update summary.
 	/// </summary>
@@ -219,7 +217,7 @@ namespace Zen.Trunk.Storage.Log
 		/// <summary>
 		/// Adds the device to the root page record.
 		/// </summary>
-		/// <param name="device"></param>
+		/// <param name="deviceInfo"></param>
 		internal void AddDevice(DeviceInfo deviceInfo)
 		{
 			_deviceById.Add(deviceInfo.Id, deviceInfo);
@@ -259,7 +257,7 @@ namespace Zen.Trunk.Storage.Log
 			}
 			if (_checkPointHistoryCount.Value < 3)
 			{
-				CheckPointInfo cpi = null;
+				CheckPointInfo cpi;
 				if (start)
 				{
 					cpi = new CheckPointInfo();
@@ -279,7 +277,7 @@ namespace Zen.Trunk.Storage.Log
 			{
 				_lastCheckPoint[0] = _lastCheckPoint[1];
 				_lastCheckPoint[1] = _lastCheckPoint[2];
-				CheckPointInfo cpi = null;
+				CheckPointInfo cpi;
 				if (start)
 				{
 					cpi = new CheckPointInfo();

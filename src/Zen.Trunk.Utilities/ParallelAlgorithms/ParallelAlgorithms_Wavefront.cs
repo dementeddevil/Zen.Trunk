@@ -32,7 +32,7 @@ namespace Zen.Trunk.ParallelAlgorithms
             if (numBlocksPerColumn <= 0 || numBlocksPerColumn > numColumns)
                 throw new ArgumentOutOfRangeException(nameof(numBlocksPerColumn));
             if (processBlock == null)
-                throw new ArgumentNullException("processRowColumnCell");
+                throw new ArgumentNullException(nameof(processBlock));
 
             // Compute the size of each block
             var rowBlockSize = numRows / numBlocksPerRow;

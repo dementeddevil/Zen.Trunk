@@ -7,8 +7,7 @@ namespace Zen.Trunk.Storage.Locking
 	using System;
 	using System.Collections.Generic;
 	using System.Linq;
-	using System.Threading;
-
+	
 	/// <summary>
 	/// <c>LockOwnerBlockBase</c> contains the core functionality needed to
 	/// track the lock objects on a database entity on behalf of a transaction.
@@ -443,7 +442,7 @@ namespace Zen.Trunk.Storage.Locking
 				}
 			}
 
-			DataLock lockObj = null;
+			DataLock lockObj;
 
 			// Check whether we have an existing read lock
 			if (_readLocks.ContainsKey(key))
@@ -507,7 +506,7 @@ namespace Zen.Trunk.Storage.Locking
 			// Technically we can only obtain an exclusive lock via an update
 			//	lock...
 			// However we support attempts to gain an exclusive lock directly
-			DataLock lockObj = null;
+			DataLock lockObj;
 			if (_updateLocks.ContainsKey(key))
 			{
 				// TODO: If ObjectLock ever supports escalation of update locks

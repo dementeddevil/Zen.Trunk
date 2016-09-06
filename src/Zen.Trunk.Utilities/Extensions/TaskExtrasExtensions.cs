@@ -116,9 +116,9 @@ namespace Zen.Trunk.Extensions
         /// <returns>The original Task.</returns>
         public static Task IgnoreExceptions(this Task task)
         {
-            task.ContinueWith(t => { var ignored = t.Exception; }, 
+            task.ContinueWith(t => { var ignored = t.Exception; },
                 CancellationToken.None,
-                TaskContinuationOptions.ExecuteSynchronously | TaskContinuationOptions.OnlyOnFaulted, 
+                TaskContinuationOptions.ExecuteSynchronously | TaskContinuationOptions.OnlyOnFaulted,
                 TaskScheduler.Default);
             return task;
         }
@@ -160,8 +160,8 @@ namespace Zen.Trunk.Extensions
         }
 
         /// <summary>Propagates any exceptions that occurred on the specified tasks.</summary>
-        /// <param name="task">The Tassk whose exceptions are to be propagated.</param>
-        public static void PropagateExceptions(this Task [] tasks)
+        /// <param name="tasks">The Tasks whose exceptions are to be propagated.</param>
+        public static void PropagateExceptions(this Task[] tasks)
         {
             if (tasks == null) throw new ArgumentNullException(nameof(tasks));
             if (tasks.Any(t => t == null)) throw new ArgumentException("tasks");
@@ -178,14 +178,14 @@ namespace Zen.Trunk.Extensions
         public static IObservable<TResult> ToObservable<TResult>(this Task<TResult> task)
         {
             if (task == null) throw new ArgumentNullException(nameof(task));
-            return new TaskObservable<TResult> { _task = task };
+            return new TaskObservable<TResult> { Task = task };
         }
 
         /// <summary>An implementation of IObservable that wraps a Task.</summary>
         /// <typeparam name="TResult">The type of data returned by the task.</typeparam>
         private class TaskObservable<TResult> : IObservable<TResult>
         {
-            internal Task<TResult> _task;
+            internal Task<TResult> Task;
 
             public IDisposable Subscribe(IObserver<TResult> observer)
             {
@@ -196,17 +196,17 @@ namespace Zen.Trunk.Extensions
                 var cts = new CancellationTokenSource();
 
                 // Create a continuation to pass data along to the observer
-                _task.ContinueWith(t =>
+                Task.ContinueWith(t =>
                 {
                     switch (t.Status)
                     {
                         case TaskStatus.RanToCompletion:
-                            observer.OnNext(_task.Result);
+                            observer.OnNext(Task.Result);
                             observer.OnCompleted();
                             break;
 
                         case TaskStatus.Faulted:
-                            observer.OnError(_task.Exception);
+                            observer.OnError(Task.Exception);
                             break;
 
                         case TaskStatus.Canceled:
@@ -230,7 +230,6 @@ namespace Zen.Trunk.Extensions
 
         #region Timeouts
         /// <summary>Creates a new Task that mirrors the supplied task but that will be canceled after the specified timeout.</summary>
-        /// <typeparam name="TResult">Specifies the type of data contained in the task.</typeparam>
         /// <param name="task">The task.</param>
         /// <param name="timeout">The timeout.</param>
         /// <returns>The new Task that may time out.</returns>
@@ -275,7 +274,7 @@ namespace Zen.Trunk.Extensions
         {
             if (task == null) throw new ArgumentNullException(nameof(task));
             task.ContinueWith(t => t.Wait(), CancellationToken.None,
-                TaskContinuationOptions.AttachedToParent | 
+                TaskContinuationOptions.AttachedToParent |
                 TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
         }
         #endregion

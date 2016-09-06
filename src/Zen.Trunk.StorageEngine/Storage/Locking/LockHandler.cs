@@ -1,12 +1,10 @@
+using System;
+using System.Collections.Generic;
+using System.Threading;
 using Zen.Trunk.CoordinationDataStructures;
 
 namespace Zen.Trunk.Storage.Locking
 {
-	using System;
-	using System.Collections.Concurrent;
-	using System.Collections.Generic;
-	using System.Threading;
-
 	/// <summary>
 	/// Implements a lock handler object.
 	/// </summary>

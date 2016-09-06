@@ -160,7 +160,7 @@ namespace Zen.Trunk.Extensions.TaskFactoryExtensions
         {
             // Validate/update parameters
             if (factory == null) throw new ArgumentNullException(nameof(factory));
-            if (source == null) throw new ArgumentNullException("asyncIterator");
+            if (source == null) throw new ArgumentNullException(nameof(source));
             if (scheduler == null) throw new ArgumentNullException(nameof(scheduler));
 
             // Get an enumerator from the enumerable

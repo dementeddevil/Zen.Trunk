@@ -74,7 +74,7 @@ namespace Zen.Trunk.TaskSchedulers
         /// </summary>
         private readonly int _concurrencyLevel;
         /// <summary>Whether we're processing tasks on the current thread.</summary>
-        private static readonly ThreadLocal<bool> _taskProcessingThread = new ThreadLocal<bool>();
+        private static readonly ThreadLocal<bool> TaskProcessingThread = new ThreadLocal<bool>();
 
         // ***
         // *** For when using a target scheduler
@@ -85,7 +85,7 @@ namespace Zen.Trunk.TaskSchedulers
         /// <summary>The queue of tasks to process when using an underlying target scheduler.</summary>
         private readonly Queue<Task> _nonthreadsafeTaskQueue;
         /// <summary>The number of Tasks that have been queued or that are running whiel using an underlying scheduler.</summary>
-        private int _delegatesQueuedOrRunning = 0;
+        private int _delegatesQueuedOrRunning;
 
         // ***
         // *** For when using our own threads
@@ -113,8 +113,8 @@ namespace Zen.Trunk.TaskSchedulers
             int maxConcurrencyLevel)
         {
             // Validate arguments
-            if (targetScheduler == null) throw new ArgumentNullException("underlyingScheduler");
-            if (maxConcurrencyLevel < 0) throw new ArgumentOutOfRangeException("concurrencyLevel");
+            if (targetScheduler == null) throw new ArgumentNullException(nameof(targetScheduler));
+            if (maxConcurrencyLevel < 0) throw new ArgumentOutOfRangeException(nameof(maxConcurrencyLevel));
 
             // Initialize only those fields relevant to use an underlying scheduler.  We don't
             // initialize the fields relevant to using our own custom threads.
@@ -156,7 +156,7 @@ namespace Zen.Trunk.TaskSchedulers
         {
             // Validates arguments (some validation is left up to the Thread type itself).
             // If the thread count is 0, default to the number of logical processors.
-            if (threadCount < 0) throw new ArgumentOutOfRangeException("concurrencyLevel");
+            if (threadCount < 0) throw new ArgumentOutOfRangeException(nameof(threadCount));
             else if (threadCount == 0) _concurrencyLevel = Environment.ProcessorCount;
             else _concurrencyLevel = threadCount;
 
@@ -185,7 +185,7 @@ namespace Zen.Trunk.TaskSchedulers
         /// <param name="threadFinally">A finalization routine to run before the thread ends.</param>
         private void ThreadBasedDispatchLoop(Action threadInit, Action threadFinally)
         {
-            _taskProcessingThread.Value = true;
+            TaskProcessingThread.Value = true;
             if (threadInit != null) threadInit();
             try
             {
@@ -240,7 +240,7 @@ namespace Zen.Trunk.TaskSchedulers
             {
                 // Run a cleanup routine if there was one
                 if (threadFinally != null) threadFinally();
-                _taskProcessingThread.Value = false;
+                TaskProcessingThread.Value = false;
             }
         }
 
@@ -358,7 +358,7 @@ namespace Zen.Trunk.TaskSchedulers
                 try
                 {
                     // Note that we're processing tasks on this thread
-                    _taskProcessingThread.Value = true;
+                    TaskProcessingThread.Value = true;
 
                     // Until there are no more tasks to process
                     while (!_disposeCancellation.IsCancellationRequested)
@@ -400,7 +400,7 @@ namespace Zen.Trunk.TaskSchedulers
                         {
                             _delegatesQueuedOrRunning--;
                             continueProcessing = false;
-                            _taskProcessingThread.Value = false;
+                            TaskProcessingThread.Value = false;
                         }
                     }
                 }
@@ -417,7 +417,7 @@ namespace Zen.Trunk.TaskSchedulers
         protected override bool TryExecuteTaskInline(Task task, bool taskWasPreviouslyQueued)
         {
             // If we're already running tasks on this threads, enable inlining
-            return _taskProcessingThread.Value && TryExecuteTask(task);
+            return TaskProcessingThread.Value && TryExecuteTask(task);
         }
 
         /// <summary>Gets the tasks scheduled to this scheduler.</summary>
@@ -496,7 +496,7 @@ namespace Zen.Trunk.TaskSchedulers
         private class QueueGroup : List<QueuedTaskSchedulerQueue>
         {
             /// <summary>The starting index for the next round-robin traversal.</summary>
-            public int NextQueueIndex = 0;
+            public int NextQueueIndex;
 
             /// <summary>Creates a search order through this group.</summary>
             /// <returns>An enumerable of indices for this group.</returns>
@@ -585,7 +585,7 @@ namespace Zen.Trunk.TaskSchedulers
             {
                 // If we're using our own threads and if this is being called from one of them,
                 // or if we're currently processing another task on this thread, try running it inline.
-                return _taskProcessingThread.Value && TryExecuteTask(task);
+                return TaskProcessingThread.Value && TryExecuteTask(task);
             }
 
             /// <summary>Runs the specified ask.</summary>

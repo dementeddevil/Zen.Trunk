@@ -30,7 +30,7 @@ namespace Zen.Trunk.Extensions
 				BlockingCollection<T> collection, int millisecondsTimeout, CancellationToken cancellationToken)
 			{
 				if (collection == null)
-					throw new ArgumentNullException("bc");
+					throw new ArgumentNullException(nameof(collection));
 				if (millisecondsTimeout < -1)
 					throw new ArgumentOutOfRangeException(nameof(millisecondsTimeout));
 				_collection = collection;

@@ -18,13 +18,12 @@ namespace Zen.Trunk.ParallelAlgorithms
         /// <typeparam name="TResult">The type of the data returned.</typeparam>
         /// <param name="fromInclusive">The start of the range, inclusive.</param>
         /// <param name="toExclusive">The end of the range, exclusive.</param>
-        /// <param name="options">The options to use for processing the loop.</param>
         /// <param name="body">The function to execute for each element.</param>
         /// <returns>The result computed.</returns>
         public static TResult SpeculativeFor<TResult>(
             int fromInclusive, int toExclusive, Func<int, TResult> body)
         {
-            return SpeculativeFor(fromInclusive, toExclusive, s_defaultParallelOptions, body);
+            return SpeculativeFor(fromInclusive, toExclusive, DefaultParallelOptions, body);
         }
 
         /// <summary>Executes a function for each value in a range, returning the first result achieved and ceasing execution.</summary>

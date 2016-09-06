@@ -21,7 +21,7 @@ namespace Zen.Trunk.ParallelAlgorithms
         /// <param name="body">The delegate that is invoked once per iteration.</param>
         public static void For(BigInteger fromInclusive, BigInteger toExclusive, Action<BigInteger> body)
         {
-            For(fromInclusive, toExclusive, s_defaultParallelOptions, body);
+            For(fromInclusive, toExclusive, DefaultParallelOptions, body);
         }
 
         /// <summary>Executes a for loop in which iterations may run in parallel.</summary>

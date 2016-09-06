@@ -16,6 +16,6 @@ namespace Zen.Trunk.ParallelAlgorithms
     public static partial class ParallelAlgorithms
     {
         // Default, shared instance of the ParallelOptions class.  This should not be modified.
-        private static readonly ParallelOptions s_defaultParallelOptions = new ParallelOptions();
+        private static readonly ParallelOptions DefaultParallelOptions = new ParallelOptions();
     }
 }

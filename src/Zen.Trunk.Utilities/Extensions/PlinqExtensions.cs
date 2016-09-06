@@ -56,8 +56,9 @@ namespace Zen.Trunk.Extensions
         /// <typeparam name="T">Specifies the type being compared.</typeparam>
         private class DescendingDefaultComparer<T> : IComparer<T>
         {
-            private static readonly Comparer<T> _defaultComparer = Comparer<T>.Default;
-            public int Compare(T x, T y) { return _defaultComparer.Compare(y, x); }
+            private static readonly Comparer<T> DefaultComparer = Comparer<T>.Default;
+
+            public int Compare(T x, T y) { return DefaultComparer.Compare(y, x); }
         }
 
         /// <summary>Implements a map-reduce operation.</summary>

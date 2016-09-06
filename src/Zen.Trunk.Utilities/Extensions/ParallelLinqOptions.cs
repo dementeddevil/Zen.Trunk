@@ -17,7 +17,6 @@ namespace Zen.Trunk.Extensions
     {
         private ParallelExecutionMode _executionMode = ParallelExecutionMode.Default;
         private ParallelMergeOptions _mergeOptions = ParallelMergeOptions.Default;
-        private bool _ordered = false;
 
         /// <summary>Gets or sets the execution mode.</summary>
         public ParallelExecutionMode ExecutionMode
@@ -26,7 +25,10 @@ namespace Zen.Trunk.Extensions
             set
             {
                 if (value != ParallelExecutionMode.Default &&
-                    value != ParallelExecutionMode.ForceParallelism) throw new ArgumentOutOfRangeException("ExecutionMode");
+                    value != ParallelExecutionMode.ForceParallelism)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(value));
+                }
                 _executionMode = value;
             }
         }
@@ -40,16 +42,15 @@ namespace Zen.Trunk.Extensions
                 if (value != ParallelMergeOptions.AutoBuffered &&
                     value != ParallelMergeOptions.Default &&
                     value != ParallelMergeOptions.FullyBuffered &&
-                    value != ParallelMergeOptions.NotBuffered) throw new ArgumentOutOfRangeException("MergeOptions");
+                    value != ParallelMergeOptions.NotBuffered)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(value));
+                }
                 _mergeOptions = value;
             }
         }
 
         /// <summary>Gets or sets whether the query should retain ordering.</summary>
-        public bool Ordered
-        {
-            get { return _ordered; }
-            set { _ordered = value; }
-        }
+        public bool Ordered { get; set; }
     }
 }

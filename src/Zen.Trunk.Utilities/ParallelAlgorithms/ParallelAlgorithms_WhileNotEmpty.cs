@@ -21,7 +21,7 @@ namespace Zen.Trunk.ParallelAlgorithms
         /// <param name="body">The operation to execute for each value.</param>
         public static void WhileNotEmpty<T>(IEnumerable<T> initialValues, Action<T, Action<T>> body)
         {
-            WhileNotEmpty(s_defaultParallelOptions, initialValues, body);
+            WhileNotEmpty(DefaultParallelOptions, initialValues, body);
         }
 
         /// <summary>Processes data in parallel, allowing the processing function to add more data to be processed.</summary>

@@ -24,7 +24,7 @@ namespace Zen.Trunk.ParallelAlgorithms
         public static TResult SpeculativeForEach<TSource, TResult>(IEnumerable<TSource> source, Func<TSource, TResult> body)
         {
             // Run with default options
-            return SpeculativeForEach(source, s_defaultParallelOptions, body);
+            return SpeculativeForEach(source, DefaultParallelOptions, body);
         }
 
         /// <summary>Executes a function for each element in a source, returning the first result achieved and ceasing execution.</summary>

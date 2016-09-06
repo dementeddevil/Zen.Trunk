@@ -52,7 +52,6 @@ namespace Zen.Trunk.Partitioners
             }
 
             /// <summary>Gets a list of the specified static number of partitions.</summary>
-            /// <param name="partitionCount">The static number of partitions to create.</param>
             /// <returns>The list of created partitions ready to be iterated.</returns>
             public override IEnumerable<KeyValuePair<long, T>> GetOrderableDynamicPartitions()
             {

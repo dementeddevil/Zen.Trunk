@@ -1,9 +1,7 @@
+using System;
+
 namespace Zen.Trunk.Storage
 {
-	using System;
-	using System.Collections.Generic;
-	using System.Text;
-
 	/// <summary>
 	/// Define the page status.
 	/// </summary>

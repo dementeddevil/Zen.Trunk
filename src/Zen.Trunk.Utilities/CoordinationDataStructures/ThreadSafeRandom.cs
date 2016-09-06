@@ -18,12 +18,13 @@ namespace Zen.Trunk.CoordinationDataStructures
     public class ThreadSafeRandom : Random
     {
         /// <summary>Seed provider.</summary>
-        private static readonly RNGCryptoServiceProvider _global = new RNGCryptoServiceProvider();
+        private static readonly RNGCryptoServiceProvider Global = new RNGCryptoServiceProvider();
+
         /// <summary>The underlyin provider of randomness, one instance per thread, initialized with _global.</summary>
         private readonly ThreadLocal<Random> _local = new ThreadLocal<Random>(() =>
         {
             var buffer = new byte[4];
-            _global.GetBytes(buffer); // RNGCryptoServiceProvider is thread-safe for use in this manner
+            Global.GetBytes(buffer); // RNGCryptoServiceProvider is thread-safe for use in this manner
             return new Random(BitConverter.ToInt32(buffer, 0));
         });
 

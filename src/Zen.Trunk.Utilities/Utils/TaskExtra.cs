@@ -27,7 +27,7 @@ namespace Zen.Trunk.Utils
 			}
 			else
 			{
-				return Task.WhenAll<TResult>(tasks);
+				return Task.WhenAll(tasks);
 			}
 		}
 
@@ -51,7 +51,7 @@ namespace Zen.Trunk.Utils
 			}
 			else
 			{
-				return Task.WhenAny<TResult>(tasks);
+				return Task.WhenAny(tasks);
 			}
 		}
 	}

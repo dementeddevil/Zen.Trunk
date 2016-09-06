@@ -20,7 +20,7 @@ namespace Zen.Trunk.ParallelAlgorithms
         public static T SpeculativeInvoke<T>(params Func<T>[] functions)
         {
             // Run with default options
-            return SpeculativeInvoke(s_defaultParallelOptions, functions);
+            return SpeculativeInvoke(DefaultParallelOptions, functions);
         }
 
         /// <summary>Invokes the specified functions, potentially in parallel, canceling outstanding invocations once one completes.</summary>

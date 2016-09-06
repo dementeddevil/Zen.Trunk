@@ -1,10 +1,8 @@
+using System;
+using System.Runtime.Serialization;
+
 namespace Zen.Trunk.Storage
 {
-	using System;
-	using System.Collections.Generic;
-	using System.Runtime.Serialization;
-	using System.Text;
-
 	/// <summary>
 	/// The class <b>StorageException</b> defines the base exception type thrown
 	/// from the storage sub-system class library.

@@ -57,20 +57,20 @@ namespace Zen.Trunk.Extensions
                     var newChildAggregate = HandleRecursively(innerAsAggregate, predicate);
                     if (newChildAggregate != null)
                     {
-                        if (innerExceptions != null) innerExceptions = new List<Exception>();
+                        if (innerExceptions == null) innerExceptions = new List<Exception>();
                         innerExceptions.Add(newChildAggregate);
                     }
                 }
                     // Otherwise, if the exception does not match the filter, store it
                 else if (!predicate(inner))
                 {
-                    if (innerExceptions != null) innerExceptions = new List<Exception>();
+                    if (innerExceptions == null) innerExceptions = new List<Exception>();
                     innerExceptions.Add(inner);
                 }
             }
             
             // If there are any remaining exceptions, return them in a new aggregate.
-            return innerExceptions.Count > 0 ?
+            return innerExceptions?.Count > 0 ?
                 new AggregateException(aggregateException.Message, innerExceptions) :
                 null;
         }

@@ -24,7 +24,7 @@ namespace Zen.Trunk.ParallelAlgorithms
             int fromInclusive, int toExclusive, 
             Action<int, int> body)
         {
-            return ForRange(fromInclusive, toExclusive, s_defaultParallelOptions, body);
+            return ForRange(fromInclusive, toExclusive, DefaultParallelOptions, body);
         }
 
         /// <summary>Executes a for loop over ranges in which iterations may run in parallel. </summary>
@@ -36,7 +36,7 @@ namespace Zen.Trunk.ParallelAlgorithms
             int fromInclusive, int toExclusive,
             Action<int, int, ParallelLoopState> body)
         {
-            return ForRange(fromInclusive, toExclusive, s_defaultParallelOptions, body);
+            return ForRange(fromInclusive, toExclusive, DefaultParallelOptions, body);
         }
 
         /// <summary>Executes a for loop over ranges in which iterations may run in parallel. </summary>
@@ -52,7 +52,7 @@ namespace Zen.Trunk.ParallelAlgorithms
             Func<int, int, ParallelLoopState, TLocal, TLocal> body,
             Action<TLocal> localFinally)
         {
-            return ForRange(fromInclusive, toExclusive, s_defaultParallelOptions,
+            return ForRange(fromInclusive, toExclusive, DefaultParallelOptions,
                 localInit, body, localFinally);
         }
         #endregion
@@ -67,7 +67,7 @@ namespace Zen.Trunk.ParallelAlgorithms
             long fromInclusive, long toExclusive,
             Action<long, long> body)
         {
-            return ForRange(fromInclusive, toExclusive, s_defaultParallelOptions, body);
+            return ForRange(fromInclusive, toExclusive, DefaultParallelOptions, body);
         }
 
         /// <summary>Executes a for loop over ranges in which iterations may run in parallel. </summary>
@@ -79,7 +79,7 @@ namespace Zen.Trunk.ParallelAlgorithms
             long fromInclusive, long toExclusive,
             Action<long, long, ParallelLoopState> body)
         {
-            return ForRange(fromInclusive, toExclusive, s_defaultParallelOptions, body);
+            return ForRange(fromInclusive, toExclusive, DefaultParallelOptions, body);
         }
 
         /// <summary>Executes a for loop over ranges in which iterations may run in parallel. </summary>
@@ -95,7 +95,7 @@ namespace Zen.Trunk.ParallelAlgorithms
             Func<long, long, ParallelLoopState, TLocal, TLocal> body,
             Action<TLocal> localFinally)
         {
-            return ForRange(fromInclusive, toExclusive, s_defaultParallelOptions,
+            return ForRange(fromInclusive, toExclusive, DefaultParallelOptions,
                 localInit, body, localFinally);
         }
         #endregion
@@ -144,6 +144,7 @@ namespace Zen.Trunk.ParallelAlgorithms
         /// <summary>Executes a for loop over ranges in which iterations may run in parallel. </summary>
         /// <param name="fromInclusive">The start index, inclusive.</param>
         /// <param name="toExclusive">The end index, exclusive.</param>
+        /// <param name="parallelOptions">Parallel loop options.</param>
         /// <param name="localInit">The function delegate that returns the initial state of the local data for each thread.</param>
         /// <param name="body">The delegate that is invoked once per range.</param>
         /// <param name="localFinally">The delegate that performs a final action on the local state of each thread.</param>
@@ -211,6 +212,7 @@ namespace Zen.Trunk.ParallelAlgorithms
         /// <summary>Executes a for loop over ranges in which iterations may run in parallel. </summary>
         /// <param name="fromInclusive">The start index, inclusive.</param>
         /// <param name="toExclusive">The end index, exclusive.</param>
+        /// <param name="parallelOptions">Parallel loop options.</param>
         /// <param name="localInit">The function delegate that returns the initial state of the local data for each thread.</param>
         /// <param name="body">The delegate that is invoked once per range.</param>
         /// <param name="localFinally">The delegate that performs a final action on the local state of each thread.</param>

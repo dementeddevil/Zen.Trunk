@@ -1,7 +1,5 @@
 ﻿namespace Zen.Trunk.Storage.Log
 {
-	using System.Threading.Tasks.Dataflow;
-
 	public class AddLogDeviceParameters : AddDeviceParameters
 	{
 		#region Public Constructors

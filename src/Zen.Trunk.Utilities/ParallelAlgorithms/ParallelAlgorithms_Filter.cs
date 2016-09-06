@@ -21,7 +21,7 @@ namespace Zen.Trunk.ParallelAlgorithms
         /// <returns>A new list containing all those elements from the input that passed the filter.</returns>
         public static IList<T> Filter<T>(IList<T> input, Func<T, bool> predicate)
         {
-            return Filter(input, s_defaultParallelOptions, predicate);
+            return Filter(input, DefaultParallelOptions, predicate);
         }
 
         /// <summary>Filters an input list, running a predicate over each element of the input.</summary>

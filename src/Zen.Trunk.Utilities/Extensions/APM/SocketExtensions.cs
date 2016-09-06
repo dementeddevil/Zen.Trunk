@@ -20,7 +20,7 @@ namespace Zen.Trunk.Extensions.APM
 			List<ArraySegment<byte>> buffers,
 			SocketFlags socketFlags)
 		{
-			return Task.Factory.FromAsync<int>(
+			return Task.Factory.FromAsync(
 				socket.BeginSend(buffers, socketFlags, null, null),
 				socket.EndSend);
 		}
@@ -30,7 +30,7 @@ namespace Zen.Trunk.Extensions.APM
 			List<ArraySegment<byte>> buffers,
 			SocketFlags socketFlags)
 		{
-			return Task.Factory.FromAsync<int>(
+			return Task.Factory.FromAsync(
 				socket.BeginReceive(buffers, socketFlags, null, null),
 				socket.EndReceive);
 		}
@@ -46,8 +46,9 @@ namespace Zen.Trunk.Extensions.APM
 		public static Task<Socket> AcceptAsync(
 			this Socket socket)
 		{
-			return Task.Factory.FromAsync<Socket>(
-				socket.BeginAccept(null, null), socket.EndAccept);
+			return Task.Factory.FromAsync(
+				socket.BeginAccept(null, null),
+                socket.EndAccept);
 		}
 	}
 }

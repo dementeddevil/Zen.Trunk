@@ -64,11 +64,8 @@
 		{
 			get
 			{
-				return (ushort)Enumerable
-					.Zip<TableColumnInfo, object, int>(
-						_rowDef,
-						_rowValues,
-						(def, val) => def.GetActualDataSize(val))
+				return (ushort)_rowDef
+					.Zip(_rowValues, (def, val) => def.GetActualDataSize(val))
 					.Sum();
 			}
 		}

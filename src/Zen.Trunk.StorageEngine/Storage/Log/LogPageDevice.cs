@@ -1,36 +1,31 @@
-using Autofac;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Threading.Tasks;
 using Zen.Trunk.Extensions;
+using Zen.Trunk.Storage.Data;
+using Zen.Trunk.Storage.IO;
 
 namespace Zen.Trunk.Storage.Log
 {
-	using System;
-	using System.Collections.Generic;
-	using System.IO;
-	using System.Linq;
-	using System.Threading;
-	using System.Threading.Tasks;
-	using System.Threading.Tasks.Dataflow;
-	using Data;
-	using IO;
-
-	/// <summary>
-	/// The <b>LogPageDevice</b> is page device designed to contain physical
-	/// physical buffer devices that are used in concert to provide the 
-	/// transaction log page space.
-	/// </summary>
-	/// <remarks>
-	/// <para>
-	/// The log page space is split into chunks that are represented by
-	/// Virtual Log File Streams. Each stream stores complete log records
-	/// together with redundant header information as part of the storage
-	/// policy.
-	/// </para>
-	/// <para>
-	/// All reads and writes to the underlying file-system streams is
-	/// performed via asynchronous I/O.
-	/// </para>
-	/// </remarks>
-	public class LogPageDevice : MountableDevice
+    /// <summary>
+    /// The <b>LogPageDevice</b> is page device designed to contain physical
+    /// physical buffer devices that are used in concert to provide the 
+    /// transaction log page space.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// The log page space is split into chunks that are represented by
+    /// Virtual Log File Streams. Each stream stores complete log records
+    /// together with redundant header information as part of the storage
+    /// policy.
+    /// </para>
+    /// <para>
+    /// All reads and writes to the underlying file-system streams is
+    /// performed via asynchronous I/O.
+    /// </para>
+    /// </remarks>
+    public class LogPageDevice : MountableDevice
 	{
 		#region Private Fields
 		private FileStream _deviceStream;

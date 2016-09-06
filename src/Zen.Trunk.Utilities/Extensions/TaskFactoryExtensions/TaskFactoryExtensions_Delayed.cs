@@ -362,7 +362,7 @@ namespace Zen.Trunk.Extensions.TaskFactoryExtensions
         {
             if (factory == null) throw new ArgumentNullException(nameof(factory));
             if (millisecondsDelay < 0) throw new ArgumentOutOfRangeException(nameof(millisecondsDelay));
-            if (function == null) throw new ArgumentNullException("action");
+            if (function == null) throw new ArgumentNullException(nameof(function));
             if (scheduler == null) throw new ArgumentNullException(nameof(scheduler));
 
             // Create the task that will be returned

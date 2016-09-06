@@ -16,15 +16,6 @@ namespace Zen.Trunk.Storage.IO
 		private bool _disposed;
 		#endregion
 
-		#region Protected Constructors
-		/// <summary>
-		/// Initializes a new instance of the <see cref="BufferDevice"/> class.
-		/// </summary>
-		protected BufferDevice()
-		{
-		}
-		#endregion
-
 		#region Public Properties
 		/// <summary>
 		/// Gets the buffer factory.

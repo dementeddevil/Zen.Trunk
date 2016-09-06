@@ -74,7 +74,6 @@ namespace Zen.Trunk.Storage
 		private bool _managedData = true;
 		private bool _headerDirty;
 		private bool _dataDirty;
-		private bool _readOnly = false;
 	    private bool _disposed;
 		#endregion
 
@@ -224,22 +223,9 @@ namespace Zen.Trunk.Storage
 		/// <summary>
 		/// Gets/sets the readonly page state.
 		/// </summary>
-		public virtual bool ReadOnly
-		{
-			get
-			{
-				return _readOnly;
-			}
-			set
-			{
-				if (_readOnly != value)
-				{
-					_readOnly = value;
-				}
-			}
-		}
+		public virtual bool ReadOnly { get; set; }
 
-		/// <summary>
+	    /// <summary>
 		/// Gets a value indicating whether this page is dirty.
 		/// Note: This does not check the underlying _buffer.
 		/// </summary>
