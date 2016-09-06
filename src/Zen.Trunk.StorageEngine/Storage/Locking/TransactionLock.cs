@@ -420,7 +420,14 @@ namespace Zen.Trunk.Storage.Locking
 			_acquireLockAction.Post(request);
 
             // Wait for task to complete
-		    await request.Task.WithTimeout(timeout).ConfigureAwait(false);
+		    try
+		    {
+		        await request.Task.WithTimeout(timeout).ConfigureAwait(false);
+		    }
+		    catch (OperationCanceledException)
+		    {
+		        throw new TimeoutException("Lock timeout occurred.");
+		    }
 
 			// Increment reference count on lock
 			AddRefLock();

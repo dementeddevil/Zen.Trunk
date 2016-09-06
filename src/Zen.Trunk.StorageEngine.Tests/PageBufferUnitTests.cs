@@ -135,7 +135,7 @@ namespace Zen.Trunk.Storage
                             stream.WriteByte(100);
                         }
                         Assert.True(pageBuffer.CurrentStateType != PageBuffer.PageBufferStateType.Dirty);
-                        await pageBuffer.SetDirtyAsync().ConfigureAwait(false);
+                        await pageBuffer.SetDirtyAsync().ConfigureAwait(true);
                         Assert.True(pageBuffer.CurrentStateType == PageBuffer.PageBufferStateType.Dirty);
 
                         await TrunkTransactionContext.CommitAsync().ConfigureAwait(true);

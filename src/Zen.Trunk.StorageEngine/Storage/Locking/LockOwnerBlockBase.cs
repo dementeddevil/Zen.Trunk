@@ -146,22 +146,24 @@ namespace Zen.Trunk.Storage.Locking
 				return;
 			}
 
-			await _syncBlock.ExecuteAsync(
-				async () =>
-				{
-					if (lockType == DataLockType.Shared && !_readLocks.ContainsKey(key))
-					{
-						await LockItemSharedAsync(key, timeout).ConfigureAwait(false);
-					}
-					else if (lockType == DataLockType.Update && !_updateLocks.ContainsKey(key))
-					{
-						await LockItemUpdateAsync(key, timeout).ConfigureAwait(false);
-					}
-					else if (lockType == DataLockType.Exclusive && !_writeLocks.ContainsKey(key))
-					{
-						await LockItemExclusiveAsync(key, timeout).ConfigureAwait(false);
-					}
-				}).ConfigureAwait(false);
+			await _syncBlock
+                .ExecuteAsync(
+				    async () =>
+				    {
+					    if (lockType == DataLockType.Shared && !_readLocks.ContainsKey(key))
+					    {
+						    await LockItemSharedAsync(key, timeout).ConfigureAwait(false);
+					    }
+					    else if (lockType == DataLockType.Update && !_updateLocks.ContainsKey(key))
+					    {
+						    await LockItemUpdateAsync(key, timeout).ConfigureAwait(false);
+					    }
+					    else if (lockType == DataLockType.Exclusive && !_writeLocks.ContainsKey(key))
+					    {
+						    await LockItemExclusiveAsync(key, timeout).ConfigureAwait(false);
+					    }
+				    })
+                .ConfigureAwait(false);
 		}
 
 		/// <summary>

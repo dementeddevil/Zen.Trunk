@@ -16,9 +16,8 @@ namespace System.Threading
         private SpinLock _spinLock; // NOTE: must *not* be readonly due to SpinLock being a mutable struct
 
         /// <summary>Initializes an instance of the SpinLockClass class.</summary>
-        public SpinLockClass()
+        public SpinLockClass() : this(false)
         {
-            _spinLock = new SpinLock();
         }
 
         /// <summary>Initializes an instance of the SpinLockClass class.</summary>
@@ -55,7 +54,7 @@ namespace System.Threading
             try
             {
                 Enter(ref lockTaken);
-                await runUnderLock().ConfigureAwait(false);
+                await runUnderLock().ConfigureAwait(true);
             }
             finally
             {

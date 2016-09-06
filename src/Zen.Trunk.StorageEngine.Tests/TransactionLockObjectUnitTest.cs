@@ -9,12 +9,12 @@ namespace Zen.Trunk.Storage
     [Trait("Class", "Transaction Lock Object")]
 	public class TransactionLockObjectUnitTest
 	{
-		/// <summary>
-		/// Tests the acquiring, release and escalation of DataLock instance
-		/// between two simulated transactions.
-		/// </summary>
-		[Fact(DisplayName = "")]
-		public async Task TransactionDataLockTest()
+        /// <summary>
+        /// Tests the acquiring, release and escalation of DataLock instance
+        /// between two simulated transactions.
+        /// </summary>
+        [Fact(DisplayName = "Test acquiring, release and escalation of DataLock between two transactions.")]
+        public async Task TransactionDataLockTest()
 		{
 			// Setup lock hierarchy
 			var databaseLock = new DatabaseLock();
@@ -88,7 +88,7 @@ namespace Zen.Trunk.Storage
 		/// Tests the acquiring, release and escalation of DataLock instance
 		/// and ObjectLock between two simulated transactions.
 		/// </summary>
-		[Fact(DisplayName = "")]
+		[Fact(DisplayName = "Test acquiring, release and escalation of DataLock and ObjectLock between two transactions.")]
 		public async Task TransactionObjectLockTest()
 		{
 			// Setup lock hierarchy
