@@ -136,8 +136,8 @@ namespace Zen.Trunk.Storage
                                 objectPage.IsManagedData = false;
                                 objectPage.ReadOnly = false;
                                 objectPage.ObjectId = new ObjectId(1);
-                                objectPage.ObjectLock = ObjectLockType.IntentExclusive;
-                                objectPage.PageLock = DataLockType.Exclusive;
+                                await objectPage.SetObjectLockAsync(ObjectLockType.IntentExclusive).ConfigureAwait(true);
+                                await objectPage.SetPageLockAsync(DataLockType.Exclusive).ConfigureAwait(true);
                                 objectPage.FileGroupId = FileGroupId.Primary;
 
                                 // Create storage in database for new page

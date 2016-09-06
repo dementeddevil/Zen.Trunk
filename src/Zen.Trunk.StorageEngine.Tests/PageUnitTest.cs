@@ -119,7 +119,7 @@ namespace Zen.Trunk.Storage
 Given a distribution page that can store 128 extents with 128 allocated extents
 When the 129th extent is allocated,
 Then the allocation fails.")]
-		public Task DistributionValidExtentNonMixedTest()
+		public async Task DistributionValidExtentNonMixedTest()
 		{
 			var pageDevice = new MockPageDevice(Scope);
 
@@ -127,7 +127,7 @@ Then the allocation fails.")]
 
 			var page = pageDevice.CreatePage<DistributionPage>(
 				new VirtualPageId(0));
-			page.InitialiseValidExtents(129);
+			await page.InitialiseValidExtentsAsync(129).ConfigureAwait(true);
 
 			// We should be able to allocate 128 exclusive extents for 128 
 			//	objects
@@ -136,25 +136,29 @@ Then the allocation fails.")]
 			for (uint index = 0; index < extentsToTest; ++index)
 			{
 				// This allocation must succeed
-				virtualId = page.AllocatePageAsync(
-					new AllocateDataPageParameters(
-                        new LogicalPageId(1024 + index),
-                        new ObjectId(1 + index),
-                        ObjectType.Sample,
-                        false));
+				virtualId = await page
+                    .AllocatePageAsync(
+					    new AllocateDataPageParameters(
+                            new LogicalPageId(1024 + index),
+                            new ObjectId(1 + index),
+                            ObjectType.Sample,
+                            false))
+                    .ConfigureAwait(true);
 				Assert.True(virtualId != VirtualPageId.Zero, "Expected allocation to succeed.");
 			}
 
 			// This allocation must fail
-			virtualId = page.AllocatePageAsync(
-				new AllocateDataPageParameters(
-                    new LogicalPageId(1024 + extentsToTest),
-                    new ObjectId(1 + extentsToTest),
-                    ObjectType.Sample, 
-                    false));
+			virtualId = await page
+                .AllocatePageAsync(
+				    new AllocateDataPageParameters(
+                        new LogicalPageId(1024 + extentsToTest),
+                        new ObjectId(1 + extentsToTest),
+                        ObjectType.Sample, 
+                        false))
+                .ConfigureAwait(true);
 			Assert.True(virtualId == VirtualPageId.Zero, "Expected allocation to fail.");
 
-			return TrunkTransactionContext.CommitAsync();
+			await TrunkTransactionContext.CommitAsync().ConfigureAwait(true);
 		}
 	}
 }

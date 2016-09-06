@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Reflection;
+using System.Threading.Tasks;
 using System.Transactions;
 using Autofac;
 using Xunit;
@@ -20,7 +21,7 @@ namespace Zen.Trunk.Storage
             @"Given two transactions holding shared locks to the same resource
 When one transaction upgrades to an update lock the operation succeeds but when trying for an exclusive lock
 Then the attempt to gain an exclusive lock fails.")]
-        public void LockOwnerBlockTryGetExclusiveTest()
+        public async Task LockOwnerBlockTryGetExclusiveTest()
         {
             // Setup minimal service container we need to get trunk transactions to work
             var dlm = Scope.Resolve<IDatabaseLockManager>();
@@ -31,43 +32,45 @@ Then the attempt to gain an exclusive lock fails.")]
             Assert.NotEqual(firstTransaction.TransactionId, secondTransaction.TransactionId);
 
             // We need access to the Lock Owner Block (LOB) for each transaction
-            var firstTransactionLOB = ((ITrunkTransactionPrivate)firstTransaction).TransactionLocks;
-            var secondTransactionLOB = ((ITrunkTransactionPrivate)secondTransaction).TransactionLocks;
+            var firstTransactionLob = ((ITrunkTransactionPrivate)firstTransaction).TransactionLocks;
+            var secondTransactionLob = ((ITrunkTransactionPrivate)secondTransaction).TransactionLocks;
 
             // Locking semantics use transaction id held on current thread each lock/unlock needs scope
 
             // Lock for shared read on txn 1
             using (var disp = TrunkTransactionContext.SwitchTransactionContext(firstTransaction))
             {
-                var dlob = firstTransactionLOB.GetOrCreateDataLockOwnerBlock(new ObjectId(1), 5);
-                dlob.LockItemAsync(new LogicalPageId(1), DataLockType.Shared, TimeSpan.FromSeconds(5));
+                var dlob = firstTransactionLob.GetOrCreateDataLockOwnerBlock(new ObjectId(1), 5);
+                await dlob.LockItemAsync(new LogicalPageId(1), DataLockType.Shared, TimeSpan.FromSeconds(5)).ConfigureAwait(true);
             }
 
             // Lock for shared read on txn 2
             using (var disp = TrunkTransactionContext.SwitchTransactionContext(secondTransaction))
             {
-                var dlob = secondTransactionLOB.GetOrCreateDataLockOwnerBlock(new ObjectId(1), 5);
-                dlob.LockItemAsync(new LogicalPageId(1), DataLockType.Shared, TimeSpan.FromSeconds(5));
+                var dlob = secondTransactionLob.GetOrCreateDataLockOwnerBlock(new ObjectId(1), 5);
+                await dlob.LockItemAsync(new LogicalPageId(1), DataLockType.Shared, TimeSpan.FromSeconds(5)).ConfigureAwait(true);
             }
 
-            Assert.Throws<TimeoutException>(
-                () =>
-                {
-                    // Attempt to get exclusive lock on txn 2 (update succeeds but exclusive fails)
-                    using (var disp = TrunkTransactionContext.SwitchTransactionContext(secondTransaction))
+            await Assert
+                .ThrowsAsync<TimeoutException>(
+                    async () =>
                     {
-                        var dlob = secondTransactionLOB.GetOrCreateDataLockOwnerBlock(new ObjectId(1), 5);
-                        dlob.LockItemAsync(new LogicalPageId(1), DataLockType.Update, TimeSpan.FromSeconds(5));
-                        dlob.LockItemAsync(new LogicalPageId(1), DataLockType.Exclusive, TimeSpan.FromSeconds(5));
-                    }
-                });
+                        // Attempt to get exclusive lock on txn 2 (update succeeds but exclusive fails)
+                        using (var disp = TrunkTransactionContext.SwitchTransactionContext(secondTransaction))
+                        {
+                            var dlob = secondTransactionLob.GetOrCreateDataLockOwnerBlock(new ObjectId(1), 5);
+                            await dlob.LockItemAsync(new LogicalPageId(1), DataLockType.Update, TimeSpan.FromSeconds(5)).ConfigureAwait(true);
+                            await dlob.LockItemAsync(new LogicalPageId(1), DataLockType.Exclusive, TimeSpan.FromSeconds(5)).ConfigureAwait(true);
+                        }
+                    })
+                .ConfigureAwait(true);
         }
 
         /// <summary>
         /// Test transaction escalation with lock owner blocks.
         /// </summary>
         [Fact(DisplayName = "Verify no page lock escalation occurs on txn 2 once shared page lock has escalated to object lock on txn 1")]
-        public void LockOwnerBlockTryEscalateLock()
+        public async Task LockOwnerBlockTryEscalateLock()
         {
             // Setup minimal service container we need to get trunk transactions to work
             var dlm = Scope.Resolve<IDatabaseLockManager>();
@@ -78,31 +81,37 @@ Then the attempt to gain an exclusive lock fails.")]
             Assert.NotEqual(firstTransaction.TransactionId, secondTransaction.TransactionId);
 
             // We need access to the Lock Owner Block (LOB) for each transaction
-            var firstTransactionLOB = ((ITrunkTransactionPrivate)firstTransaction).TransactionLocks;
-            var secondTransactionLOB = ((ITrunkTransactionPrivate)secondTransaction).TransactionLocks;
+            var firstTransactionLob = ((ITrunkTransactionPrivate)firstTransaction).TransactionLocks;
+            var secondTransactionLob = ((ITrunkTransactionPrivate)secondTransaction).TransactionLocks;
 
             // Locking semantics use transaction id held on current thread each lock/unlock needs scope
 
             // Lock for shared read on txn 1
             using (var disp = TrunkTransactionContext.SwitchTransactionContext(firstTransaction))
             {
-                var dlob = firstTransactionLOB.GetOrCreateDataLockOwnerBlock(new ObjectId(1), 5);
+                var dlob = firstTransactionLob.GetOrCreateDataLockOwnerBlock(new ObjectId(1), 5);
                 for (ulong logicalId = 0; logicalId < 5; ++logicalId)
                 {
-                    dlob.LockItemAsync(new LogicalPageId(logicalId), DataLockType.Shared, TimeSpan.FromSeconds(5));
-                    Assert.True(dlob.HasItemLockAsync(new LogicalPageId(logicalId), DataLockType.Shared), string.Format("First transaction should have shared lock on logical page {0}", logicalId));
+                    await dlob.LockItemAsync(new LogicalPageId(logicalId), DataLockType.Shared, TimeSpan.FromSeconds(5)).ConfigureAwait(true);
+                    Assert.True(
+                        await dlob.HasItemLockAsync(new LogicalPageId(logicalId), DataLockType.Shared).ConfigureAwait(true),
+                        $"First transaction should have shared lock on logical page {logicalId}");
                 }
 
-                dlob.LockItemAsync(new LogicalPageId(5), DataLockType.Shared, TimeSpan.FromSeconds(5));
-                Assert.True(dlob.HasItemLockAsync(new LogicalPageId(1), DataLockType.Shared), "First transaction should have shared lock on logical page 1");
+                await dlob.LockItemAsync(new LogicalPageId(5), DataLockType.Shared, TimeSpan.FromSeconds(5)).ConfigureAwait(true);
+                Assert.True(
+                    await dlob.HasItemLockAsync(new LogicalPageId(1), DataLockType.Shared).ConfigureAwait(true),
+                    "First transaction should have shared lock on logical page 1");
             }
 
             // Lock for shared read on txn 2
             using (var disp = TrunkTransactionContext.SwitchTransactionContext(secondTransaction))
             {
-                var dlob = secondTransactionLOB.GetOrCreateDataLockOwnerBlock(new ObjectId(1), 5);
-                dlob.LockItemAsync(new LogicalPageId(1), DataLockType.Shared, TimeSpan.FromSeconds(5));
-                Assert.True(dlob.HasItemLockAsync(new LogicalPageId(1), DataLockType.Shared), "Second transaction should have shared lock on logical page 1");
+                var dlob = secondTransactionLob.GetOrCreateDataLockOwnerBlock(new ObjectId(1), 5);
+                await dlob.LockItemAsync(new LogicalPageId(1), DataLockType.Shared, TimeSpan.FromSeconds(5)).ConfigureAwait(true);
+                Assert.True(
+                    await dlob.HasItemLockAsync(new LogicalPageId(1), DataLockType.Shared).ConfigureAwait(true),
+                    "Second transaction should have shared lock on logical page 1");
             }
 
             // Attempt to get exclusive lock on txn 2 (both update and exclusive fails)
@@ -111,45 +120,27 @@ Then the attempt to gain an exclusive lock fails.")]
             //	an object-level escalation.
             using (var disp = TrunkTransactionContext.SwitchTransactionContext(secondTransaction))
             {
-                var dlob = secondTransactionLOB.GetOrCreateDataLockOwnerBlock(new ObjectId(1), 5);
-                Assert.Throws<TimeoutException>(
-                    () =>
-                    {
-                        dlob.LockItemAsync(new LogicalPageId(1), DataLockType.Update, TimeSpan.FromSeconds(5));
-                        Assert.True(dlob.HasItemLockAsync(new LogicalPageId(1), DataLockType.Update), "Second transaction should have update lock on logical page 1");
-                    });
-                Assert.Throws<TimeoutException>(
-                    () =>
-                    {
-                        dlob.LockItemAsync(new LogicalPageId(1), DataLockType.Exclusive, TimeSpan.FromSeconds(5));
-                        Assert.True(dlob.HasItemLockAsync(new LogicalPageId(1), DataLockType.Exclusive), "Second transaction should not have exclusive lock on logical page 1");
-                    });
-            }
-        }
-
-        private void VerifyDataLockHeld(IDatabaseLockManager dlm, uint objectId, ulong logicalId, DataLockType lockType, string message)
-        {
-            var lockObject = dlm.GetDataLock(new ObjectId(objectId), new LogicalPageId(logicalId));
-            try
-            {
-                Assert.True(lockObject.HasLockAsync(lockType), message);
-            }
-            finally
-            {
-                lockObject.ReleaseRefLock();
-            }
-        }
-
-        private void VerifyDataLockNotHeld(IDatabaseLockManager dlm, uint objectId, ulong logicalId, DataLockType lockType, string message)
-        {
-            var lockObject = dlm.GetDataLock(new ObjectId(objectId), new LogicalPageId(logicalId));
-            try
-            {
-                Assert.False(lockObject.HasLockAsync(lockType), message);
-            }
-            finally
-            {
-                lockObject.ReleaseRefLock();
+                var dlob = secondTransactionLob.GetOrCreateDataLockOwnerBlock(new ObjectId(1), 5);
+                await Assert
+                    .ThrowsAsync<TimeoutException>(
+                        async () =>
+                        {
+                            await dlob.LockItemAsync(new LogicalPageId(1), DataLockType.Update, TimeSpan.FromSeconds(5)).ConfigureAwait(true);
+                            Assert.True(
+                                await dlob.HasItemLockAsync(new LogicalPageId(1), DataLockType.Update).ConfigureAwait(true),
+                                "Second transaction should have update lock on logical page 1");
+                        })
+                    .ConfigureAwait(true);
+                await Assert
+                    .ThrowsAsync<TimeoutException>(
+                        async () =>
+                        {
+                            await dlob.LockItemAsync(new LogicalPageId(1), DataLockType.Exclusive, TimeSpan.FromSeconds(5)).ConfigureAwait(true);
+                            Assert.True(
+                                await dlob.HasItemLockAsync(new LogicalPageId(1), DataLockType.Exclusive).ConfigureAwait(true),
+                                "Second transaction should not have exclusive lock on logical page 1");
+                        })
+                    .ConfigureAwait(true);
             }
         }
 
