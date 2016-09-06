@@ -3,11 +3,23 @@ using System.Threading.Tasks;
 
 namespace Zen.Trunk.Storage
 {
-	[CLSCompliant(false)]
+    /// <summary>
+    /// 
+    /// </summary>
+    [CLSCompliant(false)]
 	public interface IMountableDevice
 	{
-		Task OpenAsync(bool isCreate);
+        /// <summary>
+        /// Opens the device asynchronously.
+        /// </summary>
+        /// <param name="isCreate">if set to <c>true</c> [is create].</param>
+        /// <returns></returns>
+        Task OpenAsync(bool isCreate);
 
+        /// <summary>
+        /// Closes the device asynchronously.
+        /// </summary>
+        /// <returns></returns>
         Task CloseAsync();
 	}
 }

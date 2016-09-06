@@ -68,6 +68,13 @@ namespace Zen.Trunk.CoordinationDataStructures
             }
         }
 
+        /// <summary>
+        /// Attempts to add the specified value to the end of the deque.
+        /// </summary>
+        /// <param name="item">The item to add.</param>
+        /// <returns>
+        /// true if the item could be added; otherwise, false.
+        /// </returns>
         protected override bool TryAdd(T item)
         {
             // Try to add the item to the underlying collection.  If we were able to,
@@ -78,6 +85,14 @@ namespace Zen.Trunk.CoordinationDataStructures
         }
 
 
+        /// <summary>
+        /// Attempts to remove and return an item from the collection.
+        /// </summary>
+        /// <param name="item">When this method returns, if the operation was successful, item contains the item removed. If
+        /// no item was available to be removed, the value is unspecified.</param>
+        /// <returns>
+        /// true if an element was removed and returned from the collection; otherwise, false.
+        /// </returns>
         protected override bool TryTake(out T item)
         {
             // Try to remove an item from the underlying collection.  If we were able to,

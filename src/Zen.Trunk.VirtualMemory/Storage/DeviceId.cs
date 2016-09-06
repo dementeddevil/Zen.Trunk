@@ -9,8 +9,19 @@ namespace Zen.Trunk.Storage
     public struct DeviceId : IComparable, ICloneable
     {
         #region Public Fields
+        /// <summary>
+        /// The device id representing an invalid device
+        /// </summary>
         public static readonly DeviceId Zero = new DeviceId(0);
+
+        /// <summary>
+        /// The primary device id
+        /// </summary>
         public static readonly DeviceId Primary = new DeviceId(1);
+
+        /// <summary>
+        /// The first secondary device id
+        /// </summary>
         public static readonly DeviceId FirstSecondary = new DeviceId(2);
         #endregion
 
@@ -104,20 +115,53 @@ namespace Zen.Trunk.Storage
             return order;
         }
 
+        /// <summary>
+        /// Implements the operator &lt;.
+        /// </summary>
+        /// <param name="left">The left.</param>
+        /// <param name="right">The right.</param>
+        /// <returns>
+        /// The result of the operator.
+        /// </returns>
         public static bool operator <(DeviceId left, DeviceId right)
         {
             return (left.Value < right.Value);
         }
 
+        /// <summary>
+        /// Implements the operator &gt;.
+        /// </summary>
+        /// <param name="left">The left.</param>
+        /// <param name="right">The right.</param>
+        /// <returns>
+        /// The result of the operator.
+        /// </returns>
         public static bool operator >(DeviceId left, DeviceId right)
         {
             return (left.Value > right.Value);
         }
 
+        /// <summary>
+        /// Implements the operator ==.
+        /// </summary>
+        /// <param name="left">The left.</param>
+        /// <param name="right">The right.</param>
+        /// <returns>
+        /// The result of the operator.
+        /// </returns>
         public static bool operator ==(DeviceId left, DeviceId right)
         {
             return (left.Value == right.Value);
         }
+
+        /// <summary>
+        /// Implements the operator !=.
+        /// </summary>
+        /// <param name="left">The left.</param>
+        /// <param name="right">The right.</param>
+        /// <returns>
+        /// The result of the operator.
+        /// </returns>
         public static bool operator !=(DeviceId left, DeviceId right)
         {
             return (left.Value != right.Value);
@@ -137,6 +181,10 @@ namespace Zen.Trunk.Storage
         #endregion
 
         #region ICloneable Members
+        /// <summary>
+        /// Clones this instance.
+        /// </summary>
+        /// <returns></returns>
         public DeviceId Clone()
         {
             return (DeviceId)MemberwiseClone();

@@ -12,10 +12,17 @@ namespace Zen.Trunk.Storage.Locking
 		#region Private Fields
 		private readonly IGlobalLockManager _globalLockManager;
 		private readonly DatabaseId _dbId;
-		#endregion
+        #endregion
 
-		#region Public Constructors
-		public DatabaseLockManager(IGlobalLockManager globalLockManager, DatabaseId dbId)
+        #region Public Constructors
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DatabaseLockManager"/> class.
+        /// </summary>
+        /// <param name="globalLockManager">The global lock manager.</param>
+        /// <param name="dbId">The database identifier.</param>
+        /// <exception cref="ArgumentNullException">
+        /// </exception>
+        public DatabaseLockManager(IGlobalLockManager globalLockManager, DatabaseId dbId)
 		{
 			if (globalLockManager == null)
 			{

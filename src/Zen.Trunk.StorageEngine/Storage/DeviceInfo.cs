@@ -14,33 +14,52 @@ namespace Zen.Trunk.Storage
 		private readonly BufferFieldUInt16 _id;
 		private readonly BufferFieldStringFixed _name;
 		private readonly BufferFieldStringFixed _pathName;
-		#endregion
+        #endregion
 
-		#region Public Constructors
-		public DeviceInfo()
+        #region Public Constructors
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DeviceInfo"/> class.
+        /// </summary>
+        public DeviceInfo()
 		{
 			_id = new BufferFieldUInt16();
 			_name = new BufferFieldStringFixed(_id, 32);
 			_pathName = new BufferFieldStringFixed(_name, 128);
 		}
 
-		public DeviceInfo(DeviceId id, string name, string pathName)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DeviceInfo"/> class.
+        /// </summary>
+        /// <param name="id">The identifier.</param>
+        /// <param name="name">The name.</param>
+        /// <param name="pathName">Name of the path.</param>
+        public DeviceInfo(DeviceId id, string name, string pathName)
 		{
 			_id = new BufferFieldUInt16(id.Value);
 			_name = new BufferFieldStringFixed(_id, 32, name);
 			_pathName = new BufferFieldStringFixed(_name, 128, pathName);
 		}
 
-		public DeviceInfo(DeviceInfo clone)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DeviceInfo"/> class.
+        /// </summary>
+        /// <param name="clone">The clone.</param>
+        public DeviceInfo(DeviceInfo clone)
 		{
 			_id = new BufferFieldUInt16(clone.Id.Value);
 			_name = new BufferFieldStringFixed(_id, 32, clone.Name);
 			_pathName = new BufferFieldStringFixed(_name, 128, clone.PathName);
 		}
-		#endregion
+        #endregion
 
-		#region Public Properties
-		public DeviceId Id
+        #region Public Properties
+        /// <summary>
+        /// Gets or sets the identifier.
+        /// </summary>
+        /// <value>
+        /// The identifier.
+        /// </value>
+        public DeviceId Id
 		{
 			get
 			{
@@ -52,7 +71,15 @@ namespace Zen.Trunk.Storage
 			}
 		}
 
-		public string Name
+        /// <summary>
+        /// Gets or sets the name.
+        /// </summary>
+        /// <value>
+        /// The name.
+        /// </value>
+        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="ArgumentException">value too long - must be less than 32 characters.</exception>
+        public string Name
 		{
 			get
 			{
@@ -71,8 +98,16 @@ namespace Zen.Trunk.Storage
 				_name.Value = value;
 			}
 		}
-	
-		public string PathName
+
+        /// <summary>
+        /// Gets or sets the name of the path.
+        /// </summary>
+        /// <value>
+        /// The name of the path.
+        /// </value>
+        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="ArgumentException">value too long - must be less than 128 characters.</exception>
+        public string PathName
 		{
 			get
 			{
@@ -91,12 +126,24 @@ namespace Zen.Trunk.Storage
 				_pathName.Value = value;
 			}
 		}
-		#endregion
+        #endregion
 
-		#region Protected Properties
-		protected override BufferField FirstField => _id;
+        #region Protected Properties
+        /// <summary>
+        /// Gets the first buffer field object.
+        /// </summary>
+        /// <value>
+        /// A <see cref="T:BufferField" /> object.
+        /// </value>
+        protected override BufferField FirstField => _id;
 
-	    protected override BufferField LastField => _pathName;
+        /// <summary>
+        /// Gets the last buffer field object.
+        /// </summary>
+        /// <value>
+        /// A <see cref="T:BufferField" /> object.
+        /// </value>
+        protected override BufferField LastField => _pathName;
 	    #endregion
 	}
 }

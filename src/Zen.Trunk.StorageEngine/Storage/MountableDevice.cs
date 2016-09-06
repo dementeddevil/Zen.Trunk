@@ -36,7 +36,13 @@ namespace Zen.Trunk.Storage
 		/// <value>The state of the device.</value>
 		public MountableDeviceState DeviceState => (MountableDeviceState)_deviceState;
 
-	    public ILifetimeScope LifetimeScope { get; private set; }
+        /// <summary>
+        /// Gets the lifetime scope.
+        /// </summary>
+        /// <value>
+        /// The lifetime scope.
+        /// </value>
+        public ILifetimeScope LifetimeScope { get; private set; }
 
 	    #endregion
 
@@ -122,21 +128,37 @@ namespace Zen.Trunk.Storage
 			DisposeManagedObjects();
 		}
 
-	    public void BeginTransaction()
+        /// <summary>
+        /// Begins the transaction.
+        /// </summary>
+        public void BeginTransaction()
 	    {
 	        TrunkTransactionContext.BeginTransaction(LifetimeScope);
 	    }
 
+        /// <summary>
+        /// Begins the transaction.
+        /// </summary>
+        /// <param name="transactionOptions">The transaction options.</param>
         public void BeginTransaction(TransactionOptions transactionOptions)
         {
             TrunkTransactionContext.BeginTransaction(LifetimeScope, transactionOptions);
         }
 
+        /// <summary>
+        /// Begins the transaction.
+        /// </summary>
+        /// <param name="timeout">The timeout.</param>
         public void BeginTransaction(TimeSpan timeout)
         {
             TrunkTransactionContext.BeginTransaction(LifetimeScope, timeout);
         }
 
+        /// <summary>
+        /// Begins the transaction.
+        /// </summary>
+        /// <param name="isoLevel">The iso level.</param>
+        /// <param name="timeout">The timeout.</param>
         public void BeginTransaction(IsolationLevel isoLevel, TimeSpan timeout)
         {
             TrunkTransactionContext.BeginTransaction(LifetimeScope, isoLevel, timeout);
@@ -144,6 +166,10 @@ namespace Zen.Trunk.Storage
         #endregion
 
         #region Protected Methods
+        /// <summary>
+        /// Hookups the page site.
+        /// </summary>
+        /// <param name="page">The page.</param>
         protected void HookupPageSite(Page page)
 	    {
 	        page.SetLifetimeScope(LifetimeScope);
@@ -195,6 +221,10 @@ namespace Zen.Trunk.Storage
 			return CompletedTask.Default;
 		}
 
+        /// <summary>
+        /// Builds the device lifetime scope.
+        /// </summary>
+        /// <param name="builder">The builder.</param>
         protected virtual void BuildDeviceLifetimeScope(ContainerBuilder builder)
         {
             builder.RegisterInstance(this)
@@ -203,6 +233,12 @@ namespace Zen.Trunk.Storage
             builder.RegisterType<TrunkTransaction>().AsSelf();
         }
 
+        /// <summary>
+        /// Resolves the device service.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="parameters">The parameters.</param>
+        /// <returns></returns>
         protected T ResolveDeviceService<T>(params Parameter[] parameters)
         {
             CheckDisposed();

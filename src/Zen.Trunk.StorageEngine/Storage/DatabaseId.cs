@@ -9,11 +9,15 @@ namespace Zen.Trunk.Storage
     public struct DatabaseId : IComparable, ICloneable
     {
         #region Public Fields
+        /// <summary>
+        /// The zero
+        /// </summary>
         public static readonly DatabaseId Zero = new DatabaseId(0);
-        public static readonly DatabaseId Master = new DatabaseId(1);
-        #endregion
 
-        #region Private Fields
+        /// <summary>
+        /// The master
+        /// </summary>
+        public static readonly DatabaseId Master = new DatabaseId(1);
         #endregion
 
         #region Public Constructors
@@ -35,6 +39,12 @@ namespace Zen.Trunk.Storage
         [CLSCompliant(false)]
         public ushort Value { get; }
 
+        /// <summary>
+        /// Gets the next.
+        /// </summary>
+        /// <value>
+        /// The next.
+        /// </value>
         public DatabaseId Next => new DatabaseId((ushort)(Value + 1));
         #endregion
 
@@ -93,20 +103,52 @@ namespace Zen.Trunk.Storage
             return order;
         }
 
+        /// <summary>
+        /// Implements the operator &lt;.
+        /// </summary>
+        /// <param name="left">The left.</param>
+        /// <param name="right">The right.</param>
+        /// <returns>
+        /// The result of the operator.
+        /// </returns>
         public static bool operator <(DatabaseId left, DatabaseId right)
         {
             return (left.Value < right.Value);
         }
 
+        /// <summary>
+        /// Implements the operator &gt;.
+        /// </summary>
+        /// <param name="left">The left.</param>
+        /// <param name="right">The right.</param>
+        /// <returns>
+        /// The result of the operator.
+        /// </returns>
         public static bool operator >(DatabaseId left, DatabaseId right)
         {
             return (left.Value > right.Value);
         }
 
+        /// <summary>
+        /// Implements the operator ==.
+        /// </summary>
+        /// <param name="left">The left.</param>
+        /// <param name="right">The right.</param>
+        /// <returns>
+        /// The result of the operator.
+        /// </returns>
         public static bool operator ==(DatabaseId left, DatabaseId right)
         {
             return (left.Value == right.Value);
         }
+        /// <summary>
+        /// Implements the operator !=.
+        /// </summary>
+        /// <param name="left">The left.</param>
+        /// <param name="right">The right.</param>
+        /// <returns>
+        /// The result of the operator.
+        /// </returns>
         public static bool operator !=(DatabaseId left, DatabaseId right)
         {
             return (left.Value != right.Value);
@@ -126,6 +168,10 @@ namespace Zen.Trunk.Storage
         #endregion
 
         #region ICloneable Members
+        /// <summary>
+        /// Clones this instance.
+        /// </summary>
+        /// <returns></returns>
         public DatabaseId Clone()
         {
             return (DatabaseId)MemberwiseClone();

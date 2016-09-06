@@ -2,18 +2,38 @@
 
 namespace Zen.Trunk.Storage
 {
-	public interface IVirtualBufferFactory : IDisposable
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <seealso cref="System.IDisposable" />
+    public interface IVirtualBufferFactory : IDisposable
 	{
-		bool IsNearlyFull
+        /// <summary>
+        /// Gets a value indicating whether this instance is nearly full.
+        /// </summary>
+        /// <value>
+        /// <c>true</c> if this instance is nearly full; otherwise, <c>false</c>.
+        /// </value>
+        bool IsNearlyFull
 		{
 			get;
 		}
 
-		int BufferSize
+        /// <summary>
+        /// Gets the size of the buffer.
+        /// </summary>
+        /// <value>
+        /// The size of the buffer.
+        /// </value>
+        int BufferSize
 		{
 			get;
 		}
 
-		IVirtualBuffer AllocateBuffer();
+        /// <summary>
+        /// Allocates the buffer.
+        /// </summary>
+        /// <returns></returns>
+        IVirtualBuffer AllocateBuffer();
 	}
 }

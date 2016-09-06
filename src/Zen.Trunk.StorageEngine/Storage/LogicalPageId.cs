@@ -9,6 +9,9 @@ namespace Zen.Trunk.Storage
     public struct LogicalPageId : IComparable, ICloneable
     {
         #region Public Fields
+        /// <summary>
+        /// The zero
+        /// </summary>
         public static readonly LogicalPageId Zero = new LogicalPageId(0);
         #endregion
 
@@ -87,20 +90,52 @@ namespace Zen.Trunk.Storage
             return order;
         }
 
+        /// <summary>
+        /// Implements the operator &lt;.
+        /// </summary>
+        /// <param name="left">The left.</param>
+        /// <param name="right">The right.</param>
+        /// <returns>
+        /// The result of the operator.
+        /// </returns>
         public static bool operator <(LogicalPageId left, LogicalPageId right)
         {
             return (left.Value < right.Value);
         }
 
+        /// <summary>
+        /// Implements the operator &gt;.
+        /// </summary>
+        /// <param name="left">The left.</param>
+        /// <param name="right">The right.</param>
+        /// <returns>
+        /// The result of the operator.
+        /// </returns>
         public static bool operator >(LogicalPageId left, LogicalPageId right)
         {
             return (left.Value > right.Value);
         }
 
+        /// <summary>
+        /// Implements the operator ==.
+        /// </summary>
+        /// <param name="left">The left.</param>
+        /// <param name="right">The right.</param>
+        /// <returns>
+        /// The result of the operator.
+        /// </returns>
         public static bool operator ==(LogicalPageId left, LogicalPageId right)
         {
             return (left.Value == right.Value);
         }
+        /// <summary>
+        /// Implements the operator !=.
+        /// </summary>
+        /// <param name="left">The left.</param>
+        /// <param name="right">The right.</param>
+        /// <returns>
+        /// The result of the operator.
+        /// </returns>
         public static bool operator !=(LogicalPageId left, LogicalPageId right)
         {
             return (left.Value != right.Value);
@@ -120,6 +155,10 @@ namespace Zen.Trunk.Storage
         #endregion
 
         #region ICloneable Members
+        /// <summary>
+        /// Clones this instance.
+        /// </summary>
+        /// <returns></returns>
         public LogicalPageId Clone()
         {
             return (LogicalPageId)MemberwiseClone();

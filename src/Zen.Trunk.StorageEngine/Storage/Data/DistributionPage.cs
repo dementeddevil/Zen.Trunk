@@ -456,6 +456,13 @@ namespace Zen.Trunk.Storage.Data
             return virtPageId;
         }
 
+        /// <summary>
+        /// Frees the page asynchronous.
+        /// </summary>
+        /// <param name="offset">The offset.</param>
+        /// <param name="timeout">The timeout.</param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentOutOfRangeException">Offset outside page tracking range for this page.</exception>
         public async Task FreePageAsync(uint offset, TimeSpan timeout)
         {
             // Sanity checks
@@ -506,6 +513,11 @@ namespace Zen.Trunk.Storage.Data
             }
         }
 
+        /// <summary>
+        /// Imports the specified logical virtual manager.
+        /// </summary>
+        /// <param name="logicalVirtualManager">The logical virtual manager.</param>
+        /// <returns></returns>
         public Task Import(ILogicalVirtualManager logicalVirtualManager)
         {
             var startPageId = VirtualId.NextPage;
@@ -600,6 +612,9 @@ namespace Zen.Trunk.Storage.Data
         #endregion
 
         #region Protected Methods
+        /// <summary>
+        /// Pres the update timestamp.
+        /// </summary>
         protected override void PreUpdateTimestamp()
         {
             // Acquire distribution page spin lock
@@ -621,6 +636,9 @@ namespace Zen.Trunk.Storage.Data
             base.PreUpdateTimestamp();
         }
 
+        /// <summary>
+        /// Posts the update timestamp.
+        /// </summary>
         protected override void PostUpdateTimestamp()
         {
             var lm = GetService<IDatabaseLockManager>();
@@ -636,6 +654,10 @@ namespace Zen.Trunk.Storage.Data
             base.PostUpdateTimestamp();
         }
 
+        /// <summary>
+        /// Writes the page data block to the specified buffer writer.
+        /// </summary>
+        /// <param name="streamManager">The stream manager.</param>
         protected override void WriteData(BufferReaderWriter streamManager)
         {
             // Save locked extents and page information unless this
@@ -655,6 +677,10 @@ namespace Zen.Trunk.Storage.Data
             }
         }
 
+        /// <summary>
+        /// Reads the page data block from the specified buffer reader.
+        /// </summary>
+        /// <param name="streamManager">The stream manager.</param>
         protected override void ReadData(BufferReaderWriter streamManager)
         {
             for (var index = 0; index < ExtentTrackingCount; ++index)
@@ -704,6 +730,25 @@ namespace Zen.Trunk.Storage.Data
             return base.OnInitAsync(e);
         }
 
+        /// <summary>
+        /// Overridden. Called by the system prior to loading the page
+        /// from persistent storage.
+        /// </summary>
+        /// <param name="e"></param>
+        /// <returns></returns>
+        /// <remarks>
+        /// Overrides to this method must set their desired lock prior to
+        /// calling the base class.
+        /// The base class method will enable the locking primitives and call
+        /// <see cref="PageDevice.LockPageAsync" /> as necessary.
+        /// This mechanism ensures that all lock states have been set prior to
+        /// the first call to LockPage.
+        /// When the current isolation level is uncommitted read then <see cref="LockPageAsync" />
+        /// will not be called.
+        /// When the current isolation level is repeatable read or serializable
+        /// then the <see cref="HoldLock" /> will be set to <c>true</c> prior to
+        /// calling <see cref="LockPageAsync" />.
+        /// </remarks>
         protected override async Task OnPreLoadAsync(EventArgs e)
         {
             // We need a shared read lock if nothing specified

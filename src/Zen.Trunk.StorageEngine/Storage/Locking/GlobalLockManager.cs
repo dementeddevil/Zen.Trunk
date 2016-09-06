@@ -16,10 +16,13 @@ namespace Zen.Trunk.Storage.Locking
 		private readonly LockHandler<SchemaLock, SchemaLockType> _schemaLocks;
 		private readonly LockHandler<DataLock, DataLockType> _dataLocks;
 		private readonly RLockHandler _rLocks = new RLockHandler();
-		#endregion
+        #endregion
 
-		#region Public Constructors
-		public GlobalLockManager()
+        #region Public Constructors
+        /// <summary>
+        /// Initializes a new instance of the <see cref="GlobalLockManager"/> class.
+        /// </summary>
+        public GlobalLockManager()
 		{
 			_databaseLocks = new LockHandler<DatabaseLock, DatabaseLockType>(0);
 			_rootLocks = new LockHandler<RootLock, RootLockType>();

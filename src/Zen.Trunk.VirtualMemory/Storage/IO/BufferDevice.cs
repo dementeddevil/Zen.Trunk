@@ -7,7 +7,11 @@ using Zen.Trunk.Logging;
 
 namespace Zen.Trunk.Storage.IO
 {
-	public abstract class BufferDevice : IBufferDevice
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <seealso cref="Zen.Trunk.Storage.IBufferDevice" />
+    public abstract class BufferDevice : IBufferDevice
 	{
 		#region Private Fields
 	    private static readonly ILog Logger = LogProvider.For<BufferDevice>();

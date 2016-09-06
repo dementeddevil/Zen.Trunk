@@ -16,7 +16,12 @@ namespace Zen.Trunk.Utils
 		private readonly DateTime _startTime = DateTime.UtcNow;
 		private readonly TimeSpan _timeout;
 
-		public TimeoutHelper(TimeSpan timeout)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TimeoutHelper"/> class.
+        /// </summary>
+        /// <param name="timeout">The timeout.</param>
+        /// <exception cref="ArgumentException">Timeout must be positive.</exception>
+        public TimeoutHelper(TimeSpan timeout)
 		{
 			if (timeout <= TimeSpan.Zero)
 			{
@@ -26,11 +31,29 @@ namespace Zen.Trunk.Utils
 			_timeout = timeout;
 		}
 
-		public DateTime EndTime => _startTime + _timeout;
+        /// <summary>
+        /// Gets the end time.
+        /// </summary>
+        /// <value>
+        /// The end time.
+        /// </value>
+        public DateTime EndTime => _startTime + _timeout;
 
-	    public TimeSpan RemainingTime => EndTime - DateTime.UtcNow;
+        /// <summary>
+        /// Gets the remaining time.
+        /// </summary>
+        /// <value>
+        /// The remaining time.
+        /// </value>
+        public TimeSpan RemainingTime => EndTime - DateTime.UtcNow;
 
-	    public bool IsExpired => RemainingTime < TimeSpan.Zero;
+        /// <summary>
+        /// Gets a value indicating whether this instance is expired.
+        /// </summary>
+        /// <value>
+        /// <c>true</c> if this instance is expired; otherwise, <c>false</c>.
+        /// </value>
+        public bool IsExpired => RemainingTime < TimeSpan.Zero;
 
 	    /// <summary>
 		/// Gets the remaining time or throws a <see cref="TimeoutException"/>

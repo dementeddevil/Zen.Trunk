@@ -155,7 +155,10 @@ namespace Zen.Trunk.Storage.Log
 		/// <value>The size of the buffer.</value>
 		public override int BufferSize => BufferFactory.BufferSize;
 
-	    public override bool CanFree => CurrentPageBufferState.StateType != LogBufferStateType.Dirty;
+        /// <summary>
+        /// Gets a boolean value indicating whether this buffer can be freed.
+        /// </summary>
+        public override bool CanFree => CurrentPageBufferState.StateType != LogBufferStateType.Dirty;
 
 	    #endregion
 
@@ -167,15 +170,25 @@ namespace Zen.Trunk.Storage.Log
 
 	    private LogBufferState CurrentPageBufferState => (LogBufferState)CurrentState;
 
-	    #endregion
+        #endregion
 
-		#region Public Methods
-		public Task Init(VirtualPageId pageId)
+        #region Public Methods
+        /// <summary>
+        /// Initializes the specified page identifier.
+        /// </summary>
+        /// <param name="pageId">The page identifier.</param>
+        /// <returns></returns>
+        public Task Init(VirtualPageId pageId)
 		{
 			return CurrentPageBufferState.Init(this, pageId);
 		}
 
-		public Task Load(VirtualPageId pageId)
+        /// <summary>
+        /// Loads the specified page identifier.
+        /// </summary>
+        /// <param name="pageId">The page identifier.</param>
+        /// <returns></returns>
+        public Task Load(VirtualPageId pageId)
 		{
 			return CurrentPageBufferState.Load(this, pageId);
 		}

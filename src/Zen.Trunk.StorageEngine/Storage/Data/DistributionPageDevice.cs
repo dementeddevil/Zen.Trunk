@@ -7,7 +7,11 @@ using Zen.Trunk.Utils;
 
 namespace Zen.Trunk.Storage.Data
 {
-	public abstract class DistributionPageDevice : PageDevice
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <seealso cref="Zen.Trunk.Storage.PageDevice" />
+    public abstract class DistributionPageDevice : PageDevice
 	{
 		#region Private Fields
         private static readonly ILog Logger = LogProvider.For<DistributionPageDevice>();
@@ -26,14 +30,32 @@ namespace Zen.Trunk.Storage.Data
 		{
 			_deviceId = deviceId;
 		}
-		#endregion
+        #endregion
 
-		#region Public Properties
-		public DeviceId DeviceId => _deviceId;
+        #region Public Properties
+        /// <summary>
+        /// Gets the device identifier.
+        /// </summary>
+        /// <value>
+        /// The device identifier.
+        /// </value>
+        public DeviceId DeviceId => _deviceId;
 
-	    public bool IsPrimary => DeviceId == DeviceId.Primary;
+        /// <summary>
+        /// Gets a value indicating whether this instance is primary.
+        /// </summary>
+        /// <value>
+        /// <c>true</c> if this instance is primary; otherwise, <c>false</c>.
+        /// </value>
+        public bool IsPrimary => DeviceId == DeviceId.Primary;
 
-	    public FileGroupDevice FileGroupDevice
+        /// <summary>
+        /// Gets the file group device.
+        /// </summary>
+        /// <value>
+        /// The file group device.
+        /// </value>
+        public FileGroupDevice FileGroupDevice
 	    {
 	        get
 	        {
@@ -45,18 +67,36 @@ namespace Zen.Trunk.Storage.Data
 	        }   
 	    }
 
-	    public abstract uint DistributionPageOffset
+        /// <summary>
+        /// Gets the distribution page offset.
+        /// </summary>
+        /// <value>
+        /// The distribution page offset.
+        /// </value>
+        public abstract uint DistributionPageOffset
 		{
 			get;
 		}
 
-		public string Name
+        /// <summary>
+        /// Gets or sets the name.
+        /// </summary>
+        /// <value>
+        /// The name.
+        /// </value>
+        public string Name
 		{
 			get;
 			set;
 		}
 
-		public string PathName
+        /// <summary>
+        /// Gets or sets the name of the path.
+        /// </summary>
+        /// <value>
+        /// The name of the path.
+        /// </value>
+        public string PathName
 		{
 			get;
 			set;

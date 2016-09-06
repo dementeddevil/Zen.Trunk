@@ -4,31 +4,53 @@
 	using System.Globalization;
 	using System.Runtime.InteropServices;
 
-	[Serializable, StructLayout(LayoutKind.Sequential)]
+    /// <summary>
+    /// 
+    /// </summary>
+    [Serializable, StructLayout(LayoutKind.Sequential)]
 	public struct InclusiveRange
 	{
-		public static InclusiveRange Empty = new InclusiveRange(0, 0);
+        /// <summary>
+        /// The empty
+        /// </summary>
+        public static InclusiveRange Empty = new InclusiveRange(0, 0);
 
 		#region Private Fields
 		private int _min;
 		private int _max;
-		#endregion
+        #endregion
 
-		#region Public Constructors
-		public InclusiveRange(InclusiveRange range)
+        #region Public Constructors
+        /// <summary>
+        /// Initializes a new instance of the <see cref="InclusiveRange"/> struct.
+        /// </summary>
+        /// <param name="range">The range.</param>
+        public InclusiveRange(InclusiveRange range)
 		{
 			_min = range._min;
 			_max = range._max;
 		}
-		public InclusiveRange(int min, int max)
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="InclusiveRange"/> struct.
+        /// </summary>
+        /// <param name="min">The minimum.</param>
+        /// <param name="max">The maximum.</param>
+        public InclusiveRange(int min, int max)
 		{
 			_min = min;
 			_max = max;
 		}
-		#endregion
+        #endregion
 
-		#region Public Properties
-		public int Min
+        #region Public Properties
+        /// <summary>
+        /// Gets or sets the minimum.
+        /// </summary>
+        /// <value>
+        /// The minimum.
+        /// </value>
+        public int Min
 		{
 			get
 			{
@@ -39,7 +61,14 @@
 				_min = value;
 			}
 		}
-		public int Max
+
+        /// <summary>
+        /// Gets or sets the maximum.
+        /// </summary>
+        /// <value>
+        /// The maximum.
+        /// </value>
+        public int Max
 		{
 			get
 			{
@@ -50,10 +79,17 @@
 				_max = value;
 			}
 		}
-		#endregion
+        #endregion
 
-		#region Public Methods
-		public bool IsInRange(int value)
+        #region Public Methods
+        /// <summary>
+        /// Determines whether the specified value is in range.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <returns>
+        /// <c>true</c> if value is in range; otherwise, <c>false</c>.
+        /// </returns>
+        public bool IsInRange(int value)
 		{
 			var result = true;
 			EnsureValid();
@@ -64,7 +100,10 @@
 			return result;
 		}
 
-		public void EnsureValid()
+        /// <summary>
+        /// Ensures the this instance is valid.
+        /// </summary>
+        public void EnsureValid()
 		{
 			if (Min > Max)
 			{
@@ -74,12 +113,25 @@
 			}
 		}
 
-		public override int GetHashCode()
+        /// <summary>
+        /// Returns a hash code for this instance.
+        /// </summary>
+        /// <returns>
+        /// A hash code for this instance, suitable for use in hashing algorithms and data structures like a hash table. 
+        /// </returns>
+        public override int GetHashCode()
 		{
-			return (_min ^ _max);
+			return (Min ^ Max);
 		}
 
-		public override bool Equals(object obj)
+        /// <summary>
+        /// Determines whether the specified <see cref="System.Object" />, is equal to this instance.
+        /// </summary>
+        /// <param name="obj">The <see cref="System.Object" /> to compare with this instance.</param>
+        /// <returns>
+        ///   <c>true</c> if the specified <see cref="System.Object" /> is equal to this instance; otherwise, <c>false</c>.
+        /// </returns>
+        public override bool Equals(object obj)
 		{
 			if (obj is InclusiveRange)
 			{
@@ -92,7 +144,13 @@
 			return false;
 		}
 
-		public override string ToString()
+        /// <summary>
+        /// Returns a <see cref="System.String" /> that represents this instance.
+        /// </summary>
+        /// <returns>
+        /// A <see cref="System.String" /> that represents this instance.
+        /// </returns>
+        public override string ToString()
 		{
 			return string.Concat(new[]
 				{
@@ -101,10 +159,18 @@
 					"}" 
 				});
 		}
-		#endregion
+        #endregion
 
-		#region Operators
-		public static bool operator ==(InclusiveRange lhs, InclusiveRange rhs)
+        #region Operators
+        /// <summary>
+        /// Implements the operator ==.
+        /// </summary>
+        /// <param name="lhs">The LHS.</param>
+        /// <param name="rhs">The RHS.</param>
+        /// <returns>
+        /// The result of the operator.
+        /// </returns>
+        public static bool operator ==(InclusiveRange lhs, InclusiveRange rhs)
 		{
 			if (lhs._min == rhs._min)
 			{
@@ -112,18 +178,45 @@
 			}
 			return false;
 		}
-		public static bool operator !=(InclusiveRange lhs, InclusiveRange rhs)
+
+        /// <summary>
+        /// Implements the operator !=.
+        /// </summary>
+        /// <param name="lhs">The LHS.</param>
+        /// <param name="rhs">The RHS.</param>
+        /// <returns>
+        /// The result of the operator.
+        /// </returns>
+        public static bool operator !=(InclusiveRange lhs, InclusiveRange rhs)
 		{
 			return !(lhs == rhs);
 		}
-		public static InclusiveRange operator +(InclusiveRange lhs, InclusiveRange rhs)
+
+        /// <summary>
+        /// Implements the operator +.
+        /// </summary>
+        /// <param name="lhs">The LHS.</param>
+        /// <param name="rhs">The RHS.</param>
+        /// <returns>
+        /// The result of the operator.
+        /// </returns>
+        public static InclusiveRange operator +(InclusiveRange lhs, InclusiveRange rhs)
 		{
 			var result = new InclusiveRange();
 			result.Min = lhs.Min + rhs.Min;
 			result.Max = lhs.Max + rhs.Max;
 			return result;
 		}
-		public static InclusiveRange operator -(InclusiveRange lhs, InclusiveRange rhs)
+
+        /// <summary>
+        /// Implements the operator -.
+        /// </summary>
+        /// <param name="lhs">The LHS.</param>
+        /// <param name="rhs">The RHS.</param>
+        /// <returns>
+        /// The result of the operator.
+        /// </returns>
+        public static InclusiveRange operator -(InclusiveRange lhs, InclusiveRange rhs)
 		{
 			var result = new InclusiveRange();
 			result.Min = lhs.Min - rhs.Min;
@@ -133,10 +226,16 @@
 		#endregion
 	}
 
-	[Serializable, StructLayout(LayoutKind.Sequential)]
+    /// <summary>
+    /// 
+    /// </summary>
+    [Serializable, StructLayout(LayoutKind.Sequential)]
 	public struct ExclusiveRange
 	{
-		public static ExclusiveRange Empty = new ExclusiveRange(0, 0);
+        /// <summary>
+        /// The empty
+        /// </summary>
+        public static ExclusiveRange Empty = new ExclusiveRange(0, 0);
 
 		#region Private Fields
 		private int _min;
@@ -164,10 +263,16 @@
 			_min = min;
 			_max = max;
 		}
-		#endregion
+        #endregion
 
-		#region Public Properties
-		public int Min
+        #region Public Properties
+        /// <summary>
+        /// Gets or sets the minimum.
+        /// </summary>
+        /// <value>
+        /// The minimum.
+        /// </value>
+        public int Min
 		{
 			get
 			{
@@ -178,7 +283,14 @@
 				_min = value;
 			}
 		}
-		public int Max
+
+        /// <summary>
+        /// Gets or sets the maximum.
+        /// </summary>
+        /// <value>
+        /// The maximum.
+        /// </value>
+        public int Max
 		{
 			get
 			{
@@ -189,10 +301,17 @@
 				_max = value;
 			}
 		}
-		#endregion
+        #endregion
 
-		#region Public Methods
-		public bool IsInRange(int value)
+        #region Public Methods
+        /// <summary>
+        /// Determines whether [is in range] [the specified value].
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <returns>
+        ///   <c>true</c> if [is in range] [the specified value]; otherwise, <c>false</c>.
+        /// </returns>
+        public bool IsInRange(int value)
 		{
 			var result = true;
 			EnsureValid();
@@ -203,7 +322,10 @@
 			return result;
 		}
 
-		public void EnsureValid()
+        /// <summary>
+        /// Ensures the valid.
+        /// </summary>
+        public void EnsureValid()
 		{
 			if (Min > Max)
 			{
@@ -213,12 +335,25 @@
 			}
 		}
 
-		public override int GetHashCode()
+        /// <summary>
+        /// Returns a hash code for this instance.
+        /// </summary>
+        /// <returns>
+        /// A hash code for this instance, suitable for use in hashing algorithms and data structures like a hash table. 
+        /// </returns>
+        public override int GetHashCode()
 		{
-			return (_min ^ _max);
+			return (Min ^ Max);
 		}
 
-		public override bool Equals(object obj)
+        /// <summary>
+        /// Determines whether the specified <see cref="System.Object" />, is equal to this instance.
+        /// </summary>
+        /// <param name="obj">The <see cref="System.Object" /> to compare with this instance.</param>
+        /// <returns>
+        ///   <c>true</c> if the specified <see cref="System.Object" /> is equal to this instance; otherwise, <c>false</c>.
+        /// </returns>
+        public override bool Equals(object obj)
 		{
 			if (obj is ExclusiveRange)
 			{
@@ -231,7 +366,13 @@
 			return false;
 		}
 
-		public override string ToString()
+        /// <summary>
+        /// Returns a <see cref="System.String" /> that represents this instance.
+        /// </summary>
+        /// <returns>
+        /// A <see cref="System.String" /> that represents this instance.
+        /// </returns>
+        public override string ToString()
 		{
 			return string.Concat(new[]
 				{
@@ -240,10 +381,18 @@
 					"}" 
 				});
 		}
-		#endregion
+        #endregion
 
-		#region Operators
-		public static bool operator ==(ExclusiveRange lhs, ExclusiveRange rhs)
+        #region Operators
+        /// <summary>
+        /// Implements the operator ==.
+        /// </summary>
+        /// <param name="lhs">The LHS.</param>
+        /// <param name="rhs">The RHS.</param>
+        /// <returns>
+        /// The result of the operator.
+        /// </returns>
+        public static bool operator ==(ExclusiveRange lhs, ExclusiveRange rhs)
 		{
 			if (lhs._min == rhs._min)
 			{
@@ -251,18 +400,45 @@
 			}
 			return false;
 		}
-		public static bool operator !=(ExclusiveRange lhs, ExclusiveRange rhs)
+        
+        /// <summary>
+        /// Implements the operator !=.
+        /// </summary>
+        /// <param name="lhs">The LHS.</param>
+        /// <param name="rhs">The RHS.</param>
+        /// <returns>
+        /// The result of the operator.
+        /// </returns>
+        public static bool operator !=(ExclusiveRange lhs, ExclusiveRange rhs)
 		{
 			return !(lhs == rhs);
 		}
-		public static ExclusiveRange operator +(ExclusiveRange lhs, ExclusiveRange rhs)
+        
+        /// <summary>
+        /// Implements the operator +.
+        /// </summary>
+        /// <param name="lhs">The LHS.</param>
+        /// <param name="rhs">The RHS.</param>
+        /// <returns>
+        /// The result of the operator.
+        /// </returns>
+        public static ExclusiveRange operator +(ExclusiveRange lhs, ExclusiveRange rhs)
 		{
 			var result = new ExclusiveRange();
 			result.Min = lhs.Min + rhs.Min;
 			result.Max = lhs.Max + rhs.Max;
 			return result;
 		}
-		public static ExclusiveRange operator -(ExclusiveRange lhs, ExclusiveRange rhs)
+
+        /// <summary>
+        /// Implements the operator -.
+        /// </summary>
+        /// <param name="lhs">The LHS.</param>
+        /// <param name="rhs">The RHS.</param>
+        /// <returns>
+        /// The result of the operator.
+        /// </returns>
+        public static ExclusiveRange operator -(ExclusiveRange lhs, ExclusiveRange rhs)
 		{
 			var result = new ExclusiveRange();
 			result.Min = lhs.Min - rhs.Min;

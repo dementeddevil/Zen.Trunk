@@ -437,11 +437,15 @@ namespace Zen.Trunk.Storage.Locking
 			// Release reference count on lock
 			ReleaseRefLock();
 		}
-		#endregion
+        #endregion
 
-		#region Protected Methods
+        #region Protected Methods
 #if TRACE
-		protected override string GetTracePrefix()
+        /// <summary>
+        /// Gets the trace prefix.
+        /// </summary>
+        /// <returns></returns>
+        protected override string GetTracePrefix()
 		{
 			return $"{base.GetTracePrefix()} ID: {Id} Rc: {_referenceCount} Txn:{GetThreadTransactionId(false)}";
 		}
@@ -483,7 +487,11 @@ namespace Zen.Trunk.Storage.Locking
 			}
 		}
 
-		protected void OnAcquireLock(AcquireLock request)
+        /// <summary>
+        /// Called when [acquire lock].
+        /// </summary>
+        /// <param name="request">The request.</param>
+        protected void OnAcquireLock(AcquireLock request)
 		{
 			if (!OnQueryAcquireLock(request))
 			{
@@ -682,7 +690,11 @@ namespace Zen.Trunk.Storage.Locking
 			return lockType;
 		}
 
-		protected void SetActiveRequest(AcquireLock request)
+        /// <summary>
+        /// Sets the active request.
+        /// </summary>
+        /// <param name="request">The request.</param>
+        protected void SetActiveRequest(AcquireLock request)
 		{
 			_activeRequests.Add(request.TransactionId, request);
 			if (!request.TrySetResult(true))

@@ -1,6 +1,10 @@
 ﻿namespace Zen.Trunk.Storage
 {
-	public abstract class PageDevice : MountableDevice
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <seealso cref="Zen.Trunk.Storage.MountableDevice" />
+    public abstract class PageDevice : MountableDevice
 	{
 	}
 }

@@ -1,13 +1,11 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
-using Zen.Trunk.CoordinationDataStructures;
 using Zen.Trunk.Logging;
 
 namespace Zen.Trunk.Storage.Locking
 {
-	using System;
-	using System.Collections.Generic;
-	using System.Linq;
-	
 	/// <summary>
 	/// <c>LockOwnerBlockBase</c> contains the core functionality needed to
 	/// track the lock objects on a database entity on behalf of a transaction.

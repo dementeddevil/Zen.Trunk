@@ -3,16 +3,34 @@
 	using System;
 	using System.Threading.Tasks;
 
-	[CLSCompliant(false)]
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <seealso cref="System.IDisposable" />
+    [CLSCompliant(false)]
 	public interface IBufferDevice : IDisposable
 	{
-		IVirtualBufferFactory BufferFactory
+        /// <summary>
+        /// Gets the buffer factory.
+        /// </summary>
+        /// <value>
+        /// The buffer factory.
+        /// </value>
+        IVirtualBufferFactory BufferFactory
 		{
 			get;
 		}
 
-		Task OpenAsync();
+        /// <summary>
+        /// Opens the asynchronous.
+        /// </summary>
+        /// <returns></returns>
+        Task OpenAsync();
 
-		Task CloseAsync();
+        /// <summary>
+        /// Closes the asynchronous.
+        /// </summary>
+        /// <returns></returns>
+        Task CloseAsync();
 	}
 }

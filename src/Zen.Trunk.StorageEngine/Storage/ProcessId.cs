@@ -9,6 +9,9 @@ namespace Zen.Trunk.Storage
     public struct ProcessId : IComparable, ICloneable
     {
         #region Public Fields
+        /// <summary>
+        /// The zero
+        /// </summary>
         public static readonly ProcessId Zero = new ProcessId(0);
         #endregion
 
@@ -85,20 +88,52 @@ namespace Zen.Trunk.Storage
             return order;
         }
 
+        /// <summary>
+        /// Implements the operator &lt;.
+        /// </summary>
+        /// <param name="left">The left.</param>
+        /// <param name="right">The right.</param>
+        /// <returns>
+        /// The result of the operator.
+        /// </returns>
         public static bool operator <(ProcessId left, ProcessId right)
         {
             return (left.Value < right.Value);
         }
 
+        /// <summary>
+        /// Implements the operator &gt;.
+        /// </summary>
+        /// <param name="left">The left.</param>
+        /// <param name="right">The right.</param>
+        /// <returns>
+        /// The result of the operator.
+        /// </returns>
         public static bool operator >(ProcessId left, ProcessId right)
         {
             return (left.Value > right.Value);
         }
 
+        /// <summary>
+        /// Implements the operator ==.
+        /// </summary>
+        /// <param name="left">The left.</param>
+        /// <param name="right">The right.</param>
+        /// <returns>
+        /// The result of the operator.
+        /// </returns>
         public static bool operator ==(ProcessId left, ProcessId right)
         {
             return (left.Value == right.Value);
         }
+        /// <summary>
+        /// Implements the operator !=.
+        /// </summary>
+        /// <param name="left">The left.</param>
+        /// <param name="right">The right.</param>
+        /// <returns>
+        /// The result of the operator.
+        /// </returns>
         public static bool operator !=(ProcessId left, ProcessId right)
         {
             return (left.Value != right.Value);
@@ -118,6 +153,10 @@ namespace Zen.Trunk.Storage
         #endregion
 
         #region ICloneable Members
+        /// <summary>
+        /// Clones this instance.
+        /// </summary>
+        /// <returns></returns>
         public ProcessId Clone()
         {
             return (ProcessId)MemberwiseClone();
@@ -136,6 +175,9 @@ namespace Zen.Trunk.Storage
     public struct ConnectionId : IComparable, ICloneable
     {
         #region Public Fields
+        /// <summary>
+        /// The zero
+        /// </summary>
         public static readonly ConnectionId Zero = new ConnectionId(0);
         #endregion
 
@@ -212,20 +254,52 @@ namespace Zen.Trunk.Storage
             return order;
         }
 
+        /// <summary>
+        /// Implements the operator &lt;.
+        /// </summary>
+        /// <param name="left">The left.</param>
+        /// <param name="right">The right.</param>
+        /// <returns>
+        /// The result of the operator.
+        /// </returns>
         public static bool operator <(ConnectionId left, ConnectionId right)
         {
             return (left.Value < right.Value);
         }
 
+        /// <summary>
+        /// Implements the operator &gt;.
+        /// </summary>
+        /// <param name="left">The left.</param>
+        /// <param name="right">The right.</param>
+        /// <returns>
+        /// The result of the operator.
+        /// </returns>
         public static bool operator >(ConnectionId left, ConnectionId right)
         {
             return (left.Value > right.Value);
         }
 
+        /// <summary>
+        /// Implements the operator ==.
+        /// </summary>
+        /// <param name="left">The left.</param>
+        /// <param name="right">The right.</param>
+        /// <returns>
+        /// The result of the operator.
+        /// </returns>
         public static bool operator ==(ConnectionId left, ConnectionId right)
         {
             return (left.Value == right.Value);
         }
+        /// <summary>
+        /// Implements the operator !=.
+        /// </summary>
+        /// <param name="left">The left.</param>
+        /// <param name="right">The right.</param>
+        /// <returns>
+        /// The result of the operator.
+        /// </returns>
         public static bool operator !=(ConnectionId left, ConnectionId right)
         {
             return (left.Value != right.Value);
@@ -245,6 +319,10 @@ namespace Zen.Trunk.Storage
         #endregion
 
         #region ICloneable Members
+        /// <summary>
+        /// Clones this instance.
+        /// </summary>
+        /// <returns></returns>
         public ConnectionId Clone()
         {
             return (ConnectionId)MemberwiseClone();

@@ -2,7 +2,12 @@
 {
 	using System;
 
-	public class IndexInfo : BufferFieldWrapper, IComparable
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <seealso cref="Zen.Trunk.Storage.BufferFieldWrapper" />
+    /// <seealso cref="System.IComparable" />
+    public class IndexInfo : BufferFieldWrapper, IComparable
 	{
 		#region Private Fields
 		#endregion
@@ -51,15 +56,27 @@
 		{
 			return (lhs.CompareTo(rhs) < 0);
 		}
-		#endregion
+        #endregion
 
-		#region Public Methods
-	    public override string ToString()
+        #region Public Methods
+        /// <summary>
+        /// Returns a <see cref="System.String" /> that represents this instance.
+        /// </summary>
+        /// <returns>
+        /// A <see cref="System.String" /> that represents this instance.
+        /// </returns>
+        public override string ToString()
 	    {
 	        return base.ToString();
 	    }
 
-	    public override int GetHashCode()
+        /// <summary>
+        /// Returns a hash code for this instance.
+        /// </summary>
+        /// <returns>
+        /// A hash code for this instance, suitable for use in hashing algorithms and data structures like a hash table. 
+        /// </returns>
+        public override int GetHashCode()
 	    {
 	        return base.GetHashCode();
 	    }

@@ -9,6 +9,9 @@ namespace Zen.Trunk.Storage
     public struct TransactionId : IComparable, ICloneable
     {
         #region Public Fields
+        /// <summary>
+        /// The zero
+        /// </summary>
         public static readonly TransactionId Zero = new TransactionId(0);
         #endregion
 
@@ -85,20 +88,52 @@ namespace Zen.Trunk.Storage
             return order;
         }
 
+        /// <summary>
+        /// Implements the operator &lt;.
+        /// </summary>
+        /// <param name="left">The left.</param>
+        /// <param name="right">The right.</param>
+        /// <returns>
+        /// The result of the operator.
+        /// </returns>
         public static bool operator <(TransactionId left, TransactionId right)
         {
             return (left.Value < right.Value);
         }
 
+        /// <summary>
+        /// Implements the operator &gt;.
+        /// </summary>
+        /// <param name="left">The left.</param>
+        /// <param name="right">The right.</param>
+        /// <returns>
+        /// The result of the operator.
+        /// </returns>
         public static bool operator >(TransactionId left, TransactionId right)
         {
             return (left.Value > right.Value);
         }
 
+        /// <summary>
+        /// Implements the operator ==.
+        /// </summary>
+        /// <param name="left">The left.</param>
+        /// <param name="right">The right.</param>
+        /// <returns>
+        /// The result of the operator.
+        /// </returns>
         public static bool operator ==(TransactionId left, TransactionId right)
         {
             return (left.Value == right.Value);
         }
+        /// <summary>
+        /// Implements the operator !=.
+        /// </summary>
+        /// <param name="left">The left.</param>
+        /// <param name="right">The right.</param>
+        /// <returns>
+        /// The result of the operator.
+        /// </returns>
         public static bool operator !=(TransactionId left, TransactionId right)
         {
             return (left.Value != right.Value);
@@ -118,6 +153,10 @@ namespace Zen.Trunk.Storage
         #endregion
 
         #region ICloneable Members
+        /// <summary>
+        /// Clones this instance.
+        /// </summary>
+        /// <returns></returns>
         public TransactionId Clone()
         {
             return (TransactionId)MemberwiseClone();

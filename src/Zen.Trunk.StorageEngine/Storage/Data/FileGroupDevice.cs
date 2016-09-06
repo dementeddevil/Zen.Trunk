@@ -287,6 +287,12 @@ namespace Zen.Trunk.Storage.Data
         #endregion
 
         #region Protected Properties
+        /// <summary>
+        /// Gets the logical virtual manager.
+        /// </summary>
+        /// <value>
+        /// The logical virtual manager.
+        /// </value>
         protected ILogicalVirtualManager LogicalVirtualManager
         {
             get
@@ -377,6 +383,11 @@ namespace Zen.Trunk.Storage.Data
         #endregion
 
         #region Public Methods
+        /// <summary>
+        /// Creates the root page.
+        /// </summary>
+        /// <param name="isPrimaryFile">if set to <c>true</c> [is primary file].</param>
+        /// <returns></returns>
         public virtual RootPage CreateRootPage(bool isPrimaryFile)
         {
             RootPage rootPage;
@@ -393,6 +404,12 @@ namespace Zen.Trunk.Storage.Data
             return rootPage;
         }
 
+        /// <summary>
+        /// Adds the data device.
+        /// </summary>
+        /// <param name="deviceParams">The device parameters.</param>
+        /// <returns></returns>
+        /// <exception cref="BufferDeviceShuttingDownException"></exception>
         public Task<DeviceId> AddDataDevice(AddDataDeviceParameters deviceParams)
         {
             var request = new AddDataDeviceRequest(deviceParams);
@@ -403,6 +420,12 @@ namespace Zen.Trunk.Storage.Data
             return request.Task;
         }
 
+        /// <summary>
+        /// Removes the data device.
+        /// </summary>
+        /// <param name="deviceParams">The device parameters.</param>
+        /// <returns></returns>
+        /// <exception cref="BufferDeviceShuttingDownException"></exception>
         public Task RemoveDataDevice(RemoveDataDeviceParameters deviceParams)
         {
             var request = new RemoveDataDeviceRequest(deviceParams);
@@ -413,6 +436,12 @@ namespace Zen.Trunk.Storage.Data
             return request.Task;
         }
 
+        /// <summary>
+        /// Initializes the data page.
+        /// </summary>
+        /// <param name="initParams">The initialize parameters.</param>
+        /// <returns></returns>
+        /// <exception cref="BufferDeviceShuttingDownException"></exception>
         public Task InitDataPage(InitDataPageParameters initParams)
         {
             var request = new InitDataPageRequest(initParams);
@@ -423,6 +452,12 @@ namespace Zen.Trunk.Storage.Data
             return request.Task;
         }
 
+        /// <summary>
+        /// Loads the data page.
+        /// </summary>
+        /// <param name="loadParams">The load parameters.</param>
+        /// <returns></returns>
+        /// <exception cref="BufferDeviceShuttingDownException"></exception>
         public Task LoadDataPage(LoadDataPageParameters loadParams)
         {
             var request = new LoadDataPageRequest(loadParams);
@@ -433,6 +468,14 @@ namespace Zen.Trunk.Storage.Data
             return request.Task;
         }
 
+        /// <summary>
+        /// Creates the distribution pages.
+        /// </summary>
+        /// <param name="deviceId">The device identifier.</param>
+        /// <param name="startPhysicalId">The start physical identifier.</param>
+        /// <param name="endPhysicalId">The end physical identifier.</param>
+        /// <returns></returns>
+        /// <exception cref="BufferDeviceShuttingDownException"></exception>
         public Task CreateDistributionPages(DeviceId deviceId, uint startPhysicalId, uint endPhysicalId)
         {
             var request = new CreateDistributionPagesRequest(deviceId, startPhysicalId, endPhysicalId);
@@ -443,6 +486,12 @@ namespace Zen.Trunk.Storage.Data
             return request.Task;
         }
 
+        /// <summary>
+        /// Allocates the data page.
+        /// </summary>
+        /// <param name="allocParams">The alloc parameters.</param>
+        /// <returns></returns>
+        /// <exception cref="BufferDeviceShuttingDownException"></exception>
         public Task<VirtualPageId> AllocateDataPage(AllocateDataPageParameters allocParams)
         {
             var request = new AllocateDataPageRequest(allocParams);
@@ -453,6 +502,12 @@ namespace Zen.Trunk.Storage.Data
             return request.Task;
         }
 
+        /// <summary>
+        /// Imports the distribution page.
+        /// </summary>
+        /// <param name="page">The page.</param>
+        /// <returns></returns>
+        /// <exception cref="BufferDeviceShuttingDownException"></exception>
         public Task ImportDistributionPage(DistributionPage page)
         {
             var request = new ImportDistributionPageRequest(page);
@@ -463,6 +518,13 @@ namespace Zen.Trunk.Storage.Data
             return request.Task;
         }
 
+        /// <summary>
+        /// Expands the data device.
+        /// </summary>
+        /// <param name="deviceId">The device identifier.</param>
+        /// <param name="pageCount">The page count.</param>
+        /// <returns></returns>
+        /// <exception cref="BufferDeviceShuttingDownException"></exception>
         public Task ExpandDataDevice(DeviceId deviceId, uint pageCount)
         {
             var request = new ExpandDataDeviceRequest(deviceId, pageCount);
@@ -473,6 +535,12 @@ namespace Zen.Trunk.Storage.Data
             return request.Task;
         }
 
+        /// <summary>
+        /// Adds the table.
+        /// </summary>
+        /// <param name="tableParams">The table parameters.</param>
+        /// <returns></returns>
+        /// <exception cref="BufferDeviceShuttingDownException"></exception>
         public Task<ObjectId> AddTable(AddTableParameters tableParams)
         {
             var request = new AddTableRequest(tableParams);
@@ -483,6 +551,12 @@ namespace Zen.Trunk.Storage.Data
             return request.Task;
         }
 
+        /// <summary>
+        /// Adds the index.
+        /// </summary>
+        /// <param name="indexParams">The index parameters.</param>
+        /// <returns></returns>
+        /// <exception cref="BufferDeviceShuttingDownException"></exception>
         public Task<ObjectId> AddIndex(AddTableIndexParameters indexParams)
         {
             var request = new AddTableIndexRequest(indexParams);
@@ -517,7 +591,7 @@ namespace Zen.Trunk.Storage.Data
             {
                 Logger.Info("OnOpen : Opening primary device");
             }
-            await _primaryDevice.OpenAsync(IsCreate);
+            await _primaryDevice.OpenAsync(IsCreate).ConfigureAwait(false);
 
             // Load or create the root page
             if (Logger.IsInfoEnabled())
@@ -585,6 +659,10 @@ namespace Zen.Trunk.Storage.Data
             }
         }
 
+        /// <summary>
+        /// Builds the device lifetime scope.
+        /// </summary>
+        /// <param name="builder">The builder.</param>
         protected override void BuildDeviceLifetimeScope(ContainerBuilder builder)
         {
             base.BuildDeviceLifetimeScope(builder);
@@ -860,7 +938,7 @@ namespace Zen.Trunk.Storage.Data
 
         private async Task<bool> ImportDistributionPageHandler(ImportDistributionPageRequest request)
         {
-            await request.Page.Import(LogicalVirtualManager);
+            await request.Page.Import(LogicalVirtualManager).ConfigureAwait(false);
             return true;
         }
 
@@ -1113,7 +1191,7 @@ namespace Zen.Trunk.Storage.Data
 
             // Load primary file-group root page
             using (var rootPage = (PrimaryFileGroupRootPage)
-                await _primaryDevice.LoadOrCreateRootPageAsync())
+                await _primaryDevice.LoadOrCreateRootPageAsync().ConfigureAwait(false))
             {
                 // Obtain object id for this table
                 await rootPage.SetRootLockAsync(RootLockType.Exclusive).ConfigureAwait(false);

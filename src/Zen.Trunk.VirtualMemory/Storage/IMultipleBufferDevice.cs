@@ -1,8 +1,12 @@
-﻿namespace Zen.Trunk.Storage
-{
-	using System.Collections.Generic;
-	using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 
+namespace Zen.Trunk.Storage
+{
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <seealso cref="Zen.Trunk.Storage.IBufferDevice" />
     public interface IMultipleBufferDevice : IBufferDevice
 	{
 		/// <summary>
@@ -48,7 +52,13 @@
         /// <returns></returns>
         Task RemoveDeviceAsync(DeviceId deviceId);
 
-		uint ExpandDevice(DeviceId deviceId, int pageCount);
+        /// <summary>
+        /// Expands the device.
+        /// </summary>
+        /// <param name="deviceId">The device identifier.</param>
+        /// <param name="pageCount">The page count.</param>
+        /// <returns></returns>
+        uint ExpandDevice(DeviceId deviceId, int pageCount);
 
 		/// <summary>
 		/// Asynchronously loads a buffer from the device and page associated
@@ -68,7 +78,14 @@
 		/// <returns></returns>
 		Task SaveBufferAsync(VirtualPageId pageId, IVirtualBuffer buffer);
 
-		Task FlushBuffersAsync(bool flushReads, bool flushWrites, params DeviceId[] deviceIds);
+        /// <summary>
+        /// Flushes the buffers asynchronous.
+        /// </summary>
+        /// <param name="flushReads">if set to <c>true</c> [flush reads].</param>
+        /// <param name="flushWrites">if set to <c>true</c> [flush writes].</param>
+        /// <param name="deviceIds">The device ids.</param>
+        /// <returns></returns>
+        Task FlushBuffersAsync(bool flushReads, bool flushWrites, params DeviceId[] deviceIds);
 
 		/// <summary>
 		/// Gets the device information for all child devices.

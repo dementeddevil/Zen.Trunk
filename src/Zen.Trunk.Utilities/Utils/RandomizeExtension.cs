@@ -16,7 +16,19 @@ namespace Zen.Trunk.Utils
 	/// </summary>
 	public static class RandomizeExtension
 	{
-		public static void Move<T>(this IList<T> list, int fromIndex, int toIndex)
+        /// <summary>
+        /// Moves the specified from index.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="list">The list.</param>
+        /// <param name="fromIndex">From index.</param>
+        /// <param name="toIndex">To index.</param>
+        /// <exception cref="ArgumentOutOfRangeException">
+        /// Index out of range.
+        /// or
+        /// Index out of range.
+        /// </exception>
+        public static void Move<T>(this IList<T> list, int fromIndex, int toIndex)
 		{
 			if (fromIndex < 0 || fromIndex >= list.Count)
 			{
@@ -38,7 +50,12 @@ namespace Zen.Trunk.Utils
 			list.Insert(toIndex, value);
 		}
 
-		public static void Randomize<T>(this IList<T> list)
+        /// <summary>
+        /// Randomizes the specified list.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="list">The list.</param>
+        public static void Randomize<T>(this IList<T> list)
 		{
 			if (list.Count < 2)
 			{

@@ -13,17 +13,29 @@ namespace Zen.Trunk.Storage.Locking
 		private static int _nextTransactionLockId;
 		private readonly int _transactionLockId;
 
-		protected TransactionLockBase()
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TransactionLockBase"/> class.
+        /// </summary>
+        protected TransactionLockBase()
 		{
 			_transactionLockId = Interlocked.Increment(ref _nextTransactionLockId);
 		}
 
-		protected virtual string GetTracePrefix()
+        /// <summary>
+        /// Gets the trace prefix.
+        /// </summary>
+        /// <returns></returns>
+        protected virtual string GetTracePrefix()
 		{
 			return $"[{GetType().Name} {_transactionLockId:X8}]";
 		}
 
-		protected void TraceError(string format, params object[] args)
+        /// <summary>
+        /// Traces the error.
+        /// </summary>
+        /// <param name="format">The format.</param>
+        /// <param name="args">The arguments.</param>
+        protected void TraceError(string format, params object[] args)
 		{
 		    if (Logger.IsErrorEnabled())
 		    {
@@ -33,7 +45,12 @@ namespace Zen.Trunk.Storage.Locking
 		    }
 		}
 
-		protected void TraceWarning(string format, params object[] args)
+        /// <summary>
+        /// Traces the warning.
+        /// </summary>
+        /// <param name="format">The format.</param>
+        /// <param name="args">The arguments.</param>
+        protected void TraceWarning(string format, params object[] args)
 		{
             if (Logger.IsWarnEnabled())
             {
@@ -43,6 +60,11 @@ namespace Zen.Trunk.Storage.Locking
             }
         }
 
+        /// <summary>
+        /// Traces the information.
+        /// </summary>
+        /// <param name="format">The format.</param>
+        /// <param name="args">The arguments.</param>
         protected void TraceInformation(string format, params object[] args)
 		{
             if (Logger.IsInfoEnabled())
@@ -53,6 +75,11 @@ namespace Zen.Trunk.Storage.Locking
             }
         }
 
+        /// <summary>
+        /// Traces the verbose.
+        /// </summary>
+        /// <param name="format">The format.</param>
+        /// <param name="args">The arguments.</param>
         protected void TraceVerbose(string format, params object[] args)
 		{
             if (Logger.IsDebugEnabled())

@@ -7,7 +7,12 @@ using Zen.Trunk.Utils;
 
 namespace Zen.Trunk.Storage.IO
 {
-	public class MultipleBufferDevice : BufferDevice, IMultipleBufferDevice
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <seealso cref="Zen.Trunk.Storage.IO.BufferDevice" />
+    /// <seealso cref="Zen.Trunk.Storage.IMultipleBufferDevice" />
+    public class MultipleBufferDevice : BufferDevice, IMultipleBufferDevice
 	{
 		#region Private Types
 		private class BufferDeviceInfo : IBufferDeviceInfo
@@ -62,11 +67,48 @@ namespace Zen.Trunk.Storage.IO
 
         #region Public Methods
 
-	    public Task<DeviceId> AddDeviceAsync(string name, string pathName)
+        /// <summary>
+        /// Adds a new child single buffer device to this instance.
+        /// </summary>
+        /// <param name="name">The device name.</param>
+        /// <param name="pathName">The pathname for the device storage.</param>
+        /// <returns>
+        /// The device id.
+        /// </returns>
+        /// <remarks>
+        /// If the device id is zero (it must be zero for the first device)
+        /// then the next available device id is used and the value returned.
+        /// If the createPageCount is non-zero then the add device call is
+        /// treated as a request to create the underlying storage otherwise
+        /// the call is treated as a request to open the underlying storage.
+        /// </remarks>
+        public Task<DeviceId> AddDeviceAsync(string name, string pathName)
 	    {
 	        return AddDeviceAsync(name, pathName, DeviceId.Zero);
 	    }
 
+        /// <summary>
+        /// Adds a new child single buffer device to this instance.
+        /// </summary>
+        /// <param name="name">The device name.</param>
+        /// <param name="pathName">The pathname for the device storage.</param>
+        /// <param name="deviceId">The device unique identifier.</param>
+        /// <param name="createPageCount">The create page count.</param>
+        /// <returns>
+        /// The device id.
+        /// </returns>
+        /// <exception cref="ArgumentException">
+        /// Primary device has invalid identifier.
+        /// or
+        /// Device with same id already added.
+        /// </exception>
+        /// <remarks>
+        /// If the device id is zero (it must be zero for the first device)
+        /// then the next available device id is used and the value returned.
+        /// If the createPageCount is non-zero then the add device call is
+        /// treated as a request to create the underlying storage otherwise
+        /// the call is treated as a request to open the underlying storage.
+        /// </remarks>
         public async Task<DeviceId> AddDeviceAsync(string name, string pathName, DeviceId deviceId, uint createPageCount = 0)
 		{
 			// Determine whether this is a primary device add
@@ -117,39 +159,71 @@ namespace Zen.Trunk.Storage.IO
 			return deviceId;
 		}
 
-		public async Task RemoveDeviceAsync(DeviceId deviceId)
+        /// <summary>
+        /// Removes a child single-buffer device from this instance.
+        /// </summary>
+        /// <param name="deviceId">The device unique identifier.</param>
+        /// <returns></returns>
+        public async Task RemoveDeviceAsync(DeviceId deviceId)
 		{
 			ISingleBufferDevice childDevice;
 			if (_devices.TryRemove(deviceId, out childDevice))
 			{
 				if (DeviceState == MountableDeviceState.Open)
 				{
-					await childDevice.CloseAsync();
+					await childDevice.CloseAsync().ConfigureAwait(false);
 				}
 
 				childDevice.Dispose();
 			}
 		}
 
-		public uint ExpandDevice(DeviceId deviceId, int pageCount)
+        /// <summary>
+        /// Expands the device.
+        /// </summary>
+        /// <param name="deviceId">The device identifier.</param>
+        /// <param name="pageCount">The page count.</param>
+        /// <returns></returns>
+        public uint ExpandDevice(DeviceId deviceId, int pageCount)
 		{
 			var device = GetDevice(deviceId);
 			return device.ExpandDevice(pageCount);
 		}
 
-		public Task LoadBufferAsync(VirtualPageId pageId, IVirtualBuffer buffer)
+        /// <summary>
+        /// Asynchronously loads a buffer from the device and page associated
+        /// with the specified pageId.
+        /// </summary>
+        /// <param name="pageId"></param>
+        /// <param name="buffer"></param>
+        /// <returns></returns>
+        public Task LoadBufferAsync(VirtualPageId pageId, IVirtualBuffer buffer)
 		{
 			var device = GetDevice(pageId.DeviceId);
 			return device.LoadBufferAsync(pageId.PhysicalPageId, buffer);
 		}
 
-		public Task SaveBufferAsync(VirtualPageId pageId, IVirtualBuffer buffer)
+        /// <summary>
+        /// Asynchronously saves a buffer to the device and page associated
+        /// with the specified pageId.
+        /// </summary>
+        /// <param name="pageId">The page unique identifier.</param>
+        /// <param name="buffer">The buffer.</param>
+        /// <returns></returns>
+        public Task SaveBufferAsync(VirtualPageId pageId, IVirtualBuffer buffer)
 		{
 			var device = GetDevice(pageId.DeviceId);
 			return device.SaveBufferAsync(pageId.PhysicalPageId, buffer);
 		}
 
-		public async Task FlushBuffersAsync(bool flushReads, bool flushWrites, params DeviceId[] deviceIds)
+        /// <summary>
+        /// Flushes the buffers asynchronous.
+        /// </summary>
+        /// <param name="flushReads">if set to <c>true</c> [flush reads].</param>
+        /// <param name="flushWrites">if set to <c>true</c> [flush writes].</param>
+        /// <param name="deviceIds">The device ids.</param>
+        /// <returns></returns>
+        public async Task FlushBuffersAsync(bool flushReads, bool flushWrites, params DeviceId[] deviceIds)
 		{
 			var subTasks = new List<Task>();
 
@@ -175,7 +249,11 @@ namespace Zen.Trunk.Storage.IO
 				.ConfigureAwait(false);
 		}
 
-		public IEnumerable<IBufferDeviceInfo> GetDeviceInfo()
+        /// <summary>
+        /// Gets the device information for all child devices.
+        /// </summary>
+        /// <returns></returns>
+        public IEnumerable<IBufferDeviceInfo> GetDeviceInfo()
 		{
 			var result = new List<IBufferDeviceInfo>();
 			foreach (var entry in _devices.ToArray())
@@ -185,15 +263,24 @@ namespace Zen.Trunk.Storage.IO
 			return result;
 		}
 
-		public IBufferDeviceInfo GetDeviceInfo(DeviceId deviceId)
+        /// <summary>
+        /// Gets the device information for a single child device.
+        /// </summary>
+        /// <param name="deviceId">The device unique identifier.</param>
+        /// <returns></returns>
+        public IBufferDeviceInfo GetDeviceInfo(DeviceId deviceId)
 		{
 			var device = GetDevice(deviceId);
 			return new BufferDeviceInfo(deviceId, device);
 		}
-		#endregion
+        #endregion
 
-		#region Protected Methods
-		protected override Task OnOpen()
+        #region Protected Methods
+        /// <summary>
+        /// Called when opening the device.
+        /// </summary>
+        /// <returns></returns>
+        protected override Task OnOpen()
 		{
 			Parallel.ForEach(
 				_devices.Values,
@@ -208,7 +295,7 @@ namespace Zen.Trunk.Storage.IO
 			return CompletedTask.Default;
 		}
 
-		/*protected virtual async Task GetDeviceStatusHandler(GetDeviceStatusRequest request)
+        /*protected virtual async Task GetDeviceStatusHandler(GetDeviceStatusRequest request)
 		{
 			try
 			{
@@ -232,7 +319,11 @@ namespace Zen.Trunk.Storage.IO
 			}
 		}*/
 
-		protected override Task OnClose()
+        /// <summary>
+        /// Raises the Close event.
+        /// </summary>
+        /// <returns></returns>
+        protected override Task OnClose()
 		{
 			Parallel.ForEach(
 				_devices.Values,

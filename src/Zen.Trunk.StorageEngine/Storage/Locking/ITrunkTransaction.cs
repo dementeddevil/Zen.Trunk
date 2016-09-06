@@ -5,19 +5,41 @@
 	using System.Transactions;
 	using Log;
 
-	public interface ITrunkTransaction : IDisposable
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <seealso cref="System.IDisposable" />
+    public interface ITrunkTransaction : IDisposable
 	{
-		TransactionId TransactionId
+        /// <summary>
+        /// Gets the transaction identifier.
+        /// </summary>
+        /// <value>
+        /// The transaction identifier.
+        /// </value>
+        TransactionId TransactionId
 		{
 			get;
 		}
 
-		IsolationLevel IsolationLevel
+        /// <summary>
+        /// Gets the isolation level.
+        /// </summary>
+        /// <value>
+        /// The isolation level.
+        /// </value>
+        IsolationLevel IsolationLevel
 		{
 			get;
 		}
 
-		TimeSpan Timeout
+        /// <summary>
+        /// Gets the timeout.
+        /// </summary>
+        /// <value>
+        /// The timeout.
+        /// </value>
+        TimeSpan Timeout
 		{
 			get;
 		}

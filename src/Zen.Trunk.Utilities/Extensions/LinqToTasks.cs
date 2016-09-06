@@ -20,7 +20,17 @@ namespace Zen.Trunk.Extensions
     /// </summary>
     public static class LinqToTasks
     {
-        public static Task<TResult> Select<TSource, TResult>(this Task<TSource> source, Func<TSource, TResult> selector)
+        /// <summary>
+        /// Selects the specified selector.
+        /// </summary>
+        /// <typeparam name="TSource">The type of the source.</typeparam>
+        /// <typeparam name="TResult">The type of the result.</typeparam>
+        /// <param name="source">The source.</param>
+        /// <param name="selector">The selector.</param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException">
+        /// </exception>
+        public static Task<TResult> SelectAsync<TSource, TResult>(this Task<TSource> source, Func<TSource, TResult> selector)
         {
             // Validate arguments
             if (source == null) throw new ArgumentNullException(nameof(source));
@@ -30,7 +40,17 @@ namespace Zen.Trunk.Extensions
             return source.ContinueWith(t => selector(t.Result), TaskContinuationOptions.NotOnCanceled);
         }
 
-        public static Task<TResult> SelectMany<TSource, TResult>(this Task<TSource> source, Func<TSource, Task<TResult>> selector)
+        /// <summary>
+        /// Selects the many.
+        /// </summary>
+        /// <typeparam name="TSource">The type of the source.</typeparam>
+        /// <typeparam name="TResult">The type of the result.</typeparam>
+        /// <param name="source">The source.</param>
+        /// <param name="selector">The selector.</param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException">
+        /// </exception>
+        public static Task<TResult> SelectManyAsync<TSource, TResult>(this Task<TSource> source, Func<TSource, Task<TResult>> selector)
         {
             // Validate arguments
             if (source == null) throw new ArgumentNullException(nameof(source));
@@ -40,7 +60,19 @@ namespace Zen.Trunk.Extensions
             return source.ContinueWith(t => selector(t.Result), TaskContinuationOptions.NotOnCanceled).Unwrap();
         }
 
-        public static Task<TResult> SelectMany<TSource, TCollection, TResult>(
+        /// <summary>
+        /// Selects the many.
+        /// </summary>
+        /// <typeparam name="TSource">The type of the source.</typeparam>
+        /// <typeparam name="TCollection">The type of the collection.</typeparam>
+        /// <typeparam name="TResult">The type of the result.</typeparam>
+        /// <param name="source">The source.</param>
+        /// <param name="collectionSelector">The collection selector.</param>
+        /// <param name="resultSelector">The result selector.</param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException">
+        /// </exception>
+        public static Task<TResult> SelectManyAsync<TSource, TCollection, TResult>(
             this Task<TSource> source, 
             Func<TSource, Task<TCollection>> collectionSelector, 
             Func<TSource, TCollection, TResult> resultSelector)
@@ -59,7 +91,16 @@ namespace Zen.Trunk.Extensions
             }, TaskContinuationOptions.NotOnCanceled).Unwrap();
         }
 
-        public static Task<TSource> Where<TSource>(this Task<TSource> source, Func<TSource, bool> predicate)
+        /// <summary>
+        /// Wheres the specified predicate.
+        /// </summary>
+        /// <typeparam name="TSource">The type of the source.</typeparam>
+        /// <param name="source">The source.</param>
+        /// <param name="predicate">The predicate.</param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException">
+        /// </exception>
+        public static Task<TSource> WhereAsync<TSource>(this Task<TSource> source, Func<TSource, bool> predicate)
         {
             // Validate arguments
             if (source == null) throw new ArgumentNullException(nameof(source));
@@ -76,17 +117,46 @@ namespace Zen.Trunk.Extensions
             }, cts.Token, TaskContinuationOptions.NotOnCanceled, TaskScheduler.Default);
         }
 
-        public static Task<TResult> Join<TOuter, TInner, TKey, TResult>(
+        /// <summary>
+        /// Joins the specified inner.
+        /// </summary>
+        /// <typeparam name="TOuter">The type of the outer.</typeparam>
+        /// <typeparam name="TInner">The type of the inner.</typeparam>
+        /// <typeparam name="TKey">The type of the key.</typeparam>
+        /// <typeparam name="TResult">The type of the result.</typeparam>
+        /// <param name="outer">The outer.</param>
+        /// <param name="inner">The inner.</param>
+        /// <param name="outerKeySelector">The outer key selector.</param>
+        /// <param name="innerKeySelector">The inner key selector.</param>
+        /// <param name="resultSelector">The result selector.</param>
+        /// <returns></returns>
+        public static Task<TResult> JoinAsync<TOuter, TInner, TKey, TResult>(
             this Task<TOuter> outer, Task<TInner> inner, 
             Func<TOuter, TKey> outerKeySelector, 
             Func<TInner, TKey> innerKeySelector, 
             Func<TOuter, TInner, TResult> resultSelector)
         {
             // Argument validation handled by delegated method call
-            return Join(outer, inner, outerKeySelector, innerKeySelector, resultSelector, EqualityComparer<TKey>.Default);
+            return JoinAsync(outer, inner, outerKeySelector, innerKeySelector, resultSelector, EqualityComparer<TKey>.Default);
         }
 
-        public static Task<TResult> Join<TOuter, TInner, TKey, TResult>(
+        /// <summary>
+        /// Joins the specified inner.
+        /// </summary>
+        /// <typeparam name="TOuter">The type of the outer.</typeparam>
+        /// <typeparam name="TInner">The type of the inner.</typeparam>
+        /// <typeparam name="TKey">The type of the key.</typeparam>
+        /// <typeparam name="TResult">The type of the result.</typeparam>
+        /// <param name="outer">The outer.</param>
+        /// <param name="inner">The inner.</param>
+        /// <param name="outerKeySelector">The outer key selector.</param>
+        /// <param name="innerKeySelector">The inner key selector.</param>
+        /// <param name="resultSelector">The result selector.</param>
+        /// <param name="comparer">The comparer.</param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException">
+        /// </exception>
+        public static Task<TResult> JoinAsync<TOuter, TInner, TKey, TResult>(
             this Task<TOuter> outer, Task<TInner> inner, 
             Func<TOuter, TKey> outerKeySelector, 
             Func<TInner, TKey> innerKeySelector, 
@@ -126,17 +196,46 @@ namespace Zen.Trunk.Extensions
             }, TaskContinuationOptions.NotOnCanceled).Unwrap();
         }
 
-        public static Task<TResult> GroupJoin<TOuter, TInner, TKey, TResult>(
+        /// <summary>
+        /// Groups the join.
+        /// </summary>
+        /// <typeparam name="TOuter">The type of the outer.</typeparam>
+        /// <typeparam name="TInner">The type of the inner.</typeparam>
+        /// <typeparam name="TKey">The type of the key.</typeparam>
+        /// <typeparam name="TResult">The type of the result.</typeparam>
+        /// <param name="outer">The outer.</param>
+        /// <param name="inner">The inner.</param>
+        /// <param name="outerKeySelector">The outer key selector.</param>
+        /// <param name="innerKeySelector">The inner key selector.</param>
+        /// <param name="resultSelector">The result selector.</param>
+        /// <returns></returns>
+        public static Task<TResult> GroupJoinAsync<TOuter, TInner, TKey, TResult>(
             this Task<TOuter> outer, Task<TInner> inner, 
             Func<TOuter, TKey> outerKeySelector, 
             Func<TInner, TKey> innerKeySelector,
             Func<TOuter, Task<TInner>, TResult> resultSelector)
         {
             // Argument validation handled by delegated method call
-            return GroupJoin(outer, inner, outerKeySelector, innerKeySelector, resultSelector, EqualityComparer<TKey>.Default);
+            return GroupJoinAsync(outer, inner, outerKeySelector, innerKeySelector, resultSelector, EqualityComparer<TKey>.Default);
         }
 
-        public static Task<TResult> GroupJoin<TOuter, TInner, TKey, TResult>(
+        /// <summary>
+        /// Groups the join.
+        /// </summary>
+        /// <typeparam name="TOuter">The type of the outer.</typeparam>
+        /// <typeparam name="TInner">The type of the inner.</typeparam>
+        /// <typeparam name="TKey">The type of the key.</typeparam>
+        /// <typeparam name="TResult">The type of the result.</typeparam>
+        /// <param name="outer">The outer.</param>
+        /// <param name="inner">The inner.</param>
+        /// <param name="outerKeySelector">The outer key selector.</param>
+        /// <param name="innerKeySelector">The inner key selector.</param>
+        /// <param name="resultSelector">The result selector.</param>
+        /// <param name="comparer">The comparer.</param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException">
+        /// </exception>
+        public static Task<TResult> GroupJoinAsync<TOuter, TInner, TKey, TResult>(
             this Task<TOuter> outer, Task<TInner> inner, 
             Func<TOuter, TKey> outerKeySelector, 
             Func<TInner, TKey> innerKeySelector,
@@ -176,7 +275,19 @@ namespace Zen.Trunk.Extensions
             }, TaskContinuationOptions.NotOnCanceled).Unwrap();
         }
 
-        public static Task<IGrouping<TKey, TElement>> GroupBy<TSource, TKey, TElement>(
+        /// <summary>
+        /// Groups the by.
+        /// </summary>
+        /// <typeparam name="TSource">The type of the source.</typeparam>
+        /// <typeparam name="TKey">The type of the key.</typeparam>
+        /// <typeparam name="TElement">The type of the element.</typeparam>
+        /// <param name="source">The source.</param>
+        /// <param name="keySelector">The key selector.</param>
+        /// <param name="elementSelector">The element selector.</param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException">
+        /// </exception>
+        public static Task<IGrouping<TKey, TElement>> GroupByAsync<TSource, TKey, TElement>(
             this Task<TSource> source, Func<TSource, TKey> keySelector, Func<TSource, TElement> elementSelector)
         {
             // Validate arguments
@@ -205,7 +316,16 @@ namespace Zen.Trunk.Extensions
             IEnumerator IEnumerable.GetEnumerator() { return GetEnumerator(); }
         }
 
-        public static Task<TSource> OrderBy<TSource, TKey>(this Task<TSource> source, Func<TSource, TKey> keySelector)
+        /// <summary>
+        /// Orders the by.
+        /// </summary>
+        /// <typeparam name="TSource">The type of the source.</typeparam>
+        /// <typeparam name="TKey">The type of the key.</typeparam>
+        /// <param name="source">The source.</param>
+        /// <param name="keySelector">The key selector.</param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException"></exception>
+        public static Task<TSource> OrderByAsync<TSource, TKey>(this Task<TSource> source, Func<TSource, TKey> keySelector)
         {
             // A single item is already in sorted order, no matter what the key selector is, so just
             // return the original.
@@ -213,7 +333,16 @@ namespace Zen.Trunk.Extensions
             return source;
         }
 
-        public static Task<TSource> OrderByDescending<TSource, TKey>(this Task<TSource> source, Func<TSource, TKey> keySelector)
+        /// <summary>
+        /// Orders the by descending.
+        /// </summary>
+        /// <typeparam name="TSource">The type of the source.</typeparam>
+        /// <typeparam name="TKey">The type of the key.</typeparam>
+        /// <param name="source">The source.</param>
+        /// <param name="keySelector">The key selector.</param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException"></exception>
+        public static Task<TSource> OrderByDescendingAsync<TSource, TKey>(this Task<TSource> source, Func<TSource, TKey> keySelector)
         {
             // A single item is already in sorted order, no matter what the key selector is, so just
             // return the original.
@@ -221,7 +350,16 @@ namespace Zen.Trunk.Extensions
             return source;
         }
 
-        public static Task<TSource> ThenBy<TSource, TKey>(this Task<TSource> source, Func<TSource, TKey> keySelector)
+        /// <summary>
+        /// Thens the by.
+        /// </summary>
+        /// <typeparam name="TSource">The type of the source.</typeparam>
+        /// <typeparam name="TKey">The type of the key.</typeparam>
+        /// <param name="source">The source.</param>
+        /// <param name="keySelector">The key selector.</param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException"></exception>
+        public static Task<TSource> ThenByAsync<TSource, TKey>(this Task<TSource> source, Func<TSource, TKey> keySelector)
         {
             // A single item is already in sorted order, no matter what the key selector is, so just
             // return the original.
@@ -229,7 +367,16 @@ namespace Zen.Trunk.Extensions
             return source;
         }
 
-        public static Task<TSource> ThenByDescending<TSource, TKey>(this Task<TSource> source, Func<TSource, TKey> keySelector)
+        /// <summary>
+        /// Thens the by descending.
+        /// </summary>
+        /// <typeparam name="TSource">The type of the source.</typeparam>
+        /// <typeparam name="TKey">The type of the key.</typeparam>
+        /// <param name="source">The source.</param>
+        /// <param name="keySelector">The key selector.</param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException"></exception>
+        public static Task<TSource> ThenByDescendingAsync<TSource, TKey>(this Task<TSource> source, Func<TSource, TKey> keySelector)
         {
             // A single item is already in sorted order, no matter what the key selector is, so just
             // return the original.

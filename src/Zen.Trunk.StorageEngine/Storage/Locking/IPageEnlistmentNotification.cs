@@ -1,13 +1,32 @@
 ﻿namespace Zen.Trunk.Storage.Locking
 {
-	public interface IPageEnlistmentNotification
+    /// <summary>
+    /// <c>IPageEnlistmentNotification</c> is implemented by a resource in
+    /// order to participate with a page transaction.
+    /// </summary>
+    public interface IPageEnlistmentNotification
 	{
-		void Prepare(PreparingPageEnlistment prepare);
+        /// <summary>
+        /// Prepares the specified prepare.
+        /// </summary>
+        /// <param name="prepare">The prepare.</param>
+        void Prepare(PreparingPageEnlistment prepare);
 
-		void Commit(PageEnlistment enlistment);
+        /// <summary>
+        /// Commits the specified enlistment.
+        /// </summary>
+        /// <param name="enlistment">The enlistment.</param>
+        void Commit(PageEnlistment enlistment);
 
-		void Rollback(PageEnlistment enlistment);
+        /// <summary>
+        /// Rollbacks the specified enlistment.
+        /// </summary>
+        /// <param name="enlistment">The enlistment.</param>
+        void Rollback(PageEnlistment enlistment);
 
-		void Complete();
+        /// <summary>
+        /// Completes this instance.
+        /// </summary>
+        void Complete();
 	}
 }

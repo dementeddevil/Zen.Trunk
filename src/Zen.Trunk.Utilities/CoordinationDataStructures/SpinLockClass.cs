@@ -8,7 +8,6 @@
 
 using System;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace Zen.Trunk.CoordinationDataStructures
 {
@@ -53,13 +52,11 @@ namespace Zen.Trunk.CoordinationDataStructures
 
         private void Enter(ref bool lockTaken)
         {
-            Console.WriteLine($"Enter: ThreadId:{Thread.CurrentThread.ManagedThreadId}, Context:{SynchronizationContext.Current != null}");
             _spinLock.TryEnter(ref lockTaken);
         }
 
         private void Exit(bool useMemoryBarrier = true)
         {
-            Console.WriteLine($"Exit: ThreadId:{Thread.CurrentThread.ManagedThreadId}, Context:{SynchronizationContext.Current != null}");
             _spinLock.Exit(useMemoryBarrier);
         }
     }

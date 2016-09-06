@@ -279,9 +279,21 @@ namespace Zen.Trunk.Storage
 			}
 		}
 
-	    protected virtual BufferField FirstHeaderField => _status;
+        /// <summary>
+        /// Gets the first header field.
+        /// </summary>
+        /// <value>
+        /// The first header field.
+        /// </value>
+        protected virtual BufferField FirstHeaderField => _status;
 
-	    protected virtual BufferField LastHeaderField => _newPageField;
+        /// <summary>
+        /// Gets the last header field.
+        /// </summary>
+        /// <value>
+        /// The last header field.
+        /// </value>
+        protected virtual BufferField LastHeaderField => _newPageField;
 	    #endregion
 
 		#region Public Methods
@@ -317,6 +329,10 @@ namespace Zen.Trunk.Storage
 			}
 		}
 
+        /// <summary>
+        /// Sets the lifetime scope.
+        /// </summary>
+        /// <param name="scope">The scope.</param>
         public void SetLifetimeScope(ILifetimeScope scope)
         {
             _lifetimeScope = scope.BeginLifetimeScope(

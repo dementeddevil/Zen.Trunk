@@ -6,7 +6,14 @@ namespace Zen.Trunk.Storage.Locking
 	/// </summary>
 	public interface IReferenceLock
 	{
-		void AddRefLock ();
-		void ReleaseLock ();
+        /// <summary>
+        /// Adds the reference lock.
+        /// </summary>
+        void AddRefLock ();
+
+        /// <summary>
+        /// Releases the lock.
+        /// </summary>
+        void ReleaseLock ();
 	}
 }

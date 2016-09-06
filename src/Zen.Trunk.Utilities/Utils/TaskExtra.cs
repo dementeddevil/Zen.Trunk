@@ -4,10 +4,18 @@ using Zen.Trunk.Extensions;
 
 namespace Zen.Trunk.Utils
 {
+    /// <summary>
+    /// 
+    /// </summary>
     [DebuggerStepThrough]
 	public static class TaskExtra
 	{
-		public static Task WhenAllOrEmpty(params Task[] tasks)
+        /// <summary>
+        /// Whens all or empty.
+        /// </summary>
+        /// <param name="tasks">The tasks.</param>
+        /// <returns></returns>
+        public static Task WhenAllOrEmpty(params Task[] tasks)
 		{
 			if (tasks.Length == 0)
 			{
@@ -19,7 +27,13 @@ namespace Zen.Trunk.Utils
 			}
 		}
 
-		public static Task<TResult[]> WhenAllOrEmpty<TResult>(params Task<TResult>[] tasks)
+        /// <summary>
+        /// Whens all or empty.
+        /// </summary>
+        /// <typeparam name="TResult">The type of the result.</typeparam>
+        /// <param name="tasks">The tasks.</param>
+        /// <returns></returns>
+        public static Task<TResult[]> WhenAllOrEmpty<TResult>(params Task<TResult>[] tasks)
 		{
 			if (tasks.Length == 0)
 			{
@@ -31,7 +45,12 @@ namespace Zen.Trunk.Utils
 			}
 		}
 
-		public static Task WhenAnyOrEmpty(params Task[] tasks)
+        /// <summary>
+        /// Whens any or empty.
+        /// </summary>
+        /// <param name="tasks">The tasks.</param>
+        /// <returns></returns>
+        public static Task WhenAnyOrEmpty(params Task[] tasks)
 		{
 			if (tasks.Length == 0)
 			{
@@ -43,7 +62,13 @@ namespace Zen.Trunk.Utils
 			}
 		}
 
-		public static Task<Task<TResult>> WhenAnyOrEmpty<TResult>(params Task<TResult>[] tasks)
+        /// <summary>
+        /// Whens any or empty.
+        /// </summary>
+        /// <typeparam name="TResult">The type of the result.</typeparam>
+        /// <param name="tasks">The tasks.</param>
+        /// <returns></returns>
+        public static Task<Task<TResult>> WhenAnyOrEmpty<TResult>(params Task<TResult>[] tasks)
 		{
 			if (tasks.Length == 0)
 			{

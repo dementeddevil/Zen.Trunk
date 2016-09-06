@@ -8,6 +8,9 @@ namespace Zen.Trunk.Storage
 	[Serializable]
 	public struct VirtualPageId : IComparable, ICloneable
 	{
+        /// <summary>
+        /// A virtual page id that represents the root page
+        /// </summary>
         public static readonly VirtualPageId Zero = new VirtualPageId(0);
 
 		#region Public Constructors
@@ -182,7 +185,15 @@ namespace Zen.Trunk.Storage
 			return order;
 		}
 
-		public static bool operator <(VirtualPageId left, VirtualPageId right)
+        /// <summary>
+        /// Implements the operator &lt;.
+        /// </summary>
+        /// <param name="left">The left.</param>
+        /// <param name="right">The right.</param>
+        /// <returns>
+        /// The result of the operator.
+        /// </returns>
+        public static bool operator <(VirtualPageId left, VirtualPageId right)
 		{
 			if (left.DeviceId < right.DeviceId)
 			{
@@ -195,7 +206,15 @@ namespace Zen.Trunk.Storage
 			return left.PhysicalPageId < right.PhysicalPageId;
 		}
 
-		public static bool operator >(VirtualPageId left, VirtualPageId right)
+        /// <summary>
+        /// Implements the operator &gt;.
+        /// </summary>
+        /// <param name="left">The left.</param>
+        /// <param name="right">The right.</param>
+        /// <returns>
+        /// The result of the operator.
+        /// </returns>
+        public static bool operator >(VirtualPageId left, VirtualPageId right)
 		{
 			if (left.DeviceId > right.DeviceId)
 			{
@@ -208,25 +227,30 @@ namespace Zen.Trunk.Storage
 			return left.PhysicalPageId > right.PhysicalPageId;
 		}
 
-		public static bool operator ==(VirtualPageId left, VirtualPageId right)
+        /// <summary>
+        /// Implements the operator ==.
+        /// </summary>
+        /// <param name="left">The left.</param>
+        /// <param name="right">The right.</param>
+        /// <returns>
+        /// The result of the operator.
+        /// </returns>
+        public static bool operator ==(VirtualPageId left, VirtualPageId right)
 		{
-			var equal = false;
-			if (left.DeviceId == right.DeviceId &&
-				left.PhysicalPageId == right.PhysicalPageId)
-			{
-				equal = true;
-			}
-			return equal;
+            return left.DeviceId == right.DeviceId && left.PhysicalPageId == right.PhysicalPageId;
 		}
-		public static bool operator !=(VirtualPageId left, VirtualPageId right)
+
+        /// <summary>
+        /// Implements the operator !=.
+        /// </summary>
+        /// <param name="left">The left.</param>
+        /// <param name="right">The right.</param>
+        /// <returns>
+        /// The result of the operator.
+        /// </returns>
+        public static bool operator !=(VirtualPageId left, VirtualPageId right)
 		{
-			var notEqual = false;
-			if (left.DeviceId != right.DeviceId ||
-				left.PhysicalPageId != right.PhysicalPageId)
-			{
-				notEqual = true;
-			}
-			return notEqual;
+            return left.DeviceId != right.DeviceId || left.PhysicalPageId != right.PhysicalPageId;
 		}
 		#endregion
 
@@ -240,10 +264,14 @@ namespace Zen.Trunk.Storage
 			}
 			return order;
 		}
-		#endregion
+        #endregion
 
-		#region ICloneable Members
-		public VirtualPageId Clone()
+        #region ICloneable Members
+        /// <summary>
+        /// Clones this instance.
+        /// </summary>
+        /// <returns></returns>
+        public VirtualPageId Clone()
 		{
 			return (VirtualPageId)MemberwiseClone();
 		}

@@ -9,9 +9,24 @@ namespace Zen.Trunk.Storage
     public struct ObjectType : IComparable, ICloneable
     {
         #region Public Fields
+        /// <summary>
+        /// The unknown
+        /// </summary>
         public static readonly ObjectType Unknown = new ObjectType(0);
+
+        /// <summary>
+        /// The sample
+        /// </summary>
         public static readonly ObjectType Sample = new ObjectType(1);
+
+        /// <summary>
+        /// The table
+        /// </summary>
         public static readonly ObjectType Table = new ObjectType(2);
+
+        /// <summary>
+        /// The view
+        /// </summary>
         public static readonly ObjectType View = new ObjectType(3);
         #endregion
 
@@ -88,20 +103,52 @@ namespace Zen.Trunk.Storage
             return order;
         }
 
+        /// <summary>
+        /// Implements the operator &lt;.
+        /// </summary>
+        /// <param name="left">The left.</param>
+        /// <param name="right">The right.</param>
+        /// <returns>
+        /// The result of the operator.
+        /// </returns>
         public static bool operator <(ObjectType left, ObjectType right)
         {
             return (left.Value < right.Value);
         }
 
+        /// <summary>
+        /// Implements the operator &gt;.
+        /// </summary>
+        /// <param name="left">The left.</param>
+        /// <param name="right">The right.</param>
+        /// <returns>
+        /// The result of the operator.
+        /// </returns>
         public static bool operator >(ObjectType left, ObjectType right)
         {
             return (left.Value > right.Value);
         }
 
+        /// <summary>
+        /// Implements the operator ==.
+        /// </summary>
+        /// <param name="left">The left.</param>
+        /// <param name="right">The right.</param>
+        /// <returns>
+        /// The result of the operator.
+        /// </returns>
         public static bool operator ==(ObjectType left, ObjectType right)
         {
             return (left.Value == right.Value);
         }
+        /// <summary>
+        /// Implements the operator !=.
+        /// </summary>
+        /// <param name="left">The left.</param>
+        /// <param name="right">The right.</param>
+        /// <returns>
+        /// The result of the operator.
+        /// </returns>
         public static bool operator !=(ObjectType left, ObjectType right)
         {
             return (left.Value != right.Value);
@@ -121,6 +168,10 @@ namespace Zen.Trunk.Storage
         #endregion
 
         #region ICloneable Members
+        /// <summary>
+        /// Clones this instance.
+        /// </summary>
+        /// <returns></returns>
         public ObjectType Clone()
         {
             return (ObjectType)MemberwiseClone();

@@ -35,7 +35,13 @@ namespace Zen.Trunk.Storage.IO
 		private SafeMemoryHandle _reservationBaseAddress;
 		private LinkedList<VirtualBufferCache> _bufferChain;
 
-		public VirtualBufferFactory(int bufferSize, int reservationMb)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="VirtualBufferFactory"/> class.
+        /// </summary>
+        /// <param name="bufferSize">Size of the buffer.</param>
+        /// <param name="reservationMb">The reservation mb.</param>
+        /// <exception cref="ArgumentException">Buffer size must be multiple of {VirtualBuffer.SystemPageSize}.</exception>
+        public VirtualBufferFactory(int bufferSize, int reservationMb)
 		{
             // Buffer size must be multiple of system page size
             if((bufferSize % VirtualBuffer.SystemPageSize) != 0)
@@ -76,9 +82,21 @@ namespace Zen.Trunk.Storage.IO
             }
 		}
 
-		public int BufferSize => _bufferSize;
+        /// <summary>
+        /// Gets the size of the buffer.
+        /// </summary>
+        /// <value>
+        /// The size of the buffer.
+        /// </value>
+        public int BufferSize => _bufferSize;
 
-		public bool IsNearlyFull
+        /// <summary>
+        /// Gets a value indicating whether this instance is nearly full.
+        /// </summary>
+        /// <value>
+        /// <c>true</c> if this instance is nearly full; otherwise, <c>false</c>.
+        /// </value>
+        public bool IsNearlyFull
 		{
 			get
 			{
@@ -98,7 +116,12 @@ namespace Zen.Trunk.Storage.IO
 			}
 		}
 
-	    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2201:DoNotRaiseReservedExceptionTypes",
+        /// <summary>
+        /// Allocates the buffer.
+        /// </summary>
+        /// <returns></returns>
+        /// <exception cref="OutOfMemoryException">Virtual buffer resources exhausted.</exception>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2201:DoNotRaiseReservedExceptionTypes",
 			Justification = "Throwing an out of memory exception is an acceptable usage scenario for this method.")]
 		public IVirtualBuffer AllocateBuffer()
 		{
@@ -185,14 +208,21 @@ namespace Zen.Trunk.Storage.IO
 				new UIntPtr(totalBytes), SafeNativeMethods.PAGE_NOACCESS);
 		}
 
-		#region IDisposable Members
-		public void Dispose()
+        #region IDisposable Members
+        /// <summary>
+        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
+        /// </summary>
+        public void Dispose()
 		{
 			Dispose(true);
             GC.SuppressFinalize(this);
 		}
 
-		protected virtual void Dispose(bool disposing)
+        /// <summary>
+        /// Releases unmanaged and - optionally - managed resources.
+        /// </summary>
+        /// <param name="disposing"><c>true</c> to release both managed and unmanaged resources; <c>false</c> to release only unmanaged resources.</param>
+        protected virtual void Dispose(bool disposing)
 		{
 			if (_reservationBaseAddress != null)
 			{

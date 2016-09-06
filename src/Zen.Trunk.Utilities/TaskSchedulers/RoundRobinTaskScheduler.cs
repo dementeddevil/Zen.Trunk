@@ -19,7 +19,7 @@ namespace Zen.Trunk.TaskSchedulers
     public sealed class RoundRobinSchedulerGroup
     {
         private readonly List<RoundRobinTaskSchedulerQueue> _queues = new List<RoundRobinTaskSchedulerQueue>();
-        private int _nextQueue = 0;
+        private int _nextQueue;
 
         /// <summary>Creates a new scheduler as part of this group.</summary>
         /// <returns>The new scheduler.</returns>

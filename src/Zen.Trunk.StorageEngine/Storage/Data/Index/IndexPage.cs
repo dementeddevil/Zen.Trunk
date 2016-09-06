@@ -301,6 +301,12 @@
         #endregion
 
         #region Protected Methods
+        /// <summary>
+        /// Creates the status sections.
+        /// </summary>
+        /// <param name="status">The status.</param>
+        /// <param name="previousSection">The previous section.</param>
+        /// <returns></returns>
         protected override BitVector32.Section CreateStatusSections(BitVector32 status, BitVector32.Section previousSection)
         {
             previousSection = base.CreateStatusSections(status, previousSection);

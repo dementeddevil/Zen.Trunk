@@ -7,6 +7,10 @@ using System.Runtime.CompilerServices;
 
 namespace Zen.Trunk
 {
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <seealso cref="System.IDisposable" />
     public class TempFileTracker : IDisposable
     {
         private readonly string _testFolder;
@@ -38,6 +42,11 @@ namespace Zen.Trunk
             }
         }
 
+        /// <summary>
+        /// Gets the specified filename.
+        /// </summary>
+        /// <param name="filename">The filename.</param>
+        /// <returns></returns>
         public string Get(string filename)
         {
             if (!Directory.Exists(_testFolder))
@@ -53,6 +62,9 @@ namespace Zen.Trunk
             return trackedPathname;
         }
 
+        /// <summary>
+        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
+        /// </summary>
         public void Dispose()
         {
             if (Directory.Exists(_testFolder))

@@ -201,7 +201,12 @@ namespace Zen.Trunk.Storage.Data
 			base.DisposeManagedObjects();
 		}
 
-		protected override Stream CreateHeaderStream(bool readOnly)
+        /// <summary>
+        /// Creates the header stream.
+        /// </summary>
+        /// <param name="readOnly">if set to <c>true</c> [read only].</param>
+        /// <returns></returns>
+        protected override Stream CreateHeaderStream(bool readOnly)
 		{
 		    if (Logger.IsDebugEnabled())
 		    {
@@ -213,7 +218,12 @@ namespace Zen.Trunk.Storage.Data
 			return _buffer.GetBufferStream(0, (int)HeaderSize, !readOnly);
 		}
 
-		public override Stream CreateDataStream(bool readOnly)
+        /// <summary>
+        /// Creates the data stream.
+        /// </summary>
+        /// <param name="readOnly">if set to <c>true</c> [read only].</param>
+        /// <returns></returns>
+        public override Stream CreateDataStream(bool readOnly)
 		{
             if (Logger.IsDebugEnabled())
             {
@@ -303,7 +313,13 @@ namespace Zen.Trunk.Storage.Data
 			}
 		}
 
-		protected override async Task OnPostLoadAsync(EventArgs e)
+        /// <summary>
+        /// Raises the <see cref="E:Load" /> event.
+        /// </summary>
+        /// <param name="e">The <see cref="System.EventArgs" /> instance containing the event data.</param>
+        /// <returns></returns>
+        /// <exception cref="InvalidOperationException"></exception>
+        protected override async Task OnPostLoadAsync(EventArgs e)
 		{
 			await base.OnPostLoadAsync(e).ConfigureAwait(false);
 
@@ -358,11 +374,18 @@ namespace Zen.Trunk.Storage.Data
 			DataBuffer.Timestamp = updateTimestamp;
 		}
 
-		protected virtual void PreUpdateTimestamp()
+        /// <summary>
+        /// Pres the update timestamp.
+        /// </summary>
+        protected virtual void PreUpdateTimestamp()
 		{
 		}
 
-		protected virtual long UpdateTimestamp()
+        /// <summary>
+        /// Updates the timestamp.
+        /// </summary>
+        /// <returns></returns>
+        protected virtual long UpdateTimestamp()
 		{
 			long newTimestamp = 0;
 			_syncTimestamp.Execute(
@@ -373,7 +396,10 @@ namespace Zen.Trunk.Storage.Data
 			return newTimestamp;
 		}
 
-		protected virtual void PostUpdateTimestamp()
+        /// <summary>
+        /// Posts the update timestamp.
+        /// </summary>
+        protected virtual void PostUpdateTimestamp()
 		{
 			SetHeaderDirty();
 		}

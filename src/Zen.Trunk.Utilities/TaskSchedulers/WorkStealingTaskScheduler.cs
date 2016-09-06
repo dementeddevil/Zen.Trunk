@@ -292,8 +292,8 @@ namespace Zen.Trunk.TaskSchedulers
         private const int INITIAL_SIZE = 32;
         private T[] _array = new T[INITIAL_SIZE];
         private int _mask = INITIAL_SIZE - 1;
-        private volatile int _headIndex = 0;
-        private volatile int _tailIndex = 0;
+        private volatile int _headIndex;
+        private volatile int _tailIndex;
 
         private readonly object _foreignLock = new object();
 

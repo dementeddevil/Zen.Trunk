@@ -4,6 +4,10 @@ using System.Text;
 
 namespace Zen.Trunk.Storage.IO
 {
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <seealso cref="System.IDisposable" />
     public class BufferReaderWriter : IDisposable
     {
         #region Private Fields
@@ -99,6 +103,9 @@ namespace Zen.Trunk.Storage.IO
         #endregion
 
         #region Public Methods
+        /// <summary>
+        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
+        /// </summary>
         public void Dispose()
         {
             Dispose(true);
@@ -142,24 +149,41 @@ namespace Zen.Trunk.Storage.IO
         #endregion
 
         #region Reader Methods
+        /// <summary>
+        /// Reads the boolean.
+        /// </summary>
+        /// <returns></returns>
         public bool ReadBoolean()
         {
             CheckDisposed();
             return ((_reader.ReadByte() & 1) != 0);
         }
 
+        /// <summary>
+        /// Reads the byte.
+        /// </summary>
+        /// <returns></returns>
         public byte ReadByte()
         {
             CheckDisposed();
             return _reader.ReadByte();
         }
 
+        /// <summary>
+        /// Reads the bytes.
+        /// </summary>
+        /// <param name="count">The count.</param>
+        /// <returns></returns>
         public byte[] ReadBytes(int count)
         {
             CheckDisposed();
             return _reader.ReadBytes(count);
         }
 
+        /// <summary>
+        /// Reads the character.
+        /// </summary>
+        /// <returns></returns>
         public char ReadChar()
         {
             CheckDisposed();
@@ -168,6 +192,11 @@ namespace Zen.Trunk.Storage.IO
             return _currentEncoding.GetChars(bytes)[0];
         }
 
+        /// <summary>
+        /// Reads the chars.
+        /// </summary>
+        /// <param name="count">The count.</param>
+        /// <returns></returns>
         public char[] ReadChars(int count)
         {
             CheckDisposed();
@@ -176,6 +205,10 @@ namespace Zen.Trunk.Storage.IO
             return _currentEncoding.GetChars(bytes);
         }
 
+        /// <summary>
+        /// Reads the string.
+        /// </summary>
+        /// <returns></returns>
         public string ReadString()
         {
             CheckDisposed();
@@ -184,6 +217,11 @@ namespace Zen.Trunk.Storage.IO
             return _currentEncoding.GetString(buffer);
         }
 
+        /// <summary>
+        /// Reads the string exact.
+        /// </summary>
+        /// <param name="count">The count.</param>
+        /// <returns></returns>
         public string ReadStringExact(int count)
         {
             CheckDisposed();
@@ -192,24 +230,40 @@ namespace Zen.Trunk.Storage.IO
             return _currentEncoding.GetString(buffer);
         }
 
+        /// <summary>
+        /// Reads the single.
+        /// </summary>
+        /// <returns></returns>
         public float ReadSingle()
         {
             CheckDisposed();
             return _reader.ReadSingle();
         }
 
+        /// <summary>
+        /// Reads the double.
+        /// </summary>
+        /// <returns></returns>
         public double ReadDouble()
         {
             CheckDisposed();
             return _reader.ReadDouble();
         }
 
+        /// <summary>
+        /// Reads the decimal.
+        /// </summary>
+        /// <returns></returns>
         public Decimal ReadDecimal()
         {
             CheckDisposed();
             return _reader.ReadDecimal();
         }
 
+        /// <summary>
+        /// Reads the u int16.
+        /// </summary>
+        /// <returns></returns>
         [CLSCompliant(false)]
         public ushort ReadUInt16()
         {
@@ -217,6 +271,10 @@ namespace Zen.Trunk.Storage.IO
             return _reader.ReadUInt16();
         }
 
+        /// <summary>
+        /// Reads the u int32.
+        /// </summary>
+        /// <returns></returns>
         [CLSCompliant(false)]
         public uint ReadUInt32()
         {
@@ -224,6 +282,10 @@ namespace Zen.Trunk.Storage.IO
             return _reader.ReadUInt32();
         }
 
+        /// <summary>
+        /// Reads the u int64.
+        /// </summary>
+        /// <returns></returns>
         [CLSCompliant(false)]
         public ulong ReadUInt64()
         {
@@ -231,18 +293,30 @@ namespace Zen.Trunk.Storage.IO
             return _reader.ReadUInt64();
         }
 
+        /// <summary>
+        /// Reads the int16.
+        /// </summary>
+        /// <returns></returns>
         public short ReadInt16()
         {
             CheckDisposed();
             return _reader.ReadInt16();
         }
 
+        /// <summary>
+        /// Reads the int32.
+        /// </summary>
+        /// <returns></returns>
         public int ReadInt32()
         {
             CheckDisposed();
             return _reader.ReadInt32();
         }
 
+        /// <summary>
+        /// Reads the int64.
+        /// </summary>
+        /// <returns></returns>
         public long ReadInt64()
         {
             CheckDisposed();
@@ -251,11 +325,19 @@ namespace Zen.Trunk.Storage.IO
         #endregion
 
         #region Writer Methods
+        /// <summary>
+        /// Writes the specified value.
+        /// </summary>
+        /// <param name="value">if set to <c>true</c> [value].</param>
         public void Write(bool value)
         {
             Write((byte)(value ? 1 : 0));
         }
 
+        /// <summary>
+        /// Writes the specified value.
+        /// </summary>
+        /// <param name="value">The value.</param>
         public void Write(byte value)
         {
             CheckWritable();
@@ -269,11 +351,21 @@ namespace Zen.Trunk.Storage.IO
             }
         }
 
+        /// <summary>
+        /// Writes the specified buffer.
+        /// </summary>
+        /// <param name="buffer">The buffer.</param>
         public void Write(byte[] buffer)
         {
             Write(buffer, 0, buffer.Length);
         }
 
+        /// <summary>
+        /// Writes the specified buffer.
+        /// </summary>
+        /// <param name="buffer">The buffer.</param>
+        /// <param name="index">The index.</param>
+        /// <param name="count">The count.</param>
         public void Write(byte[] buffer, int index, int count)
         {
             CheckWritable();
@@ -287,6 +379,10 @@ namespace Zen.Trunk.Storage.IO
             }
         }
 
+        /// <summary>
+        /// Writes the specified value.
+        /// </summary>
+        /// <param name="value">The value.</param>
         public void Write(char value)
         {
             CheckWritable();
@@ -302,11 +398,21 @@ namespace Zen.Trunk.Storage.IO
             }
         }
 
+        /// <summary>
+        /// Writes the specified buffer.
+        /// </summary>
+        /// <param name="buffer">The buffer.</param>
         public void Write(char[] buffer)
         {
             Write(buffer, 0, buffer.Length);
         }
 
+        /// <summary>
+        /// Writes the specified buffer.
+        /// </summary>
+        /// <param name="buffer">The buffer.</param>
+        /// <param name="index">The index.</param>
+        /// <param name="count">The count.</param>
         public void Write(char[] buffer, int index, int count)
         {
             CheckWritable();
@@ -322,6 +428,10 @@ namespace Zen.Trunk.Storage.IO
             }
         }
 
+        /// <summary>
+        /// Writes the specified value.
+        /// </summary>
+        /// <param name="value">The value.</param>
         public void Write(string value)
         {
             CheckWritable();
@@ -339,6 +449,11 @@ namespace Zen.Trunk.Storage.IO
             }
         }
 
+        /// <summary>
+        /// Writes the string exact.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <param name="count">The count.</param>
         public void WriteStringExact(string value, int count)
         {
             CheckWritable();
@@ -368,6 +483,10 @@ namespace Zen.Trunk.Storage.IO
             }
         }
 
+        /// <summary>
+        /// Writes the specified value.
+        /// </summary>
+        /// <param name="value">The value.</param>
         public void Write(float value)
         {
             CheckWritable();
@@ -381,6 +500,10 @@ namespace Zen.Trunk.Storage.IO
             }
         }
 
+        /// <summary>
+        /// Writes the specified value.
+        /// </summary>
+        /// <param name="value">The value.</param>
         public void Write(double value)
         {
             CheckWritable();
@@ -394,6 +517,10 @@ namespace Zen.Trunk.Storage.IO
             }
         }
 
+        /// <summary>
+        /// Writes the specified value.
+        /// </summary>
+        /// <param name="value">The value.</param>
         public void Write(Decimal value)
         {
             CheckWritable();
@@ -407,6 +534,10 @@ namespace Zen.Trunk.Storage.IO
             }
         }
 
+        /// <summary>
+        /// Writes the specified value.
+        /// </summary>
+        /// <param name="value">The value.</param>
         [CLSCompliant(false)]
         public void Write(ushort value)
         {
@@ -421,6 +552,10 @@ namespace Zen.Trunk.Storage.IO
             }
         }
 
+        /// <summary>
+        /// Writes the specified value.
+        /// </summary>
+        /// <param name="value">The value.</param>
         [CLSCompliant(false)]
         public void Write(uint value)
         {
@@ -435,6 +570,10 @@ namespace Zen.Trunk.Storage.IO
             }
         }
 
+        /// <summary>
+        /// Writes the specified value.
+        /// </summary>
+        /// <param name="value">The value.</param>
         [CLSCompliant(false)]
         public void Write(ulong value)
         {
@@ -449,6 +588,10 @@ namespace Zen.Trunk.Storage.IO
             }
         }
 
+        /// <summary>
+        /// Writes the specified value.
+        /// </summary>
+        /// <param name="value">The value.</param>
         public void Write(short value)
         {
             CheckWritable();
@@ -462,6 +605,10 @@ namespace Zen.Trunk.Storage.IO
             }
         }
 
+        /// <summary>
+        /// Writes the specified value.
+        /// </summary>
+        /// <param name="value">The value.</param>
         public void Write(int value)
         {
             CheckWritable();
@@ -475,6 +622,10 @@ namespace Zen.Trunk.Storage.IO
             }
         }
 
+        /// <summary>
+        /// Writes the specified value.
+        /// </summary>
+        /// <param name="value">The value.</param>
         public void Write(long value)
         {
             CheckWritable();

@@ -1,7 +1,13 @@
 ﻿namespace Zen.Trunk.Storage.Locking
 {
-	public abstract class PageEnlistment
+    /// <summary>
+    /// 
+    /// </summary>
+    public abstract class PageEnlistment
 	{
-		public abstract void Done();
+        /// <summary>
+        /// Dones this instance.
+        /// </summary>
+        public abstract void Done();
 	}
 }
