@@ -1,10 +1,7 @@
 ﻿using System.Collections.Generic;
-using System.IO;
-using System.Reflection;
 using System.Threading.Tasks;
 using Xunit;
 using Zen.Trunk.Storage;
-using Zen.Trunk.Storage.IO;
 
 namespace Zen.Trunk.VirtualMemory
 {

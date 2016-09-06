@@ -1,5 +1,4 @@
 ﻿using Autofac;
-using Zen.Trunk.Storage.IO;
 using Zen.Trunk.Storage.Locking;
 
 namespace Zen.Trunk.Storage

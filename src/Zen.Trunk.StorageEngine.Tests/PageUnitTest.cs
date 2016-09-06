@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using Autofac;
 using Xunit;
 using Zen.Trunk.Storage.Data;
-using Zen.Trunk.Storage.IO;
 using Zen.Trunk.Storage.Locking;
 
 namespace Zen.Trunk.Storage
