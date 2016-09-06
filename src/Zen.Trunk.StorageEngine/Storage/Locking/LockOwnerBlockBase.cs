@@ -73,11 +73,11 @@ namespace Zen.Trunk.Storage.Locking
 		private readonly IDatabaseLockManager _manager;
 		private uint _ownerLockCount;
 		private readonly uint _maxItemLocks;
-		private readonly SpinLockClass _syncBlock;
-		private ObjectLock _ownerLock;
-		private readonly ItemLockDictionary _readLocks;
-		private readonly ItemLockDictionary _updateLocks;
-		private readonly ItemLockDictionary _writeLocks;
+        private readonly TransactionalSpinLock _sync = new TransactionalSpinLock();
+        private ObjectLock _ownerLock;
+		private readonly ItemLockDictionary _readLocks = new ItemLockDictionary();
+		private readonly ItemLockDictionary _updateLocks = new ItemLockDictionary();
+		private readonly ItemLockDictionary _writeLocks = new ItemLockDictionary();
 		#endregion
 
 		#region Public Constructors
@@ -90,11 +90,7 @@ namespace Zen.Trunk.Storage.Locking
 		{
 			_manager = manager;
 			_maxItemLocks = maxItemLocks;
-			_syncBlock = new SpinLockClass();
 			_ownerLock = GetOwnerLock();
-			_readLocks = new ItemLockDictionary();
-			_updateLocks = new ItemLockDictionary();
-			_writeLocks = new ItemLockDictionary();
 		}
 		#endregion
 
@@ -146,7 +142,7 @@ namespace Zen.Trunk.Storage.Locking
 				return;
 			}
 
-			await _syncBlock
+			await _sync
                 .ExecuteAsync(
 				    async () =>
 				    {
@@ -246,7 +242,7 @@ namespace Zen.Trunk.Storage.Locking
 			ThrowIfDisposed();
 
 			// Locate id in tables
-			await _syncBlock.ExecuteAsync(
+			await _sync.ExecuteAsync(
 				async () =>
 				{
 					if (await _readLocks.TryReleaseLockAsync(key).ConfigureAwait(false) ||

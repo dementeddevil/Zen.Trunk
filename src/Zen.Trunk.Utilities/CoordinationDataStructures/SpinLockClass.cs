@@ -51,48 +51,6 @@ namespace Zen.Trunk.CoordinationDataStructures
             }
         }
 
-        /// <summary>
-        /// Runs the specified delegate under the lock.
-        /// </summary>
-        /// <param name="runUnderLock">The delegate to be executed while holding the lock.</param>
-        public async Task ExecuteAsync(Func<Task> runUnderLock)
-        {
-            var lockTaken = false;
-            try
-            {
-                Enter(ref lockTaken);
-                await runUnderLock().ConfigureAwait(true);
-            }
-            finally
-            {
-                if (lockTaken) Exit();
-            }
-        }
-
-        /// <summary>
-        /// Runs the specified delegate under the lock.
-        /// </summary>
-        /// <param name="runUnderLock">The delegate to be executed while holding the lock.</param>
-        /// <returns>
-        /// The value returned by the specified delegate.
-        /// </returns>
-        public async Task<TResult> ExecuteAsync<TResult>(Func<Task<TResult>> runUnderLock)
-        {
-            var lockTaken = false;
-            try
-            {
-                Enter(ref lockTaken);
-                return await runUnderLock().ConfigureAwait(true);
-            }
-            finally
-            {
-                if (lockTaken)
-                {
-                    Exit();
-                }
-            }
-        }
-
         private void Enter(ref bool lockTaken)
         {
             Console.WriteLine($"Enter: ThreadId:{Thread.CurrentThread.ManagedThreadId}, Context:{SynchronizationContext.Current != null}");

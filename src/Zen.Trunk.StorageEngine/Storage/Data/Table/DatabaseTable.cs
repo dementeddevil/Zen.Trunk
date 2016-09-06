@@ -941,7 +941,7 @@ namespace Zen.Trunk.Storage.Data.Table
                         {
                             if (rootPage == null)
                             {
-                                rootPage = await CreateRootPageAndLinkAsync(prevRootPage, firstPage);
+                                rootPage = await CreateRootPageAndLinkAsync(prevRootPage, firstPage).ConfigureAwait(false);
                                 if (firstPage)
                                 {
                                     initialPage = (TableSchemaRootPage)rootPage;
@@ -1314,7 +1314,7 @@ namespace Zen.Trunk.Storage.Data.Table
 
                     // Keep writing index information until we run out of indices
                     //  to write or space in the page...
-                    while (indexIndex < _indices.Count)
+                    /*while (indexIndex < _indices.Count)
                     {
                         currentPage.Indices.Add(_indices[indexIndex]);
 
@@ -1322,7 +1322,7 @@ namespace Zen.Trunk.Storage.Data.Table
                         //	for the column data and therefore the add succeeded
                         //	so now it is safe to increment the column index...
                         ++indexIndex;
-                    }
+                    }*/
 
                     // If we get this far then we must be complete
                     complete = true;

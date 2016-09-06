@@ -182,6 +182,7 @@
     <Compile Include="Storage\StatefulBuffer.cs" />
     <Compile Include="Storage\Data\TransactionContextTaskRequest.cs" />
     <Compile Include="Storage\TransactionId.cs" />
+    <Compile Include="Storage\TransactionSynchronizationContext.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Zen.Trunk.Utilities\Zen.Trunk.Utilities.csproj">

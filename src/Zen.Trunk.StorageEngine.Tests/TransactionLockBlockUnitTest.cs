@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Transactions;
 using Autofac;
@@ -21,6 +22,8 @@ When one transaction upgrades to an update lock the operation succeeds but when 
 Then the attempt to gain an exclusive lock fails.")]
         public async Task LockOwnerBlockTryGetExclusiveTest()
         {
+            SynchronizationContext.SetSynchronizationContext(new TransactionSynchronizationContext());
+
             // Setup minimal service container we need to get trunk transactions to work
             var dlm = Scope.Resolve<IDatabaseLockManager>();
 

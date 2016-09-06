@@ -105,7 +105,7 @@ namespace Zen.Trunk.Storage
         #endregion
 
         #region Private Fields
-        private readonly SpinLockClass _sync = new SpinLockClass();
+        private readonly TransactionalSpinLock _sync = new TransactionalSpinLock();
         private State _currentState;
         private int _refCount;
         private bool _isDisposed;
