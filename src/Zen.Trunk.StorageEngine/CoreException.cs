@@ -9,7 +9,7 @@ namespace Zen.Trunk
 	/// objects used throughout the framework.
 	/// </summary>
 	[Serializable]
-	public class CoreException : ApplicationException, ISerializable
+	public class CoreException : ApplicationException
 	{
 		#region Private Fields
 		private readonly string _subSystem;

@@ -129,10 +129,6 @@ namespace Zen.Trunk.Storage
 
         private class TestIndexPage : IndexPage<TestIndexInfo, RootIndexInfo>
         {
-            public TestIndexPage()
-            {
-            }
-
             public int CompareIndex(int index, DateTime key1, int key2)
             {
                 var lhs = IndexEntries[index];

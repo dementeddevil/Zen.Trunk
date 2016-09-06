@@ -103,7 +103,7 @@ namespace Zen.Trunk.Storage.Data
 
 		private static TResult ExecuteActionWithContext(Func<TRequest, TResult> action, TRequest request)
 		{
-			using (var scope = TrunkTransactionContext.SwitchTransactionContext(request.TransactionContext))
+			using (TrunkTransactionContext.SwitchTransactionContext(request.TransactionContext))
 			{
 				return action(request);
 			}
@@ -170,7 +170,7 @@ namespace Zen.Trunk.Storage.Data
 
 		private static TResult ExecuteActionWithContext(Func<TRequest, TResult> action, TRequest request)
 		{
-			using (var scope = TrunkTransactionContext.SwitchTransactionContext(request.TransactionContext))
+			using (TrunkTransactionContext.SwitchTransactionContext(request.TransactionContext))
 			{
 				return action(request);
 			}

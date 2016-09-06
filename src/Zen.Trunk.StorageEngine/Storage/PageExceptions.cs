@@ -4,7 +4,7 @@ namespace Zen.Trunk.Storage
 	using System.Runtime.Serialization;
 
 	[Serializable]
-	public class PageException : StorageEngineException, ISerializable
+	public class PageException : StorageEngineException
 	{
 		#region Private Fields
 		private readonly Page _page;

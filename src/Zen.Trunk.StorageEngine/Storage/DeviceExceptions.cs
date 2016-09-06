@@ -4,7 +4,7 @@ using System.Runtime.Serialization;
 namespace Zen.Trunk.Storage
 {
     [Serializable]
-    public class DeviceException : StorageEngineException, ISerializable
+    public class DeviceException : StorageEngineException
     {
         #region Private Fields
         private readonly DeviceId _deviceId;
