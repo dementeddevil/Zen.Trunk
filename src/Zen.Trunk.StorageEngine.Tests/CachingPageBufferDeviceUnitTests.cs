@@ -77,7 +77,11 @@ namespace Zen.Trunk.Storage
             {
                 if (_pageBufferDevice == null)
                 {
-                    _pageBufferDevice = new CachingPageBufferDevice(MockedMultipleBufferDevice.Object, null);
+                    _pageBufferDevice = new CachingPageBufferDevice(
+                        MockedMultipleBufferDevice.Object,
+                        new CachingPageBufferDeviceSettings
+                        {
+                        });
                 }
                 return _pageBufferDevice;
             }
