@@ -214,9 +214,10 @@ namespace Zen.Trunk.Storage.Data.Table
 				    {
 				        LogicalId = logicalPageId,
 				        FileGroupId = _ownerTable.FileGroupId,
-				        PageLock = DataLockType.Shared
 				    };
-				    await Database
+				    await dataPage.SetPageLockAsync(DataLockType.Shared).ConfigureAwait(false);
+
+                    await Database
                         .LoadFileGroupPage(
 						    new LoadFileGroupPageParameters(
                                 null, dataPage, false, true))

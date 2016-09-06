@@ -28,34 +28,11 @@ namespace Zen.Trunk.Storage.Data
 		#endregion
 
 		#region Public Properties
-		/// <summary>
-		/// Gets or sets the schema lock.
-		/// </summary>
-		/// <value>The schema lock.</value>
-		public SchemaLockType SchemaLock
-		{
-			get
-			{
-				return _schemaLock;
-			}
-			set
-			{
-				if (_schemaLock != value)
-				{
-					var oldLock = _schemaLock;
-					try
-					{
-						_schemaLock = value;
-						LockPageAsync();
-					}
-					catch
-					{
-						_schemaLock = oldLock;
-						throw;
-					}
-				}
-			}
-		}
+	    /// <summary>
+	    /// Gets or sets the schema lock.
+	    /// </summary>
+	    /// <value>The schema lock.</value>
+	    public SchemaLockType SchemaLock => _schemaLock;
 		#endregion
 
 		#region Internal Properties
@@ -75,28 +52,53 @@ namespace Zen.Trunk.Storage.Data
 				return txnLocks?.GetOrCreateSchemaLock(ObjectId);
 			}
 		}
-		#endregion
+        #endregion
 
-		#region Protected Methods
-		/// <summary>
-		/// Performs operations on this instance prior to being initialised.
-		/// </summary>
-		/// <param name="e">The <see cref="System.EventArgs"/> instance containing the event data.</param>
-		/// <remarks>
-		/// Overrides to this method must set their desired lock prior to
-		/// calling the base class.
-		/// The base class method will enable the locking primitives and call
-		/// LockPage.
-		/// This mechanism ensures that all lock states have been set prior to
-		/// the first call to LockPage.
-		/// </remarks>
-		protected override Task OnPreInitAsync(EventArgs e)
+	    #region Public Methods
+        /// <summary>
+        /// Attempts to set the specified schema lock.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <returns></returns>
+        public async Task SetSchemaLockAsync(SchemaLockType value)
+		{
+			if (_schemaLock != value)
+			{
+				var oldLock = _schemaLock;
+				try
+				{
+					_schemaLock = value;
+					await LockPageAsync().ConfigureAwait(false);
+				}
+				catch
+				{
+					_schemaLock = oldLock;
+					throw;
+				}
+			}
+		}
+	    #endregion
+        
+        #region Protected Methods
+        /// <summary>
+        /// Performs operations on this instance prior to being initialised.
+        /// </summary>
+        /// <param name="e">The <see cref="System.EventArgs"/> instance containing the event data.</param>
+        /// <remarks>
+        /// Overrides to this method must set their desired lock prior to
+        /// calling the base class.
+        /// The base class method will enable the locking primitives and call
+        /// LockPage.
+        /// This mechanism ensures that all lock states have been set prior to
+        /// the first call to LockPage.
+        /// </remarks>
+        protected override async Task OnPreInitAsync(EventArgs e)
 		{
 			if (SchemaLock == SchemaLockType.None)
 			{
-				SchemaLock = SchemaLockType.SchemaModification;
+				await SetSchemaLockAsync(SchemaLockType.SchemaModification).ConfigureAwait(false);
 			}
-			return base.OnPreInitAsync(e);
+			await base.OnPreInitAsync(e).ConfigureAwait(false);
 		}
 
 		/// <summary>
@@ -112,13 +114,13 @@ namespace Zen.Trunk.Storage.Data
 		/// This mechanism ensures that all lock states have been set prior to
 		/// the first call to LockPage.
 		/// </remarks>
-		protected override Task OnPreLoadAsync(EventArgs e)
+		protected override async Task OnPreLoadAsync(EventArgs e)
 		{
 			if (SchemaLock == SchemaLockType.None)
 			{
-				SchemaLock = SchemaLockType.SchemaModification;
+				await SetSchemaLockAsync(SchemaLockType.SchemaModification).ConfigureAwait(false);
 			}
-			return base.OnPreLoadAsync(e);
+			await base.OnPreLoadAsync(e).ConfigureAwait(false);
 		}
 
 		/// <summary>

@@ -130,7 +130,7 @@ namespace Zen.Trunk.Storage.Data
 				// Load device root page
 				using (var rootPage = await LoadOrCreateRootPageAsync().ConfigureAwait(false))
 				{
-					rootPage.RootLock = RootLockType.Shared;
+					await rootPage.SetRootLockAsync(RootLockType.Shared).ConfigureAwait(false);
 
 					// On this device, loop through all distribution pages
 					var maxDistPage =
@@ -150,7 +150,7 @@ namespace Zen.Trunk.Storage.Data
 								// NOTE: This may throw lock exception if some
 								//	other connection is currently updating an
 								//	extent etc...
-								distPage.DistributionLock = ObjectLockType.Shared;
+								await distPage.SetDistributionLockAsync(ObjectLockType.Shared).ConfigureAwait(false);
 								await LoadDistributionPage(distPage, distPageIndex).ConfigureAwait(false);
 
 								// Ask distribution page to allocate for object
@@ -234,7 +234,7 @@ namespace Zen.Trunk.Storage.Data
 						else
 						{
 							// Ensure page has exclusive lock during init
-							page.DistributionLock = ObjectLockType.Exclusive;
+							await page.SetDistributionLockAsync(ObjectLockType.Exclusive).ConfigureAwait(false);
 							subTasks.Add(InitDistributionPage(page, distPageIndex, pageCount));
 						}
 						pages.Add(page);
@@ -297,7 +297,7 @@ namespace Zen.Trunk.Storage.Data
 					new InitDataPageParameters(page)).ConfigureAwait(false);
 
 				// Notify page as to the number of usable extents
-				page.InitialiseValidExtents(devicePageCount);
+				await page.InitialiseValidExtentsAsync(devicePageCount).ConfigureAwait(false);
 				page.Save();
 
                 // Mark original request as complete

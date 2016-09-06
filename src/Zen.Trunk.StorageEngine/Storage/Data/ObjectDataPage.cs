@@ -32,38 +32,41 @@ namespace Zen.Trunk.Storage.Data
 		#endregion
 
 		#region Public Properties
-		/// <summary>
-		/// Gets or sets the page lock.
-		/// </summary>
-		/// <value>The page lock.</value>
-		public DataLockType PageLock
-		{
-			get
-			{
-				return _pageLock;
-			}
-			set
-			{
-				if (_pageLock != value)
-				{
-					var oldLock = _pageLock;
-					try
-					{
-						_pageLock = value;
-						LockPageAsync();
-					}
-					catch
-					{
-						_pageLock = oldLock;
-						throw;
-					}
-				}
-			}
-		}
+	    /// <summary>
+	    /// Gets or sets the page lock.
+	    /// </summary>
+	    /// <value>The page lock.</value>
+	    public DataLockType PageLock => _pageLock;
 		#endregion
 
 		#region Public Methods
-		public void SetDirtyState()
+        /// <summary>
+        /// Attempts to sets the page lock asynchronous.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <returns></returns>
+        public async Task SetPageLockAsync(DataLockType value)
+		{
+			if (_pageLock != value)
+			{
+				var oldLock = _pageLock;
+				try
+				{
+					_pageLock = value;
+					await LockPageAsync().ConfigureAwait(false);
+				}
+				catch
+				{
+					_pageLock = oldLock;
+					throw;
+				}
+			}
+		}
+
+        /// <summary>
+        /// Sets the state of the dirty.
+        /// </summary>
+        public void SetDirtyState()
 		{
 			SetDirty();
 		}
@@ -113,14 +116,14 @@ namespace Zen.Trunk.Storage.Data
 					case IsolationLevel.ReadCommitted:
 						if (PageLock == DataLockType.None)
 						{
-							PageLock = DataLockType.Shared;
+							await SetPageLockAsync(DataLockType.Shared).ConfigureAwait(false);
 						}
 						_mustHoldLock = false;
 						break;
 					case IsolationLevel.RepeatableRead:
 						if (PageLock == DataLockType.None)
 						{
-							PageLock = DataLockType.Shared;
+							await SetPageLockAsync(DataLockType.Shared).ConfigureAwait(false);
 						}
 						_mustHoldLock = true;
 						break;
@@ -140,11 +143,11 @@ namespace Zen.Trunk.Storage.Data
 						{
 							if (PageType == PageType.Index)
 							{
-								PageLock = DataLockType.Exclusive;
+								await SetPageLockAsync(DataLockType.Exclusive).ConfigureAwait(false);
 							}
 							else if (PageType == PageType.Data)
 							{
-								PageLock = DataLockType.Shared;
+								await SetPageLockAsync(DataLockType.Shared).ConfigureAwait(false);
 							}
 						}
 
@@ -157,7 +160,12 @@ namespace Zen.Trunk.Storage.Data
 			await base.OnPreLoadAsync(e).ConfigureAwait(false);
 		}
 
-		protected override async Task OnPostLoadAsync(EventArgs e)
+        /// <summary>
+        /// Raises the <see cref="E:PostLoadAsync" /> event.
+        /// </summary>
+        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
+        /// <returns></returns>
+        protected override async Task OnPostLoadAsync(EventArgs e)
 		{
 			// Shared read locks on readcommitted are released after
 			//	load unless we are requested to hold the lock
@@ -170,7 +178,13 @@ namespace Zen.Trunk.Storage.Data
 			await base.OnPostLoadAsync(e).ConfigureAwait(false);
 		}
 
-		protected override async Task OnLockPageAsync(IDatabaseLockManager lm)
+        /// <summary>
+        /// Overridden. Called to apply suitable locks to this page.
+        /// </summary>
+        /// <param name="lm">A reference to the <see cref="IDatabaseLockManager" />.</param>
+        /// <returns></returns>
+        /// <exception cref="InvalidOperationException">Cannot obtain lock owner block for this transaction.</exception>
+        protected override async Task OnLockPageAsync(IDatabaseLockManager lm)
 		{
 			// Perform base class locking first
 			await base.OnLockPageAsync(lm).ConfigureAwait(false);
@@ -191,7 +205,13 @@ namespace Zen.Trunk.Storage.Data
 			}
 		}
 
-		protected override async Task OnUnlockPageAsync(IDatabaseLockManager lm)
+        /// <summary>
+        /// Overridden. Called to remove locks applied to this page in a
+        /// prior call to <see cref="M:DatabasePage.OnLockPage" />.
+        /// </summary>
+        /// <param name="lm">A reference to the <see cref="IDatabaseLockManager" />.</param>
+        /// <returns></returns>
+        protected override async Task OnUnlockPageAsync(IDatabaseLockManager lm)
 		{
 			try
 			{

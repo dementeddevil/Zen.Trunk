@@ -274,34 +274,20 @@ namespace Zen.Trunk.Storage.Data
 				_extents[index] = new ExtentInfo();
 			}
 		}
-		#endregion
+        #endregion
 
-		#region Public Properties
-		public ObjectLockType DistributionLock
-		{
-			get
-			{
-				return _distributionLock;
-			}
-			set
-			{
-				if (_distributionLock != value)
-				{
-					var oldLock = _distributionLock;
-					try
-					{
-						_distributionLock = value;
-						LockPageAsync();
-					}
-					catch
-					{
-						_distributionLock = oldLock;
-						throw;
-					}
-				}
-			}
-		}
+        #region Public Properties
+        /// <summary>
+        /// Gets the distribution lock.
+        /// </summary>
+        /// <value>
+        /// The distribution lock.
+        /// </value>
+        public ObjectLockType DistributionLock => _distributionLock;
 
+	    /// <summary>
+        /// Gets/sets the page type.
+        /// </summary>
         public override PageType PageType => PageType.Distribution;
 	    #endregion
 
@@ -324,9 +310,32 @@ namespace Zen.Trunk.Storage.Data
 				return txnLocks?.GetOrCreateDistributionLockOwnerBlock(VirtualId);
 			}
 		}
-		#endregion
+        #endregion
 
-		#region Public Methods
+        #region Public Methods
+        /// <summary>
+        /// Attempts to apply the specified distribution lock.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <returns></returns>
+        public async Task SetDistributionLockAsync(ObjectLockType value)
+		{
+			if (_distributionLock != value)
+			{
+				var oldLock = _distributionLock;
+				try
+				{
+					_distributionLock = value;
+					await LockPageAsync().ConfigureAwait(false);
+				}
+				catch
+				{
+					_distributionLock = oldLock;
+					throw;
+				}
+			}
+		}
+
 		/// <summary>
 		/// Allocates a page to an object in the distribution table.
 		/// </summary>
@@ -347,7 +356,7 @@ namespace Zen.Trunk.Storage.Data
 			// Ensure we have some kind of lock on the page...
 			if (DistributionLock == ObjectLockType.None)
 			{
-				DistributionLock = ObjectLockType.IntentShared;
+				await SetDistributionLockAsync(ObjectLockType.IntentShared).ConfigureAwait(false);
 			}
 
             // Look for extent we can use;
@@ -372,7 +381,7 @@ namespace Zen.Trunk.Storage.Data
 		        if (DistributionLock != ObjectLockType.IntentExclusive &&
 		            DistributionLock != ObjectLockType.Exclusive)
 		        {
-		            DistributionLock = ObjectLockType.IntentExclusive;
+		            await SetDistributionLockAsync(ObjectLockType.IntentExclusive).ConfigureAwait(false);
 		        }
 
 		        // Escalate the extent lock if necessary
@@ -475,7 +484,7 @@ namespace Zen.Trunk.Storage.Data
 				if (DistributionLock != ObjectLockType.IntentExclusive &&
 					DistributionLock != ObjectLockType.Exclusive)
 				{
-					DistributionLock = ObjectLockType.IntentExclusive;
+					await SetDistributionLockAsync(ObjectLockType.IntentExclusive).ConfigureAwait(false);
 				}
 				if (!_lockedExtents.Contains(extent))
 				{
@@ -551,7 +560,7 @@ namespace Zen.Trunk.Storage.Data
 		/// This method is called during the handling of InitDistributionPage
 		/// in the distribution page device.
 		/// </remarks>
-		public void InitialiseValidExtents(uint devicePageCapacity)
+		public async Task InitialiseValidExtentsAsync(uint devicePageCapacity)
 		{
 			// TODO: We need to test this code
 			//	It does not appear to be writing to the underlying buffer...
@@ -559,7 +568,7 @@ namespace Zen.Trunk.Storage.Data
 			// Ensure we have an exclusive lock on this page
 			if (DistributionLock != ObjectLockType.Exclusive)
 			{
-				DistributionLock = ObjectLockType.Exclusive;
+				await SetDistributionLockAsync(ObjectLockType.Exclusive).ConfigureAwait(false);
 			}
 
 			// Determine the physical page index for this page
@@ -674,11 +683,11 @@ namespace Zen.Trunk.Storage.Data
 		/// This mechanism ensures that all lock states have been set prior to
 		/// the first call to LockPage.
 		/// </remarks>
-		protected override Task OnPreInitAsync(EventArgs e)
+		protected override async Task OnPreInitAsync(EventArgs e)
 		{
 			// We need an exclusive lock
-			DistributionLock = ObjectLockType.Exclusive;
-			return base.OnPreInitAsync(e);
+			await SetDistributionLockAsync(ObjectLockType.Exclusive).ConfigureAwait(false);
+			await base.OnPreInitAsync(e).ConfigureAwait(false);
 		}
 
         /// <summary>
@@ -703,14 +712,14 @@ namespace Zen.Trunk.Storage.Data
 			return base.OnInitAsync(e);
 		}
 
-		protected override Task OnPreLoadAsync(EventArgs e)
+		protected override async Task OnPreLoadAsync(EventArgs e)
 		{
 			// We need a shared read lock if nothing specified
 			if (DistributionLock == ObjectLockType.None)
 			{
-				DistributionLock = ObjectLockType.Shared;
+				await SetDistributionLockAsync(ObjectLockType.Shared).ConfigureAwait(false);
 			}
-			return base.OnPreLoadAsync(e);
+			await base.OnPreLoadAsync(e).ConfigureAwait(false);
 		}
 
 		/// <summary>

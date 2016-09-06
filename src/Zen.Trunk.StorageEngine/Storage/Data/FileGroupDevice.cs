@@ -539,14 +539,14 @@ namespace Zen.Trunk.Storage.Data
 
                     if (rootPage.RootLock != RootLockType.Exclusive)
                     {
-                        rootPage.RootLock = RootLockType.Update;
-                        rootPage.RootLock = RootLockType.Exclusive;
+                        await rootPage.SetRootLockAsync(RootLockType.Update).ConfigureAwait(false);
+                        await rootPage.SetRootLockAsync(RootLockType.Exclusive).ConfigureAwait(false);
                     }
 
                     rootPage.AllocatedPages = bufferDevice.GetDeviceInfo(_primaryDevice.DeviceId).PageCount;
                     foreach (var distPageDevice in _devices.Values)
                     {
-                        await distPageDevice.OpenAsync(IsCreate);
+                        await distPageDevice.OpenAsync(IsCreate).ConfigureAwait(false);
                         rootPage.AllocatedPages += bufferDevice.GetDeviceInfo(distPageDevice.DeviceId).PageCount;
                     }
                 }
@@ -555,7 +555,7 @@ namespace Zen.Trunk.Storage.Data
                     // Walk the list of devices recorded in the root page
                     foreach (var deviceInfo in rootPage.Devices)
                     {
-                        await AddDataDevice(new AddDataDeviceParameters(deviceInfo.Name, deviceInfo.PathName, deviceInfo.Id));
+                        await AddDataDevice(new AddDataDeviceParameters(deviceInfo.Name, deviceInfo.PathName, deviceInfo.Id)).ConfigureAwait(false);
                     }
                 }
             }
@@ -892,7 +892,7 @@ namespace Zen.Trunk.Storage.Data
                 using (var page = new DistributionPage())
                 {
                     page.VirtualId = pageId;
-                    page.DistributionLock = ObjectLockType.Exclusive;
+                    await page.SetDistributionLockAsync(ObjectLockType.Exclusive).ConfigureAwait(false);
 
                     // Add page to the device
                     var initPage = new InitDataPageParameters(page);
@@ -958,11 +958,11 @@ namespace Zen.Trunk.Storage.Data
             uint newPageCount;
 
             // Place root page into update mode
-            rootPage.RootLock = RootLockType.Update;
+            await rootPage.SetRootLockAsync(RootLockType.Update).ConfigureAwait(false);
             try
             {
                 // Transition root page into exclusive mode
-                rootPage.RootLock = RootLockType.Exclusive;
+                await rootPage.SetRootLockAsync(RootLockType.Exclusive).ConfigureAwait(false);
 
                 // Delegate the request to the underlying device
                 var bufferDevice = ResolveDeviceService<IMultipleBufferDevice>();
@@ -973,7 +973,7 @@ namespace Zen.Trunk.Storage.Data
             {
                 // Assume expand failed and revert lock
                 //	don't know if I really have to do this now
-                rootPage.RootLock = RootLockType.Shared;
+                await rootPage.SetRootLockAsync(RootLockType.Shared).ConfigureAwait(false);
                 throw;
             }
 
@@ -999,7 +999,7 @@ namespace Zen.Trunk.Storage.Data
                 // Load the root page and obtain update lock before we start
                 var pageDevice = GetDistributionPageDevice(request.DeviceId);
                 rootPage = await pageDevice.LoadOrCreateRootPageAsync().ConfigureAwait(false);
-                rootPage.RootLock = RootLockType.Shared;
+                await rootPage.SetRootLockAsync(RootLockType.Shared).ConfigureAwait(false);
 
                 await ExpandDevice(request.DeviceId, rootPage, request.PageCount).ConfigureAwait(false);
             }
@@ -1021,7 +1021,7 @@ namespace Zen.Trunk.Storage.Data
                         .ConfigureAwait(false);
                     if (rootPage.IsExpandable)
                     {
-                        rootPage.RootLock = RootLockType.Shared;
+                        await rootPage.SetRootLockAsync(RootLockType.Shared).ConfigureAwait(false);
                         rootPages.Add(deviceId, rootPage);
                     }
                     else
@@ -1116,7 +1116,7 @@ namespace Zen.Trunk.Storage.Data
                 await _primaryDevice.LoadOrCreateRootPageAsync())
             {
                 // Obtain object id for this table
-                rootPage.RootLock = RootLockType.Exclusive;
+                await rootPage.SetRootLockAsync(RootLockType.Exclusive).ConfigureAwait(false);
                 rootPage.ReadOnly = false;
                 var objectRef =
                     new ObjectRefInfo

@@ -1,4 +1,6 @@
-﻿namespace Zen.Trunk.Storage.Data.Table
+﻿using Zen.Trunk.Storage.Locking;
+
+namespace Zen.Trunk.Storage.Data.Table
 {
 	using System;
 	using System.Collections.Generic;
@@ -166,9 +168,11 @@
 				    {
 				        LogicalId = table.DataLastLogicalId,
 				        FileGroupId = FileGroupId,
-				        ObjectLock = ObjectLock
 				    };
-				    await table.Owner
+
+				    await lastPage.SetObjectLockAsync(ObjectLock).ConfigureAwait(false);
+
+                    await table.Owner
 						.LoadDataPage(new LoadDataPageParameters(lastPage, false, true))
 						.ConfigureAwait(false);
 				}
@@ -180,12 +184,15 @@
 				}
 
 				// If we get here then we need to add a new page to the end
+                // We will need a schema modification lock on the schema root page
+			    await table.SchemaRootPage.SetSchemaLockAsync(SchemaLockType.SchemaModification).ConfigureAwait(false);
 			    splitPage = new TableDataPage
 			    {
 			        FileGroupId = FileGroupId,
-			        ObjectLock = ObjectLock
 			    };
-			    await table.Owner
+			    await splitPage.SetObjectLockAsync(ObjectLock).ConfigureAwait(false);
+
+                await table.Owner
 					.InitDataPage(new InitDataPageParameters(splitPage, true, true, true))
 					.ConfigureAwait(false);
 				splitPage.PrevLogicalId = lastPage.LogicalId;
@@ -222,9 +229,10 @@
 			    {
 			        LogicalId = NextLogicalId,
 			        FileGroupId = FileGroupId,
-			        ObjectLock = ObjectLock
 			    };
-			    await table.Owner
+			    await nextPage.SetObjectLockAsync(ObjectLock).ConfigureAwait(false);
+
+                await table.Owner
 					.LoadDataPage(new LoadDataPageParameters(nextPage, false, true))
 					.ConfigureAwait(false);
 			}
@@ -243,9 +251,10 @@
 		    splitPage = new TableDataPage
 		    {
 		        FileGroupId = FileGroupId,
-		        ObjectLock = ObjectLock
 		    };
-		    await table.Owner
+		    await SetObjectLockAsync(ObjectLock).ConfigureAwait(false);
+
+            await table.Owner
 				.InitDataPage(new InitDataPageParameters(splitPage, true, true, true))
 				.ConfigureAwait(false);
 			splitPage.PrevLogicalId = LogicalId;
@@ -257,9 +266,12 @@
 			NextLogicalId = splitPage.LogicalId;
 			if (nextPage == null)
 			{
-				// We must be splitting the last page and therefore the split
-				//	page must be the new last page so update schema
-				table.DataLastLogicalId = splitPage.LogicalId;
+                // We will need a schema modification lock on the schema root page
+                await table.SchemaRootPage.SetSchemaLockAsync(SchemaLockType.SchemaModification).ConfigureAwait(false);
+
+                // We must be splitting the last page and therefore the split
+                //	page must be the new last page so update schema
+                table.DataLastLogicalId = splitPage.LogicalId;
 			}
 
 			if (totalSize >= length)
@@ -296,9 +308,10 @@
 			    var extraPage = new TableDataPage
 			    {
 			        FileGroupId = FileGroupId,
-			        ObjectLock = ObjectLock
 			    };
-			    await table.Owner
+			    await extraPage.SetObjectLockAsync(ObjectLock).ConfigureAwait(false);
+
+                await table.Owner
 					.InitDataPage(new InitDataPageParameters(extraPage, true, true, true))
 					.ConfigureAwait(false);
 
