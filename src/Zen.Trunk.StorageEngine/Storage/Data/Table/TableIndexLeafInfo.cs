@@ -28,11 +28,12 @@ namespace Zen.Trunk.Storage.Data.Table
 		{
 		}
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="TableIndexLeafInfo"/> class.
-        /// </summary>
-        /// <param name="keySize">Size of the key.</param>
-        public TableIndexLeafInfo(int keySize, LogicalPageId logicalId)
+	    /// <summary>
+	    /// Initializes a new instance of the <see cref="TableIndexLeafInfo"/> class.
+	    /// </summary>
+	    /// <param name="keySize">Size of the key.</param>
+	    /// <param name="logicalId">The logical page id.</param>
+	    public TableIndexLeafInfo(int keySize, LogicalPageId logicalId)
             : base(keySize, logicalId)
         {
         }
@@ -41,6 +42,7 @@ namespace Zen.Trunk.Storage.Data.Table
         /// Initializes a new instance of the <see cref="TableIndexLeafInfo" /> class.
         /// </summary>
         /// <param name="keys">The keys.</param>
+	    /// <param name="logicalId">The logical page id.</param>
         public TableIndexLeafInfo(object[] keys, LogicalPageId logicalId)
             : base(keys, logicalId)
         {
@@ -77,6 +79,7 @@ namespace Zen.Trunk.Storage.Data.Table
         /// Initializes a new instance of the <see cref="TableIndexClusteredLeafInfo"/> class.
         /// </summary>
         /// <param name="keySize">Size of the key.</param>
+	    /// <param name="logicalId">The logical page id.</param>
         public TableIndexClusteredLeafInfo(int keySize, LogicalPageId logicalId)
             : base(keySize, logicalId)
         {
@@ -86,6 +89,7 @@ namespace Zen.Trunk.Storage.Data.Table
         /// Initializes a new instance of the <see cref="TableIndexClusteredLeafInfo" /> class.
         /// </summary>
         /// <param name="keys">The keys.</param>
+	    /// <param name="logicalId">The logical page id.</param>
         public TableIndexClusteredLeafInfo(object[] keys, LogicalPageId logicalId)
             : base(keys, logicalId)
         {
@@ -105,7 +109,7 @@ namespace Zen.Trunk.Storage.Data.Table
 
         #region Public Constructors
         /// <summary>
-        /// Initializes a new instance of the <see cref="TableIndexHeapLeafInfo"/> class.
+        /// Initializes a new instance of the <see cref="TableIndexNormalLeafInfo"/> class.
         /// </summary>
         /// <param name="keySize">Size of the key.</param>
         public TableIndexNormalLeafInfo(int keySize)
@@ -115,7 +119,7 @@ namespace Zen.Trunk.Storage.Data.Table
 		}
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="TableIndexHeapLeafInfo"/> class.
+        /// Initializes a new instance of the <see cref="TableIndexNormalLeafInfo"/> class.
         /// </summary>
         /// <param name="keys">The keys.</param>
         /// <param name="logicalId">The logical identifier.</param>
@@ -169,22 +173,24 @@ namespace Zen.Trunk.Storage.Data.Table
 		#endregion
 
 		#region Public Constructors
-		/// <summary>
-		/// Initializes a new instance of the <see cref="TableIndexNormalOverClusteredLeafInfo"/> class.
-		/// </summary>
-		/// <param name="keySize">Size of the key.</param>
-		public TableIndexNormalOverClusteredLeafInfo(int keySize, int clusteredKeySize)
+
+	    /// <summary>
+	    /// Initializes a new instance of the <see cref="TableIndexNormalOverClusteredLeafInfo"/> class.
+	    /// </summary>
+	    /// <param name="keySize">Size of the key.</param>
+	    /// <param name="clusteredKeySize">Size of the clustered index.</param>
+	    public TableIndexNormalOverClusteredLeafInfo(int keySize, int clusteredKeySize)
 			: base(keySize)
 		{
 			_clusteredKey = new BufferFieldTableRow(clusteredKeySize);
 		}
 
-		/// <summary>
-		/// Initializes a new instance of the <see cref="TableIndexNormalOverClusteredLeafInfo"/> class.
-		/// </summary>
-		/// <param name="keys">The keys.</param>
-		/// <param name="logicalId">The logical identifier.</param>
-		public TableIndexNormalOverClusteredLeafInfo(object[] keys, object[] clusteredKeys)
+	    /// <summary>
+	    /// Initializes a new instance of the <see cref="TableIndexNormalOverClusteredLeafInfo"/> class.
+	    /// </summary>
+	    /// <param name="keys">The keys.</param>
+	    /// <param name="clusteredKeys">Clustered key entries.</param>
+	    public TableIndexNormalOverClusteredLeafInfo(object[] keys, object[] clusteredKeys)
 			: base(keys)
 		{
 			_clusteredKey = new BufferFieldTableRow(clusteredKeys);

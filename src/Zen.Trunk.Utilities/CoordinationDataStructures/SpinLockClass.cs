@@ -16,7 +16,7 @@ namespace System.Threading
         private SpinLock _spinLock; // NOTE: must *not* be readonly due to SpinLock being a mutable struct
 
         /// <summary>Initializes an instance of the SpinLockClass class.</summary>
-        public SpinLockClass() : this(false)
+        public SpinLockClass() : this(true)
         {
         }
 
@@ -42,11 +42,16 @@ namespace System.Threading
             }
             finally
             {
-                if (lockTaken) Exit();
+                if (lockTaken)
+                {
+                    Exit();
+                }
             }
         }
 
-        /// <summary>Runs the specified delegate under the lock.</summary>
+        /// <summary>
+        /// Runs the specified delegate under the lock.
+        /// </summary>
         /// <param name="runUnderLock">The delegate to be executed while holding the lock.</param>
         public async Task ExecuteAsync(Func<Task> runUnderLock)
         {
@@ -62,29 +67,39 @@ namespace System.Threading
             }
         }
 
-        /// <summary>Enters the lock.</summary>
-        /// <param name="lockTaken">
-        /// Upon exit of the Enter method, specifies whether the lock was acquired. 
-        /// The variable passed by reference must be initialized to false.
-        /// </param>
-        public void Enter(ref bool lockTaken)
+        /// <summary>
+        /// Runs the specified delegate under the lock.
+        /// </summary>
+        /// <param name="runUnderLock">The delegate to be executed while holding the lock.</param>
+        /// <returns>
+        /// The value returned by the specified delegate.
+        /// </returns>
+        public async Task<TResult> ExecuteAsync<TResult>(Func<Task<TResult>> runUnderLock)
         {
-            _spinLock.Enter(ref lockTaken);
+            var lockTaken = false;
+            try
+            {
+                Enter(ref lockTaken);
+                return await runUnderLock().ConfigureAwait(true);
+            }
+            finally
+            {
+                if (lockTaken)
+                {
+                    Exit();
+                }
+            }
         }
 
-        /// <summary>Exits the SpinLock.</summary>
-        public void Exit()
+        private void Enter(ref bool lockTaken)
         {
-            _spinLock.Exit();
+            Console.WriteLine($"Enter: ThreadId:{Thread.CurrentThread.ManagedThreadId}, Context:{SynchronizationContext.Current != null}");
+            _spinLock.TryEnter(ref lockTaken);
         }
 
-        /// <summary>Exits the SpinLock.</summary>
-        /// <param name="useMemoryBarrier">
-        /// A Boolean value that indicates whether a memory fence should be issued in
-        /// order to immediately publish the exit operation to other threads.
-        /// </param>
-        public void Exit(bool useMemoryBarrier)
+        private void Exit(bool useMemoryBarrier = true)
         {
+            Console.WriteLine($"Exit: ThreadId:{Thread.CurrentThread.ManagedThreadId}, Context:{SynchronizationContext.Current != null}");
             _spinLock.Exit(useMemoryBarrier);
         }
     }

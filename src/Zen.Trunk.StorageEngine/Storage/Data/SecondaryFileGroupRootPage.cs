@@ -14,21 +14,14 @@ namespace Zen.Trunk.Storage.Data
 	public class SecondaryFileGroupRootPage : RootPage
 	{
 		#region Private Fields
-	    private const ulong DBSignature = 0x2948f3d3a123e501;
-	    private const uint DBSchemaVersion = 0x01000001;
-		#endregion
-
-		#region Public Constructors
-		public SecondaryFileGroupRootPage (/*DatabaseDevice owner*/)
-		//	: base(owner)
-		{
-		}
+	    private const ulong DbSignature = 0x2948f3d3a123e501;
+	    private const uint DbSchemaVersion = 0x01000001;
 		#endregion
 
 		#region Protected Properties
-		protected override ulong RootPageSignature => DBSignature;
+		protected override ulong RootPageSignature => DbSignature;
 
-	    protected override uint RootPageSchemaVersion => DBSchemaVersion;
+	    protected override uint RootPageSchemaVersion => DbSchemaVersion;
 	    #endregion
 	}
 }

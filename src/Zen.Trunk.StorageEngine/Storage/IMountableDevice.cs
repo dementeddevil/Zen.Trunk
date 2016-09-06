@@ -1,9 +1,8 @@
-﻿namespace Zen.Trunk.Storage
-{
-	using System;
-	using System.Threading.Tasks;
-	using System.Threading.Tasks.Dataflow;
+﻿using System;
+using System.Threading.Tasks;
 
+namespace Zen.Trunk.Storage
+{
 	[CLSCompliant(false)]
 	public interface IMountableDevice
 	{

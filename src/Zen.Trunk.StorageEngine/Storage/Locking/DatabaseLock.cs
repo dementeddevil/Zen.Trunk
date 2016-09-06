@@ -105,12 +105,6 @@ namespace Zen.Trunk.Storage.Locking
         }
         #endregion
 
-        #region Public Constructors
-        public DatabaseLock()
-		{
-		}
-		#endregion
-
 		#region Protected Properties
 		protected override DatabaseLockType NoneLockType => DatabaseLockType.None;
 	    #endregion

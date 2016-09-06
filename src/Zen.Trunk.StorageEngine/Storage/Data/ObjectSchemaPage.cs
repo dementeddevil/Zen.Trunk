@@ -18,15 +18,6 @@ namespace Zen.Trunk.Storage.Data
 		private SchemaLockType _schemaLock;
 		#endregion
 
-		#region Public Constructors
-		/// <summary>
-		/// Initializes a new instance of the <see cref="ObjectSchemaPage"/> class.
-		/// </summary>
-		public ObjectSchemaPage()
-		{
-		}
-		#endregion
-
 		#region Public Properties
 	    /// <summary>
 	    /// Gets or sets the schema lock.

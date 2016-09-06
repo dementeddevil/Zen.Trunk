@@ -9,12 +9,6 @@ namespace Zen.Trunk.Storage.Log
 		private Stream _backingStore;
 		#endregion
 
-		#region Public Constructors
-		public LogPage()
-		{
-		}
-		#endregion
-
 		#region Public Properties
 		/// <summary>
 		/// Overridden. Gets the header size - 128 bytes

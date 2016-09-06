@@ -12,12 +12,6 @@ namespace Zen.Trunk.Storage.Locking
 		private int _lockCount;
 		#endregion
 
-		#region Public Constructors
-		public RLock()
-		{
-		}
-		#endregion
-
 		#region Public Properties
         /// <summary>
         /// Gets the current lock count.

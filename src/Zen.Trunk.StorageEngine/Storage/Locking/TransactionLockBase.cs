@@ -10,7 +10,7 @@ namespace Zen.Trunk.Storage.Locking
 	public abstract class TransactionLockBase
 	{
 	    private static readonly ILog Logger = LogProvider.For<TransactionLockBase>();
-		private static int _nextTransactionLockId = 0;
+		private static int _nextTransactionLockId;
 		private readonly int _transactionLockId;
 
 		protected TransactionLockBase()

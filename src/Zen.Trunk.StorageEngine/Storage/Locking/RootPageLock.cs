@@ -99,12 +99,6 @@ namespace Zen.Trunk.Storage.Locking
         }
         #endregion
 
-        #region Public Constructors
-        public RootLock()
-        {
-        }
-        #endregion
-
         #region Public Properties
         #endregion
 

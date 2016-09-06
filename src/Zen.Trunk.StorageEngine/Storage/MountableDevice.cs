@@ -20,17 +20,7 @@ namespace Zen.Trunk.Storage
 
 		private int _deviceState = (int)MountableDeviceState.Closed;
 		private bool _disposed;
-
 	    #endregion
-
-        #region Protected Constructors
-		/// <summary>
-		/// Initializes a new instance of the <see cref="MountableDevice"/> class.
-		/// </summary>
-		protected MountableDevice()
-		{
-		}
-		#endregion
 
 		#region Public Properties
 		/// <summary>

@@ -30,21 +30,16 @@ namespace Zen.Trunk.Storage.Log
 	public class LogEntry : BufferFieldWrapper
 	{
 		#region Private Fields
-		private LogEntryType logType;
+		private LogEntryType _logType;
 
 		private readonly BufferFieldUInt32 _logId;
 		private readonly BufferFieldUInt32 _lastLog;
 		#endregion
 
 		#region Public Constructors
-		public LogEntry(LogEntryType logType)
-			: this()
+		public LogEntry(LogEntryType logType = LogEntryType.NoOp)
 		{
-			this.logType = logType;
-		}
-
-		protected LogEntry()
-		{
+			_logType = logType;
 			_logId = new BufferFieldUInt32();
 			_lastLog = new BufferFieldUInt32(_logId);
 		}
@@ -77,14 +72,14 @@ namespace Zen.Trunk.Storage.Log
 			}
 		}
 
-		public LogEntryType LogType => logType;
+		public LogEntryType LogType => _logType;
 
 	    #endregion
 
 		#region Public Methods
 		public static LogEntry ReadEntry(BufferReaderWriter streamManager)
 		{
-			LogEntry entry = null;
+			LogEntry entry;
 			var logType = ReadLogType(streamManager);
 			switch (logType)
 			{
@@ -118,7 +113,7 @@ namespace Zen.Trunk.Storage.Log
 				default:
 					throw new InvalidOperationException("Illegal log entry type detected.");
 			}
-			entry.logType = logType;
+			entry._logType = logType;
 			entry.Read(streamManager);
 			return entry;
 		}
@@ -156,7 +151,7 @@ namespace Zen.Trunk.Storage.Log
 		#region Protected Methods
 		protected override void DoWrite(BufferReaderWriter streamManager)
 		{
-			streamManager.Write((byte)(int)logType);
+			streamManager.Write((byte)(int)_logType);
 			base.DoWrite(streamManager);
 		}
 		#endregion
@@ -175,12 +170,6 @@ namespace Zen.Trunk.Storage.Log
 	/// </summary>
 	public class LogEntryComparer : IComparer<LogEntry>
 	{
-		#region Public Constructors
-		public LogEntryComparer()
-		{
-		}
-		#endregion
-
 		#region IComparer<LogEntry> Members
 		int IComparer<LogEntry>.Compare(LogEntry x, LogEntry y)
 		{
@@ -200,10 +189,6 @@ namespace Zen.Trunk.Storage.Log
 	[Serializable]
 	public class NoOpLogEntry : LogEntry
 	{
-		public NoOpLogEntry()
-			: base(LogEntryType.NoOp)
-		{
-		}
 	}
 
 	/// <summary>
@@ -269,7 +254,7 @@ namespace Zen.Trunk.Storage.Log
 	public class CheckPointLogEntry : LogEntry
 	{
 		#region Private Fields
-		private List<ActiveTransaction> activeTransactions;
+		private List<ActiveTransaction> _activeTransactions;
 		#endregion
 
 		#region Public Constructors
@@ -291,9 +276,9 @@ namespace Zen.Trunk.Storage.Log
 			get
 			{
 				var rawSize = base.RawSize + 2;
-				if (activeTransactions != null)
+				if (_activeTransactions != null)
 				{
-					rawSize += (uint)(activeTransactions.Count * 14);
+					rawSize += (uint)(_activeTransactions.Count * 14);
 				}
 				return rawSize;
 			}
@@ -302,32 +287,32 @@ namespace Zen.Trunk.Storage.Log
 		{
 			get
 			{
-				if (activeTransactions == null)
+				if (_activeTransactions == null)
 				{
 					return 0;
 				}
-				return activeTransactions.Count;
+				return _activeTransactions.Count;
 			}
 		}
 
-		public IEnumerable<ActiveTransaction> ActiveTransactions => activeTransactions;
+		public IEnumerable<ActiveTransaction> ActiveTransactions => _activeTransactions;
 
 	    public ActiveTransaction FirstProtectedTransaction
 		{
 			get
 			{
-				if (activeTransactions == null)
+				if (_activeTransactions == null)
 				{
 					throw new InvalidOperationException("Active transactions is null.");
 				}
 
 				ActiveTransaction first = null;
-				for (var index = 0; index < activeTransactions.Count; ++index)
+				for (var index = 0; index < _activeTransactions.Count; ++index)
 				{
 					if (index == 0 ||
-						first.FirstLogId > activeTransactions[index].FirstLogId)
+						first.FirstLogId > _activeTransactions[index].FirstLogId)
 					{
-						first = activeTransactions[index];
+						first = _activeTransactions[index];
 					}
 				}
 				return first;
@@ -338,12 +323,12 @@ namespace Zen.Trunk.Storage.Log
 		#region Public Methods
 		public ActiveTransaction GetTransactionAt(int index)
 		{
-			if (activeTransactions == null)
+			if (_activeTransactions == null)
 			{
 				throw new InvalidOperationException("Active transactions is null.");
 			}
 
-			return activeTransactions[index];
+			return _activeTransactions[index];
 		}
 		#endregion
 
@@ -355,10 +340,10 @@ namespace Zen.Trunk.Storage.Log
 			streamManager.Write((ushort)TransactionCount);
 			for (var index = 0; index < TransactionCount; ++index)
 			{
-				streamManager.Write(activeTransactions[index].FileId);
-				streamManager.Write(activeTransactions[index].FileOffset);
-				streamManager.Write(activeTransactions[index].FirstLogId);
-				streamManager.Write(activeTransactions[index].TransactionId);
+				streamManager.Write(_activeTransactions[index].FileId);
+				streamManager.Write(_activeTransactions[index].FileOffset);
+				streamManager.Write(_activeTransactions[index].FirstLogId);
+				streamManager.Write(_activeTransactions[index].TransactionId);
 			}
 		}
 
@@ -369,7 +354,7 @@ namespace Zen.Trunk.Storage.Log
 			var count = streamManager.ReadUInt16();
 			if (count > 0)
 			{
-				activeTransactions = new List<ActiveTransaction>();
+				_activeTransactions = new List<ActiveTransaction>();
 				for (var index = 0; index < count; ++index)
 				{
 					var fileId = streamManager.ReadUInt16();
@@ -379,7 +364,7 @@ namespace Zen.Trunk.Storage.Log
 
 					var tran = new ActiveTransaction(
 						transactionId, fileId, fileOffset, firstLogId);
-					activeTransactions.Add(tran);
+					_activeTransactions.Add(tran);
 				}
 			}
 		}
@@ -389,11 +374,11 @@ namespace Zen.Trunk.Storage.Log
 		internal void UpdateTransactions(List<ActiveTransaction> active)
 		{
 			// Add transactions to object.
-			if (activeTransactions != null)
+			if (_activeTransactions != null)
 			{
 				throw new InvalidOperationException("Active transaction collection already set.");
 			}
-			activeTransactions = active;
+			_activeTransactions = active;
 		}
 		#endregion
 	}
@@ -569,30 +554,30 @@ namespace Zen.Trunk.Storage.Log
 				OnRedoChanges(page.DataBuffer);
 			}
 		}
-		#endregion
+        #endregion
 
-		#region Protected Methods
-		/// <summary>
-		/// <b>OnUndoChanges</b> is called during recovery to undo DataBuffer
-		/// changes to the given page object.
-		/// </summary>
-		/// <param name="page"></param>
-		/// <remarks>
-		/// This method is only called if a mismatch in timestamps has
-		/// been detected.
-		/// </remarks>
-		internal abstract void OnUndoChanges(PageBuffer DataBuffer);
+        #region Protected Methods
+        /// <summary>
+        /// <b>OnUndoChanges</b> is called during recovery to undo DataBuffer
+        /// changes to the given page object.
+        /// </summary>
+        /// <param name="dataBuffer"></param>
+        /// <remarks>
+        /// This method is only called if a mismatch in timestamps has
+        /// been detected.
+        /// </remarks>
+        internal abstract void OnUndoChanges(PageBuffer dataBuffer);
 
-		/// <summary>
-		/// <b>OnRedoChanges</b> is called during recovery to redo DataBuffer
-		/// changes to the given page object.
-		/// </summary>
-		/// <param name="page"></param>
-		/// <remarks>
-		/// This method is only called if a mismatch in timestamps has
-		/// been detected.
-		/// </remarks>
-		internal abstract void OnRedoChanges(PageBuffer DataBuffer);
+        /// <summary>
+        /// <b>OnRedoChanges</b> is called during recovery to redo DataBuffer
+        /// changes to the given page object.
+        /// </summary>
+        /// <param name="dataBuffer"></param>
+        /// <remarks>
+        /// This method is only called if a mismatch in timestamps has
+        /// been detected.
+        /// </remarks>
+        internal abstract void OnRedoChanges(PageBuffer dataBuffer);
 		#endregion
 
 		#region Private Methods
@@ -668,10 +653,10 @@ namespace Zen.Trunk.Storage.Log
 		#endregion
 
 		#region Internal Methods
-		internal override void OnUndoChanges(PageBuffer DataBuffer)
+		internal override void OnUndoChanges(PageBuffer dataBuffer)
 		{
 			// Copy before image into page DataBuffer
-			using (var stream = DataBuffer.GetBufferStream(0, 8192, false))
+			using (var stream = dataBuffer.GetBufferStream(0, 8192, false))
 			{
 				// NOTE: The before image in this case is empty
 				var initStream = new byte[8192];
@@ -680,20 +665,20 @@ namespace Zen.Trunk.Storage.Log
 			}
 
 			// Mark DataBuffer as dirty
-			DataBuffer.SetDirtyAsync();
+			dataBuffer.SetDirtyAsync();
 		}
 
-		internal override void OnRedoChanges(PageBuffer DataBuffer)
+		internal override void OnRedoChanges(PageBuffer dataBuffer)
 		{
 			// Copy after image into page DataBuffer
-			using (var stream = DataBuffer.GetBufferStream(0, 8192, false))
+			using (var stream = dataBuffer.GetBufferStream(0, 8192, false))
 			{
 				stream.Write(_image, 0, 8192);
 				stream.Flush();
 			}
 
 			// Mark DataBuffer as dirty
-			DataBuffer.SetDirtyAsync();
+			dataBuffer.SetDirtyAsync();
 		}
 		#endregion
 	}
@@ -754,30 +739,30 @@ namespace Zen.Trunk.Storage.Log
 		#endregion
 
 		#region Internal Methods
-		internal override void OnUndoChanges(PageBuffer DataBuffer)
+		internal override void OnUndoChanges(PageBuffer dataBuffer)
 		{
 			// Copy before image into page DataBuffer
-			using (var stream = DataBuffer.GetBufferStream(0, 8192, false))
+			using (var stream = dataBuffer.GetBufferStream(0, 8192, false))
 			{
 				stream.Write(_beforeImage, 0, 8192);
 				stream.Flush();
 			}
 
 			// Mark DataBuffer as dirty
-			DataBuffer.SetDirtyAsync();
+			dataBuffer.SetDirtyAsync();
 		}
 
-		internal override void OnRedoChanges(PageBuffer DataBuffer)
+		internal override void OnRedoChanges(PageBuffer dataBuffer)
 		{
 			// Copy after image into page DataBuffer
-			using (var stream = DataBuffer.GetBufferStream(0, 8192, false))
+			using (var stream = dataBuffer.GetBufferStream(0, 8192, false))
 			{
 				stream.Write(_afterImage, 0, 8192);
 				stream.Flush();
 			}
 
 			// Mark DataBuffer as dirty
-			DataBuffer.SetDirtyAsync();
+			dataBuffer.SetDirtyAsync();
 		}
 		#endregion
 	}
@@ -789,7 +774,7 @@ namespace Zen.Trunk.Storage.Log
 	public class PageImageDeleteLogEntry : PageLogEntry
 	{
 		#region Private Fields
-		private byte[] image;
+		private byte[] _image;
 		#endregion
 
 		#region Public Constructors
@@ -799,8 +784,8 @@ namespace Zen.Trunk.Storage.Log
 			long timestamp)
 			: base(virtualPageId, timestamp, LogEntryType.DeletePage)
 		{
-			image = new byte[buffer.BufferSize];
-			buffer.CopyTo(image);
+			_image = new byte[buffer.BufferSize];
+			buffer.CopyTo(_image);
 		}
 		internal PageImageDeleteLogEntry()
 		{
@@ -810,7 +795,7 @@ namespace Zen.Trunk.Storage.Log
 		#region Public Properties
 		public override uint RawSize => base.RawSize + 8192;
 
-	    public byte[] Image => image;
+	    public byte[] Image => _image;
 
 	    #endregion
 
@@ -818,34 +803,34 @@ namespace Zen.Trunk.Storage.Log
 		protected override void DoWrite(BufferReaderWriter streamManager)
 		{
 			base.DoWrite(streamManager);
-			streamManager.Write(image);
+			streamManager.Write(_image);
 		}
 
 		protected override void DoRead(BufferReaderWriter streamManager)
 		{
 			base.DoRead(streamManager);
-			image = streamManager.ReadBytes(8192);
+			_image = streamManager.ReadBytes(8192);
 		}
 		#endregion
 
 		#region Internal Methods
-		internal override void OnUndoChanges(PageBuffer DataBuffer)
+		internal override void OnUndoChanges(PageBuffer dataBuffer)
 		{
 			// Copy before image into page DataBuffer
-			using (var stream = DataBuffer.GetBufferStream(0, 8192, false))
+			using (var stream = dataBuffer.GetBufferStream(0, 8192, false))
 			{
-				stream.Write(image, 0, 8192);
+				stream.Write(_image, 0, 8192);
 				stream.Flush();
 			}
 
 			// Mark DataBuffer as dirty
-			DataBuffer.SetDirtyAsync();
+			dataBuffer.SetDirtyAsync();
 		}
 
-		internal override void OnRedoChanges(PageBuffer DataBuffer)
+		internal override void OnRedoChanges(PageBuffer dataBuffer)
 		{
 			// Copy after image into page DataBuffer
-			using (var stream = DataBuffer.GetBufferStream(0, 8192, false))
+			using (var stream = dataBuffer.GetBufferStream(0, 8192, false))
 			{
 				var initStream = new byte[8192];
 				stream.Write(initStream, 0, 8192);
@@ -853,7 +838,7 @@ namespace Zen.Trunk.Storage.Log
 			}
 
 			// Mark DataBuffer as dirty
-			DataBuffer.SetDirtyAsync();
+			dataBuffer.SetDirtyAsync();
 		}
 		#endregion
 	}

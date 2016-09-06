@@ -56,7 +56,7 @@ namespace Zen.Trunk.Storage.Log
 			new Dictionary<DeviceId, LogPageDevice>();
 
 		private VirtualLogFileStream _currentStream;
-		private object syncWriters = new object();
+		private object _syncWriters = new object();
 		private Dictionary<ActiveTransaction, List<TransactionLogEntry>> _activeTransactions;
 		private int _nextTransactionId = 1;
 		private DeviceId _nextLogDeviceId;

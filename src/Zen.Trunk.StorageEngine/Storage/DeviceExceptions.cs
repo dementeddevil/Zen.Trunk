@@ -1,9 +1,8 @@
+using System;
+using System.Runtime.Serialization;
+    
 namespace Zen.Trunk.Storage
 {
-    using System;
-    using System.Runtime.Serialization;
-    using System.Security.Permissions;
-
     [Serializable]
     public class DeviceException : StorageEngineException, ISerializable
     {

@@ -68,7 +68,7 @@ namespace Zen.Trunk.Storage.Locking
 		{
 			public override SchemaLockType Lock => SchemaLockType.None;
 
-		    public override SchemaLockType[] CompatableLocks => new SchemaLockType[3] 
+		    public override SchemaLockType[] CompatableLocks => new[]
 		    {
 		        SchemaLockType.SchemaStability,
 		        SchemaLockType.BulkUpdate,
@@ -79,7 +79,7 @@ namespace Zen.Trunk.Storage.Locking
 		{
 			public override SchemaLockType Lock => SchemaLockType.SchemaStability;
 
-		    public override SchemaLockType[] CompatableLocks => new SchemaLockType[2] 
+		    public override SchemaLockType[] CompatableLocks => new[]
 			{
 			    SchemaLockType.SchemaStability,
 			    SchemaLockType.BulkUpdate,
@@ -89,8 +89,8 @@ namespace Zen.Trunk.Storage.Locking
 		{
 			public override SchemaLockType Lock => SchemaLockType.BulkUpdate;
 
-		    public override SchemaLockType[] CompatableLocks => new SchemaLockType[2] 
-		    {
+		    public override SchemaLockType[] CompatableLocks => new[]
+            {
 		        SchemaLockType.SchemaStability,
 		        SchemaLockType.BulkUpdate,
 		    };
@@ -104,12 +104,6 @@ namespace Zen.Trunk.Storage.Locking
             public override bool CanEnterExclusiveLock => true;
         }
         #endregion
-
-        #region Public Constructors
-		public SchemaLock ()
-		{
-		}
-		#endregion
 
 		#region Protected Properties
 		protected override SchemaLockType NoneLockType => SchemaLockType.None;

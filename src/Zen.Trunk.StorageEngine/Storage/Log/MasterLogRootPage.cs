@@ -62,7 +62,7 @@ namespace Zen.Trunk.Storage.Log
 		/// Tracks the number of checkpoint history records
 		/// </summary>
 		private readonly BufferFieldByte _checkPointHistoryCount;
-		private CheckPointInfo[] lastCheckPoint;
+		private CheckPointInfo[] _lastCheckPoint;
 		#endregion
 
 		#region Public Constructors
@@ -246,16 +246,16 @@ namespace Zen.Trunk.Storage.Log
 			{
 				throw new ArgumentOutOfRangeException(nameof(index), index, "Index out of range");
 			}
-			if (lastCheckPoint == null)
+			if (_lastCheckPoint == null)
 				return null;
-			return lastCheckPoint[index];
+			return _lastCheckPoint[index];
 		}
 
 		internal void AddCheckPoint(uint fileId, uint offset, bool start)
 		{
-			if (lastCheckPoint == null)
+			if (_lastCheckPoint == null)
 			{
-				lastCheckPoint = new CheckPointInfo[3];
+				_lastCheckPoint = new CheckPointInfo[3];
 			}
 			if (_checkPointHistoryCount.Value < 3)
 			{
@@ -263,13 +263,13 @@ namespace Zen.Trunk.Storage.Log
 				if (start)
 				{
 					cpi = new CheckPointInfo();
-					lastCheckPoint[_checkPointHistoryCount.Value] = cpi;
+					_lastCheckPoint[_checkPointHistoryCount.Value] = cpi;
 					cpi.BeginFileId = fileId;
 					cpi.BeginOffset = offset;
 				}
 				else
 				{
-					cpi = lastCheckPoint[_checkPointHistoryCount.Value++];
+					cpi = _lastCheckPoint[_checkPointHistoryCount.Value++];
 					cpi.EndFileId = fileId;
 					cpi.EndOffset = offset;
 					cpi.Valid = true;
@@ -277,19 +277,19 @@ namespace Zen.Trunk.Storage.Log
 			}
 			else
 			{
-				lastCheckPoint[0] = lastCheckPoint[1];
-				lastCheckPoint[1] = lastCheckPoint[2];
+				_lastCheckPoint[0] = _lastCheckPoint[1];
+				_lastCheckPoint[1] = _lastCheckPoint[2];
 				CheckPointInfo cpi = null;
 				if (start)
 				{
 					cpi = new CheckPointInfo();
-					lastCheckPoint[2] = cpi;
+					_lastCheckPoint[2] = cpi;
 					cpi.BeginFileId = fileId;
 					cpi.BeginOffset = offset;
 				}
 				else
 				{
-					cpi = lastCheckPoint[2];
+					cpi = _lastCheckPoint[2];
 					cpi.EndFileId = fileId;
 					cpi.EndOffset = offset;
 					cpi.Valid = true;
@@ -329,11 +329,11 @@ namespace Zen.Trunk.Storage.Log
 			System.Diagnostics.Debug.Assert(_checkPointHistoryCount.Value < 4);
 			for (var index = 0; index < _checkPointHistoryCount.Value; ++index)
 			{
-				if (lastCheckPoint[index] == null)
+				if (_lastCheckPoint[index] == null)
 				{
-					lastCheckPoint[index] = new CheckPointInfo();
+					_lastCheckPoint[index] = new CheckPointInfo();
 				}
-				lastCheckPoint[index].Read(streamManager);
+				_lastCheckPoint[index].Read(streamManager);
 			}
 
 			// then device list
@@ -349,12 +349,12 @@ namespace Zen.Trunk.Storage.Log
 
 			if (_checkPointHistoryCount.Value > 0)
 			{
-				lastCheckPoint = new CheckPointInfo[3];
+				_lastCheckPoint = new CheckPointInfo[3];
 				System.Diagnostics.Debug.Assert(_checkPointHistoryCount.Value < 4);
 				for (var index = 0; index < _checkPointHistoryCount.Value; ++index)
 				{
-					lastCheckPoint[index] = new CheckPointInfo();
-					lastCheckPoint[index].Read(streamManager);
+					_lastCheckPoint[index] = new CheckPointInfo();
+					_lastCheckPoint[index].Read(streamManager);
 				}
 			}
 

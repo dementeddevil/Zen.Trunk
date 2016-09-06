@@ -67,17 +67,17 @@ namespace Zen.Trunk.Storage.Data.Index
 	/// <c>IndexManager</c> maintains a map of all indices associated with a
 	/// particular object.
 	/// </summary>
-	/// <typeparam name="IndexRootClass">The type of the ndex root class.</typeparam>
+	/// <typeparam name="TIndexRootClass">The type of the ndex root class.</typeparam>
 	/// <remarks>
 	/// The index manager only maintains a link to the root index information
 	/// for each index.
 	/// </remarks>
-	public abstract class IndexManager<IndexRootClass> : IndexManager
-		where IndexRootClass : RootIndexInfo
+	public abstract class IndexManager<TIndexRootClass> : IndexManager
+		where TIndexRootClass : RootIndexInfo
 	{
 		#region Private Fields
-		private readonly Dictionary<IndexId, IndexRootClass> _indices =
-			new Dictionary<IndexId, IndexRootClass>();
+		private readonly Dictionary<IndexId, TIndexRootClass> _indices =
+			new Dictionary<IndexId, TIndexRootClass>();
 		#endregion
 
 		#region Protected Constructors
@@ -92,21 +92,21 @@ namespace Zen.Trunk.Storage.Data.Index
 		#endregion
 
 		#region Internal Properties
-		internal IEnumerable<IndexRootClass> Indices => _indices.Values;
+		internal IEnumerable<TIndexRootClass> Indices => _indices.Values;
 	    #endregion
 
 		#region Internal Methods
-		internal IndexRootClass GetIndexInfo(IndexId indexId)
+		internal TIndexRootClass GetIndexInfo(IndexId indexId)
 		{
 			return _indices[indexId];
 		}
 
-        internal bool TryGetIndexInfo(IndexId indexId, out IndexRootClass indexInfo)
+        internal bool TryGetIndexInfo(IndexId indexId, out TIndexRootClass indexInfo)
         {
             return _indices.TryGetValue(indexId, out indexInfo);
         }
 
-		internal void AddIndexInfo(IndexRootClass index)
+		internal void AddIndexInfo(TIndexRootClass index)
 		{
 			_indices.Add(index.IndexId, index);
 		}

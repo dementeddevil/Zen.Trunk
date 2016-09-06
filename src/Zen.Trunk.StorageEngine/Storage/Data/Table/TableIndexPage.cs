@@ -14,15 +14,6 @@
 		private RootTableIndexInfo _rootIndex;
 		#endregion
 
-		#region Public Constructors
-		/// <summary>
-		/// Initializes a new instance of the <see cref="TableIndexPage"/> class.
-		/// </summary>
-		public TableIndexPage()
-		{
-		}
-		#endregion
-
 		#region Public Properties
 		/*public RootTableIndexInfo RootIndex
 		{

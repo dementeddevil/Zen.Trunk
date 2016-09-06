@@ -1,28 +1,25 @@
 ﻿using System.Threading.Tasks;
+using System;
+using System.Collections.Generic;
+using Zen.Trunk.Storage.IO;
+using Zen.Trunk.Storage.Locking;
 
 namespace Zen.Trunk.Storage.Data.Index
 {
-	using System;
-	using System.Collections.Generic;
-	using IO;
-	using Locking;
 
-	/// <summary>
-	/// Abstract class containing the generic implementation for index page
-	/// splitting.
-	/// </summary>
-	/// <typeparam name="T"></typeparam>
-	/// <remarks>
-	/// Obviously this class will also contain the generic index page merging
-	/// code too...
-	/// </remarks>
-	public abstract class IndexPage<IndexClass, IndexRootClass> : IndexPage
-		where IndexClass : IndexInfo
-		where IndexRootClass : RootIndexInfo
+    /// <summary>
+    /// Abstract class containing the generic implementation for index page
+    /// splitting and merging.
+    /// </summary>
+    /// <typeparam name="TIndexClass"></typeparam>
+    /// <typeparam name="TIndexRootClass"></typeparam>
+    public abstract class IndexPage<TIndexClass, TIndexRootClass> : IndexPage
+		where TIndexClass : IndexInfo
+		where TIndexRootClass : RootIndexInfo
 	{
 		#region Private Fields
 		private readonly BufferFieldUInt16 _indexEntryCount;
-		private readonly List<IndexClass> _indexEntries;
+		private readonly List<TIndexClass> _indexEntries;
 		private bool _lastInternalLockWritable;
 		#endregion
 
@@ -33,7 +30,7 @@ namespace Zen.Trunk.Storage.Data.Index
 		public IndexPage()
 		{
 			_indexEntryCount = new BufferFieldUInt16(base.LastHeaderField);
-			_indexEntries = new List<IndexClass>(MaxIndexEntries);
+			_indexEntries = new List<TIndexClass>(MaxIndexEntries);
 		}
 		#endregion
 
@@ -56,7 +53,7 @@ namespace Zen.Trunk.Storage.Data.Index
 		/// Gets the index entries.
 		/// </summary>
 		/// <value>The index entries.</value>
-		internal List<IndexClass> IndexEntries => _indexEntries;
+		internal List<TIndexClass> IndexEntries => _indexEntries;
 	    #endregion
 
 		#region Protected Properties
@@ -76,7 +73,7 @@ namespace Zen.Trunk.Storage.Data.Index
 		/// <param name="updateParentPage">
 		/// if set to <c>true</c> then the caller must update the parent page.
 		/// </param>
-		public void AddLinkToPage(IndexPage<IndexClass, IndexRootClass> page, out bool updateParentPage)
+		public void AddLinkToPage(IndexPage<TIndexClass, TIndexRootClass> page, out bool updateParentPage)
 		{
 			var info = CreateLinkToPage(page);
 			AddLinkToPage(info, out updateParentPage);
@@ -89,7 +86,7 @@ namespace Zen.Trunk.Storage.Data.Index
 		/// <param name="updateParentPage">
 		/// if set to <c>true</c> then the caller must update the parent page.
 		/// </param>
-		public void AddLinkToPage(IndexClass link, out bool updateParentPage)
+		public void AddLinkToPage(TIndexClass link, out bool updateParentPage)
 		{
 			// Special case for first entry in this page.
 			updateParentPage = false;
@@ -144,8 +141,7 @@ namespace Zen.Trunk.Storage.Data.Index
 		/// <summary>
 		/// Adds an intermediate link to the given page.
 		/// </summary>
-		/// <param name="page"></param>
-		protected abstract IndexClass CreateIndexEntry();
+		protected abstract TIndexClass CreateIndexEntry();
 
 		/// <summary>
 		/// Overridden in derived classes to provide the intermediate index
@@ -154,7 +150,7 @@ namespace Zen.Trunk.Storage.Data.Index
 		/// </summary>
 		/// <param name="page"></param>
 		/// <returns></returns>
-		protected abstract IndexClass CreateLinkToPage(IndexPage<IndexClass, IndexRootClass> page);
+		protected abstract TIndexClass CreateLinkToPage(IndexPage<TIndexClass, TIndexRootClass> page);
 
 		/// <summary>
 		/// Overridden. Writes the page header block to the specified buffer writer.
@@ -181,7 +177,7 @@ namespace Zen.Trunk.Storage.Data.Index
 			{
 				IndexInfo info = CreateIndexEntry();
 				info.Read(streamManager);
-				_indexEntries.Add((IndexClass)info);
+				_indexEntries.Add((TIndexClass)info);
 			}
 		}
 

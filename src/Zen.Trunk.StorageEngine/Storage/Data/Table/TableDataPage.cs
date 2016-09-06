@@ -1,12 +1,12 @@
-﻿using Zen.Trunk.Storage.Locking;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Threading.Tasks;
+using Zen.Trunk.Storage.IO;
+using Zen.Trunk.Storage.Locking;
 
 namespace Zen.Trunk.Storage.Data.Table
 {
-	using System;
-	using System.Collections.Generic;
-	using System.IO;
-	using System.Threading.Tasks;
-	using IO;
 
 	public class TableDataPage : ObjectDataPage
 	{
@@ -86,14 +86,16 @@ namespace Zen.Trunk.Storage.Data.Table
 		#endregion
 
 		#region Public Methods
-		/// <summary>
-		/// Returns a <see cref="T:RowReaderWriter"/> for accessing row data
-		/// for the specified row.
-		/// </summary>
-		/// <param name="rowIndex">Zero based row index.</param>
-		/// <param name="rowDef">Complete row column definition.</param>
-		/// <returns><see cref="T:RowReaderWriter"/></returns>
-		public RowReaderWriter GetRowReaderWriter(
+
+	    /// <summary>
+	    /// Returns a <see cref="T:RowReaderWriter"/> for accessing row data
+	    /// for the specified row.
+	    /// </summary>
+	    /// <param name="rowIndex">Zero based row index.</param>
+	    /// <param name="rowDef">Complete row column definition.</param>
+	    /// <param name="canWrite"></param>
+	    /// <returns><see cref="T:RowReaderWriter"/></returns>
+	    public RowReaderWriter GetRowReaderWriter(
 			uint rowIndex, IList<TableColumnInfo> rowDef, bool canWrite)
 		{
 			Stream rowStream = new MemoryStream(
@@ -717,12 +719,13 @@ namespace Zen.Trunk.Storage.Data.Table
 			return (FreeSpace >= rowSize);
 		}
 
-		/// <summary>
-		/// Tests whether the page can accommodate a row of specified size.
-		/// </summary>
-		/// <param name="rowSize"></param>
-		/// <returns></returns>
-		private bool CanAddRowBlock(ushort totalSize, ushort numberOfRows)
+	    /// <summary>
+	    /// Tests whether the page can accommodate a row of specified size.
+	    /// </summary>
+	    /// <param name="totalSize"></param>
+	    /// <param name="numberOfRows"></param>
+	    /// <returns></returns>
+	    private bool CanAddRowBlock(ushort totalSize, ushort numberOfRows)
 		{
 			if ((_rowInfo.Count + numberOfRows) > MaxRows)
 			{

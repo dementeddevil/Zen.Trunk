@@ -21,7 +21,7 @@ namespace Zen.Trunk.Storage.Locking
     internal class TrunkTransaction : MarshalByRefObject, ITrunkTransactionPrivate
     {
         #region Private Types
-        private class DBPrepare : PreparingPageEnlistment
+        private class DbPrepare : PreparingPageEnlistment
         {
             private readonly TaskCompletionSource<bool> _tcs =
                 new TaskCompletionSource<bool>();
@@ -50,7 +50,7 @@ namespace Zen.Trunk.Storage.Locking
             }
         }
 
-        private class DBNotify : PageEnlistment
+        private class DbNotify : PageEnlistment
         {
             private readonly TaskCompletionSource<object> _tcs =
                 new TaskCompletionSource<object>();
@@ -332,7 +332,7 @@ namespace Zen.Trunk.Storage.Locking
                     // Prepare our sub-enlistments (pages) for commit operation
                     foreach (var sub in _subEnlistments)
                     {
-                        var prepInfo = new DBPrepare();
+                        var prepInfo = new DbPrepare();
                         prepTasks.Add(prepInfo.Task);
                         try
                         {
@@ -356,7 +356,7 @@ namespace Zen.Trunk.Storage.Locking
                     try
                     {
                         var result = await TaskExtra
-                            .WhenAllOrEmpty<bool>(prepTasks.ToArray())
+                            .WhenAllOrEmpty(prepTasks.ToArray())
                             .ConfigureAwait(false);
                         if (result != null)
                         {
@@ -409,7 +409,7 @@ namespace Zen.Trunk.Storage.Locking
                                 }
 
                                 tracker.Add(page.PageId);
-                                var notifyInfo = new DBNotify();
+                                var notifyInfo = new DbNotify();
                                 commitTasks.Add(notifyInfo.Task);
                                 sub.Commit(notifyInfo);
                             }
@@ -436,7 +436,7 @@ namespace Zen.Trunk.Storage.Locking
                     var rollbackTasks = new List<Task>();
                     foreach (var rb in commitList)
                     {
-                        var rollback = new DBNotify();
+                        var rollback = new DbNotify();
                         try
                         {
                             rollbackTasks.Add(rollback.Task);
@@ -538,7 +538,7 @@ namespace Zen.Trunk.Storage.Locking
                 var rollbackTasks = new List<Task>();
                 foreach (var sub in _subEnlistments)
                 {
-                    var notify = new DBNotify();
+                    var notify = new DbNotify();
                     try
                     {
                         rollbackTasks.Add(notify.Task);
@@ -651,7 +651,7 @@ namespace Zen.Trunk.Storage.Locking
         {
             try
             {
-                if (_lifetimeScope.TryResolve<MasterLogPageDevice>(out _logDevice))
+                if (_lifetimeScope.TryResolve(out _logDevice))
                 {
                     _transactionId = _logDevice.GetNextTransactionId();
                 }

@@ -615,7 +615,7 @@ namespace Zen.Trunk.Storage.Data
 			}
 
 			// Add child device to file-group
-			var deviceId = await fileGroupDevice.AddDataDevice(request.Message);
+			var deviceId = await fileGroupDevice.AddDataDevice(request.Message).ConfigureAwait(false);
 
 			// If this is the first call for a file-group AND database is open or opening
 			//	then open the new file-group device too

@@ -1,11 +1,9 @@
+using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
 
 namespace Zen.Trunk.Storage.Locking
 {
-	using System;
-	using System.Collections.Concurrent;
-	using System.Diagnostics;
-
 	/// <summary>
 	/// Global lock manager
 	/// </summary>

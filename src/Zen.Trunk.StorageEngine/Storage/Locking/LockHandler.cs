@@ -27,7 +27,7 @@ namespace Zen.Trunk.Storage.Locking
 	{
 		#region Private Fields
 		private int _maxFreeLocks;
-		private readonly SpinLockClass syncLocks = new SpinLockClass();
+		private readonly SpinLockClass _syncLocks = new SpinLockClass();
 		private readonly Dictionary<string, TLockClass> _activeLocks = new Dictionary<string, TLockClass>();
 		private readonly ObjectPool<TLockClass> _freeLocks;
 		#endregion
@@ -71,7 +71,7 @@ namespace Zen.Trunk.Storage.Locking
 
 			// Lookup/create page lock
 			TLockClass lockObject = null;
-			syncLocks.Execute(
+			_syncLocks.Execute(
 				() =>
 				{
 					if (_activeLocks.ContainsKey(lockKey))
@@ -102,7 +102,7 @@ namespace Zen.Trunk.Storage.Locking
 		private void Lock_FinalRelease(object sender, EventArgs e)
 		{
 			var lockObject = (TLockClass)sender;
-			syncLocks.Execute(
+			_syncLocks.Execute(
 				() =>
 				{
 					if (!string.IsNullOrEmpty(lockObject.Id))
@@ -137,7 +137,7 @@ namespace Zen.Trunk.Storage.Locking
 
 	    void ILockHandler.PopulateFreeLockPool(int maxLocks)
 		{
-			syncLocks.Execute(
+			_syncLocks.Execute(
 				() =>
 				{
 					while ((_freeLocks.Count < _maxFreeLocks) && (maxLocks > 0))

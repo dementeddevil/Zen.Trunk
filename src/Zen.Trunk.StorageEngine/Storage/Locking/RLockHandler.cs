@@ -15,12 +15,6 @@ namespace Zen.Trunk.Storage.Locking
             new ObjectPool<RLock>(() => new RLock());
 		#endregion
 
-		#region Public Constructors
-		public RLockHandler()
-		{
-		}
-		#endregion
-
 		#region Public Methods
 		/// <summary>
 		/// Acquires a resource lock on the resource associated with the

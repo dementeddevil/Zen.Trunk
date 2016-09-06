@@ -18,17 +18,6 @@ namespace Zen.Trunk.Storage.Locking
 		private TParentLockType _parentLock;
 		#endregion
 
-		#region Protected Constructors
-		/// <summary>
-		/// Initializes a new instance of the 
-		/// <see cref="ChildTransactionLock&lt;LockTypeEnum, ParentLockType&gt;"/>
-		/// class.
-		/// </summary>
-		protected ChildTransactionLock()
-		{
-		}
-		#endregion
-
 		#region Public Properties
 		/// <summary>
 		/// Gets or sets the parent lock.

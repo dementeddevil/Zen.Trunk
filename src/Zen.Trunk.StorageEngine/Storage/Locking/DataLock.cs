@@ -103,12 +103,6 @@ namespace Zen.Trunk.Storage.Locking
 		private static readonly ExclusiveState ExclusiveStateObject = new ExclusiveState();
 		#endregion
 
-		#region Public Constructors
-		public DataLock()
-		{
-		}
-		#endregion
-
 		#region Protected Properties
 		protected override DataLockType NoneLockType => DataLockType.None;
 	    #endregion

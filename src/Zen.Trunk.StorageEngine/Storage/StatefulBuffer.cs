@@ -30,15 +30,6 @@ namespace Zen.Trunk.Storage
         /// </summary>
         protected internal abstract class State
         {
-            #region Public Constructors
-            /// <summary>
-            /// Initializes a new instance of the <see cref="State"/> class.
-            /// </summary>
-            public State()
-            {
-            }
-            #endregion
-
             #region Public Methods
             /// <summary>
             /// Performs state specific buffer add-ref logic.
@@ -116,15 +107,6 @@ namespace Zen.Trunk.Storage
         private State _currentState;
         private int _refCount;
         private bool _isDisposed;
-        #endregion
-
-        #region Protected Constructor
-        /// <summary>
-        /// Initializes a new instance of the <see cref="StatefulBuffer"/> class.
-        /// </summary>
-        protected StatefulBuffer()
-        {
-        }
         #endregion
 
         #region Public Properties

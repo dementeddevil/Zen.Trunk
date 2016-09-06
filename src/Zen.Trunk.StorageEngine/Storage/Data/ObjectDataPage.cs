@@ -22,16 +22,7 @@ namespace Zen.Trunk.Storage.Data
 		private DataLockType _pageLock;
 		#endregion
 
-		#region Public Constructors
-		/// <summary>
-		/// Initializes a new instance of the <see cref="ObjectDataPage"/> class.
-		/// </summary>
-		public ObjectDataPage()
-		{
-		}
-		#endregion
-
-		#region Public Properties
+	    #region Public Properties
 	    /// <summary>
 	    /// Gets or sets the page lock.
 	    /// </summary>

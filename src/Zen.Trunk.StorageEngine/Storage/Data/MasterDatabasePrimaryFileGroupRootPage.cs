@@ -4,14 +4,12 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+using System;
+using System.Collections.Generic;
+using Zen.Trunk.Storage.IO;
+
 namespace Zen.Trunk.Storage.Data
 {
-	using System;
-	using System.Collections.Generic;
-	using System.Linq;
-	using System.Text;
-	using IO;
-
 	/// <summary>
 	/// TODO: Update summary.
 	/// </summary>

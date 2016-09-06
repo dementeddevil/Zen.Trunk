@@ -227,15 +227,6 @@ namespace Zen.Trunk.Storage.Locking
 		public event EventHandler FinalRelease;
 		#endregion
 
-		#region Protected Constructors
-		/// <summary>
-		/// Initializes a new instance of the <see cref="TransactionLock&lt;LockTypeEnum&gt;"/> class.
-		/// </summary>
-		protected TransactionLock()
-		{
-		}
-		#endregion
-
 		#region Public Properties
 		/// <summary>
 		/// Gets/sets the lock Id.
@@ -682,7 +673,6 @@ namespace Zen.Trunk.Storage.Locking
 			var lockType = NoneLockType;
 			foreach (var request in _activeRequests.Values)
 			{
-				var conv = (IConvertible)request.Lock;
 				if (Convert.ToInt32(request.Lock) > Convert.ToInt32(lockType))
 				{
 					lockType = request.Lock;

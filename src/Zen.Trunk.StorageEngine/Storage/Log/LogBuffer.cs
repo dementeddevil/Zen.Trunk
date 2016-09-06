@@ -88,7 +88,7 @@ namespace Zen.Trunk.Storage.Log
 			{
 				// Ask page buffer to load from underlying device.
 				var logPage = (LogBuffer)instance;
-				await logPage.DoLoad().ConfigureAwait(false);
+				await logPage.DoLoadAsync().ConfigureAwait(false);
 
 				// Switch to allocated state
 				await logPage.SwitchState(LogBufferStateType.Allocated).ConfigureAwait(false);
@@ -112,19 +112,12 @@ namespace Zen.Trunk.Storage.Log
 
 		private class DirtyState : LogBufferState
 		{
-			#region Public Constructors
-			public DirtyState()
-			{
-			}
-			#endregion
-
 			#region Public Properties
 			/// <summary>
 			/// Overridden. Returns a value indicating the implemented state for
 			/// this state object.
 			/// </summary>
 			public override LogBufferStateType StateType => LogBufferStateType.Dirty;
-
 		    #endregion
 
 			#region Public Methods
@@ -193,7 +186,7 @@ namespace Zen.Trunk.Storage.Log
 		/// </summary>
 		/// <param name="offset"></param>
 		/// <param name="count"></param>
-		/// <param name="readOnly"></param>
+		/// <param name="writable"></param>
 		/// <returns></returns>
 		public override Stream GetBufferStream(int offset, int count, bool writable)
 		{
@@ -229,7 +222,7 @@ namespace Zen.Trunk.Storage.Log
 		#endregion
 
 		#region Private Methods
-		private async Task DoLoad()
+		private async Task DoLoadAsync()
 		{
 			Task loadTask;
 			var buffer = new byte[8192];
@@ -242,7 +235,7 @@ namespace Zen.Trunk.Storage.Log
 			_buffer.InitFrom(buffer);
 		}
 
-		private Task DoSave()
+		private Task DoSaveAsync()
 		{
 			Task saveTask;
 			var buffer = new byte[8192];
@@ -255,12 +248,7 @@ namespace Zen.Trunk.Storage.Log
 			return saveTask;
 		}
 
-		private Task SwitchState(LogBufferStateType newState)
-		{
-			return SwitchState(newState, null);
-		}
-
-		private Task SwitchState(LogBufferStateType newState, object userState)
+	    private Task SwitchState(LogBufferStateType newState, object userState = null)
 		{
 			return SwitchStateAsync(LogBufferStateFactory.GetState(newState), userState);
 		}
