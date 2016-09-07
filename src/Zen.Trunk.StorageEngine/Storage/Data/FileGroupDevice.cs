@@ -384,25 +384,10 @@ namespace Zen.Trunk.Storage.Data
 
         #region Public Methods
         /// <summary>
-        /// Creates the root page.
+        /// Creates the root page for this file-group device.
         /// </summary>
-        /// <param name="isPrimaryFile">if set to <c>true</c> [is primary file].</param>
         /// <returns></returns>
-        public virtual RootPage CreateRootPage(bool isPrimaryFile)
-        {
-            RootPage rootPage;
-            if (isPrimaryFile)
-            {
-                rootPage = new PrimaryFileGroupRootPage();
-            }
-            else
-            {
-                rootPage = new SecondaryFileGroupRootPage();
-            }
-
-            rootPage.FileGroupId = FileGroupId;
-            return rootPage;
-        }
+        public abstract RootPage CreateRootPage();
 
         /// <summary>
         /// Adds the data device.

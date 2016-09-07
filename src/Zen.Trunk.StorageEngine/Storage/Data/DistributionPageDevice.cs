@@ -116,7 +116,7 @@ namespace Zen.Trunk.Storage.Data
             }
 
 			// Load or initialise the file-group root page
-			var rootPage = FileGroupDevice.CreateRootPage(IsPrimary);
+			var rootPage = FileGroupDevice.CreateRootPage();
 			rootPage.VirtualId = new VirtualPageId(DeviceId, 0);
 			HookupPageSite(rootPage);
 			if (IsCreate && _firstCallForRootPage)
