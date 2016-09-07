@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
+using System.Transactions;
 using Autofac;
 using Zen.Trunk.Extensions;
 using Zen.Trunk.Logging;
@@ -485,6 +486,10 @@ namespace Zen.Trunk.Storage.Data
         #endregion
 
         #region Protected Methods
+        /// <summary>
+        /// Builds the device lifetime scope.
+        /// </summary>
+        /// <param name="builder">The builder.</param>
         protected override void BuildDeviceLifetimeScope(ContainerBuilder builder)
 	    {
 	        base.BuildDeviceLifetimeScope(builder);
@@ -538,9 +543,8 @@ namespace Zen.Trunk.Storage.Data
 			{
 				throw new InvalidOperationException("No file-groups.");
 			}
-
-			FileGroupDevice fgDevice;
-			if (!_fileGroupById.TryGetValue(PrimaryFileGroupId, out fgDevice))
+			var fgDevice = PrimaryFileGroupDevice;
+			if (fgDevice == null)
 			{
 				throw new InvalidOperationException("No primary file-group device.");
 			}
@@ -552,6 +556,22 @@ namespace Zen.Trunk.Storage.Data
 		    }
 			await RawBufferDevice.OpenAsync().ConfigureAwait(false);
 
+            // Mount the log device(s) first
+            // This is so that transaction log is available when creating database
+            if (Logger.IsDebugEnabled())
+            {
+                Logger.Debug("Opening log device...");
+            }
+			await ResolveDeviceService<MasterLogPageDevice>().OpenAsync(IsCreate).ConfigureAwait(false);
+
+            // If this is a create, then we want to create a transaction so
+            //  that once the file-group devices are created we can commit
+            //  their initial presentation and then issue a checkpoint.
+		    if (IsCreate)
+		    {
+		        BeginTransaction(IsolationLevel.Serializable, TimeSpan.FromSeconds(5));
+		    }
+
             // Mount the primary file-group device
             if (Logger.IsDebugEnabled())
             {
@@ -562,22 +582,33 @@ namespace Zen.Trunk.Storage.Data
             // At this point the primary file-group is mounted and all
             //	secondary file-groups are mounted too (via AddFileGroupDevice)
 
-            // Mount the log device
-            if (Logger.IsDebugEnabled())
-            {
-                Logger.Debug("Opening log device...");
-            }
-			await ResolveDeviceService<MasterLogPageDevice>().OpenAsync(IsCreate).ConfigureAwait(false);
-
 			// If this is not create then we need to perform recovery
-			if (!IsCreate)
-			{
+		    if (!IsCreate)
+		    {
+		        if (Logger.IsDebugEnabled())
+		        {
+		            Logger.Debug("Initiating recovery...");
+		        }
+		        await ResolveDeviceService<MasterLogPageDevice>().PerformRecovery().ConfigureAwait(false);
+		    }
+		    else
+		    {
                 if (Logger.IsDebugEnabled())
                 {
-                    Logger.Debug("Initiating recovery...");
+                    Logger.Debug("Committing created pages on new database...");
                 }
-				await ResolveDeviceService<MasterLogPageDevice>().PerformRecovery().ConfigureAwait(false);
-			}
+
+                // Commit the transaction handling initialisation of new database
+                await TrunkTransactionContext.CommitAsync().ConfigureAwait(false);
+
+                if (Logger.IsDebugEnabled())
+                {
+                    Logger.Debug("Initiating first checkpoint on new database...");
+                }
+
+                // Issue full checkpoint
+                await IssueCheckPointAsync().ConfigureAwait(false);
+		    }
 		}
 
 		/// <summary>
@@ -601,6 +632,7 @@ namespace Zen.Trunk.Storage.Data
 				await TrunkTransactionContext.CommitAsync();
 				committed = true;
 			}
+			// ReSharper disable once EmptyGeneralCatchClause
 			catch
 			{
 			}

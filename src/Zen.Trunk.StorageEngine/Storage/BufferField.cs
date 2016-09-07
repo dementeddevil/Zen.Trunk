@@ -181,6 +181,7 @@ namespace Zen.Trunk.Storage
 			var handler = Changing;
 			if (handler != null)
 			{
+			    // ReSharper disable once PossibleInvalidCastExceptionInForeachLoop
 				foreach (EventHandler<BufferFieldChangingEventArgs>
 					handlerInstance in handler.GetInvocationList())
 				{

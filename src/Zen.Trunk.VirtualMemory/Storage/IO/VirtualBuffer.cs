@@ -370,7 +370,7 @@ namespace Zen.Trunk.Storage.IO
 			}
 			unsafe
 			{
-				return memcmpimpl(Buffer, ((VirtualBuffer)buffer).Buffer, BufferSize);
+				return MemcmpImpl(Buffer, ((VirtualBuffer)buffer).Buffer, BufferSize);
 			}
 		}
 
@@ -395,7 +395,7 @@ namespace Zen.Trunk.Storage.IO
 			}
 			unsafe
 			{
-				memcpyimpl(Buffer, ((VirtualBuffer)destination).Buffer, BufferSize);
+				MemcpyImpl(Buffer, ((VirtualBuffer)destination).Buffer, BufferSize);
 			}
 		}
 
@@ -425,7 +425,7 @@ namespace Zen.Trunk.Storage.IO
 			{
 				fixed (byte* pBuffer = buffer)
 				{
-					memcpyimpl(pBuffer, Buffer, BufferSize);
+					MemcpyImpl(pBuffer, Buffer, BufferSize);
 				}
 			}
 		}
@@ -455,7 +455,7 @@ namespace Zen.Trunk.Storage.IO
 			{
 				fixed (byte* pBuffer = buffer)
 				{
-					memcpyimpl(Buffer, pBuffer, BufferSize);
+					MemcpyImpl(Buffer, pBuffer, BufferSize);
 				}
 			}
 		}
@@ -579,7 +579,7 @@ namespace Zen.Trunk.Storage.IO
 		#endregion
 
 		#region Internal Methods
-		internal static unsafe int memcmpimpl(byte* src, byte* dest, int len)
+		internal static unsafe int MemcmpImpl(byte* src, byte* dest, int len)
 		{
 			if (len >= 0x10)
 			{
@@ -674,7 +674,7 @@ namespace Zen.Trunk.Storage.IO
 		/// <remarks>
 		/// The two regions should not overlap.
 		/// </remarks>
-		internal static unsafe void memcpyimpl(byte* src, byte* dest, int len)
+		internal static unsafe void MemcpyImpl(byte* src, byte* dest, int len)
 		{
 			if (len >= 0x10)
 			{

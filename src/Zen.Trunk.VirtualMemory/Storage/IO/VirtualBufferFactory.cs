@@ -157,6 +157,7 @@ namespace Zen.Trunk.Storage.IO
 			var current = _bufferChain.First;
 			while (true)
 			{
+			    // ReSharper disable once PossibleNullReferenceException
 				var buffer = current.Value.AllocateBuffer();
 				if (buffer != null)
 				{
@@ -167,6 +168,7 @@ namespace Zen.Trunk.Storage.IO
 				if (current.Next == null)
 				{
 					// Check whether we are about to exceed the reservation pages
+				    // ReSharper disable once PossibleNullReferenceException
 					if (((current.Value.NextBaseAddress.DangerousGetHandle().ToInt64() - _reservationBaseAddress.DangerousGetHandle().ToInt64()) /
 						VirtualBuffer.SystemPageSize) >= _reservationPages)
 					{

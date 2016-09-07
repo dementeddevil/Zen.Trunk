@@ -457,21 +457,18 @@ namespace Zen.Trunk.Storage.Data
         }
 
         /// <summary>
-        /// Frees the page asynchronous.
+        /// Frees the page.
         /// </summary>
         /// <param name="offset">The offset.</param>
         /// <param name="timeout">The timeout.</param>
-        /// <returns></returns>
+        /// <returns>
+        /// A <see cref="Task"/> representing the asynchronous operation.
+        /// </returns>
         /// <exception cref="ArgumentOutOfRangeException">Offset outside page tracking range for this page.</exception>
         public async Task FreePageAsync(uint offset, TimeSpan timeout)
         {
             // Sanity checks
-            if (offset >= PageTrackingCount)
-            {
-                throw new ArgumentOutOfRangeException(
-                    nameof(offset),
-                    "Offset outside page tracking range for this page.");
-            }
+            CheckPageId(offset);
             CheckReadOnly();
 
             // Determine extent and page index
@@ -740,14 +737,14 @@ namespace Zen.Trunk.Storage.Data
         /// Overrides to this method must set their desired lock prior to
         /// calling the base class.
         /// The base class method will enable the locking primitives and call
-        /// <see cref="PageDevice.LockPageAsync" /> as necessary.
+        /// <see cref="DataPage.LockPageAsync" /> as necessary.
         /// This mechanism ensures that all lock states have been set prior to
         /// the first call to LockPage.
-        /// When the current isolation level is uncommitted read then <see cref="LockPageAsync" />
-        /// will not be called.
+        /// When the current isolation level is uncommitted read then 
+        /// <see cref="DataPage.LockPageAsync" /> will not be called.
         /// When the current isolation level is repeatable read or serializable
-        /// then the <see cref="HoldLock" /> will be set to <c>true</c> prior to
-        /// calling <see cref="LockPageAsync" />.
+        /// then the <see cref="DataPage.HoldLock" /> will be set to <c>true</c>
+        /// prior to calling <see cref="DataPage.LockPageAsync" />.
         /// </remarks>
         protected override async Task OnPreLoadAsync(EventArgs e)
         {
@@ -944,12 +941,12 @@ namespace Zen.Trunk.Storage.Data
             return new Tuple<ExtentInfo, bool>(info, hasAcquiredLock);
         }
 
-        private void CheckPageId(uint pageId)
+        private void CheckPageId(uint offset)
         {
-            if (pageId >= PageTrackingCount)
+            if (offset >= PageTrackingCount)
             {
                 throw new ArgumentOutOfRangeException(
-                    nameof(pageId), pageId,
+                    nameof(offset), offset,
                     "Page ID out of range (0-" +
                     (PageTrackingCount - 1).ToString() + ").");
             }

@@ -77,6 +77,7 @@ namespace Zen.Trunk
                     }
                     catch
                     {
+                        // ignored
                     }
                 }
 
@@ -86,6 +87,7 @@ namespace Zen.Trunk
                 }
                 catch
                 {
+                    // ignored
                 }
             }
         }
