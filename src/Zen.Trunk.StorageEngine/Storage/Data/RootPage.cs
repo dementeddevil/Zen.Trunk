@@ -386,17 +386,17 @@ namespace Zen.Trunk.Storage.Data
 		/// <summary>
 		/// Called to apply suitable locks to this page.
 		/// </summary>
-		/// <param name="lm">A reference to the <see cref="IDatabaseLockManager"/>.</param>
-		protected override async Task OnLockPageAsync(IDatabaseLockManager lm)
+		/// <param name="lockManager">A reference to the <see cref="IDatabaseLockManager"/>.</param>
+		protected override async Task OnLockPageAsync(IDatabaseLockManager lockManager)
 		{
-			await base.OnLockPageAsync(lm).ConfigureAwait(false);
+			await base.OnLockPageAsync(lockManager).ConfigureAwait(false);
 			try
 			{
 				await TrackedLock.LockAsync(RootLock, LockTimeout).ConfigureAwait(false);
 			}
 			catch
 			{
-				await base.OnUnlockPageAsync(lm).ConfigureAwait(false);
+				await base.OnUnlockPageAsync(lockManager).ConfigureAwait(false);
 				throw;
 			}
 		}
@@ -405,11 +405,11 @@ namespace Zen.Trunk.Storage.Data
 		/// Called to remove locks applied to this page in a prior call to
 		/// <see cref="M:DatabasePage.OnLockPage"/>.
 		/// </summary>
-		/// <param name="lm">A reference to the <see cref="IDatabaseLockManager"/>.</param>
-		protected override async Task OnUnlockPageAsync(IDatabaseLockManager lm)
+		/// <param name="lockManager">A reference to the <see cref="IDatabaseLockManager"/>.</param>
+		protected override async Task OnUnlockPageAsync(IDatabaseLockManager lockManager)
 		{
 			await TrackedLock.UnlockAsync().ConfigureAwait(false);
-			await base.OnUnlockPageAsync(lm).ConfigureAwait(false);
+			await base.OnUnlockPageAsync(lockManager).ConfigureAwait(false);
 		}
 		#endregion
 	}

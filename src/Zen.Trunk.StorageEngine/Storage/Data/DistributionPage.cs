@@ -610,15 +610,15 @@ namespace Zen.Trunk.Storage.Data
 
         #region Protected Methods
         /// <summary>
-        /// Pres the update timestamp.
+        /// Called by the Storage Engine prior to updating the page timestamp.
         /// </summary>
         protected override void PreUpdateTimestamp()
         {
             // Acquire distribution page spin lock
-            var lm = GetService<IDatabaseLockManager>();
-            if (lm != null)
+            var lockManager = GetService<IDatabaseLockManager>();
+            if (lockManager != null)
             {
-                lm.LockDistributionHeader(
+                lockManager.LockDistributionHeader(
                     DataBuffer.PageId,
                     TimeSpan.FromMilliseconds(40));
 
@@ -634,18 +634,21 @@ namespace Zen.Trunk.Storage.Data
         }
 
         /// <summary>
-        /// Posts the update timestamp.
+        /// Called by the Storage Engine after the timestamp has been updated.
         /// </summary>
+        /// <remarks>
+        /// By default this method marks the header as dirty.
+        /// </remarks>
         protected override void PostUpdateTimestamp()
         {
-            var lm = GetService<IDatabaseLockManager>();
-            if (lm != null)
+            var lockManager = GetService<IDatabaseLockManager>();
+            if (lockManager != null)
             {
                 // Force write of header information to DataBuffer
                 WriteHeader();
 
                 // Unlock distribution page header
-                lm.UnlockDistributionHeader(DataBuffer.PageId);
+                lockManager.UnlockDistributionHeader(DataBuffer.PageId);
             }
 
             base.PostUpdateTimestamp();
@@ -759,10 +762,10 @@ namespace Zen.Trunk.Storage.Data
         /// <summary>
         /// Called to apply suitable locks to this page.
         /// </summary>
-        /// <param name="lm">A reference to the <see cref="IDatabaseLockManager"/>.</param>
-        protected override async Task OnLockPageAsync(IDatabaseLockManager lm)
+        /// <param name="lockManager">A reference to the <see cref="IDatabaseLockManager"/>.</param>
+        protected override async Task OnLockPageAsync(IDatabaseLockManager lockManager)
         {
-            await base.OnLockPageAsync(lm).ConfigureAwait(false);
+            await base.OnLockPageAsync(lockManager).ConfigureAwait(false);
             try
             {
                 // Lock owner via lock owner block
@@ -770,7 +773,7 @@ namespace Zen.Trunk.Storage.Data
             }
             catch
             {
-                await base.OnUnlockPageAsync(lm).ConfigureAwait(false);
+                await base.OnUnlockPageAsync(lockManager).ConfigureAwait(false);
                 throw;
             }
         }
@@ -779,8 +782,8 @@ namespace Zen.Trunk.Storage.Data
         /// Overridden. Called to remove locks applied to this page in a prior
         /// call to <see cref="M:DatabasePage.OnLockPage"/>.
         /// </summary>
-        /// <param name="lm">A reference to the <see cref="IDatabaseLockManager"/>.</param>
-        protected override async Task OnUnlockPageAsync(IDatabaseLockManager lm)
+        /// <param name="lockManager">A reference to the <see cref="IDatabaseLockManager"/>.</param>
+        protected override async Task OnUnlockPageAsync(IDatabaseLockManager lockManager)
         {
             try
             {
@@ -789,7 +792,7 @@ namespace Zen.Trunk.Storage.Data
                     // Release all distribution page locks
                     foreach (var extent in _lockedExtents)
                     {
-                        await lm.UnlockDistributionExtentAsync(VirtualId, extent).ConfigureAwait(false);
+                        await lockManager.UnlockDistributionExtentAsync(VirtualId, extent).ConfigureAwait(false);
                     }
                     _lockedExtents.Clear();
                     _lockedExtents = null;
@@ -804,7 +807,7 @@ namespace Zen.Trunk.Storage.Data
             }
             finally
             {
-                await base.OnUnlockPageAsync(lm).ConfigureAwait(false);
+                await base.OnUnlockPageAsync(lockManager).ConfigureAwait(false);
             }
         }
         #endregion

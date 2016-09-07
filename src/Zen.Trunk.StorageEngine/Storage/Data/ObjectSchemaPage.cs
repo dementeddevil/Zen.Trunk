@@ -117,20 +117,20 @@ namespace Zen.Trunk.Storage.Data
 		/// <summary>
 		/// Overridden. Called to apply suitable locks to this page.
 		/// </summary>
-		/// <param name="lm">A reference to the <see cref="IDatabaseLockManager"/>.</param>
-		protected override async Task OnLockPageAsync(IDatabaseLockManager lm)
+		/// <param name="lockManager">A reference to the <see cref="IDatabaseLockManager"/>.</param>
+		protected override async Task OnLockPageAsync(IDatabaseLockManager lockManager)
 		{
 			// Perform base class locking first
-			await base.OnLockPageAsync(lm).ConfigureAwait(false);
+			await base.OnLockPageAsync(lockManager).ConfigureAwait(false);
 			try
 			{
 				// Lock schema
 				await TrackedLock.LockAsync(SchemaLock, LockTimeout).ConfigureAwait(false);
-				//lm.LockSchema(ObjectId, SchemaLock, LockTimeout);
+				//lockManager.LockSchema(ObjectId, SchemaLock, LockTimeout);
 			}
 			catch
 			{
-				await base.OnUnlockPageAsync(lm).ConfigureAwait(false);
+				await base.OnUnlockPageAsync(lockManager).ConfigureAwait(false);
 				throw;
 			}
 		}
@@ -139,19 +139,19 @@ namespace Zen.Trunk.Storage.Data
 		/// Overridden. Called to remove locks applied to this page in a
 		/// prior call to <see cref="M:DatabasePage.OnLockPage"/>.
 		/// </summary>
-		/// <param name="lm">A reference to the <see cref="IDatabaseLockManager"/>.</param>
-		protected override async Task OnUnlockPageAsync(IDatabaseLockManager lm)
+		/// <param name="lockManager">A reference to the <see cref="IDatabaseLockManager"/>.</param>
+		protected override async Task OnUnlockPageAsync(IDatabaseLockManager lockManager)
 		{
 			// Unlock page based on schema
 			try
 			{
 				await TrackedLock.UnlockAsync().ConfigureAwait(false);
-				//lm.UnlockSchema(ObjectId);
+				//lockManager.UnlockSchema(ObjectId);
 			}
 			finally
 			{
 				// Perform base class unlock last
-				await base.OnUnlockPageAsync(lm).ConfigureAwait(false);
+				await base.OnUnlockPageAsync(lockManager).ConfigureAwait(false);
 			}
 		}
 		#endregion

@@ -172,13 +172,13 @@ namespace Zen.Trunk.Storage.Data
         /// <summary>
         /// Overridden. Called to apply suitable locks to this page.
         /// </summary>
-        /// <param name="lm">A reference to the <see cref="IDatabaseLockManager" />.</param>
+        /// <param name="lockManager">A reference to the <see cref="IDatabaseLockManager" />.</param>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException">Cannot obtain lock owner block for this transaction.</exception>
-        protected override async Task OnLockPageAsync(IDatabaseLockManager lm)
+        protected override async Task OnLockPageAsync(IDatabaseLockManager lockManager)
 		{
 			// Perform base class locking first
-			await base.OnLockPageAsync(lm).ConfigureAwait(false);
+			await base.OnLockPageAsync(lockManager).ConfigureAwait(false);
 			try
 			{
 				// Lock data via lock owner block
@@ -191,7 +191,7 @@ namespace Zen.Trunk.Storage.Data
 			}
 			catch
 			{
-				await base.OnUnlockPageAsync(lm).ConfigureAwait(false);
+				await base.OnUnlockPageAsync(lockManager).ConfigureAwait(false);
 				throw;
 			}
 		}
@@ -200,9 +200,9 @@ namespace Zen.Trunk.Storage.Data
         /// Overridden. Called to remove locks applied to this page in a
         /// prior call to <see cref="M:DatabasePage.OnLockPage" />.
         /// </summary>
-        /// <param name="lm">A reference to the <see cref="IDatabaseLockManager" />.</param>
+        /// <param name="lockManager">A reference to the <see cref="IDatabaseLockManager" />.</param>
         /// <returns></returns>
-        protected override async Task OnUnlockPageAsync(IDatabaseLockManager lm)
+        protected override async Task OnUnlockPageAsync(IDatabaseLockManager lockManager)
 		{
 			try
 			{
@@ -216,7 +216,7 @@ namespace Zen.Trunk.Storage.Data
 			finally
 			{
 				// Perform base class unlock last
-				await base.OnUnlockPageAsync(lm).ConfigureAwait(false);
+				await base.OnUnlockPageAsync(lockManager).ConfigureAwait(false);
 			}
 		}
 		#endregion

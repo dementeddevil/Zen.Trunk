@@ -375,16 +375,18 @@ namespace Zen.Trunk.Storage.Data
 		}
 
         /// <summary>
-        /// Pres the update timestamp.
+        /// Called by the Storage Engine prior to updating the page timestamp.
         /// </summary>
         protected virtual void PreUpdateTimestamp()
 		{
 		}
 
         /// <summary>
-        /// Updates the timestamp.
+        /// Called by the Storage Engine to update the page timestamp.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>
+        /// A <see cref="long"/> value representing the new timestamp value.
+        /// </returns>
         protected virtual long UpdateTimestamp()
 		{
 			long newTimestamp = 0;
@@ -397,8 +399,11 @@ namespace Zen.Trunk.Storage.Data
 		}
 
         /// <summary>
-        /// Posts the update timestamp.
+        /// Called by the Storage Engine after the timestamp has been updated.
         /// </summary>
+        /// <remarks>
+        /// By default this method marks the header as dirty.
+        /// </remarks>
         protected virtual void PostUpdateTimestamp()
 		{
 			SetHeaderDirty();
@@ -407,7 +412,13 @@ namespace Zen.Trunk.Storage.Data
 		/// <summary>
 		/// Locks the page.
 		/// </summary>
-		protected virtual async Task LockPageAsync()
+		/// <remarks>
+		/// If locking for this page has been enabled, then this method will
+		/// call <see cref="OnLockPageAsync(IDatabaseLockManager)"/> passing
+		/// an instance of the database lock manager to perform the actual
+		/// locking operation.
+		/// </remarks>
+		protected async Task LockPageAsync()
 		{
 			if (IsLockingEnabled)
 			{
@@ -420,29 +431,17 @@ namespace Zen.Trunk.Storage.Data
 			}
 		}
 
-		/// <summary>
-		/// Called to apply suitable locks to this page.
-		/// </summary>
-		/// <param name="lm">A reference to the <see cref="IDatabaseLockManager"/>.</param>
-		protected virtual Task OnLockPageAsync(IDatabaseLockManager lm)
-		{
-		    return Task.FromResult(true);
-		}
-
-		/// <summary>
-		/// Called to remove locks applied to this page in a prior call to 
-		/// <see cref="M:DatabasePage.OnLockPage"/>.
-		/// </summary>
-		/// <param name="lm">A reference to the <see cref="IDatabaseLockManager"/>.</param>
-		protected virtual Task OnUnlockPageAsync(IDatabaseLockManager lm)
-		{
-            return Task.FromResult(true);
-        }
-
         /// <summary>
         /// Unlocks the page.
         /// </summary>
-        protected virtual async Task UnlockPageAsync()
+		/// <remarks>
+		/// If locking for this page has been enabled and locks are not being
+		/// force held, then this method will call 
+		/// <see cref="OnUnlockPageAsync(IDatabaseLockManager)"/> passing
+		/// an instance of the database lock manager to perform the actual
+		/// unlocking operation.
+		/// </remarks>
+        protected async Task UnlockPageAsync()
 		{
 			if (IsLockingEnabled && !HoldLock)
 			{
@@ -454,6 +453,37 @@ namespace Zen.Trunk.Storage.Data
 				}
 			}
 		}
+
+		/// <summary>
+		/// Called to apply suitable locks to this page.
+		/// </summary>
+		/// <param name="lockManager">
+		/// A reference to the <see cref="IDatabaseLockManager"/>.
+		/// </param>
+		/// <remarks>
+		/// By default this method does nothing. 
+		/// Override to perform actual locking operations.
+		/// </remarks>
+		protected virtual Task OnLockPageAsync(IDatabaseLockManager lockManager)
+		{
+		    return Task.FromResult(true);
+		}
+
+        /// <summary>
+        /// Called to remove locks applied to this page in a prior call to 
+        /// <see cref="M:DatabasePage.OnLockPage"/>.
+        /// </summary>
+        /// <param name="lockManager">
+        /// A reference to the <see cref="IDatabaseLockManager"/>.
+        /// </param>
+        /// <remarks>
+        /// By default this method does nothing. 
+        /// Override to perform actual locking operations.
+        /// </remarks>
+        protected virtual Task OnUnlockPageAsync(IDatabaseLockManager lockManager)
+		{
+            return Task.FromResult(true);
+        }
 
 		/// <summary>
 		/// Overridden. Raises the <see cref="E:Dirty"/> event.

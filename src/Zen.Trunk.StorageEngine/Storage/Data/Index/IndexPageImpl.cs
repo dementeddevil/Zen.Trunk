@@ -198,8 +198,8 @@ namespace Zen.Trunk.Storage.Data.Index
 		/// <summary>
 		/// Called when [lock page].
 		/// </summary>
-		/// <param name="lm">The lm.</param>
-		protected override async Task OnLockPageAsync(IDatabaseLockManager lm)
+		/// <param name="lockManager">The lockManager.</param>
+		protected override async Task OnLockPageAsync(IDatabaseLockManager lockManager)
 		{
 			// Perform base class locking first
 			switch (IndexType)
@@ -210,7 +210,7 @@ namespace Zen.Trunk.Storage.Data.Index
 					{
 						_lastInternalLockWritable = true;
 					}
-					lm.LockRootIndex(ObjectId, IndexId, _lastInternalLockWritable, LockTimeout);
+					lockManager.LockRootIndex(ObjectId, IndexId, _lastInternalLockWritable, LockTimeout);
 					break;
 
 				case IndexType.Intermediate:
@@ -219,11 +219,11 @@ namespace Zen.Trunk.Storage.Data.Index
 					{
 						_lastInternalLockWritable = true;
 					}
-					lm.LockInternalIndex(ObjectId, IndexId, LogicalId, _lastInternalLockWritable, LockTimeout);
+					lockManager.LockInternalIndex(ObjectId, IndexId, LogicalId, _lastInternalLockWritable, LockTimeout);
 					break;
 
 				case IndexType.Leaf:
-					await lm.LockDataAsync(ObjectId, LogicalId, PageLock, LockTimeout).ConfigureAwait(false);
+					await lockManager.LockDataAsync(ObjectId, LogicalId, PageLock, LockTimeout).ConfigureAwait(false);
 					break;
 			}
 		}
@@ -231,21 +231,21 @@ namespace Zen.Trunk.Storage.Data.Index
 		/// <summary>
 		/// Called when [unlock page].
 		/// </summary>
-		/// <param name="lm">The lm.</param>
-		protected override async Task OnUnlockPageAsync(IDatabaseLockManager lm)
+		/// <param name="lockManager">The lockManager.</param>
+		protected override async Task OnUnlockPageAsync(IDatabaseLockManager lockManager)
 		{
 			switch (IndexType)
 			{
 				case IndexType.Root:
-					lm.UnlockRootIndex(ObjectId, IndexId, _lastInternalLockWritable);
+					lockManager.UnlockRootIndex(ObjectId, IndexId, _lastInternalLockWritable);
 					break;
 
 				case IndexType.Intermediate:
-					lm.UnlockInternalIndex(ObjectId, IndexId, LogicalId, _lastInternalLockWritable);
+					lockManager.UnlockInternalIndex(ObjectId, IndexId, LogicalId, _lastInternalLockWritable);
 					break;
 
 				case IndexType.Leaf:
-					await lm.UnlockDataAsync(ObjectId, LogicalId).ConfigureAwait(false);
+					await lockManager.UnlockDataAsync(ObjectId, LogicalId).ConfigureAwait(false);
 					break;
 			}
 		}
