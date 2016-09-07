@@ -181,7 +181,7 @@ namespace Zen.Trunk.Storage.Data
 
                 var deviceParams = new AddLogDeviceParameters(
                     file.Name, file.FileName, DeviceId.Zero, pageCount);
-                await device.AddLogDevice(deviceParams).ConfigureAwait(false);
+                await device.AddLogDeviceAsync(deviceParams).ConfigureAwait(false);
             }
 
             // Now mount the device
@@ -203,7 +203,7 @@ namespace Zen.Trunk.Storage.Data
                 await masterRootPage.SetRootLockAsync(RootLockType.Shared).ConfigureAwait(false);
 
                 // Load page from root device
-                await LoadFileGroupPage(
+                await LoadFileGroupPageAsync(
                     new LoadFileGroupPageParameters(null, masterRootPage, true)).ConfigureAwait(false);
 
                 // Add this database information to the database list
@@ -361,7 +361,7 @@ namespace Zen.Trunk.Storage.Data
                 await masterRootPage.SetRootLockAsync(RootLockType.Shared).ConfigureAwait(false);
 
                 // Load page from root device
-                await LoadFileGroupPage(
+                await LoadFileGroupPageAsync(
                     new LoadFileGroupPageParameters(null, masterRootPage, true)).ConfigureAwait(false);
 
                 // Walk the list of databases in the root page
@@ -436,7 +436,7 @@ namespace Zen.Trunk.Storage.Data
                 if (needToCreateMasterFilegroup)
                 {
                     await device
-                        .AddFileGroupDevice(
+                        .AddFileGroupDeviceAsync(
                             new AddFileGroupDeviceParameters(
                                 FileGroupId.Master,
                                 fileGroup.Key,
@@ -449,7 +449,7 @@ namespace Zen.Trunk.Storage.Data
                 else
                 {
                     await device
-                        .AddFileGroupDevice(
+                        .AddFileGroupDeviceAsync(
                             new AddFileGroupDeviceParameters(
                                 FileGroupId.Primary,
                                 fileGroup.Key,
@@ -466,7 +466,7 @@ namespace Zen.Trunk.Storage.Data
             else
             {
                 await device
-                    .AddFileGroupDevice(
+                    .AddFileGroupDeviceAsync(
                         new AddFileGroupDeviceParameters(
                             FileGroupId.Invalid,
                             fileGroup.Key,

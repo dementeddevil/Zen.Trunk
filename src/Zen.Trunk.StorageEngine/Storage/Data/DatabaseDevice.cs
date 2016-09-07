@@ -12,7 +12,16 @@ using Zen.Trunk.Utils;
 
 namespace Zen.Trunk.Storage.Data
 {
-	public class DatabaseDevice : PageDevice
+    /// <summary>
+    /// <c>DatabaseDevice</c> encapsulates all the operations needed to support
+    /// operations on database devices.
+    /// </summary>
+    /// <seealso cref="Zen.Trunk.Storage.PageDevice" />
+    /// <remarks>
+    /// Operations dealt with;
+    /// Open, close, grow, shrink, page allocation/deallocation.
+    /// </remarks>
+    public class DatabaseDevice : PageDevice
 	{
 		#region Private Types
 		private class AddFileGroupDeviceRequest : TransactionContextTaskRequest<AddFileGroupDeviceParameters, DeviceId>
@@ -202,6 +211,33 @@ namespace Zen.Trunk.Storage.Data
         #endregion
 
         #region Public Properties
+        /// <summary>
+        /// Gets the primary file group device.
+        /// </summary>
+        /// <value>
+        /// The primary file group device.
+        /// </value>
+        public FileGroupDevice PrimaryFileGroupDevice => GetPrimaryFileGroupDevice();
+
+        /// <summary>
+        /// Gets the <see cref="FileGroupDevice"/> with the specified file group name.
+        /// </summary>
+        /// <value>
+        /// The <see cref="FileGroupDevice"/>.
+        /// </value>
+        /// <param name="fileGroupName">Name of the file group.</param>
+        /// <returns></returns>
+        public FileGroupDevice this[string fileGroupName] => GetFileGroupDevice(fileGroupName);
+
+        /// <summary>
+        /// Gets the <see cref="FileGroupDevice"/> with the specified file group identifier.
+        /// </summary>
+        /// <value>
+        /// The <see cref="FileGroupDevice"/>.
+        /// </value>
+        /// <param name="fileGroupId">The file group identifier.</param>
+        /// <returns></returns>
+        public FileGroupDevice this[FileGroupId fileGroupId] => GetFileGroupDevice(fileGroupId);
         #endregion
 
         #region Protected Properties
@@ -283,30 +319,18 @@ namespace Zen.Trunk.Storage.Data
 
 	    private ITargetBlock<RemoveLogDeviceRequest> RemoveLogDevicePort { get; }
 
-	    #endregion
+        #endregion
 
-		#region Public Methods
-		/// <summary>
-		/// Gets the file group device with the specified name.
-		/// </summary>
-		/// <param name="fileGroupName">Name of the file group.</param>
-		/// <returns></returns>
-		public FileGroupDevice GetFileGroupDevice(string fileGroupName)
-		{
-			return GetFileGroupDevice(FileGroupId.Invalid, fileGroupName);
-		}
-
-		/// <summary>
-		/// Gets the file group device with the specified id.
-		/// </summary>
-		/// <param name="fileGroupId">The file group id.</param>
-		/// <returns></returns>
-		public FileGroupDevice GetFileGroupDevice(FileGroupId fileGroupId)
-		{
-			return GetFileGroupDevice(fileGroupId, null);
-		}
-
-		public Task AddFileGroupDevice(AddFileGroupDeviceParameters deviceParams)
+        #region Public Methods
+        /// <summary>
+        /// Adds a file group device to this instance.
+        /// </summary>
+        /// <param name="deviceParams">The device parameters.</param>
+        /// <returns>
+        /// A <see cref="Task"/> representing the asynchronous operation.
+        /// </returns>
+        /// <exception cref="BufferDeviceShuttingDownException"></exception>
+        public Task AddFileGroupDeviceAsync(AddFileGroupDeviceParameters deviceParams)
 		{
 			var request = new AddFileGroupDeviceRequest(deviceParams);
 			if (!AddFileGroupDevicePort.Post(request))
@@ -316,7 +340,15 @@ namespace Zen.Trunk.Storage.Data
 			return request.Task;
 		}
 
-		public Task RemoveFileGroupDevice(RemoveFileGroupDeviceParameters deviceParams)
+        /// <summary>
+        /// Removes the file group device.
+        /// </summary>
+        /// <param name="deviceParams">The device parameters.</param>
+        /// <returns>
+        /// A <see cref="Task"/> representing the asynchronous operation.
+        /// </returns>
+        /// <exception cref="BufferDeviceShuttingDownException"></exception>
+        public Task RemoveFileGroupDeviceAsync(RemoveFileGroupDeviceParameters deviceParams)
 		{
 			var request = new RemoveFileGroupDeviceRequest(deviceParams);
 			if (!RemoveFileGroupDevicePort.Post(request))
@@ -326,7 +358,15 @@ namespace Zen.Trunk.Storage.Data
 			return request.Task;
 		}
 
-		public Task InitFileGroupPage(InitFileGroupPageParameters initParams)
+        /// <summary>
+        /// Initializes the file group page.
+        /// </summary>
+        /// <param name="initParams">The initialize parameters.</param>
+        /// <returns>
+        /// A <see cref="Task"/> representing the asynchronous operation.
+        /// </returns>
+        /// <exception cref="BufferDeviceShuttingDownException"></exception>
+        public Task InitFileGroupPageAsync(InitFileGroupPageParameters initParams)
 		{
 			var request = new InitFileGroupPageRequest(initParams);
 			if (!InitFileGroupPagePort.Post(request))
@@ -336,7 +376,15 @@ namespace Zen.Trunk.Storage.Data
 			return request.Task;
 		}
 
-		public Task LoadFileGroupPage(LoadFileGroupPageParameters loadParams)
+        /// <summary>
+        /// Loads the file group page.
+        /// </summary>
+        /// <param name="loadParams">The load parameters.</param>
+        /// <returns>
+        /// A <see cref="Task"/> representing the asynchronous operation.
+        /// </returns>
+        /// <exception cref="BufferDeviceShuttingDownException"></exception>
+        public Task LoadFileGroupPageAsync(LoadFileGroupPageParameters loadParams)
 		{
 			var request = new LoadFileGroupPageRequest(loadParams);
 			if (!LoadFileGroupPagePort.Post(request))
@@ -346,7 +394,15 @@ namespace Zen.Trunk.Storage.Data
 			return request.Task;
 		}
 
-		public Task FlushFileGroupBuffers(FlushCachingDeviceParameters flushParams)
+        /// <summary>
+        /// Flushes the file group buffers.
+        /// </summary>
+        /// <param name="flushParams">The flush parameters.</param>
+        /// <returns>
+        /// A <see cref="Task"/> representing the asynchronous operation.
+        /// </returns>
+        /// <exception cref="BufferDeviceShuttingDownException"></exception>
+        public Task FlushFileGroupBuffersAsync(FlushCachingDeviceParameters flushParams)
 		{
 			var request = new FlushFileGroupRequest(flushParams);
 			if (!FlushPageBuffersPort.Post(request))
@@ -356,7 +412,15 @@ namespace Zen.Trunk.Storage.Data
 			return request.Task;
 		}
 
-		public Task AddFileGroupTable(AddFileGroupTableParameters tableParams)
+        /// <summary>
+        /// Adds the file group table.
+        /// </summary>
+        /// <param name="tableParams">The table parameters.</param>
+        /// <returns>
+        /// A <see cref="Task"/> representing the asynchronous operation.
+        /// </returns>
+        /// <exception cref="BufferDeviceShuttingDownException"></exception>
+        public Task AddFileGroupTableAsync(AddFileGroupTableParameters tableParams)
 		{
 			var request = new AddFileGroupTableRequest(tableParams);
 			if (!AddFileGroupTablePort.Post(request))
@@ -366,7 +430,14 @@ namespace Zen.Trunk.Storage.Data
 			return request.Task;
 		}
 
-		public Task IssueCheckPoint()
+        /// <summary>
+        /// Issues the check point.
+        /// </summary>
+        /// <returns>
+        /// A <see cref="Task"/> representing the asynchronous operation.
+        /// </returns>
+        /// <exception cref="BufferDeviceShuttingDownException"></exception>
+        public Task IssueCheckPointAsync()
 		{
 			var request = new IssueCheckPointRequest();
 			if (!IssueCheckPointPort.Post(request))
@@ -376,7 +447,15 @@ namespace Zen.Trunk.Storage.Data
 			return request.Task;
 		}
 
-		public Task<DeviceId> AddLogDevice(AddLogDeviceParameters deviceParams)
+        /// <summary>
+        /// Adds the log device.
+        /// </summary>
+        /// <param name="deviceParams">The device parameters.</param>
+        /// <returns>
+        /// A <see cref="Task"/> representing the asynchronous operation.
+        /// </returns>
+        /// <exception cref="BufferDeviceShuttingDownException"></exception>
+        public Task<DeviceId> AddLogDeviceAsync(AddLogDeviceParameters deviceParams)
 		{
 		    var request = new AddLogDeviceRequest(deviceParams);
 		    if (!AddLogDevicePort.Post(request))
@@ -386,7 +465,15 @@ namespace Zen.Trunk.Storage.Data
 		    return request.Task;
 		}
 
-		public Task RemoveLogDevice(RemoveLogDeviceParameters deviceParams)
+        /// <summary>
+        /// Removes the log device.
+        /// </summary>
+        /// <param name="deviceParams">The device parameters.</param>
+        /// <returns>
+        /// A <see cref="Task"/> representing the asynchronous operation.
+        /// </returns>
+        /// <exception cref="BufferDeviceShuttingDownException"></exception>
+        public Task RemoveLogDeviceAsync(RemoveLogDeviceParameters deviceParams)
 		{
             var request = new RemoveLogDeviceRequest(deviceParams);
             if (!RemoveLogDevicePort.Post(request))
@@ -617,6 +704,7 @@ namespace Zen.Trunk.Storage.Data
 			}
 
 			// Add child device to file-group
+		    // ReSharper disable once PossibleNullReferenceException
 			var deviceId = await fileGroupDevice.AddDataDevice(request.Message).ConfigureAwait(false);
 
 			// If this is the first call for a file-group AND database is open or opening
@@ -828,7 +916,17 @@ namespace Zen.Trunk.Storage.Data
 			return _fileGroupById.Values.FirstOrDefault(item => item.IsPrimaryFileGroup);
 		}
 
-		private FileGroupDevice GetFileGroupDevice(FileGroupId fileGroupId, string fileGroupName)
+        private FileGroupDevice GetFileGroupDevice(string fileGroupName)
+        {
+            return GetFileGroupDevice(FileGroupId.Invalid, fileGroupName);
+        }
+
+        private FileGroupDevice GetFileGroupDevice(FileGroupId fileGroupId)
+        {
+            return GetFileGroupDevice(fileGroupId, null);
+        }
+
+        private FileGroupDevice GetFileGroupDevice(FileGroupId fileGroupId, string fileGroupName)
 		{
 			if (!string.IsNullOrEmpty(fileGroupName))
 			{

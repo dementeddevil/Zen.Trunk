@@ -36,7 +36,7 @@ namespace Zen.Trunk.Storage
                             DeviceId.Zero,
                             128,
                             true);
-                    await dbDevice.AddFileGroupDevice(addFgDevice).ConfigureAwait(true);
+                    await dbDevice.AddFileGroupDeviceAsync(addFgDevice).ConfigureAwait(true);
 
                     var addLogDevice =
                         new AddLogDeviceParameters(
@@ -44,7 +44,7 @@ namespace Zen.Trunk.Storage
                             masterLogPathName,
                             DeviceId.Zero,
                             2);
-                    await dbDevice.AddLogDevice(addLogDevice).ConfigureAwait(true);
+                    await dbDevice.AddLogDeviceAsync(addLogDevice).ConfigureAwait(true);
 
                     await dbDevice.OpenAsync(true).ConfigureAwait(true);
                     Trace.WriteLine("DatabaseDevice.Open succeeded");
@@ -82,7 +82,7 @@ namespace Zen.Trunk.Storage
                                 DeviceId.Zero,
                                 128,
                                 true);
-                        await dbDevice.AddFileGroupDevice(addFgDevice).ConfigureAwait(true);
+                        await dbDevice.AddFileGroupDeviceAsync(addFgDevice).ConfigureAwait(true);
 
                         var addLogDevice =
                             new AddLogDeviceParameters(
@@ -90,7 +90,7 @@ namespace Zen.Trunk.Storage
                                 masterLogPathName,
                                 DeviceId.Zero,
                                 2);
-                        await dbDevice.AddLogDevice(addLogDevice).ConfigureAwait(true);
+                        await dbDevice.AddLogDeviceAsync(addLogDevice).ConfigureAwait(true);
 
                         await dbDevice.OpenAsync(true).ConfigureAwait(true);
 
@@ -142,7 +142,7 @@ namespace Zen.Trunk.Storage
                                 var initPageParams =
                                     new InitFileGroupPageParameters(
                                         null, objectPage, true, true, true, true);
-                                await dbDevice.InitFileGroupPage(initPageParams).ConfigureAwait(true);
+                                await dbDevice.InitFileGroupPageAsync(initPageParams).ConfigureAwait(true);
 
                                 // Update prev/next references
                                 if (lastPage != null)
@@ -217,7 +217,7 @@ namespace Zen.Trunk.Storage
                             DeviceId.Zero,
                             128,
                             true);
-                    await dbDevice.AddFileGroupDevice(addFgDevice).ConfigureAwait(true);
+                    await dbDevice.AddFileGroupDeviceAsync(addFgDevice).ConfigureAwait(true);
 
                     var addLogDevice =
                         new AddLogDeviceParameters(
@@ -225,7 +225,7 @@ namespace Zen.Trunk.Storage
                             masterLogPathName,
                             DeviceId.Zero,
                             2);
-                    await dbDevice.AddLogDevice(addLogDevice).ConfigureAwait(true);
+                    await dbDevice.AddLogDeviceAsync(addLogDevice).ConfigureAwait(true);
 
                     await dbDevice.OpenAsync(true).ConfigureAwait(true);
 
@@ -258,7 +258,7 @@ namespace Zen.Trunk.Storage
                                 "CreatedDate",
                                 TableColumnDataType.DateTime,
                                 false));
-                    await dbDevice.AddFileGroupTable(param).ConfigureAwait(true);
+                    await dbDevice.AddFileGroupTableAsync(param).ConfigureAwait(true);
 
                     /*table.AddIndex(
 				        new RootTableIndexInfo

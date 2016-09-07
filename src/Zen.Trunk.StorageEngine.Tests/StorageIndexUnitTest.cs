@@ -28,7 +28,7 @@ namespace Zen.Trunk.Storage
                 rootPage.FileGroupId = rootIndexInfo.IndexFileGroupId;
                 rootPage.ObjectId = rootIndexInfo.ObjectId;
                 rootPage.IndexType = IndexType.Root | IndexType.Leaf;
-                Database.InitFileGroupPage(
+                Database.InitFileGroupPageAsync(
                     new InitFileGroupPageParameters(null, rootPage, true, false, true, true)).ConfigureAwait(false);
 
                 // Setup root index page
@@ -196,7 +196,7 @@ namespace Zen.Trunk.Storage
                             DeviceId.Zero,
                             128,
                             true);
-                    await dbDevice.AddFileGroupDevice(addFgDevice);
+                    await dbDevice.AddFileGroupDeviceAsync(addFgDevice);
 
                     var addLogDevice =
                         new AddLogDeviceParameters(
@@ -204,7 +204,7 @@ namespace Zen.Trunk.Storage
                             masterLogPathName,
                             DeviceId.Zero,
                             2);
-                    await dbDevice.AddLogDevice(addLogDevice);
+                    await dbDevice.AddLogDeviceAsync(addLogDevice);
 
                     await dbDevice.OpenAsync(true);
 

@@ -591,7 +591,7 @@ namespace Zen.Trunk.Storage.Log
 		        FileGroupId = FileGroupId.Invalid
 		    };
 		    await device
-                .LoadFileGroupPage(new LoadFileGroupPageParameters(null, page, true))
+                .LoadFileGroupPageAsync(new LoadFileGroupPageParameters(null, page, true))
                 .ConfigureAwait(false);
 
 			// Return the page

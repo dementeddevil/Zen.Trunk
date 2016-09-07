@@ -424,9 +424,13 @@ namespace Zen.Trunk.Storage.Data
         /// Removes the data device.
         /// </summary>
         /// <param name="deviceParams">The device parameters.</param>
-        /// <returns></returns>
+        /// <returns>
+        /// A <see cref="Task{Boolean}"/> representing the asynchronous operation.
+        /// The task result will be <c>true</c> if the resultant file-group is empty;
+        /// otherwise <c>false</c>.
+        /// </returns>
         /// <exception cref="BufferDeviceShuttingDownException"></exception>
-        public Task RemoveDataDevice(RemoveDataDeviceParameters deviceParams)
+        public Task<bool> RemoveDataDevice(RemoveDataDeviceParameters deviceParams)
         {
             var request = new RemoveDataDeviceRequest(deviceParams);
             if (!RemoveDataDevicePort.Post(request))
@@ -801,7 +805,15 @@ namespace Zen.Trunk.Storage.Data
         private Task<bool> RemoveDataDeviceHandler(RemoveDataDeviceRequest request)
         {
             var tcs = new TaskCompletionSource<bool>();
-            tcs.SetResult(true);
+
+            // We assume the following
+            // 1. All device data has been relocated prior to calling this method
+
+            // TODO: Cannot remove primary device while there are secondary devices
+
+            // TODO: Find appropriate device based on device id or name
+
+            tcs.SetResult(_devices.Count == 0 && _primaryDevice == null);
             return tcs.Task;
         }
 
