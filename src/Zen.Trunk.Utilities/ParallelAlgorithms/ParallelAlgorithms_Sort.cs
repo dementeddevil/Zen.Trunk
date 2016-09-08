@@ -162,6 +162,7 @@ namespace Zen.Trunk.ParallelAlgorithms
             // we should recur to until we switch over to sequential.
             internal void QuickSort(int left, int right, int depth, int maxDepth)
             {
+                // ReSharper disable once InconsistentNaming
                 const int SEQUENTIAL_THRESHOLD = 0x1000;
 
                 // If the max depth has been reached or if we've hit the sequential

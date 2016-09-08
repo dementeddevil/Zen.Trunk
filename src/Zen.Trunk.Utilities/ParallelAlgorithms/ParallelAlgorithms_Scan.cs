@@ -199,6 +199,7 @@ namespace Zen.Trunk.ParallelAlgorithms
                         intermediatePartials[rangeNum] = arr[upperRangeExclusive - 1];
 
                         // Phase 2: One thread only should prefix scan the intermediaries... done implicitly by the barrier
+                        // ReSharper disable once AccessToDisposedClosure
                         phaseBarrier.SignalAndWait();
 
                         // Phase 3: Incorporate partials

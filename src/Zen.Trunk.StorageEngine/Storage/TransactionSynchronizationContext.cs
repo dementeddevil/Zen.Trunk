@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Zen.Trunk.Storage.Locking;
 
@@ -12,7 +11,7 @@ namespace Zen.Trunk.Storage
     /// </summary>
     public class TransactionalSpinLock
     {
-        private ConcurrentQueue<TransactionId> _waiting = new ConcurrentQueue<TransactionId>();
+        private readonly ConcurrentQueue<TransactionId> _waiting = new ConcurrentQueue<TransactionId>();
 
         /// <summary>
         /// Enters lock.

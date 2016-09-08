@@ -40,14 +40,15 @@ namespace Zen.Trunk.ParallelAlgorithms
                 // If there's nothing to do, bail
                 return;
             }
-                // Fast path
-            else if (range <= Int64.MaxValue)
+            
+            // Fast path
+            if (range <= Int64.MaxValue)
             {
                 // If the range is within the realm of Int64, we'll delegate to Parallel.For's Int64 overloads.
                 // Iterate from 0 to range, and then call the user-provided body with the scaled-back value.
                 Parallel.For(0, (long)range, options, i => body(i + fromInclusive));
             }
-                // Slower path
+            // Slower path
             else
             {
                 // For a range larger than Int64.MaxValue, we'll rely on an enumerable of BigInteger.

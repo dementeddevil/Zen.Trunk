@@ -33,7 +33,7 @@ namespace Zen.Trunk.TaskSchedulers
         /// <summary>Gets a collection of all schedulers in this group.</summary>
         public ReadOnlyCollection<TaskScheduler> Schedulers
         {
-            get { lock(_queues) return new ReadOnlyCollection<TaskScheduler>(_queues.Cast<TaskScheduler>().ToArray()); }
+            get { lock (_queues) return new ReadOnlyCollection<TaskScheduler>(_queues.Cast<TaskScheduler>().ToArray()); }
         }
 
         /// <summary>Removes a scheduler from the group.</summary>
@@ -62,12 +62,12 @@ namespace Zen.Trunk.TaskSchedulers
                     foreach (var i in searchOrder)
                     {
                         queueForTargetTask = _queues[i];
-                        var items = queueForTargetTask._workItems;
+                        var items = queueForTargetTask.WorkItems;
                         if (items.Count > 0)
                         {
                             targetTask = items.Dequeue();
                             _nextQueue = i;
-                            if (queueForTargetTask._disposed && items.Count == 0)
+                            if (queueForTargetTask.IsDisposed && items.Count == 0)
                             {
                                 RemoveQueue_NeedsLock(queueForTargetTask);
                             }
@@ -85,20 +85,26 @@ namespace Zen.Trunk.TaskSchedulers
         /// <summary>A scheduler that participates in round-robin scheduling.</summary>
         private sealed class RoundRobinTaskSchedulerQueue : TaskScheduler, IDisposable
         {
-            internal RoundRobinTaskSchedulerQueue(RoundRobinSchedulerGroup pool) { _pool = pool; }
+            internal RoundRobinTaskSchedulerQueue(RoundRobinSchedulerGroup pool)
+            {
+                _pool = pool;
+            }
 
             private readonly RoundRobinSchedulerGroup _pool;
-            internal readonly Queue<Task> _workItems = new Queue<Task>();
-            internal bool _disposed;
+            private bool _disposed;
 
-            protected override IEnumerable<Task> GetScheduledTasks() 
-            { 
+            public bool IsDisposed => _disposed;
+
+            public Queue<Task> WorkItems { get; } = new Queue<Task>();
+
+            protected override IEnumerable<Task> GetScheduledTasks()
+            {
                 object obj = _pool._queues;
                 var lockTaken = false;
                 try
                 {
                     Monitor.TryEnter(obj, ref lockTaken);
-                    if (lockTaken) return _workItems.ToArray();
+                    if (lockTaken) return WorkItems.ToArray();
                     else throw new NotSupportedException();
                 }
                 finally
@@ -110,7 +116,7 @@ namespace Zen.Trunk.TaskSchedulers
             protected override void QueueTask(Task task)
             {
                 if (_disposed) throw new ObjectDisposedException(GetType().Name);
-                lock (_pool._queues) _workItems.Enqueue(task);
+                lock (_pool._queues) WorkItems.Enqueue(task);
                 _pool.NotifyNewWorkItem();
             }
 
@@ -127,7 +133,7 @@ namespace Zen.Trunk.TaskSchedulers
                 {
                     lock (_pool._queues)
                     {
-                        if (_workItems.Count == 0) _pool.RemoveQueue_NeedsLock(this);
+                        if (WorkItems.Count == 0) _pool.RemoveQueue_NeedsLock(this);
                         _disposed = true;
                     }
                 }

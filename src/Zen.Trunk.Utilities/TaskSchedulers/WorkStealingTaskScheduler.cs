@@ -209,10 +209,10 @@ namespace Zen.Trunk.TaskSchedulers
                 // Until there's no more work to do...
                 while (true)
                 {
-                    Task wi = null;
+                    Task wi;
 
                     // Search order: (1) local WSQ, (2) global Q, (3) steals from other queues.
-                    if (!wsq.LocalPop(ref wi))
+                    if (!wsq.LocalPop(out wi))
                     {
                         // We weren't able to get a task from the local WSQ
                         var searchedForSteals = false;
@@ -253,7 +253,7 @@ namespace Zen.Trunk.TaskSchedulers
                             for (i = 0; i < wsQueues.Length; i++)
                             {
                                 var q = wsQueues[i];
-                                if (q != null && q != wsq && q.TrySteal(ref wi)) break;
+                                if (q != null && q != wsq && q.TrySteal(out wi)) break;
                             }
 
                             if (i != wsQueues.Length) break;
@@ -289,6 +289,7 @@ namespace Zen.Trunk.TaskSchedulers
     /// <typeparam name="T">Specifies the type of data stored in the queue.</typeparam>
     internal class WorkStealingQueue<T> where T : class
     {
+        // ReSharper disable once InconsistentNaming
         private const int INITIAL_SIZE = 32;
         private T[] _array = new T[INITIAL_SIZE];
         private int _mask = INITIAL_SIZE - 1;
@@ -336,7 +337,7 @@ namespace Zen.Trunk.TaskSchedulers
             }
         }
 
-        internal bool LocalPop(ref T obj)
+        internal bool LocalPop(out T obj)
         {
             while (true)
             {
@@ -394,7 +395,7 @@ namespace Zen.Trunk.TaskSchedulers
             }
         }
 
-        internal bool TrySteal(ref T obj)
+        internal bool TrySteal(out T obj)
         {
             obj = null;
 

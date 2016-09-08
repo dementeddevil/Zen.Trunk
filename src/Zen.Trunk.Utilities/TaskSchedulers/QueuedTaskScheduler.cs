@@ -133,7 +133,9 @@ namespace Zen.Trunk.TaskSchedulers
 
         /// <summary>Initializes the scheduler.</summary>
         /// <param name="threadCount">The number of threads to create and use for processing work items.</param>
-        public QueuedTaskScheduler(int threadCount) : this(threadCount, string.Empty, false, ThreadPriority.Normal, ApartmentState.MTA, 0, null, null) { }
+        public QueuedTaskScheduler(int threadCount) : this(threadCount, string.Empty)
+        {
+        }
 
         /// <summary>Initializes the scheduler.</summary>
         /// <param name="threadCount">The number of threads to create and use for processing work items.</param>

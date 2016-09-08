@@ -17,19 +17,25 @@ using Zen.Trunk.CoordinationDataStructures;
 namespace Zen.Trunk.TaskSchedulers
 {
     /// <summary>Provides a task scheduler that targets the I/O ThreadPool.</summary>
-    public sealed class IOTaskScheduler : TaskScheduler, IDisposable
+    public sealed class IoTaskScheduler : TaskScheduler, IDisposable
     {
         /// <summary>Represents a task queued to the I/O pool.</summary>
         private unsafe class WorkItem
         {
-            internal IOTaskScheduler _scheduler;
-            internal NativeOverlapped* _pNOlap;
-            internal Task _task;
+            private readonly IoTaskScheduler _scheduler;
+
+            internal NativeOverlapped* NativeOverlappedPointer;
+            internal Task Task;
+
+            internal WorkItem(IoTaskScheduler scheduler)
+            {
+                _scheduler = scheduler;
+            }
 
             internal void Callback(uint errorCode, uint numBytes, NativeOverlapped* pNOlap)
             {
                 // Execute the task
-                _scheduler.TryExecuteTask(_task);
+                _scheduler.TryExecuteTask(Task);
 
                 // Put this item back into the pool for someone else to use
                 var pool = _scheduler._availableWorkItems;
@@ -42,13 +48,13 @@ namespace Zen.Trunk.TaskSchedulers
         private ObjectPool<WorkItem> _availableWorkItems;
 
         /// <summary>Initializes a new instance of the IOTaskScheduler class.</summary>
-        public unsafe IOTaskScheduler()
+        public unsafe IoTaskScheduler()
         {
             // Configure the object pool of work items
             _availableWorkItems = new ObjectPool<WorkItem>(() =>
             {
-                var wi = new WorkItem { _scheduler = this };
-                wi._pNOlap = new Overlapped().UnsafePack(wi.Callback, null);
+                var wi = new WorkItem(this);
+                wi.NativeOverlappedPointer = new Overlapped().UnsafePack(wi.Callback, null);
                 return wi;
             }, new ConcurrentStack<WorkItem>());
         }
@@ -60,8 +66,8 @@ namespace Zen.Trunk.TaskSchedulers
             var pool = _availableWorkItems;
             if (pool == null) throw new ObjectDisposedException(GetType().Name);
             var wi = pool.GetObject();
-            wi._task = task;
-            ThreadPool.UnsafeQueueNativeOverlapped(wi._pNOlap);
+            wi.Task = task;
+            ThreadPool.UnsafeQueueNativeOverlapped(wi.NativeOverlappedPointer);
         }
 
         /// <summary>Executes a task on the current thread.</summary>
@@ -79,7 +85,7 @@ namespace Zen.Trunk.TaskSchedulers
             var pool = _availableWorkItems;
             _availableWorkItems = null;
             var workItems = pool.ToArrayAndClear();
-            foreach (var wi in workItems) Overlapped.Free(wi._pNOlap);
+            foreach (var wi in workItems) Overlapped.Free(wi.NativeOverlappedPointer);
             // NOTE: A window exists where some number of NativeOverlapped ptrs could
             // be leaked, if the call to Dispose races with work items completing.
         }

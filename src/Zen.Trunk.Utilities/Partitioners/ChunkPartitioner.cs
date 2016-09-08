@@ -117,6 +117,7 @@ namespace Zen.Trunk.Partitioners
             var dynamicPartitions = GetOrderableDynamicPartitions(true); 
             for (var i = 0; i < partitionCount; i++)
             {
+                // ReSharper disable once PossibleMultipleEnumeration
                 partitions[i] = dynamicPartitions.GetEnumerator(); // Create and store the next partition
             }
             return partitions;
@@ -146,7 +147,6 @@ namespace Zen.Trunk.Partitioners
         private class EnumerableOfEnumerators : IEnumerable<KeyValuePair<long, T>>, IDisposable
         {
             private readonly ChunkPartitioner<T> _parentPartitioner;
-            private readonly object _sharedLock = new object();
             private readonly IEnumerator<T> _sharedEnumerator;
             private long _nextSharedIndex;
             private int _activeEnumerators;
@@ -176,6 +176,7 @@ namespace Zen.Trunk.Partitioners
                 return new Enumerator(this);
             }
 
+            // ReSharper disable once UnusedParameter.Local
             private void DisposeEnumerator(Enumerator enumerator)
             {
                 if (_referenceCountForDisposal)

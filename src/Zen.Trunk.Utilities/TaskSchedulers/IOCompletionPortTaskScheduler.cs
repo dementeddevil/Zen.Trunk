@@ -18,12 +18,12 @@ using Microsoft.Win32.SafeHandles;
 namespace Zen.Trunk.TaskSchedulers
 {
     /// <summary>Provides a TaskScheduler that uses an I/O completion port for concurrency control.</summary>
-    public sealed class IOCompletionPortTaskScheduler : TaskScheduler, IDisposable
+    public sealed class IoCompletionPortTaskScheduler : TaskScheduler, IDisposable
     {
         /// <summary>The queue of tasks to be scheduled.</summary>
         private readonly ConcurrentQueue<Task> _tasks;
         /// <summary>The I/O completion port to use for concurrency control.</summary>
-        private readonly IOCompletionPort _iocp;
+        private readonly IoCompletionPort _iocp;
         /// <summary>Whether the current thread is a scheduler thread.</summary>
         private readonly ThreadLocal<bool> _schedulerThread;
         /// <summary>Event used to wait for all threads to shutdown.</summary>
@@ -32,14 +32,14 @@ namespace Zen.Trunk.TaskSchedulers
         /// <summary>Initializes the IOCompletionPortTaskScheduler.</summary>
         /// <param name="maxConcurrencyLevel">The maximum number of threads in the scheduler to be executing concurrently.</param>
         /// <param name="numAvailableThreads">The number of threads to have available in the scheduler for executing tasks.</param>
-        public IOCompletionPortTaskScheduler(int maxConcurrencyLevel, int numAvailableThreads)
+        public IoCompletionPortTaskScheduler(int maxConcurrencyLevel, int numAvailableThreads)
         {
             // Validate arguments
             if (maxConcurrencyLevel < 1) throw new ArgumentNullException(nameof(maxConcurrencyLevel));
             if (numAvailableThreads < 1) throw new ArgumentNullException(nameof(numAvailableThreads));
 
             _tasks = new ConcurrentQueue<Task>();
-            _iocp = new IOCompletionPort(maxConcurrencyLevel);
+            _iocp = new IoCompletionPort(maxConcurrencyLevel);
             _schedulerThread = new ThreadLocal<bool>();
             _remainingThreadsToShutdown = new CountdownEvent(numAvailableThreads);
 
@@ -107,21 +107,24 @@ namespace Zen.Trunk.TaskSchedulers
         }
 
         /// <summary>Provides a simple managed wrapper for an I/O completion port.</summary>
-        private sealed class IOCompletionPort : IDisposable
+        private sealed class IoCompletionPort : IDisposable
         {
             /// <summary>Infinite timeout value to use for GetQueuedCompletedStatus.</summary>
-            private readonly UInt32 INFINITE_TIMEOUT = unchecked((UInt32)Timeout.Infinite);
+            // ReSharper disable once InconsistentNaming
+            private static readonly UInt32 INFINITE_TIMEOUT = unchecked((UInt32)Timeout.Infinite);
             /// <summary>An invalid file handle value.</summary>
-            private readonly IntPtr INVALID_FILE_HANDLE = unchecked((IntPtr)(-1));
+            // ReSharper disable once InconsistentNaming
+            private static readonly IntPtr INVALID_FILE_HANDLE = unchecked((IntPtr)(-1));
             /// <summary>An invalid I/O completion port handle value.</summary>
-            private readonly IntPtr INVALID_IOCP_HANDLE = IntPtr.Zero;
+            // ReSharper disable once InconsistentNaming
+            private static readonly IntPtr INVALID_IOCP_HANDLE = IntPtr.Zero;
 
             /// <summary>The I/O completion porth handle.</summary>
             private readonly SafeFileHandle _handle;
 
             /// <summary>Initializes the I/O completion port.</summary>
             /// <param name="maxConcurrencyLevel">The maximum concurrency level allowed by the I/O completion port.</param>
-            public IOCompletionPort(Int32 maxConcurrencyLevel)
+            public IoCompletionPort(Int32 maxConcurrencyLevel)
             {
                 // Validate the argument and create the port.
                 if (maxConcurrencyLevel < 1) throw new ArgumentOutOfRangeException(nameof(maxConcurrencyLevel));

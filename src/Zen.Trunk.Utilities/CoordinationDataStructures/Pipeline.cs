@@ -186,10 +186,12 @@ namespace Zen.Trunk.CoordinationDataStructures
 					{
 						try
 						{
+						    // ReSharper disable once AccessToDisposedClosure
 							ProcessCore(source, cancellationToken, output);
 						}
 						finally
 						{
+						    // ReSharper disable once AccessToDisposedClosure
 							output.CompleteAdding();
 						}
 					},

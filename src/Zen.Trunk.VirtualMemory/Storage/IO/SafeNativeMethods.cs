@@ -7,6 +7,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using Microsoft.Win32.SafeHandles;
+// ReSharper disable InconsistentNaming
 
 namespace Zen.Trunk.Storage.IO
 {
@@ -489,9 +490,9 @@ namespace Zen.Trunk.Storage.IO
 
 		[ReliabilityContract(Consistency.WillNotCorruptState, Cer.Success)]
 		[PrePrepareMethod]
-		internal void SetHandleInternal(IntPtr handle)
+		internal void SetHandleInternal(IntPtr handleObject)
 		{
-			SetHandle(handle);
+			SetHandle(handleObject);
 		}
 	}
 
@@ -526,9 +527,9 @@ namespace Zen.Trunk.Storage.IO
 
 		[ReliabilityContract(Consistency.WillNotCorruptState, Cer.Success)]
 		[PrePrepareMethod]
-		internal void SetHandleInternal(IntPtr handle, UIntPtr totalBytes)
+		internal void SetHandleInternal(IntPtr handleObject, UIntPtr totalBytes)
 		{
-			SetHandle(handle);
+			SetHandle(handleObject);
 			_totalBytes = totalBytes;
 		}
 	}

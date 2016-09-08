@@ -40,15 +40,15 @@ namespace Zen.Trunk.ParallelAlgorithms
 
             Wavefront(numBlocksPerRow, numBlocksPerColumn, (row, column) =>
             {
-                var start_i = row * rowBlockSize;
-                var end_i = row < numBlocksPerRow - 1 ?
-                    start_i + rowBlockSize : numRows;
+                var startI = row * rowBlockSize;
+                var endI = row < numBlocksPerRow - 1 ?
+                    startI + rowBlockSize : numRows;
 
-                var start_j = column * columnBlockSize;
-                var end_j = column < numBlocksPerColumn - 1 ?
-                    start_j + columnBlockSize : numColumns;
+                var startJ = column * columnBlockSize;
+                var endJ = column < numBlocksPerColumn - 1 ?
+                    startJ + columnBlockSize : numColumns;
 
-                processBlock(start_i, end_i, start_j, end_j);
+                processBlock(startI, endI, startJ, endJ);
             });
         }
 
@@ -89,6 +89,7 @@ namespace Zen.Trunk.ParallelAlgorithms
                         // Tasks in the left-most column depend only on the task above them, and
                         // tasks in the top row depend only on the task to their left
                         var antecedent = column == 0 ? prevTaskRow[0] : prevTaskInCurrentRow;
+                        // ReSharper disable once PossibleNullReferenceException
                         curTask = antecedent.ContinueWith(p =>
                         {
                             p.Wait(); // Necessary only to propagate exceptions
@@ -113,7 +114,7 @@ namespace Zen.Trunk.ParallelAlgorithms
             }
 
             // Wait for the last task to be done.
-            prevTaskInCurrentRow.Wait();
+            prevTaskInCurrentRow?.Wait();
         }
     }
 }
