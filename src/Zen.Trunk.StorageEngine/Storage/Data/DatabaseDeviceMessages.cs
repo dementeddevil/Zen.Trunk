@@ -105,8 +105,8 @@ namespace Zen.Trunk.Storage.Data
 	{
 		#region Public Constructors
 		public LoadFileGroupPageParameters(
-			string fileGroupName, DataPage page, bool virtualPageIdValid = false, bool logicalPageIdValid = false, bool assignLogicalId = false)
-			: base(page, virtualPageIdValid, logicalPageIdValid, assignLogicalId)
+			string fileGroupName, DataPage page, bool virtualPageIdValid = false, bool logicalPageIdValid = false)
+			: base(page, virtualPageIdValid, logicalPageIdValid)
 		{
 			FileGroupId = page.FileGroupId;
 			FileGroupName = fileGroupName;
@@ -114,18 +114,11 @@ namespace Zen.Trunk.Storage.Data
 		#endregion
 
 		#region Public Properties
-		public FileGroupId FileGroupId
-		{
-			get;
-		}
+		public FileGroupId FileGroupId { get; }
 
-		public string FileGroupName
-		{
-			get;
-		}
+		public string FileGroupName { get; }
 
 		public bool FileGroupIdValid => FileGroupId != FileGroupId.Invalid;
-
 	    #endregion
 	}
 

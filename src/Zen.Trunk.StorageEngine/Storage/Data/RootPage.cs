@@ -13,7 +13,7 @@ namespace Zen.Trunk.Storage.Data
 	/// This class serves as a common root page class for both the primary
 	/// file-group and secondary file-groups.
 	/// </remarks>
-	public abstract class RootPage : LogicalPage
+	public abstract class RootPage : DataPage
 	{
         #region Public Constants
         /// <summary>
