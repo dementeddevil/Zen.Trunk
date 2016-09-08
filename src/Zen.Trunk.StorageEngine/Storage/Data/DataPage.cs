@@ -1,9 +1,11 @@
 using System;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Threading.Tasks;
 using System.Transactions;
 using Zen.Trunk.CoordinationDataStructures;
 using Zen.Trunk.Logging;
+using Zen.Trunk.Storage.IO;
 using Zen.Trunk.Storage.Locking;
 
 namespace Zen.Trunk.Storage.Data
@@ -23,8 +25,91 @@ namespace Zen.Trunk.Storage.Data
 	/// </remarks>
 	public class DataPage : Page
 	{
-		#region Private Fields
-	    private static readonly ILog Logger = LogProvider.For<DataPage>();
+        #region Protected Objects
+        /// <summary>
+        /// <c>PageItemCollection</c> is a helper collection class that constrains
+        /// the number of items it can hold to those that can fit on a page given
+        /// the size reported by the <see cref="DataSize"/> property.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <seealso cref="System.Collections.ObjectModel.Collection{T}" />
+        protected class PageItemCollection<T> : Collection<T>
+        {
+            #region Private Fields
+            private readonly DataPage _owner;
+            #endregion
+
+            #region Public Constructors
+            /// <summary>
+            /// Initializes a new instance of the <see cref="PageItemCollection{T}"/> class.
+            /// </summary>
+            /// <param name="owner">The owner page.</param>
+            public PageItemCollection(DataPage owner)
+            {
+                _owner = owner;
+            }
+            #endregion
+
+            #region Protected Methods
+            /// <summary>
+            /// Removes all elements from the <see cref="T:System.Collections.ObjectModel.Collection`1" />.
+            /// </summary>
+            protected override void ClearItems()
+            {
+                base.ClearItems();
+                _owner.SetDirty();
+            }
+
+            /// <summary>
+            /// Removes the element at the specified index of the <see cref="T:System.Collections.ObjectModel.Collection`1" />.
+            /// </summary>
+            /// <param name="index">The zero-based index of the element to remove.</param>
+            protected override void RemoveItem(int index)
+            {
+                base.RemoveItem(index);
+                _owner.SetDirty();
+            }
+
+            /// <summary>
+            /// Inserts an element into the <see cref="T:System.Collections.ObjectModel.Collection`1" /> at the specified index.
+            /// </summary>
+            /// <param name="index">The zero-based index at which <paramref name="item" /> should be inserted.</param>
+            /// <param name="item">The object to insert. The value can be null for reference types.</param>
+            /// <exception cref="PageException">Page is full.</exception>
+            protected override void InsertItem(int index, T item)
+            {
+                base.InsertItem(index, item);
+                if (!_owner.TestWrite())
+                {
+                    RemoveAt(index);
+                    throw new PageException("Page is full.", _owner);
+                }
+                _owner.SetDirty();
+            }
+
+            /// <summary>
+            /// Replaces the element at the specified index.
+            /// </summary>
+            /// <param name="index">The zero-based index of the element to replace.</param>
+            /// <param name="item">The new value for the element at the specified index. The value can be null for reference types.</param>
+            /// <exception cref="PageException">Page is full.</exception>
+            protected override void SetItem(int index, T item)
+            {
+                var oldItem = this[index];
+                base.SetItem(index, item);
+                if (!_owner.TestWrite())
+                {
+                    base.SetItem(index, oldItem);
+                    throw new PageException("Page is full.", _owner);
+                }
+                _owner.SetDirty();
+            }
+            #endregion
+        }
+        #endregion
+
+        #region Private Fields
+        private static readonly ILog Logger = LogProvider.For<DataPage>();
 
 	    private PageBuffer _buffer;
 		private readonly SpinLockClass _syncTimestamp = new SpinLockClass();
@@ -500,6 +585,25 @@ namespace Zen.Trunk.Storage.Data
 			DataBuffer.EnlistInTransaction();
 			base.OnDirty(e);
 		}
-		#endregion
-	}
+        #endregion
+
+        #region Private Methods
+        private bool TestWrite()
+        {
+            using (var tempStream = new MemoryStream((int)DataSize))
+            {
+                using (var writer = new BufferReaderWriter(tempStream))
+                {
+                    WriteData(writer);
+
+                    if (tempStream.Length <= DataSize)
+                    {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+        #endregion
+    }
 }

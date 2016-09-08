@@ -106,59 +106,6 @@ namespace Zen.Trunk.Storage.Data.Table
 	/// </summary>
 	public class TableSchemaPage : ObjectSchemaPage
 	{
-		#region Internal Objects
-		private class PageItemCollection<T> : Collection<T>
-		{
-			#region Private Fields
-			private readonly TableSchemaPage _owner;
-			#endregion
-
-			#region Public Constructors
-			public PageItemCollection(TableSchemaPage owner)
-			{
-				_owner = owner;
-			}
-			#endregion
-
-			#region Protected Methods
-			protected override void ClearItems()
-			{
-				base.ClearItems();
-				_owner.SetDirty();
-			}
-
-			protected override void RemoveItem(int index)
-			{
-				base.RemoveItem(index);
-				_owner.SetDirty();
-			}
-
-			protected override void InsertItem(int index, T item)
-			{
-				base.InsertItem(index, item);
-				if (!_owner.TestWrite())
-				{
-					RemoveAt(index);
-					throw new PageException("Page is full.", _owner);
-				}
-				_owner.SetDirty();
-			}
-
-			protected override void SetItem(int index, T item)
-			{
-				var oldItem = this[index];
-				base.SetItem(index, item);
-				if (!_owner.TestWrite())
-				{
-					base.SetItem(index, oldItem);
-					throw new PageException("Page is full.", _owner);
-				}
-				_owner.SetDirty();
-			}
-			#endregion
-		}
-		#endregion
-
 		#region Private Fields
 		// Header fields
 		private readonly BufferFieldByte _columnCount;
@@ -406,25 +353,6 @@ namespace Zen.Trunk.Storage.Data.Table
 					index.Write(streamManager);
 				}
 			}
-		}
-		#endregion
-
-		#region Private Methods
-		private bool TestWrite()
-		{
-			using (var tempStream = new MemoryStream((int)DataSize))
-			{
-				using (var writer = new BufferReaderWriter(tempStream))
-				{
-					WriteData(writer);
-
-					if (tempStream.Length <= DataSize)
-					{
-						return true;
-					}
-				}
-			}
-			return false;
 		}
 		#endregion
 	}

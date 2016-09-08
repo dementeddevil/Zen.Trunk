@@ -1182,6 +1182,39 @@ namespace Zen.Trunk.Storage.Data
             throw new FileGroupFullException(DeviceId.Zero, FileGroupId, null);
         }
 
+        private async Task<ObjectId> CreateObjectReferenceHandler(CreateObjectReferenceRequest request)
+        {
+            var objectId = ObjectId.Zero;
+
+            // Load primary file-group root page
+            using (var rootPage = (PrimaryFileGroupRootPage)
+                await _primaryDevice.LoadOrCreateRootPageAsync().ConfigureAwait(false))
+            {
+                // TODO: Move this into separate method
+                // ---
+                // Obtain object id for this table
+                await rootPage.SetRootLockAsync(RootLockType.Exclusive).ConfigureAwait(false);
+                rootPage.ReadOnly = false;
+                var objectRef =
+                    new ObjectRefInfo
+                    {
+                        Name = request.Message.ObjectName,
+                        ObjectType = request.Message.ObjectType
+                    };
+                for (uint candidateObjectId = 1; ; ++candidateObjectId)
+                {
+                    if (!_assignedObjectIds.Contains(candidateObjectId))
+                    {
+                        objectId = new ObjectId(candidateObjectId);
+                        objectRef.ObjectId = objectId;
+                        break;
+                    }
+                }
+                rootPage.AddObjectInfo(objectRef);
+                // ---
+
+            }
+
         private async Task<ObjectId> AddTableHandler(AddTableRequest request)
         {
             var objectId = ObjectId.Zero;
@@ -1190,6 +1223,8 @@ namespace Zen.Trunk.Storage.Data
             using (var rootPage = (PrimaryFileGroupRootPage)
                 await _primaryDevice.LoadOrCreateRootPageAsync().ConfigureAwait(false))
             {
+                // TODO: Move this into separate method
+                // ---
                 // Obtain object id for this table
                 await rootPage.SetRootLockAsync(RootLockType.Exclusive).ConfigureAwait(false);
                 rootPage.ReadOnly = false;
@@ -1209,6 +1244,7 @@ namespace Zen.Trunk.Storage.Data
                     }
                 }
                 rootPage.AddObjectInfo(objectRef);
+                // ---
 
                 // Create database table helper and setup object
                 var table = ResolveDeviceService<DatabaseTable>();
