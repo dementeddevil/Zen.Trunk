@@ -37,14 +37,22 @@ namespace Zen.Trunk.Extensions.TaskFactoryExtensions
         /// <summary>Gets the TaskScheduler instance that should be used to schedule tasks.</summary>
         public static TaskScheduler GetTargetScheduler(this TaskFactory factory)
         {
-            if (factory == null) throw new ArgumentNullException(nameof(factory));
+            if (factory == null)
+            {
+                throw new ArgumentNullException(nameof(factory));
+            }
+
             return factory.Scheduler ?? TaskScheduler.Current;
         }
 
         /// <summary>Gets the TaskScheduler instance that should be used to schedule tasks.</summary>
         public static TaskScheduler GetTargetScheduler<TResult>(this TaskFactory<TResult> factory)
         {
-            if (factory == null) throw new ArgumentNullException(nameof(factory));
+            if (factory == null)
+            {
+                throw new ArgumentNullException(nameof(factory));
+            }
+
             return factory.Scheduler != null ? factory.Scheduler : TaskScheduler.Current;
         }
 

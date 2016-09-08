@@ -32,18 +32,34 @@ namespace Zen.Trunk.ParallelAlgorithms
         /// <returns>A new list containing all those elements from the input that passed the filter.</returns>
         public static IList<T> Filter<T>(IList<T> input, ParallelOptions parallelOptions, Func<T, Boolean> predicate)
         {
-            if (input == null) throw new ArgumentNullException(nameof(input));
-            if (parallelOptions == null) throw new ArgumentNullException(nameof(parallelOptions));
-            if (predicate == null) throw new ArgumentNullException(nameof(predicate));
+            if (input == null)
+            {
+                throw new ArgumentNullException(nameof(input));
+            }
+            if (parallelOptions == null)
+            {
+                throw new ArgumentNullException(nameof(parallelOptions));
+            }
+            if (predicate == null)
+            {
+                throw new ArgumentNullException(nameof(predicate));
+            }
 
             var results = new List<T>(input.Count);
             Parallel.For(0, input.Count, parallelOptions, () => new List<T>(input.Count), (i, loop, localList) =>
             {
                 var item = input[i];
-                if (predicate(item)) localList.Add(item);
+                if (predicate(item))
+                {
+                    localList.Add(item);
+                }
                 return localList;
             },
-            localList => { lock (results) results.AddRange(localList); });
+            localList => { lock (results)
+                {
+                    results.AddRange(localList);
+                }
+            });
             return results;
         }
     }

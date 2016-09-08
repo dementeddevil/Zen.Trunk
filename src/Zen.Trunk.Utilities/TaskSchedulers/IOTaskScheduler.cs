@@ -39,8 +39,14 @@ namespace Zen.Trunk.TaskSchedulers
 
                 // Put this item back into the pool for someone else to use
                 var pool = _scheduler._availableWorkItems;
-                if (pool != null) pool.PutObject(this);
-                else Overlapped.Free(pNOlap);
+                if (pool != null)
+                {
+                    pool.PutObject(this);
+                }
+                else
+                {
+                    Overlapped.Free(pNOlap);
+                }
             }
         }
 
@@ -64,7 +70,11 @@ namespace Zen.Trunk.TaskSchedulers
         protected override unsafe void QueueTask(Task task)
         {
             var pool = _availableWorkItems;
-            if (pool == null) throw new ObjectDisposedException(GetType().Name);
+            if (pool == null)
+            {
+                throw new ObjectDisposedException(GetType().Name);
+            }
+
             var wi = pool.GetObject();
             wi.Task = task;
             ThreadPool.UnsafeQueueNativeOverlapped(wi.NativeOverlappedPointer);
@@ -85,7 +95,10 @@ namespace Zen.Trunk.TaskSchedulers
             var pool = _availableWorkItems;
             _availableWorkItems = null;
             var workItems = pool.ToArrayAndClear();
-            foreach (var wi in workItems) Overlapped.Free(wi.NativeOverlappedPointer);
+            foreach (var wi in workItems)
+            {
+                Overlapped.Free(wi.NativeOverlappedPointer);
+            }
             // NOTE: A window exists where some number of NativeOverlapped ptrs could
             // be leaked, if the call to Dispose races with work items completing.
         }

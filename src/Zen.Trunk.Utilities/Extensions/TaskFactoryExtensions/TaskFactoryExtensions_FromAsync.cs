@@ -21,8 +21,14 @@ namespace Zen.Trunk.Extensions.TaskFactoryExtensions
         /// <returns>The created Task.</returns>
         public static Task FromAsync(this TaskFactory factory, WaitHandle waitHandle)
         {
-            if (factory == null) throw new ArgumentNullException(nameof(factory));
-            if (waitHandle == null) throw new ArgumentNullException(nameof(waitHandle));
+            if (factory == null)
+            {
+                throw new ArgumentNullException(nameof(factory));
+            }
+            if (waitHandle == null)
+            {
+                throw new ArgumentNullException(nameof(waitHandle));
+            }
 
             var tcs = new TaskCompletionSource<object>();
             var rwh = ThreadPool.RegisterWaitForSingleObject(waitHandle, delegate { tcs.TrySetResult(null); }, null, -1, true);

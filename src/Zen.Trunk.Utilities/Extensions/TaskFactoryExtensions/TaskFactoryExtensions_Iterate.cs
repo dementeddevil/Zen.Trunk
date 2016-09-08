@@ -24,7 +24,11 @@ namespace Zen.Trunk.Extensions.TaskFactoryExtensions
             this TaskFactory factory,
             IEnumerable<object> source)
         {
-            if (factory == null) throw new ArgumentNullException(nameof(factory));
+            if (factory == null)
+            {
+                throw new ArgumentNullException(nameof(factory));
+            }
+
             return Iterate(factory, source, null, factory.CancellationToken, factory.CreationOptions, factory.GetTargetScheduler());
         }
 
@@ -38,7 +42,11 @@ namespace Zen.Trunk.Extensions.TaskFactoryExtensions
             IEnumerable<object> source, 
             CancellationToken cancellationToken)
         {
-            if (factory == null) throw new ArgumentNullException(nameof(factory));
+            if (factory == null)
+            {
+                throw new ArgumentNullException(nameof(factory));
+            }
+
             return Iterate(factory, source, null, cancellationToken, factory.CreationOptions, factory.GetTargetScheduler());
         }
 
@@ -52,7 +60,11 @@ namespace Zen.Trunk.Extensions.TaskFactoryExtensions
             IEnumerable<object> source, 
             TaskCreationOptions creationOptions)
         {
-            if (factory == null) throw new ArgumentNullException(nameof(factory));
+            if (factory == null)
+            {
+                throw new ArgumentNullException(nameof(factory));
+            }
+
             return Iterate(factory, source, null, factory.CancellationToken, creationOptions, factory.GetTargetScheduler());
         }
 
@@ -66,7 +78,11 @@ namespace Zen.Trunk.Extensions.TaskFactoryExtensions
             IEnumerable<object> source, 
             TaskScheduler scheduler)
         {
-            if (factory == null) throw new ArgumentNullException(nameof(factory));
+            if (factory == null)
+            {
+                throw new ArgumentNullException(nameof(factory));
+            }
+
             return Iterate(factory, source, null, factory.CancellationToken, factory.CreationOptions, scheduler);
         }
 
@@ -96,7 +112,11 @@ namespace Zen.Trunk.Extensions.TaskFactoryExtensions
             this TaskFactory factory,
             IEnumerable<object> source, object state)
         {
-            if (factory == null) throw new ArgumentNullException(nameof(factory));
+            if (factory == null)
+            {
+                throw new ArgumentNullException(nameof(factory));
+            }
+
             return Iterate(factory, source, state, factory.CancellationToken, factory.CreationOptions, factory.GetTargetScheduler());
         }
 
@@ -111,7 +131,11 @@ namespace Zen.Trunk.Extensions.TaskFactoryExtensions
             IEnumerable<object> source, object state,
             CancellationToken cancellationToken)
         {
-            if (factory == null) throw new ArgumentNullException(nameof(factory));
+            if (factory == null)
+            {
+                throw new ArgumentNullException(nameof(factory));
+            }
+
             return Iterate(factory, source, state, cancellationToken, factory.CreationOptions, factory.GetTargetScheduler());
         }
 
@@ -126,7 +150,11 @@ namespace Zen.Trunk.Extensions.TaskFactoryExtensions
             IEnumerable<object> source, object state,
             TaskCreationOptions creationOptions)
         {
-            if (factory == null) throw new ArgumentNullException(nameof(factory));
+            if (factory == null)
+            {
+                throw new ArgumentNullException(nameof(factory));
+            }
+
             return Iterate(factory, source, state, factory.CancellationToken, creationOptions, factory.GetTargetScheduler());
         }
 
@@ -141,7 +169,11 @@ namespace Zen.Trunk.Extensions.TaskFactoryExtensions
             IEnumerable<object> source, object state,
             TaskScheduler scheduler)
         {
-            if (factory == null) throw new ArgumentNullException(nameof(factory));
+            if (factory == null)
+            {
+                throw new ArgumentNullException(nameof(factory));
+            }
+
             return Iterate(factory, source, state, factory.CancellationToken, factory.CreationOptions, scheduler);
         }
 
@@ -159,13 +191,25 @@ namespace Zen.Trunk.Extensions.TaskFactoryExtensions
             CancellationToken cancellationToken, TaskCreationOptions creationOptions, TaskScheduler scheduler)
         {
             // Validate/update parameters
-            if (factory == null) throw new ArgumentNullException(nameof(factory));
-            if (source == null) throw new ArgumentNullException(nameof(source));
-            if (scheduler == null) throw new ArgumentNullException(nameof(scheduler));
+            if (factory == null)
+            {
+                throw new ArgumentNullException(nameof(factory));
+            }
+            if (source == null)
+            {
+                throw new ArgumentNullException(nameof(source));
+            }
+            if (scheduler == null)
+            {
+                throw new ArgumentNullException(nameof(scheduler));
+            }
 
             // Get an enumerator from the enumerable
             var enumerator = source.GetEnumerator();
-            if (enumerator == null) throw new InvalidOperationException("Invalid enumerable - GetEnumerator returned null");
+            if (enumerator == null)
+            {
+                throw new InvalidOperationException("Invalid enumerable - GetEnumerator returned null");
+            }
 
             // Create the task to be returned to the caller.  And ensure
             // that when everything is done, the enumerator is cleaned up.
@@ -202,11 +246,17 @@ namespace Zen.Trunk.Extensions.TaskFactoryExtensions
                             Task.Factory.StartNew(() => recursiveBody(null), CancellationToken.None, TaskCreationOptions.None, (TaskScheduler)nextItem).IgnoreExceptions();
                         }
                             // Anything else is invalid
-                        else trs.TrySetException(new InvalidOperationException("Task or TaskScheduler object expected in Iterate"));
+                        else
+                        {
+                            trs.TrySetException(new InvalidOperationException("Task or TaskScheduler object expected in Iterate"));
+                        }
                     }
 
                     // Otherwise, we're done!
-                    else trs.TrySetResult(null);
+                    else
+                    {
+                        trs.TrySetResult(null);
+                    }
                 }
                 // If MoveNext throws an exception, propagate that to the user,
                 // either as cancellation or as a fault
@@ -217,7 +267,10 @@ namespace Zen.Trunk.Extensions.TaskFactoryExtensions
                     {
                         trs.TrySetCanceled();
                     }
-                    else trs.TrySetException(exc); 
+                    else
+                    {
+                        trs.TrySetException(exc);
+                    }
                 }
             };
 

@@ -28,7 +28,11 @@ namespace Zen.Trunk.ParallelAlgorithms
         /// <param name="comparer">The comparer used to compare two elements during the sort operation.</param>
         public static void Sort<T>(T[] array, IComparer<T> comparer)
         {
-            if (array == null) throw new ArgumentNullException(nameof(array));
+            if (array == null)
+            {
+                throw new ArgumentNullException(nameof(array));
+            }
+
             Sort<T, object>(array, null, 0, array.Length, comparer);
         }
 
@@ -71,7 +75,11 @@ namespace Zen.Trunk.ParallelAlgorithms
         /// <param name="comparer">The comparer used to compare two elements during the sort operation.</param>
         public static void Sort<TKey, TValue>(TKey[] keys, TValue[] items, IComparer<TKey> comparer)
         {
-            if (keys == null) throw new ArgumentNullException(nameof(keys));
+            if (keys == null)
+            {
+                throw new ArgumentNullException(nameof(keys));
+            }
+
             Sort(keys, items, 0, keys.Length, comparer);
         }
 
@@ -97,9 +105,18 @@ namespace Zen.Trunk.ParallelAlgorithms
         /// <param name="comparer">The comparer used to compare two elements during the sort operation.</param>
         public static void Sort<TKey, TValue>(TKey [] keys, TValue [] items, Int32 index, Int32 length, IComparer<TKey> comparer)
         {
-            if (keys == null) throw new ArgumentNullException(nameof(keys));
-            if ((index < 0) || (length < 0)) throw new ArgumentOutOfRangeException(length < 0 ? "length" : "index");
-            if (((keys.Length - index) < length) || ((items != null) && (index > (items.Length - length)))) throw new ArgumentException("index");
+            if (keys == null)
+            {
+                throw new ArgumentNullException(nameof(keys));
+            }
+            if ((index < 0) || (length < 0))
+            {
+                throw new ArgumentOutOfRangeException(length < 0 ? "length" : "index");
+            }
+            if (((keys.Length - index) < length) || ((items != null) && (index > (items.Length - length))))
+            {
+                throw new ArgumentException("index");
+            }
 
             // Run the core sort operation
             new Sorter<TKey, TValue>(keys, items, comparer).QuickSort(index, index + length - 1);
@@ -114,7 +131,10 @@ namespace Zen.Trunk.ParallelAlgorithms
 
             public Sorter(TKey[] keys, TItem[] items, IComparer<TKey> comparer)
             {
-                if (comparer == null) comparer = Comparer<TKey>.Default;
+                if (comparer == null)
+                {
+                    comparer = Comparer<TKey>.Default;
+                }
                 _keys = keys;
                 _items = items;
                 _comparer = comparer;
@@ -194,10 +214,20 @@ namespace Zen.Trunk.ParallelAlgorithms
                     // Move all data around the pivot value
                     do
                     {
-                        while (_comparer.Compare(_keys[i], x) < 0) i++;
-                        while (_comparer.Compare(x, _keys[j]) < 0) j--;
+                        while (_comparer.Compare(_keys[i], x) < 0)
+                        {
+                            i++;
+                        }
+                        while (_comparer.Compare(x, _keys[j]) < 0)
+                        {
+                            j--;
+                        }
 
-                        if (i > j) break;
+                        if (i > j)
+                        {
+                            break;
+                        }
+
                         if (i < j)
                         {
                             var key = _keys[i];

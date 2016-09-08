@@ -57,14 +57,18 @@ namespace Zen.Trunk.Extensions.TaskFactoryExtensions
 					tcs.TrySetException(exc);
 				}
 				if (nextTask == null)
-					yield break;
+				{
+				    yield break;
+				}
 
-				// Store the task that was generated and yield it from the sequence.  If the task
+			    // Store the task that was generated and yield it from the sequence.  If the task
 				// faults, break out of the loop so that no more tasks are processed.
 				tasks.Add(nextTask);
 				yield return nextTask;
 				if (nextTask.IsFaulted)
-					break;
+				{
+				    break;
+				}
 			}
 
 			// We're done.  Transfer all tasks we iterated through.

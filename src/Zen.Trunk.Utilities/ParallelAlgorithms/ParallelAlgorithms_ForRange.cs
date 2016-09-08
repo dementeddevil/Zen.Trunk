@@ -112,8 +112,14 @@ namespace Zen.Trunk.ParallelAlgorithms
             ParallelOptions parallelOptions,
             Action<int, int> body)
         {
-            if (parallelOptions == null) throw new ArgumentNullException(nameof(parallelOptions));
-            if (body == null) throw new ArgumentNullException(nameof(body));
+            if (parallelOptions == null)
+            {
+                throw new ArgumentNullException(nameof(parallelOptions));
+            }
+            if (body == null)
+            {
+                throw new ArgumentNullException(nameof(body));
+            }
 
             return Parallel.ForEach(Partitioner.Create(fromInclusive, toExclusive), parallelOptions, range =>
             {
@@ -132,8 +138,14 @@ namespace Zen.Trunk.ParallelAlgorithms
             ParallelOptions parallelOptions,
             Action<int, int, ParallelLoopState> body)
         {
-            if (parallelOptions == null) throw new ArgumentNullException(nameof(parallelOptions));
-            if (body == null) throw new ArgumentNullException(nameof(body));
+            if (parallelOptions == null)
+            {
+                throw new ArgumentNullException(nameof(parallelOptions));
+            }
+            if (body == null)
+            {
+                throw new ArgumentNullException(nameof(body));
+            }
 
             return Parallel.ForEach(Partitioner.Create(fromInclusive, toExclusive), parallelOptions, (range, loopState) =>
             {
@@ -156,10 +168,22 @@ namespace Zen.Trunk.ParallelAlgorithms
             Func<int, int, ParallelLoopState, TLocal, TLocal> body,
             Action<TLocal> localFinally)
         {
-            if (parallelOptions == null) throw new ArgumentNullException(nameof(parallelOptions));
-            if (localInit == null) throw new ArgumentNullException(nameof(localInit));
-            if (body == null) throw new ArgumentNullException(nameof(body));
-            if (localFinally == null) throw new ArgumentNullException(nameof(localFinally));
+            if (parallelOptions == null)
+            {
+                throw new ArgumentNullException(nameof(parallelOptions));
+            }
+            if (localInit == null)
+            {
+                throw new ArgumentNullException(nameof(localInit));
+            }
+            if (body == null)
+            {
+                throw new ArgumentNullException(nameof(body));
+            }
+            if (localFinally == null)
+            {
+                throw new ArgumentNullException(nameof(localFinally));
+            }
 
             return Parallel.ForEach(Partitioner.Create(fromInclusive, toExclusive), parallelOptions, localInit, (range, loopState, x) =>
             {
@@ -180,8 +204,14 @@ namespace Zen.Trunk.ParallelAlgorithms
             ParallelOptions parallelOptions,
             Action<long, long> body)
         {
-            if (parallelOptions == null) throw new ArgumentNullException(nameof(parallelOptions));
-            if (body == null) throw new ArgumentNullException(nameof(body));
+            if (parallelOptions == null)
+            {
+                throw new ArgumentNullException(nameof(parallelOptions));
+            }
+            if (body == null)
+            {
+                throw new ArgumentNullException(nameof(body));
+            }
 
             return Parallel.ForEach(Partitioner.Create(fromInclusive, toExclusive), parallelOptions, range =>
             {
@@ -200,8 +230,14 @@ namespace Zen.Trunk.ParallelAlgorithms
             ParallelOptions parallelOptions,
             Action<long, long, ParallelLoopState> body)
         {
-            if (parallelOptions == null) throw new ArgumentNullException(nameof(parallelOptions));
-            if (body == null) throw new ArgumentNullException(nameof(body));
+            if (parallelOptions == null)
+            {
+                throw new ArgumentNullException(nameof(parallelOptions));
+            }
+            if (body == null)
+            {
+                throw new ArgumentNullException(nameof(body));
+            }
 
             return Parallel.ForEach(Partitioner.Create(fromInclusive, toExclusive), parallelOptions, (range, loopState) =>
             {
@@ -224,10 +260,22 @@ namespace Zen.Trunk.ParallelAlgorithms
             Func<long, long, ParallelLoopState, TLocal, TLocal> body,
             Action<TLocal> localFinally)
         {
-            if (parallelOptions == null) throw new ArgumentNullException(nameof(parallelOptions));
-            if (localInit == null) throw new ArgumentNullException(nameof(localInit));
-            if (body == null) throw new ArgumentNullException(nameof(body));
-            if (localFinally == null) throw new ArgumentNullException(nameof(localFinally));
+            if (parallelOptions == null)
+            {
+                throw new ArgumentNullException(nameof(parallelOptions));
+            }
+            if (localInit == null)
+            {
+                throw new ArgumentNullException(nameof(localInit));
+            }
+            if (body == null)
+            {
+                throw new ArgumentNullException(nameof(body));
+            }
+            if (localFinally == null)
+            {
+                throw new ArgumentNullException(nameof(localFinally));
+            }
 
             return Parallel.ForEach(Partitioner.Create(fromInclusive, toExclusive), parallelOptions, localInit, (range, loopState, x) =>
             {

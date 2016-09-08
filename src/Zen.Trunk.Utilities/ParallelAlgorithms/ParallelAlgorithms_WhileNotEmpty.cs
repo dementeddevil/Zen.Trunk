@@ -35,9 +35,18 @@ namespace Zen.Trunk.ParallelAlgorithms
             Action<T, Action<T>> body)
         {
             // Validate arguments
-            if (parallelOptions == null) throw new ArgumentNullException(nameof(parallelOptions));
-            if (initialValues == null) throw new ArgumentNullException(nameof(initialValues));
-            if (body == null) throw new ArgumentNullException(nameof(body));
+            if (parallelOptions == null)
+            {
+                throw new ArgumentNullException(nameof(parallelOptions));
+            }
+            if (initialValues == null)
+            {
+                throw new ArgumentNullException(nameof(initialValues));
+            }
+            if (body == null)
+            {
+                throw new ArgumentNullException(nameof(body));
+            }
 
             // Create two lists to alternate between as source and destination.
             var lists = new[] { new ConcurrentStack<T>(initialValues), new ConcurrentStack<T>() };
@@ -51,7 +60,10 @@ namespace Zen.Trunk.ParallelAlgorithms
                 var to = lists[fromIndex ^ 1];
 
                 // If the source is empty, we're done
-                if (from.IsEmpty) break;
+                if (from.IsEmpty)
+                {
+                    break;
+                }
 
                 // Otherwise, process all source items in parallel, adding any new items into the destination
                 Action<T> adder = newItem => to.Push(newItem);

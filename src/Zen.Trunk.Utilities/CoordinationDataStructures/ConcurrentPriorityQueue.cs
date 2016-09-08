@@ -32,8 +32,15 @@ namespace Zen.Trunk.CoordinationDataStructures
         /// <param name="collection">The collection whose elements are copied to the new ConcurrentPriorityQueue.</param>
         public ConcurrentPriorityQueue(IEnumerable<KeyValuePair<TKey, TValue>> collection)
         {
-            if (collection == null) throw new ArgumentNullException(nameof(collection));
-            foreach (var item in collection) _minHeap.Insert(item);
+            if (collection == null)
+            {
+                throw new ArgumentNullException(nameof(collection));
+            }
+
+            foreach (var item in collection)
+            {
+                _minHeap.Insert(item);
+            }
         }
 
         /// <summary>Adds the key/value pair to the priority queue.</summary>
@@ -48,7 +55,10 @@ namespace Zen.Trunk.CoordinationDataStructures
         /// <param name="item">The key/value pair to be added to the queue.</param>
         public void Enqueue(KeyValuePair<TKey, TValue> item)
         {
-            lock (_syncLock) _minHeap.Insert(item);
+            lock (_syncLock)
+            {
+                _minHeap.Insert(item);
+            }
         }
 
         /// <summary>Attempts to remove and return the next prioritized item in the queue.</summary>
@@ -96,7 +106,11 @@ namespace Zen.Trunk.CoordinationDataStructures
         }
 
         /// <summary>Empties the queue.</summary>
-        public void Clear() { lock(_syncLock) _minHeap.Clear(); }
+        public void Clear() { lock(_syncLock)
+            {
+                _minHeap.Clear();
+            }
+        }
 
         /// <summary>Gets whether the queue is empty.</summary>
         public bool IsEmpty => Count == 0;
@@ -104,7 +118,11 @@ namespace Zen.Trunk.CoordinationDataStructures
         /// <summary>Gets the number of elements contained in the queue.</summary>
         public int Count
         {
-            get { lock (_syncLock) return _minHeap.Count; }
+            get { lock (_syncLock)
+                {
+                    return _minHeap.Count;
+                }
+            }
         }
 
         /// <summary>Copies the elements of the collection to an array, starting at a particular array index.</summary>
@@ -117,7 +135,10 @@ namespace Zen.Trunk.CoordinationDataStructures
         /// <remarks>The elements will not be copied to the array in any guaranteed order.</remarks>
         public void CopyTo(KeyValuePair<TKey, TValue>[] array, int index)
         {
-            lock (_syncLock) _minHeap.Items.CopyTo(array, index);
+            lock (_syncLock)
+            {
+                _minHeap.Items.CopyTo(array, index);
+            }
         }
 
         /// <summary>Copies the elements stored in the queue to a new array.</summary>
@@ -186,7 +207,10 @@ namespace Zen.Trunk.CoordinationDataStructures
         /// </param>
         void ICollection.CopyTo(Array array, int index)
         {
-            lock (_syncLock) ((ICollection)_minHeap.Items).CopyTo(array, index);
+            lock (_syncLock)
+            {
+                ((ICollection)_minHeap.Items).CopyTo(array, index);
+            }
         }
 
         /// <summary>
@@ -237,7 +261,10 @@ namespace Zen.Trunk.CoordinationDataStructures
                 var pos = _items.Count - 1;
 
                 // If the new item is the only item, we're done.
-                if (pos == 0) return;
+                if (pos == 0)
+                {
+                    return;
+                }
 
                 // Otherwise, perform log(n) operations, walking up the tree, swapping
                 // where necessary based on key values
@@ -256,7 +283,10 @@ namespace Zen.Trunk.CoordinationDataStructures
                         _items[pos] = toCheck;
                         pos = nextPos;
                     }
-                    else break;
+                    else
+                    {
+                        break;
+                    }
                 }
 
                 // Make sure we put this entry back in, just in case
@@ -267,7 +297,11 @@ namespace Zen.Trunk.CoordinationDataStructures
             public KeyValuePair<TKey, TValue> Peek()
             {
                 // Returns the first item
-                if (_items.Count == 0) throw new InvalidOperationException("The heap is empty.");
+                if (_items.Count == 0)
+                {
+                    throw new InvalidOperationException("The heap is empty.");
+                }
+
                 return _items[0];
             }
 
@@ -275,11 +309,18 @@ namespace Zen.Trunk.CoordinationDataStructures
             public KeyValuePair<TKey, TValue> Remove()
             {
                 // Get the first item and save it for later (this is what will be returned).
-                if (_items.Count == 0) throw new InvalidOperationException("The heap is empty.");
+                if (_items.Count == 0)
+                {
+                    throw new InvalidOperationException("The heap is empty.");
+                }
+
                 var toReturn = _items[0];
 
                 // Remove the first item if there will only be 0 or 1 items left after doing so.  
-                if (_items.Count <= 2) _items.RemoveAt(0);
+                if (_items.Count <= 2)
+                {
+                    _items.RemoveAt(0);
+                }
                 // A reheapify will be required for the removal
                 else
                 {
@@ -305,9 +346,15 @@ namespace Zen.Trunk.CoordinationDataStructures
                             var entry2 = _items[leftChildPos];
 
                             // If the child has a lower key than the parent, set that as a possible swap
-                            if (entry2.Key.CompareTo(entry1.Key) < 0) possibleSwap = leftChildPos;
+                            if (entry2.Key.CompareTo(entry1.Key) < 0)
+                            {
+                                possibleSwap = leftChildPos;
+                            }
                         }
-                        else break; // if can't swap this, we're done
+                        else
+                        {
+                            break; // if can't swap this, we're done
+                        }
 
                         // Should we swap with the right child?  Note that now we check with the possible swap
                         // position (which might be current and might be left child).
@@ -318,7 +365,10 @@ namespace Zen.Trunk.CoordinationDataStructures
                             var entry2 = _items[rightChildPos];
 
                             // If the child has a lower key than the parent, set that as a possible swap
-                            if (entry2.Key.CompareTo(entry1.Key) < 0) possibleSwap = rightChildPos;
+                            if (entry2.Key.CompareTo(entry1.Key) < 0)
+                            {
+                                possibleSwap = rightChildPos;
+                            }
                         }
 
                         // Now swap current and possible swap if necessary
@@ -328,7 +378,10 @@ namespace Zen.Trunk.CoordinationDataStructures
                             _items[current] = _items[possibleSwap];
                             _items[possibleSwap] = temp;
                         }
-                        else break; // if nothing to swap, we're done
+                        else
+                        {
+                            break; // if nothing to swap, we're done
+                        }
 
                         // Update current to the location of the swap
                         current = possibleSwap;

@@ -35,8 +35,14 @@ namespace Zen.Trunk.TaskSchedulers
         public IoCompletionPortTaskScheduler(int maxConcurrencyLevel, int numAvailableThreads)
         {
             // Validate arguments
-            if (maxConcurrencyLevel < 1) throw new ArgumentNullException(nameof(maxConcurrencyLevel));
-            if (numAvailableThreads < 1) throw new ArgumentNullException(nameof(numAvailableThreads));
+            if (maxConcurrencyLevel < 1)
+            {
+                throw new ArgumentNullException(nameof(maxConcurrencyLevel));
+            }
+            if (numAvailableThreads < 1)
+            {
+                throw new ArgumentNullException(nameof(numAvailableThreads));
+            }
 
             _tasks = new ConcurrentQueue<Task>();
             _iocp = new IoCompletionPort(maxConcurrencyLevel);
@@ -58,7 +64,10 @@ namespace Zen.Trunk.TaskSchedulers
                         while (_iocp.WaitOne())
                         {
                             Task next;
-                            if (_tasks.TryDequeue(out next)) TryExecuteTask(next);
+                            if (_tasks.TryDequeue(out next))
+                            {
+                                TryExecuteTask(next);
+                            }
                         }
                     }
                     finally { _remainingThreadsToShutdown.Signal(); }
@@ -127,7 +136,11 @@ namespace Zen.Trunk.TaskSchedulers
             public IoCompletionPort(Int32 maxConcurrencyLevel)
             {
                 // Validate the argument and create the port.
-                if (maxConcurrencyLevel < 1) throw new ArgumentOutOfRangeException(nameof(maxConcurrencyLevel));
+                if (maxConcurrencyLevel < 1)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(maxConcurrencyLevel));
+                }
+
                 _handle = CreateIoCompletionPort(INVALID_FILE_HANDLE, INVALID_IOCP_HANDLE, UIntPtr.Zero, (UInt32)maxConcurrencyLevel);
             }
 
@@ -137,8 +150,10 @@ namespace Zen.Trunk.TaskSchedulers
             /// <summary>Notify that I/O completion port that new work is available.</summary>
             public void NotifyOne()
             {
-                if (!PostQueuedCompletionStatus(_handle, IntPtr.Zero, IntPtr.Zero, IntPtr.Zero)) 
+                if (!PostQueuedCompletionStatus(_handle, IntPtr.Zero, IntPtr.Zero, IntPtr.Zero))
+                {
                     throw new Win32Exception();
+                }
             }
 
             /// <summary>Waits for an item on the I/O completion port.</summary>
@@ -153,9 +168,13 @@ namespace Zen.Trunk.TaskSchedulers
                 {
                     var errorCode = Marshal.GetLastWin32Error();
                     if (errorCode == 735 /*ERROR_ABANDONED_WAIT_0*/ || errorCode == 6 /*INVALID_HANDLE*/)
+                    {
                         return false;
+                    }
                     else
+                    {
                         throw new Win32Exception(errorCode);
+                    }
                 }
                 return true;
             }

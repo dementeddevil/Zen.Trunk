@@ -24,7 +24,10 @@ namespace Zen.Trunk.TaskSchedulers
         protected override void QueueTask(Task task)
         {
             // Store the task, and notify the ThreadPool of work to be processed
-            lock (_tasks) _tasks.AddLast(task);
+            lock (_tasks)
+            {
+                _tasks.AddLast(task);
+            }
             ThreadPool.UnsafeQueueUserWorkItem(ProcessNextQueuedItem, null);
         }
 
@@ -69,7 +72,10 @@ namespace Zen.Trunk.TaskSchedulers
         /// <returns>Whether the task could be removed from the scheduler.</returns>
         protected override bool TryDequeue(Task task)
         {
-            lock (_tasks) return _tasks.Remove(task);
+            lock (_tasks)
+            {
+                return _tasks.Remove(task);
+            }
         }
 
         /// <summary>Picks up and executes the next item in the queue.</summary>
@@ -84,7 +90,10 @@ namespace Zen.Trunk.TaskSchedulers
                     t = _tasks.First.Value;
                     _tasks.RemoveFirst();
                 }
-                else return;
+                else
+                {
+                    return;
+                }
             }
             TryExecuteTask(t);
         }
@@ -106,12 +115,21 @@ namespace Zen.Trunk.TaskSchedulers
             try
             {
                 Monitor.TryEnter(_tasks, ref lockTaken);
-                if (lockTaken) return _tasks.ToArray();
-                else throw new NotSupportedException();
+                if (lockTaken)
+                {
+                    return _tasks.ToArray();
+                }
+                else
+                {
+                    throw new NotSupportedException();
+                }
             }
             finally
             {
-                if (lockTaken) Monitor.Exit(_tasks);
+                if (lockTaken)
+                {
+                    Monitor.Exit(_tasks);
+                }
             }
         }
     }

@@ -38,8 +38,15 @@ namespace Zen.Trunk.CoordinationDataStructures.AsyncCoordination
         /// <param name="maxCount">The maximum count allowed.</param>
         public AsyncSemaphore(int initialCount, int maxCount)
         {
-            if (maxCount <= 0) throw new ArgumentOutOfRangeException(nameof(maxCount));
-            if (initialCount > maxCount || initialCount < 0) throw new ArgumentOutOfRangeException(nameof(initialCount));
+            if (maxCount <= 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(maxCount));
+            }
+            if (initialCount > maxCount || initialCount < 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(initialCount));
+            }
+
             _currentCount = initialCount;
             _maxCount = maxCount;
             _waitingTasks = new Queue<TaskCompletionSource<object>>();
@@ -52,7 +59,11 @@ namespace Zen.Trunk.CoordinationDataStructures.AsyncCoordination
         public int MaximumCount => _maxCount;
 
         /// <summary>Gets the number of operations currently waiting on the semaphore.</summary>
-        public int WaitingCount { get { lock(_waitingTasks) return _waitingTasks.Count; } }
+        public int WaitingCount { get { lock(_waitingTasks)
+            {
+                return _waitingTasks.Count;
+            }
+        } }
 
         /// <summary>Waits for a unit to be available in the semaphore.</summary>
         /// <returns>A Task that will be completed when a unit is available and this Wait operation succeeds.</returns>
@@ -126,7 +137,10 @@ namespace Zen.Trunk.CoordinationDataStructures.AsyncCoordination
             lock (_waitingTasks)
             {
                 // Validate that there's room
-                if (_currentCount == _maxCount) throw new SemaphoreFullException();
+                if (_currentCount == _maxCount)
+                {
+                    throw new SemaphoreFullException();
+                }
 
                 // If there are any tasks waiting, allow one of them access
                 if (_waitingTasks.Count > 0)
@@ -135,13 +149,19 @@ namespace Zen.Trunk.CoordinationDataStructures.AsyncCoordination
                     tcs.SetResult(null);
                 }
                     // Otherwise, increment the available count
-                else _currentCount++;
+                else
+                {
+                    _currentCount++;
+                }
             }
         }
 
         private void ThrowIfDisposed()
         {
-            if (_maxCount <= 0) throw new ObjectDisposedException(GetType().Name);
+            if (_maxCount <= 0)
+            {
+                throw new ObjectDisposedException(GetType().Name);
+            }
         }
 
         /// <summary>Releases the resources used by the semaphore.</summary>

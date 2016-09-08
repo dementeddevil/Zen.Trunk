@@ -25,9 +25,18 @@ namespace Zen.Trunk.Partitioners
         /// <returns>The partitioner.</returns>
         public static OrderablePartitioner<T> Create<T>(IEnumerable<T> source)
         {
-            if (source == null) throw new ArgumentNullException(nameof(source));
-            else if (source is IList<T>) return new SingleItemIListPartitioner<T>((IList<T>)source);
-            else return new SingleItemEnumerablePartitioner<T>(source);
+            if (source == null)
+            {
+                throw new ArgumentNullException(nameof(source));
+            }
+            else if (source is IList<T>)
+            {
+                return new SingleItemIListPartitioner<T>((IList<T>)source);
+            }
+            else
+            {
+                return new SingleItemEnumerablePartitioner<T>(source);
+            }
         }
 
         /// <summary>Partitions an enumerable one item at a time.</summary>
@@ -46,7 +55,11 @@ namespace Zen.Trunk.Partitioners
 
             public override IList<IEnumerator<KeyValuePair<long, T>>> GetOrderablePartitions(int partitionCount)
             {
-                if (partitionCount < 1) throw new ArgumentOutOfRangeException(nameof(partitionCount));
+                if (partitionCount < 1)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(partitionCount));
+                }
+
                 var dynamicPartitioner = new DynamicGenerator(_source.GetEnumerator(), false);
                 return (from i in Enumerable.Range(0, partitionCount) select dynamicPartitioner.GetEnumerator()).ToList();
             }
@@ -116,12 +129,19 @@ namespace Zen.Trunk.Partitioners
                                     position = _nextAvailablePosition++;
                                     nextItem = _sharedEnumerator.Current;
                                 }
-                                else yield break;
+                                else
+                                {
+                                    yield break;
+                                }
                             }
                             yield return new KeyValuePair<long,T>(position, nextItem);
                         }
                     }
-                    finally { if (Interlocked.Decrement(ref _remainingPartitions) == 0) _sharedEnumerator.Dispose(); }
+                    finally { if (Interlocked.Decrement(ref _remainingPartitions) == 0)
+                        {
+                            _sharedEnumerator.Dispose();
+                        }
+                    }
                 }
             }
         }
@@ -145,7 +165,11 @@ namespace Zen.Trunk.Partitioners
             /// <returns>The list of created partitions ready to be iterated.</returns>
             public override IList<IEnumerator<KeyValuePair<long, T>>> GetOrderablePartitions(int partitionCount)
             {
-                if (partitionCount < 1) throw new ArgumentOutOfRangeException(nameof(partitionCount));
+                if (partitionCount < 1)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(partitionCount));
+                }
+
                 var dynamicPartitioner = GetOrderableDynamicPartitions();
                 return (from i in Enumerable.Range(0, partitionCount) select dynamicPartitioner.GetEnumerator()).ToList();
             }
@@ -166,8 +190,14 @@ namespace Zen.Trunk.Partitioners
                 while (true)
                 {
                     var iteration = Interlocked.Increment(ref nextIteration.Value) - 1;
-                    if (iteration >= 0 && iteration < source.Count) yield return new KeyValuePair<long, T>(iteration, source[iteration]);
-                    else yield break;
+                    if (iteration >= 0 && iteration < source.Count)
+                    {
+                        yield return new KeyValuePair<long, T>(iteration, source[iteration]);
+                    }
+                    else
+                    {
+                        yield break;
+                    }
                 }
             }
         }

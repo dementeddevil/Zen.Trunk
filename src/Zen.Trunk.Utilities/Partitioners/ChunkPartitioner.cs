@@ -70,8 +70,15 @@ namespace Zen.Trunk.Partitioners
         {
             // Validate and store the enumerable and function (used to determine how big
             // to make the next chunk given the current chunk size)
-            if (source == null) throw new ArgumentNullException(nameof(source));
-            if (nextChunkSizeFunc == null) throw new ArgumentNullException(nameof(nextChunkSizeFunc));
+            if (source == null)
+            {
+                throw new ArgumentNullException(nameof(source));
+            }
+            if (nextChunkSizeFunc == null)
+            {
+                throw new ArgumentNullException(nameof(nextChunkSizeFunc));
+            }
+
             _source = source;
             _nextChunkSizeFunc = nextChunkSizeFunc;
         }
@@ -79,14 +86,20 @@ namespace Zen.Trunk.Partitioners
         public ChunkPartitioner(IEnumerable<T> source, int chunkSize)
             : this(source, prev => chunkSize) // uses a function that always returns the specified chunk size
         {
-            if (chunkSize <= 0) throw new ArgumentOutOfRangeException(nameof(chunkSize));
+            if (chunkSize <= 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(chunkSize));
+            }
         }
 
         public ChunkPartitioner(IEnumerable<T> source, int minChunkSize, int maxChunkSize) :
             this(source, CreateFuncFromMinAndMax(minChunkSize, maxChunkSize)) // uses a function that grows from min to max
         {
             if (minChunkSize <= 0 ||
-                minChunkSize > maxChunkSize) throw new ArgumentOutOfRangeException(nameof(minChunkSize));
+                minChunkSize > maxChunkSize)
+            {
+                throw new ArgumentOutOfRangeException(nameof(minChunkSize));
+            }
         }
 
         private static Func<int, int> CreateFuncFromMinAndMax(int minChunkSize, int maxChunkSize)
@@ -94,10 +107,21 @@ namespace Zen.Trunk.Partitioners
             // Create a function that returns exponentially growing chunk sizes between minChunkSize and maxChunkSize
             return delegate(int prev)
             {
-                if (prev < minChunkSize) return minChunkSize;
-                if (prev >= maxChunkSize) return maxChunkSize;
+                if (prev < minChunkSize)
+                {
+                    return minChunkSize;
+                }
+                if (prev >= maxChunkSize)
+                {
+                    return maxChunkSize;
+                }
+
                 var next = prev * 2;
-                if (next >= maxChunkSize || next < 0) return maxChunkSize;
+                if (next >= maxChunkSize || next < 0)
+                {
+                    return maxChunkSize;
+                }
+
                 return next;
             };
         }
@@ -110,7 +134,10 @@ namespace Zen.Trunk.Partitioners
         public override IList<IEnumerator<KeyValuePair<long, T>>> GetOrderablePartitions(int partitionCount)
         {
             // Validate parameters
-            if (partitionCount <= 0) throw new ArgumentOutOfRangeException(nameof(partitionCount));
+            if (partitionCount <= 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(partitionCount));
+            }
 
             // Create an array of dynamic partitions and return them
             var partitions = new IEnumerator<KeyValuePair<long, T>>[partitionCount];
@@ -157,7 +184,10 @@ namespace Zen.Trunk.Partitioners
             public EnumerableOfEnumerators(ChunkPartitioner<T> parentPartitioner, bool referenceCountForDisposal)
             {
                 // Validate parameters
-                if (parentPartitioner == null) throw new ArgumentNullException(nameof(parentPartitioner));
+                if (parentPartitioner == null)
+                {
+                    throw new ArgumentNullException(nameof(parentPartitioner));
+                }
 
                 // Store the data, including creating an enumerator from the underlying data source
                 _parentPartitioner = parentPartitioner;
@@ -198,40 +228,60 @@ namespace Zen.Trunk.Partitioners
 
                 public Enumerator(EnumerableOfEnumerators parentEnumerable)
                 {
-                    if (parentEnumerable == null) throw new ArgumentNullException(nameof(parentEnumerable));
+                    if (parentEnumerable == null)
+                    {
+                        throw new ArgumentNullException(nameof(parentEnumerable));
+                    }
+
                     _parentEnumerable = parentEnumerable;
                 }
 
                 public bool MoveNext()
                 {
-                    if (_disposed) throw new ObjectDisposedException(GetType().Name);
+                    if (_disposed)
+                    {
+                        throw new ObjectDisposedException(GetType().Name);
+                    }
 
                     // Move to the next cached element. If we already retrieved a chunk and if there's still
                     // data left in it, just use the next item from it.
                     ++_currentChunkCurrentIndex;
                     if (_currentChunkCurrentIndex >= 0 &&
-                        _currentChunkCurrentIndex < _currentChunk.Count) return true;
+                        _currentChunkCurrentIndex < _currentChunk.Count)
+                    {
+                        return true;
+                    }
 
                     // First, figure out how much new data we want. The previous requested chunk size is used
                     // as input to figure out how much data the user now wants.  The initial chunk size
                     // supplied is 0 so that the user delegate is made aware that this is the initial request
                     // such that it can select the initial chunk size on first request.
                     var nextChunkSize = _parentEnumerable._parentPartitioner._nextChunkSizeFunc(_lastRequestedChunkSize);
-                    if (nextChunkSize <= 0) throw new InvalidOperationException(
-                        "Invalid chunk size requested: chunk sizes must be positive.");
+                    if (nextChunkSize <= 0)
+                    {
+                        throw new InvalidOperationException(
+                            "Invalid chunk size requested: chunk sizes must be positive.");
+                    }
+
                     _lastRequestedChunkSize = nextChunkSize;
 
                     // Reset the list
                     _currentChunk.Clear();
                     _currentChunkCurrentIndex = 0;
-                    if (nextChunkSize > _currentChunk.Capacity) _currentChunk.Capacity = nextChunkSize;
+                    if (nextChunkSize > _currentChunk.Capacity)
+                    {
+                        _currentChunk.Capacity = nextChunkSize;
+                    }
 
                     // Try to grab the next chunk of data
                     lock (_parentEnumerable._sharedEnumerator)
                     {
                         // If we've already discovered that no more elements exist (and we've gotten this
                         // far, which means we don't have any elements cached), we're done.
-                        if (_parentEnumerable._noMoreElements) return false;
+                        if (_parentEnumerable._noMoreElements)
+                        {
+                            return false;
+                        }
 
                         // Get another chunk
                         for (var i = 0; i < nextChunkSize; i++)
@@ -285,7 +335,10 @@ namespace Zen.Trunk.Partitioners
             {
                 if (!_disposed)
                 {
-                    if (!_referenceCountForDisposal) _sharedEnumerator.Dispose();
+                    if (!_referenceCountForDisposal)
+                    {
+                        _sharedEnumerator.Dispose();
+                    }
                     _disposed = true;
                 }
             }

@@ -30,10 +30,15 @@ namespace Zen.Trunk.Extensions
 				BlockingCollection<T> collection, int millisecondsTimeout, CancellationToken cancellationToken)
 			{
 				if (collection == null)
-					throw new ArgumentNullException(nameof(collection));
-				if (millisecondsTimeout < -1)
-					throw new ArgumentOutOfRangeException(nameof(millisecondsTimeout));
-				_collection = collection;
+				{
+				    throw new ArgumentNullException(nameof(collection));
+				}
+			    if (millisecondsTimeout < -1)
+			    {
+			        throw new ArgumentOutOfRangeException(nameof(millisecondsTimeout));
+			    }
+
+			    _collection = collection;
 				_millisecondsTimeout = millisecondsTimeout;
 				_cancellationToken = cancellationToken;
 			}
@@ -92,8 +97,11 @@ namespace Zen.Trunk.Extensions
 			internal BlockingCollectionPartitioner(BlockingCollection<T> collection)
 			{
 				if (collection == null)
-					throw new ArgumentNullException(nameof(collection));
-				_collection = collection;
+				{
+				    throw new ArgumentNullException(nameof(collection));
+				}
+
+			    _collection = collection;
 			}
 
 			/// <summary>Gets whether additional partitions can be created dynamically.</summary>
@@ -105,8 +113,11 @@ namespace Zen.Trunk.Extensions
 			public override IList<IEnumerator<T>> GetPartitions(int partitionCount)
 			{
 				if (partitionCount < 1)
-					throw new ArgumentOutOfRangeException(nameof(partitionCount));
-				var dynamicPartitioner = GetDynamicPartitions();
+				{
+				    throw new ArgumentOutOfRangeException(nameof(partitionCount));
+				}
+
+			    var dynamicPartitioner = GetDynamicPartitions();
 				return Enumerable.Range(0, partitionCount).Select(_ => dynamicPartitioner.GetEnumerator()).ToArray();
 			}
 
@@ -148,12 +159,16 @@ namespace Zen.Trunk.Extensions
 			try
 			{
 				foreach (var item in source)
-					target.Add(item);
+				{
+				    target.Add(item);
+				}
 			}
 			finally
 			{
 				if (completeAddingWhenDone)
-					target.CompleteAdding();
+				{
+				    target.CompleteAdding();
+				}
 			}
 		}
 
@@ -169,21 +184,30 @@ namespace Zen.Trunk.Extensions
 		public static IDisposable AddFromObservable<T>(this BlockingCollection<T> target, IObservable<T> source, bool completeAddingWhenDone)
 		{
 			if (target == null)
-				throw new ArgumentNullException(nameof(target));
-			if (source == null)
-				throw new ArgumentNullException(nameof(source));
-			return source.Subscribe(new DelegateBasedObserver<T>
+			{
+			    throw new ArgumentNullException(nameof(target));
+			}
+		    if (source == null)
+		    {
+		        throw new ArgumentNullException(nameof(source));
+		    }
+
+		    return source.Subscribe(new DelegateBasedObserver<T>
 			(
 				onNext: item => target.Add(item),
 				onError: error =>
 				{
 					if (completeAddingWhenDone)
-						target.CompleteAdding();
+					{
+					    target.CompleteAdding();
+					}
 				},
 				onCompleted: () =>
 				{
 					if (completeAddingWhenDone)
-						target.CompleteAdding();
+					{
+					    target.CompleteAdding();
+					}
 				}
 			));
 		}

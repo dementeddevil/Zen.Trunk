@@ -80,7 +80,10 @@ namespace Zen.Trunk.CoordinationDataStructures
             // Try to add the item to the underlying collection.  If we were able to,
             // notify any listeners.
             var result = base.TryAdd(item);
-            if (result) NotifyObserversOfChange();
+            if (result)
+            {
+                NotifyObserversOfChange();
+            }
             return result;
         }
 
@@ -98,7 +101,10 @@ namespace Zen.Trunk.CoordinationDataStructures
             // Try to remove an item from the underlying collection.  If we were able to,
             // notify any listeners.
             var result = base.TryTake(out item);
-            if (result) NotifyObserversOfChange();
+            if (result)
+            {
+                NotifyObserversOfChange();
+            }
             return result;
         }
     }

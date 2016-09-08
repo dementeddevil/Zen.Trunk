@@ -28,7 +28,10 @@ namespace Zen.Trunk.TaskSchedulers
         public StaTaskScheduler(int numberOfThreads)
         {
             // Validate arguments
-            if (numberOfThreads < 1) throw new ArgumentOutOfRangeException(nameof(numberOfThreads));
+            if (numberOfThreads < 1)
+            {
+                throw new ArgumentOutOfRangeException(nameof(numberOfThreads));
+            }
 
             // Initialize the tasks collection
             _tasks = new BlockingCollection<Task>();
@@ -97,7 +100,10 @@ namespace Zen.Trunk.TaskSchedulers
                 _tasks.CompleteAdding();
 
                 // Wait for all threads to finish processing tasks
-                foreach (var thread in _threads) thread.Join();
+                foreach (var thread in _threads)
+                {
+                    thread.Join();
+                }
 
                 // Cleanup
                 _tasks.Dispose();

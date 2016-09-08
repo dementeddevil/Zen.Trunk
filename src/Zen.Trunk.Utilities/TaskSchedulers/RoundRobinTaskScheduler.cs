@@ -26,14 +26,21 @@ namespace Zen.Trunk.TaskSchedulers
         public TaskScheduler CreateScheduler()
         {
             var createdQueue = new RoundRobinTaskSchedulerQueue(this);
-            lock (_queues) _queues.Add(createdQueue);
+            lock (_queues)
+            {
+                _queues.Add(createdQueue);
+            }
             return createdQueue;
         }
 
         /// <summary>Gets a collection of all schedulers in this group.</summary>
         public ReadOnlyCollection<TaskScheduler> Schedulers
         {
-            get { lock (_queues) return new ReadOnlyCollection<TaskScheduler>(_queues.Cast<TaskScheduler>().ToArray()); }
+            get { lock (_queues)
+                {
+                    return new ReadOnlyCollection<TaskScheduler>(_queues.Cast<TaskScheduler>().ToArray());
+                }
+            }
         }
 
         /// <summary>Removes a scheduler from the group.</summary>
@@ -41,7 +48,10 @@ namespace Zen.Trunk.TaskSchedulers
         private void RemoveQueue_NeedsLock(RoundRobinTaskSchedulerQueue queue)
         {
             var index = _queues.IndexOf(queue);
-            if (_nextQueue >= index) _nextQueue--;
+            if (_nextQueue >= index)
+            {
+                _nextQueue--;
+            }
             _queues.RemoveAt(index);
         }
 
@@ -78,7 +88,10 @@ namespace Zen.Trunk.TaskSchedulers
                 }
 
                 // If we found an item, run it
-                if (targetTask != null) queueForTargetTask.RunQueuedTask(targetTask);
+                if (targetTask != null)
+                {
+                    queueForTargetTask.RunQueuedTask(targetTask);
+                }
             }, null);
         }
 
@@ -104,19 +117,35 @@ namespace Zen.Trunk.TaskSchedulers
                 try
                 {
                     Monitor.TryEnter(obj, ref lockTaken);
-                    if (lockTaken) return WorkItems.ToArray();
-                    else throw new NotSupportedException();
+                    if (lockTaken)
+                    {
+                        return WorkItems.ToArray();
+                    }
+                    else
+                    {
+                        throw new NotSupportedException();
+                    }
                 }
                 finally
                 {
-                    if (lockTaken) Monitor.Exit(obj);
+                    if (lockTaken)
+                    {
+                        Monitor.Exit(obj);
+                    }
                 }
             }
 
             protected override void QueueTask(Task task)
             {
-                if (_disposed) throw new ObjectDisposedException(GetType().Name);
-                lock (_pool._queues) WorkItems.Enqueue(task);
+                if (_disposed)
+                {
+                    throw new ObjectDisposedException(GetType().Name);
+                }
+
+                lock (_pool._queues)
+                {
+                    WorkItems.Enqueue(task);
+                }
                 _pool.NotifyNewWorkItem();
             }
 
@@ -133,7 +162,10 @@ namespace Zen.Trunk.TaskSchedulers
                 {
                     lock (_pool._queues)
                     {
-                        if (WorkItems.Count == 0) _pool.RemoveQueue_NeedsLock(this);
+                        if (WorkItems.Count == 0)
+                        {
+                            _pool.RemoveQueue_NeedsLock(this);
+                        }
                         _disposed = true;
                     }
                 }

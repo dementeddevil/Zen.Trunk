@@ -29,7 +29,11 @@ namespace Zen.Trunk.CoordinationDataStructures.AsyncCoordination
         /// <param name="collection">The underlying collection to use to store data.</param>
         public AsyncProducerConsumerCollection(IProducerConsumerCollection<T> collection)
         {
-            if (collection == null) throw new ArgumentNullException(nameof(collection));
+            if (collection == null)
+            {
+                throw new ArgumentNullException(nameof(collection));
+            }
+
             _collection = collection;
         }
 
@@ -37,8 +41,14 @@ namespace Zen.Trunk.CoordinationDataStructures.AsyncCoordination
         /// <param name="item">The item to be added.</param>
         public void Add(T item)
         {
-            if (_collection.TryAdd(item)) _semaphore.Release();
-            else throw new InvalidOperationException("Invalid collection");
+            if (_collection.TryAdd(item))
+            {
+                _semaphore.Release();
+            }
+            else
+            {
+                throw new InvalidOperationException("Invalid collection");
+            }
         }
 
         /// <summary>Takes an element from the collection asynchronously.</summary>
@@ -48,7 +58,11 @@ namespace Zen.Trunk.CoordinationDataStructures.AsyncCoordination
             return _semaphore.Wait().ContinueWith(_ =>
             {
                 T result;
-                if (!_collection.TryTake(out result)) throw new InvalidOperationException("Invalid collection");
+                if (!_collection.TryTake(out result))
+                {
+                    throw new InvalidOperationException("Invalid collection");
+                }
+
                 return result;
             }, TaskContinuationOptions.ExecuteSynchronously | TaskContinuationOptions.OnlyOnRanToCompletion);
         }

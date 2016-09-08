@@ -42,7 +42,11 @@ namespace Zen.Trunk.CoordinationDataStructures.AsyncCoordination
         public AsyncCall(Action<T> actionHandler, int maxDegreeOfParallelism = 1, int maxItemsPerTask = Int32.MaxValue, TaskScheduler scheduler = null) :
             this(maxDegreeOfParallelism, maxItemsPerTask, scheduler)
         {
-            if (actionHandler == null) throw new ArgumentNullException(nameof(actionHandler));
+            if (actionHandler == null)
+            {
+                throw new ArgumentNullException(nameof(actionHandler));
+            }
+
             _handler = actionHandler;
         }
 
@@ -56,7 +60,11 @@ namespace Zen.Trunk.CoordinationDataStructures.AsyncCoordination
         public AsyncCall(Func<T,Task> functionHandler, int maxDegreeOfParallelism = 1, TaskScheduler scheduler = null) :
             this(maxDegreeOfParallelism, 1, scheduler)
         {
-            if (functionHandler == null) throw new ArgumentNullException(nameof(functionHandler));
+            if (functionHandler == null)
+            {
+                throw new ArgumentNullException(nameof(functionHandler));
+            }
+
             _handler = functionHandler;
         }
 
@@ -67,9 +75,19 @@ namespace Zen.Trunk.CoordinationDataStructures.AsyncCoordination
         private AsyncCall(int maxDegreeOfParallelism = 1, int maxItemsPerTask = Int32.MaxValue, TaskScheduler scheduler = null)
         {
             // Validate arguments
-            if (maxDegreeOfParallelism < 1) throw new ArgumentOutOfRangeException(nameof(maxDegreeOfParallelism));
-            if (maxItemsPerTask < 1) throw new ArgumentOutOfRangeException(nameof(maxItemsPerTask));
-            if (scheduler == null) scheduler = TaskScheduler.Default;
+            if (maxDegreeOfParallelism < 1)
+            {
+                throw new ArgumentOutOfRangeException(nameof(maxDegreeOfParallelism));
+            }
+            if (maxItemsPerTask < 1)
+            {
+                throw new ArgumentOutOfRangeException(nameof(maxItemsPerTask));
+            }
+
+            if (scheduler == null)
+            {
+                scheduler = TaskScheduler.Default;
+            }
 
             // Configure the instance
             _queue = new ConcurrentQueue<T>();
@@ -110,7 +128,10 @@ namespace Zen.Trunk.CoordinationDataStructures.AsyncCoordination
                         _tf.StartNew(ProcessItemFunctionTaskBody, null);
                     }
                 }
-                else Debug.Fail("_handler is an invalid delegate type");
+                else
+                {
+                    Debug.Fail("_handler is an invalid delegate type");
+                }
             }
         }
 
@@ -141,9 +162,16 @@ namespace Zen.Trunk.CoordinationDataStructures.AsyncCoordination
                 // based on the provided maxDegreeOfParallelism (which determines
                 // whether a ParallelOptions is instantiated).
                 if (_parallelOptions == null)
-                    foreach (var item in GetItemsToProcess()) handler(item);
+                {
+                    foreach (var item in GetItemsToProcess())
+                    {
+                        handler(item);
+                    }
+                }
                 else
+                {
                     Parallel.ForEach(GetItemsToProcess(), _parallelOptions, handler);
+                }
             }
             finally
             {
@@ -151,8 +179,14 @@ namespace Zen.Trunk.CoordinationDataStructures.AsyncCoordination
                 {
                     // If there are still items in the queue, schedule another task to continue processing.
                     // Otherwise, note that we're no longer processing.
-                    if (!_queue.IsEmpty) _tf.StartNew(ProcessItemsActionTaskBody, TaskCreationOptions.PreferFairness);
-                    else _processingCount = 0;
+                    if (!_queue.IsEmpty)
+                    {
+                        _tf.StartNew(ProcessItemsActionTaskBody, TaskCreationOptions.PreferFairness);
+                    }
+                    else
+                    {
+                        _processingCount = 0;
+                    }
                 }
             }
         }
@@ -174,8 +208,14 @@ namespace Zen.Trunk.CoordinationDataStructures.AsyncCoordination
                     // If we got a follow-on task, run this process again when the task completes.
                     // If we didn't, just start another task to keep going now.
                     var task = handler(nextItem);
-                    if (task != null) task.ContinueWith(ProcessItemFunctionTaskBody, _tf.Scheduler);
-                    else _tf.StartNew(ProcessItemFunctionTaskBody, null);
+                    if (task != null)
+                    {
+                        task.ContinueWith(ProcessItemFunctionTaskBody, _tf.Scheduler);
+                    }
+                    else
+                    {
+                        _tf.StartNew(ProcessItemFunctionTaskBody, null);
+                    }
 
                     // We've queued a task to continue processing, which means that logically
                     // we're still maintaining the same level of parallelism.
@@ -193,8 +233,14 @@ namespace Zen.Trunk.CoordinationDataStructures.AsyncCoordination
                         // Verify that there's still nothing in the queue, now under the same
                         // lock that the queuer needs to take in order to increment the processing count
                         // and launch a new processor.
-                        if (!_queue.IsEmpty) _tf.StartNew(ProcessItemFunctionTaskBody, null);
-                        else _processingCount--;
+                        if (!_queue.IsEmpty)
+                        {
+                            _tf.StartNew(ProcessItemFunctionTaskBody, null);
+                        }
+                        else
+                        {
+                            _processingCount--;
+                        }
                     }
                 }
             }

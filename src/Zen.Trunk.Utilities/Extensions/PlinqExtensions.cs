@@ -45,7 +45,11 @@ namespace Zen.Trunk.Extensions
 
                 (accum1, accum2) =>
                 {
-                    foreach (var item in accum2) accum1.Add(item);
+                    foreach (var item in accum2)
+                    {
+                        accum1.Add(item);
+                    }
+
                     return accum1;
                 },
 
@@ -114,8 +118,14 @@ namespace Zen.Trunk.Extensions
             IProducerConsumerCollection<TSource> target)
         {
             // Validate arguments
-            if (source == null) throw new ArgumentNullException(nameof(source));
-            if (target == null) throw new ArgumentNullException(nameof(target));
+            if (source == null)
+            {
+                throw new ArgumentNullException(nameof(source));
+            }
+            if (target == null)
+            {
+                throw new ArgumentNullException(nameof(target));
+            }
 
             // Store all results into the collection
             source.ForAll(item => target.TryAdd(item));
@@ -130,7 +140,10 @@ namespace Zen.Trunk.Extensions
             this IEnumerable<TSource> source,
             ParallelLinqOptions parallelOptions)
         {
-            if (source == null) throw new ArgumentNullException(nameof(source));
+            if (source == null)
+            {
+                throw new ArgumentNullException(nameof(source));
+            }
 
             // Validate unsupported options
             if (parallelOptions.TaskScheduler != null && parallelOptions.TaskScheduler != TaskScheduler.Default)

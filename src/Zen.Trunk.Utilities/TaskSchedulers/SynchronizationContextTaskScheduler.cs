@@ -35,7 +35,11 @@ namespace Zen.Trunk.TaskSchedulers
         /// <param name="context">The SynchronizationContext under which to execute tasks.</param>
         public SynchronizationContextTaskScheduler(SynchronizationContext context)
         {
-            if (context == null) throw new ArgumentNullException(nameof(context));
+            if (context == null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
             _context = context;
             _tasks = new ConcurrentQueue<Task>();
         }
@@ -48,7 +52,10 @@ namespace Zen.Trunk.TaskSchedulers
             _context.Post(delegate
             {
                 Task nextTask;
-                if (_tasks.TryDequeue(out nextTask)) TryExecuteTask(nextTask);
+                if (_tasks.TryDequeue(out nextTask))
+                {
+                    TryExecuteTask(nextTask);
+                }
             }, null);
         }
 

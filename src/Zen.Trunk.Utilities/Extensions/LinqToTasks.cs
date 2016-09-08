@@ -33,8 +33,14 @@ namespace Zen.Trunk.Extensions
         public static Task<TResult> SelectAsync<TSource, TResult>(this Task<TSource> source, Func<TSource, TResult> selector)
         {
             // Validate arguments
-            if (source == null) throw new ArgumentNullException(nameof(source));
-            if (selector == null) throw new ArgumentNullException(nameof(selector));
+            if (source == null)
+            {
+                throw new ArgumentNullException(nameof(source));
+            }
+            if (selector == null)
+            {
+                throw new ArgumentNullException(nameof(selector));
+            }
 
             // Use a continuation to run the selector function
             return source.ContinueWith(t => selector(t.Result), TaskContinuationOptions.NotOnCanceled);
@@ -53,8 +59,14 @@ namespace Zen.Trunk.Extensions
         public static Task<TResult> SelectManyAsync<TSource, TResult>(this Task<TSource> source, Func<TSource, Task<TResult>> selector)
         {
             // Validate arguments
-            if (source == null) throw new ArgumentNullException(nameof(source));
-            if (selector == null) throw new ArgumentNullException(nameof(selector));
+            if (source == null)
+            {
+                throw new ArgumentNullException(nameof(source));
+            }
+            if (selector == null)
+            {
+                throw new ArgumentNullException(nameof(selector));
+            }
 
             // Use a continuation to run the selector function.
             return source.ContinueWith(t => selector(t.Result), TaskContinuationOptions.NotOnCanceled).Unwrap();
@@ -78,9 +90,18 @@ namespace Zen.Trunk.Extensions
             Func<TSource, TCollection, TResult> resultSelector)
         {
             // Validate arguments
-            if (source == null) throw new ArgumentNullException(nameof(source));
-            if (collectionSelector == null) throw new ArgumentNullException(nameof(collectionSelector));
-            if (resultSelector == null) throw new ArgumentNullException(nameof(resultSelector));
+            if (source == null)
+            {
+                throw new ArgumentNullException(nameof(source));
+            }
+            if (collectionSelector == null)
+            {
+                throw new ArgumentNullException(nameof(collectionSelector));
+            }
+            if (resultSelector == null)
+            {
+                throw new ArgumentNullException(nameof(resultSelector));
+            }
 
             // When the source completes, run the collectionSelector to get the next Task,
             // and continue off of it to run the result selector
@@ -103,8 +124,14 @@ namespace Zen.Trunk.Extensions
         public static Task<TSource> WhereAsync<TSource>(this Task<TSource> source, Func<TSource, bool> predicate)
         {
             // Validate arguments
-            if (source == null) throw new ArgumentNullException(nameof(source));
-            if (predicate == null) throw new ArgumentNullException(nameof(predicate));
+            if (source == null)
+            {
+                throw new ArgumentNullException(nameof(source));
+            }
+            if (predicate == null)
+            {
+                throw new ArgumentNullException(nameof(predicate));
+            }
 
             // Create a continuation to run the predicate and return the source's result.
             // If the predicate returns false, cancel the returned Task.
@@ -112,7 +139,10 @@ namespace Zen.Trunk.Extensions
             return source.ContinueWith(t =>
             {
                 var result = t.Result;
-                if (!predicate(result)) cts.CancelAndThrow();
+                if (!predicate(result))
+                {
+                    cts.CancelAndThrow();
+                }
                 return result;
             }, cts.Token, TaskContinuationOptions.NotOnCanceled, TaskScheduler.Default);
         }
@@ -164,12 +194,30 @@ namespace Zen.Trunk.Extensions
             IEqualityComparer<TKey> comparer)
         {
             // Validate arguments
-            if (outer == null) throw new ArgumentNullException(nameof(outer));
-            if (inner == null) throw new ArgumentNullException(nameof(inner));
-            if (outerKeySelector == null) throw new ArgumentNullException(nameof(outerKeySelector));
-            if (innerKeySelector == null) throw new ArgumentNullException(nameof(innerKeySelector));
-            if (resultSelector == null) throw new ArgumentNullException(nameof(resultSelector));
-            if (comparer == null) throw new ArgumentNullException(nameof(comparer));
+            if (outer == null)
+            {
+                throw new ArgumentNullException(nameof(outer));
+            }
+            if (inner == null)
+            {
+                throw new ArgumentNullException(nameof(inner));
+            }
+            if (outerKeySelector == null)
+            {
+                throw new ArgumentNullException(nameof(outerKeySelector));
+            }
+            if (innerKeySelector == null)
+            {
+                throw new ArgumentNullException(nameof(innerKeySelector));
+            }
+            if (resultSelector == null)
+            {
+                throw new ArgumentNullException(nameof(resultSelector));
+            }
+            if (comparer == null)
+            {
+                throw new ArgumentNullException(nameof(comparer));
+            }
 
             // First continue off of the outer and then off of the inner.  Two separate
             // continuations are used so that each may be canceled easily using the NotOnCanceled option.
@@ -243,12 +291,30 @@ namespace Zen.Trunk.Extensions
             IEqualityComparer<TKey> comparer)
         {
             // Validate arguments
-            if (outer == null) throw new ArgumentNullException(nameof(outer));
-            if (inner == null) throw new ArgumentNullException(nameof(inner));
-            if (outerKeySelector == null) throw new ArgumentNullException(nameof(outerKeySelector));
-            if (innerKeySelector == null) throw new ArgumentNullException(nameof(innerKeySelector));
-            if (resultSelector == null) throw new ArgumentNullException(nameof(resultSelector));
-            if (comparer == null) throw new ArgumentNullException(nameof(comparer));
+            if (outer == null)
+            {
+                throw new ArgumentNullException(nameof(outer));
+            }
+            if (inner == null)
+            {
+                throw new ArgumentNullException(nameof(inner));
+            }
+            if (outerKeySelector == null)
+            {
+                throw new ArgumentNullException(nameof(outerKeySelector));
+            }
+            if (innerKeySelector == null)
+            {
+                throw new ArgumentNullException(nameof(innerKeySelector));
+            }
+            if (resultSelector == null)
+            {
+                throw new ArgumentNullException(nameof(resultSelector));
+            }
+            if (comparer == null)
+            {
+                throw new ArgumentNullException(nameof(comparer));
+            }
 
             // First continue off of the outer and then off of the inner.  Two separate
             // continuations are used so that each may be canceled easily using the NotOnCanceled option.
@@ -291,9 +357,18 @@ namespace Zen.Trunk.Extensions
             this Task<TSource> source, Func<TSource, TKey> keySelector, Func<TSource, TElement> elementSelector)
         {
             // Validate arguments
-            if (source == null) throw new ArgumentNullException(nameof(source));
-            if (keySelector == null) throw new ArgumentNullException(nameof(keySelector));
-            if (elementSelector == null) throw new ArgumentNullException(nameof(elementSelector));
+            if (source == null)
+            {
+                throw new ArgumentNullException(nameof(source));
+            }
+            if (keySelector == null)
+            {
+                throw new ArgumentNullException(nameof(keySelector));
+            }
+            if (elementSelector == null)
+            {
+                throw new ArgumentNullException(nameof(elementSelector));
+            }
 
             // When the source completes, return a grouping of just the one element
             return source.ContinueWith(t =>
@@ -329,7 +404,11 @@ namespace Zen.Trunk.Extensions
         {
             // A single item is already in sorted order, no matter what the key selector is, so just
             // return the original.
-            if (source == null) throw new ArgumentNullException(nameof(source));
+            if (source == null)
+            {
+                throw new ArgumentNullException(nameof(source));
+            }
+
             return source;
         }
 
@@ -346,7 +425,11 @@ namespace Zen.Trunk.Extensions
         {
             // A single item is already in sorted order, no matter what the key selector is, so just
             // return the original.
-            if (source == null) throw new ArgumentNullException(nameof(source));
+            if (source == null)
+            {
+                throw new ArgumentNullException(nameof(source));
+            }
+
             return source;
         }
 
@@ -363,7 +446,11 @@ namespace Zen.Trunk.Extensions
         {
             // A single item is already in sorted order, no matter what the key selector is, so just
             // return the original.
-            if (source == null) throw new ArgumentNullException(nameof(source));
+            if (source == null)
+            {
+                throw new ArgumentNullException(nameof(source));
+            }
+
             return source;
         }
 
@@ -380,7 +467,11 @@ namespace Zen.Trunk.Extensions
         {
             // A single item is already in sorted order, no matter what the key selector is, so just
             // return the original.
-            if (source == null) throw new ArgumentNullException(nameof(source));
+            if (source == null)
+            {
+                throw new ArgumentNullException(nameof(source));
+            }
+
             return source;
         }
     }

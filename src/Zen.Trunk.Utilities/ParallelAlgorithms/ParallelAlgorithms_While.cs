@@ -31,9 +31,18 @@ namespace Zen.Trunk.ParallelAlgorithms
         public static void ParallelWhile(
             ParallelOptions parallelOptions, Func<bool> condition, Action body)
         {
-            if (parallelOptions == null) throw new ArgumentNullException(nameof(parallelOptions));
-            if (condition == null) throw new ArgumentNullException(nameof(condition));
-            if (body == null) throw new ArgumentNullException(nameof(body));
+            if (parallelOptions == null)
+            {
+                throw new ArgumentNullException(nameof(parallelOptions));
+            }
+            if (condition == null)
+            {
+                throw new ArgumentNullException(nameof(condition));
+            }
+            if (body == null)
+            {
+                throw new ArgumentNullException(nameof(body));
+            }
 
             Parallel.ForEach(SingleItemPartitioner.Create(IterateUntilFalse(condition)), parallelOptions, ignored => body());
         }
@@ -41,7 +50,10 @@ namespace Zen.Trunk.ParallelAlgorithms
         // Continually yield values until condition returns false
         private static IEnumerable<bool> IterateUntilFalse(Func<bool> condition)
         {
-            while (condition()) yield return true;
+            while (condition())
+            {
+                yield return true;
+            }
         }
     }
 }

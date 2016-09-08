@@ -13,8 +13,15 @@ namespace Zen.Trunk.Utils
 
         public SortedTopN(int count, IComparer<TKey> comparer)
         {
-            if (count < 1) throw new ArgumentOutOfRangeException(nameof(count));
-            if (comparer == null) throw new ArgumentNullException(nameof(comparer));
+            if (count < 1)
+            {
+                throw new ArgumentOutOfRangeException(nameof(count));
+            }
+            if (comparer == null)
+            {
+                throw new ArgumentNullException(nameof(comparer));
+            }
+
             _n = count;
             _topNKeys = new List<TKey>(count);
             _topNValues = new List<TValue>(count);
@@ -29,7 +36,10 @@ namespace Zen.Trunk.Utils
         public bool Add(TKey key, TValue value)
         {
             var position = _topNKeys.BinarySearch(key, _comparer);
-            if (position < 0) position = ~position;
+            if (position < 0)
+            {
+                position = ~position;
+            }
             if (_topNKeys.Count < _n || position != 0)
             {
                 // Empty out an item if we're already full and we need to

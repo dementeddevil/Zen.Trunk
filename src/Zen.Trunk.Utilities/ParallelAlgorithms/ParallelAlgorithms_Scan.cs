@@ -45,7 +45,10 @@ namespace Zen.Trunk.ParallelAlgorithms
         public static T[] Scan<T>(IEnumerable<T> source, Func<T, T, T> function, bool loadBalance)
         {
             // Validate arguments
-            if (source == null) throw new ArgumentNullException(nameof(source));
+            if (source == null)
+            {
+                throw new ArgumentNullException(nameof(source));
+            }
 
             // Create output copy
             var output = source.ToArray();
@@ -84,8 +87,14 @@ namespace Zen.Trunk.ParallelAlgorithms
         public static void ScanInPlace<T>(T [] data, Func<T, T, T> function, bool loadBalance)
         {
             // Validate arguments
-            if (data == null) throw new ArgumentNullException(nameof(data));
-            if (function == null) throw new ArgumentNullException(nameof(function));
+            if (data == null)
+            {
+                throw new ArgumentNullException(nameof(data));
+            }
+            if (function == null)
+            {
+                throw new ArgumentNullException(nameof(function));
+            }
 
             // Do the prefix scan in-place and return the results.  This implementation
             // of parallel prefix scan ends up executing the function twice as many
@@ -150,7 +159,11 @@ namespace Zen.Trunk.ParallelAlgorithms
             int arrStart, int arrLength, int skip)
         {
             // If the length is 0 or 1, just return a copy of the original array.
-            if (arrLength <= 1) return;
+            if (arrLength <= 1)
+            {
+                return;
+            }
+
             var halfInputLength = arrLength / 2;
 
             // Pairwise combine. Use static partitioning, as the function

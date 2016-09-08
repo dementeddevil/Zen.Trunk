@@ -27,17 +27,29 @@ namespace Zen.Trunk.Extensions
             this AggregateException aggregateException,
             Func<Exception, bool> predicate, bool leaveStructureIntact)
         {
-            if (aggregateException == null) throw new ArgumentNullException(nameof(aggregateException));
-            if (predicate == null) throw new ArgumentNullException(nameof(predicate));
+            if (aggregateException == null)
+            {
+                throw new ArgumentNullException(nameof(aggregateException));
+            }
+            if (predicate == null)
+            {
+                throw new ArgumentNullException(nameof(predicate));
+            }
 
             // If leaveStructureIntact, use this implementation
             if (leaveStructureIntact)
             {
                 var result = HandleRecursively(aggregateException, predicate);
-                if (result != null) throw result;
+                if (result != null)
+                {
+                    throw result;
+                }
             }
                 // Otherwise, default back to the implementation on AggregateException
-            else aggregateException.Handle(predicate);
+            else
+            {
+                aggregateException.Handle(predicate);
+            }
         }
 
         private static AggregateException HandleRecursively(
@@ -57,14 +69,20 @@ namespace Zen.Trunk.Extensions
                     var newChildAggregate = HandleRecursively(innerAsAggregate, predicate);
                     if (newChildAggregate != null)
                     {
-                        if (innerExceptions == null) innerExceptions = new List<Exception>();
+                        if (innerExceptions == null)
+                        {
+                            innerExceptions = new List<Exception>();
+                        }
                         innerExceptions.Add(newChildAggregate);
                     }
                 }
                     // Otherwise, if the exception does not match the filter, store it
                 else if (!predicate(inner))
                 {
-                    if (innerExceptions == null) innerExceptions = new List<Exception>();
+                    if (innerExceptions == null)
+                    {
+                        innerExceptions = new List<Exception>();
+                    }
                     innerExceptions.Add(inner);
                 }
             }

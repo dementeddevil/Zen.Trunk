@@ -38,7 +38,11 @@ namespace Zen.Trunk.ParallelAlgorithms
             IList<T> input, ParallelOptions parallelOptions,
             T seed, Func<T, T, T> associativeCommutativeOperation)
         {
-            if (input == null) throw new ArgumentNullException(nameof(input));
+            if (input == null)
+            {
+                throw new ArgumentNullException(nameof(input));
+            }
+
             return Reduce(0, input.Count, parallelOptions, i => input[i], seed, associativeCommutativeOperation);
         }
 
@@ -70,10 +74,22 @@ namespace Zen.Trunk.ParallelAlgorithms
             int fromInclusive, int toExclusive, ParallelOptions parallelOptions, 
             Func<int, T> mapOperation, T seed, Func<T, T, T> associativeCommutativeOperation)
         {
-            if (parallelOptions == null) throw new ArgumentNullException(nameof(parallelOptions));
-            if (mapOperation == null) throw new ArgumentNullException(nameof(mapOperation));
-            if (associativeCommutativeOperation == null) throw new ArgumentNullException(nameof(associativeCommutativeOperation));
-            if (toExclusive < fromInclusive) throw new ArgumentOutOfRangeException(nameof(toExclusive));
+            if (parallelOptions == null)
+            {
+                throw new ArgumentNullException(nameof(parallelOptions));
+            }
+            if (mapOperation == null)
+            {
+                throw new ArgumentNullException(nameof(mapOperation));
+            }
+            if (associativeCommutativeOperation == null)
+            {
+                throw new ArgumentNullException(nameof(associativeCommutativeOperation));
+            }
+            if (toExclusive < fromInclusive)
+            {
+                throw new ArgumentOutOfRangeException(nameof(toExclusive));
+            }
 
             var obj = new object(); // used as a monitor for the final reduction
             var result = seed; // accumulator for final reduction
@@ -85,7 +101,11 @@ namespace Zen.Trunk.ParallelAlgorithms
                 // Map the current index to a value and aggregate that value into the local reduction
                 (i, loop, localResult) => associativeCommutativeOperation(mapOperation(i), localResult),
                 // Combine all of the local reductions
-                localResult => { lock (obj) result = associativeCommutativeOperation(localResult, result); });
+                localResult => { lock (obj)
+                    {
+                        result = associativeCommutativeOperation(localResult, result);
+                    }
+                });
 
             // Return the final result
             return result;

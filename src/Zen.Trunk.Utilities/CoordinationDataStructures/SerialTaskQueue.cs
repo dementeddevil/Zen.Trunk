@@ -37,13 +37,23 @@ namespace Zen.Trunk.CoordinationDataStructures
         private void EnqueueInternal(object taskOrFunction)
         {
             // Validate the task
-            if (taskOrFunction == null) throw new ArgumentNullException(nameof(taskOrFunction));
+            if (taskOrFunction == null)
+            {
+                throw new ArgumentNullException(nameof(taskOrFunction));
+            }
+
             lock(_tasks)
             {
                 // If there is currently no task in flight, we'll start this one
-                if (_taskInFlight == null) StartTask_CallUnderLock(taskOrFunction);
-                    // Otherwise, just queue the task to be started later
-                else _tasks.Enqueue(taskOrFunction);
+                if (_taskInFlight == null)
+                {
+                    StartTask_CallUnderLock(taskOrFunction);
+                }
+                // Otherwise, just queue the task to be started later
+                else
+                {
+                    _tasks.Enqueue(taskOrFunction);
+                }
             }
         }
 
@@ -56,7 +66,10 @@ namespace Zen.Trunk.CoordinationDataStructures
                 // The task completed, so nothing is currently in flight.
                 // If there are any tasks in the queue, start the next one.
                 _taskInFlight = null;
-                if (_tasks.Count > 0) StartTask_CallUnderLock(_tasks.Dequeue());
+                if (_tasks.Count > 0)
+                {
+                    StartTask_CallUnderLock(_tasks.Dequeue());
+                }
             }
         }
 
@@ -65,9 +78,15 @@ namespace Zen.Trunk.CoordinationDataStructures
         private void StartTask_CallUnderLock(object nextItem)
         {
             var next = nextItem as Task;
-            if (next == null) next = ((Func<Task>)nextItem)();
+            if (next == null)
+            {
+                next = ((Func<Task>)nextItem)();
+            }
 
-            if (next.Status == TaskStatus.Created) next.Start();
+            if (next.Status == TaskStatus.Created)
+            {
+                next.Start();
+            }
             _taskInFlight = next;
             next.ContinueWith(OnTaskCompletion);
         }

@@ -31,8 +31,14 @@ namespace Zen.Trunk.ParallelAlgorithms
         public static T SpeculativeInvoke<T>(ParallelOptions options, params Func<T>[] functions)
         {
             // Validate parameters
-            if (options == null) throw new ArgumentNullException(nameof(options));
-            if (functions == null) throw new ArgumentNullException(nameof(functions));
+            if (options == null)
+            {
+                throw new ArgumentNullException(nameof(options));
+            }
+            if (functions == null)
+            {
+                throw new ArgumentNullException(nameof(functions));
+            }
 
             // Speculatively invoke each function
             return SpeculativeForEach(functions, options, function => function());

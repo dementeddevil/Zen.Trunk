@@ -53,6 +53,7 @@ namespace Zen.Trunk.CoordinationDataStructures
             {
                 _context.Post(s =>
                 {
+                    // ReSharper disable once UseNullPropagation
                     if (collectionHandler != null)
                     {
                         collectionHandler(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
@@ -82,7 +83,10 @@ namespace Zen.Trunk.CoordinationDataStructures
         private bool TryAddWithNotification(TKey key, TValue value)
         {
             var result = _dictionary.TryAdd(key, value);
-            if (result) NotifyObserversOfChange();
+            if (result)
+            {
+                NotifyObserversOfChange();
+            }
             return result;
         }
 
@@ -93,7 +97,10 @@ namespace Zen.Trunk.CoordinationDataStructures
         private bool TryRemoveWithNotification(TKey key, out TValue value)
         {
             var result = _dictionary.TryRemove(key, out value);
-            if (result) NotifyObserversOfChange();
+            if (result)
+            {
+                NotifyObserversOfChange();
+            }
             return result;
         }
 
@@ -115,7 +122,7 @@ namespace Zen.Trunk.CoordinationDataStructures
 
         void ICollection<KeyValuePair<TKey, TValue>>.Clear()
         {
-            ((ICollection<KeyValuePair<TKey, TValue>>)_dictionary).Clear();
+            _dictionary.Clear();
             NotifyObserversOfChange();
         }
 
@@ -132,7 +139,7 @@ namespace Zen.Trunk.CoordinationDataStructures
         /// <summary>
         /// Gets the number of elements contained in the <see cref="T:System.Collections.Generic.ICollection`1" />.
         /// </summary>
-        public int Count => ((ICollection<KeyValuePair<TKey, TValue>>)_dictionary).Count;
+        public int Count => _dictionary.Count;
 
         bool ICollection<KeyValuePair<TKey, TValue>>.IsReadOnly => ((ICollection<KeyValuePair<TKey, TValue>>)_dictionary).IsReadOnly;
 
@@ -146,12 +153,12 @@ namespace Zen.Trunk.CoordinationDataStructures
         #region IEnumerable<KeyValuePair<TKey,TValue>> Members
         IEnumerator<KeyValuePair<TKey, TValue>> IEnumerable<KeyValuePair<TKey, TValue>>.GetEnumerator()
         {
-            return ((ICollection<KeyValuePair<TKey, TValue>>)_dictionary).GetEnumerator();
+            return _dictionary.GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            return ((ICollection<KeyValuePair<TKey, TValue>>)_dictionary).GetEnumerator();
+            return _dictionary.GetEnumerator();
         }
         #endregion
 

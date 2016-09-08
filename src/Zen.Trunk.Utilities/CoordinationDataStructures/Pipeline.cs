@@ -39,10 +39,15 @@ namespace Zen.Trunk.CoordinationDataStructures
 		public static Pipeline<TInput, TOutput> Create<TInput, TOutput>(Func<TInput, TOutput> func, int degreeOfParallelism)
 		{
 			if (func == null)
-				throw new ArgumentNullException(nameof(func));
-			if (degreeOfParallelism < 1)
-				throw new ArgumentOutOfRangeException(nameof(degreeOfParallelism));
-			return new Pipeline<TInput, TOutput>(func, degreeOfParallelism);
+			{
+			    throw new ArgumentNullException(nameof(func));
+			}
+		    if (degreeOfParallelism < 1)
+		    {
+		        throw new ArgumentOutOfRangeException(nameof(degreeOfParallelism));
+		    }
+
+		    return new Pipeline<TInput, TOutput>(func, degreeOfParallelism);
 		}
 	}
 
@@ -128,10 +133,15 @@ namespace Zen.Trunk.CoordinationDataStructures
 		public Pipeline<TInput, TNextOutput> Next<TNextOutput>(Func<TOutput, TNextOutput> func, int degreeOfParallelism)
 		{
 			if (func == null)
-				throw new ArgumentNullException(nameof(func));
-			if (degreeOfParallelism < 1)
-				throw new ArgumentOutOfRangeException(nameof(degreeOfParallelism));
-			return new InternalPipeline<TNextOutput>(this, func, degreeOfParallelism);
+			{
+			    throw new ArgumentNullException(nameof(func));
+			}
+		    if (degreeOfParallelism < 1)
+		    {
+		        throw new ArgumentOutOfRangeException(nameof(degreeOfParallelism));
+		    }
+
+		    return new InternalPipeline<TNextOutput>(this, func, degreeOfParallelism);
 		}
 
 		/// <summary>Runs the pipeline and returns an enumerable over the results.</summary>
@@ -150,8 +160,11 @@ namespace Zen.Trunk.CoordinationDataStructures
 		{
 			// Validate arguments
 			if (source == null)
-				throw new ArgumentNullException(nameof(source));
-			return ProcessNoArgValidation(source, cancellationToken);
+			{
+			    throw new ArgumentNullException(nameof(source));
+			}
+
+		    return ProcessNoArgValidation(source, cancellationToken);
 		}
 
 		/// <summary>Implements the core processing for a pipeline stage.</summary>

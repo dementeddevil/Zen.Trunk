@@ -21,7 +21,11 @@ namespace Zen.Trunk.Extensions.TaskFactoryExtensions
         public static Task Create(
             this TaskFactory factory, Action action)
         {
-            if (factory == null) throw new ArgumentNullException(nameof(factory));
+            if (factory == null)
+            {
+                throw new ArgumentNullException(nameof(factory));
+            }
+
             return new Task(action, factory.CancellationToken, factory.CreationOptions);
         }
 
@@ -44,7 +48,11 @@ namespace Zen.Trunk.Extensions.TaskFactoryExtensions
         public static Task Create(
             this TaskFactory factory, Action<Object> action, object state)
         {
-            if (factory == null) throw new ArgumentNullException(nameof(factory));
+            if (factory == null)
+            {
+                throw new ArgumentNullException(nameof(factory));
+            }
+
             return new Task(action, state, factory.CancellationToken, factory.CreationOptions);
         }
 
@@ -69,7 +77,11 @@ namespace Zen.Trunk.Extensions.TaskFactoryExtensions
         public static Task<TResult> Create<TResult>(
             this TaskFactory factory, Func<TResult> function)
         {
-            if (factory == null) throw new ArgumentNullException(nameof(factory));
+            if (factory == null)
+            {
+                throw new ArgumentNullException(nameof(factory));
+            }
+
             return new Task<TResult>(function, factory.CancellationToken, factory.CreationOptions);
         }
 
@@ -92,7 +104,11 @@ namespace Zen.Trunk.Extensions.TaskFactoryExtensions
         public static Task<TResult> Create<TResult>(
             this TaskFactory factory, Func<Object, TResult> function, object state)
         {
-            if (factory == null) throw new ArgumentNullException(nameof(factory));
+            if (factory == null)
+            {
+                throw new ArgumentNullException(nameof(factory));
+            }
+
             return new Task<TResult>(function, state, factory.CancellationToken, factory.CreationOptions);
         }
 
@@ -117,7 +133,11 @@ namespace Zen.Trunk.Extensions.TaskFactoryExtensions
         public static Task<TResult> Create<TResult>(
             this TaskFactory<TResult> factory, Func<TResult> function)
         {
-            if (factory == null) throw new ArgumentNullException(nameof(factory));
+            if (factory == null)
+            {
+                throw new ArgumentNullException(nameof(factory));
+            }
+
             return new Task<TResult>(function, factory.CancellationToken, factory.CreationOptions);
         }
 
@@ -140,7 +160,11 @@ namespace Zen.Trunk.Extensions.TaskFactoryExtensions
         public static Task<TResult> Create<TResult>(
             this TaskFactory<TResult> factory, Func<Object, TResult> function, object state)
         {
-            if (factory == null) throw new ArgumentNullException(nameof(factory));
+            if (factory == null)
+            {
+                throw new ArgumentNullException(nameof(factory));
+            }
+
             return new Task<TResult>(function, state, factory.CancellationToken, factory.CreationOptions);
         }
 

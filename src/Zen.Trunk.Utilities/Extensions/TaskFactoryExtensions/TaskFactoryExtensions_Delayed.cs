@@ -33,8 +33,14 @@ namespace Zen.Trunk.Extensions.TaskFactoryExtensions
         public static Task StartNewDelayed(this TaskFactory factory, int millisecondsDelay, CancellationToken cancellationToken)
         {
             // Validate arguments
-            if (factory == null) throw new ArgumentNullException(nameof(factory));
-            if (millisecondsDelay < 0) throw new ArgumentOutOfRangeException(nameof(millisecondsDelay));
+            if (factory == null)
+            {
+                throw new ArgumentNullException(nameof(factory));
+            }
+            if (millisecondsDelay < 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(millisecondsDelay));
+            }
 
             // Create the timed task
             var tcs = new TaskCompletionSource<object>(factory.CreationOptions);
@@ -79,7 +85,11 @@ namespace Zen.Trunk.Extensions.TaskFactoryExtensions
             this TaskFactory factory,
             int millisecondsDelay, Action action)
         {
-            if (factory == null) throw new ArgumentNullException(nameof(factory));
+            if (factory == null)
+            {
+                throw new ArgumentNullException(nameof(factory));
+            }
+
             return StartNewDelayed(factory, millisecondsDelay, action, factory.CancellationToken, factory.CreationOptions, factory.GetTargetScheduler());
         }
 
@@ -94,7 +104,11 @@ namespace Zen.Trunk.Extensions.TaskFactoryExtensions
             int millisecondsDelay, Action action,
             TaskCreationOptions creationOptions)
         {
-            if (factory == null) throw new ArgumentNullException(nameof(factory));
+            if (factory == null)
+            {
+                throw new ArgumentNullException(nameof(factory));
+            }
+
             return StartNewDelayed(factory, millisecondsDelay, action, factory.CancellationToken, creationOptions, factory.GetTargetScheduler());
         }
 
@@ -109,7 +123,11 @@ namespace Zen.Trunk.Extensions.TaskFactoryExtensions
             int millisecondsDelay, Action action,
             CancellationToken cancellationToken)
         {
-            if (factory == null) throw new ArgumentNullException(nameof(factory));
+            if (factory == null)
+            {
+                throw new ArgumentNullException(nameof(factory));
+            }
+
             return StartNewDelayed(factory, millisecondsDelay, action, cancellationToken, factory.CreationOptions, factory.GetTargetScheduler());
         }
 
@@ -126,10 +144,22 @@ namespace Zen.Trunk.Extensions.TaskFactoryExtensions
             int millisecondsDelay, Action action, 
             CancellationToken cancellationToken, TaskCreationOptions creationOptions, TaskScheduler scheduler)
         {
-            if (factory == null) throw new ArgumentNullException(nameof(factory));
-            if (millisecondsDelay < 0) throw new ArgumentOutOfRangeException(nameof(millisecondsDelay));
-            if (action == null) throw new ArgumentNullException(nameof(action));
-            if (scheduler == null) throw new ArgumentNullException(nameof(scheduler));
+            if (factory == null)
+            {
+                throw new ArgumentNullException(nameof(factory));
+            }
+            if (millisecondsDelay < 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(millisecondsDelay));
+            }
+            if (action == null)
+            {
+                throw new ArgumentNullException(nameof(action));
+            }
+            if (scheduler == null)
+            {
+                throw new ArgumentNullException(nameof(scheduler));
+            }
 
             return factory
                 .StartNewDelayed(millisecondsDelay, cancellationToken)
@@ -146,7 +176,11 @@ namespace Zen.Trunk.Extensions.TaskFactoryExtensions
             this TaskFactory factory,
             int millisecondsDelay, Action<object> action, object state)
         {
-            if (factory == null) throw new ArgumentNullException(nameof(factory));
+            if (factory == null)
+            {
+                throw new ArgumentNullException(nameof(factory));
+            }
+
             return StartNewDelayed(factory, millisecondsDelay, action, state, factory.CancellationToken, factory.CreationOptions, factory.GetTargetScheduler());
         }
 
@@ -162,7 +196,11 @@ namespace Zen.Trunk.Extensions.TaskFactoryExtensions
             int millisecondsDelay, Action<object> action, object state,
             TaskCreationOptions creationOptions)
         {
-            if (factory == null) throw new ArgumentNullException(nameof(factory));
+            if (factory == null)
+            {
+                throw new ArgumentNullException(nameof(factory));
+            }
+
             return StartNewDelayed(factory, millisecondsDelay, action, state, factory.CancellationToken, creationOptions, factory.GetTargetScheduler());
         }
 
@@ -178,7 +216,11 @@ namespace Zen.Trunk.Extensions.TaskFactoryExtensions
             int millisecondsDelay, Action<object> action, object state,
             CancellationToken cancellationToken)
         {
-            if (factory == null) throw new ArgumentNullException(nameof(factory));
+            if (factory == null)
+            {
+                throw new ArgumentNullException(nameof(factory));
+            }
+
             return StartNewDelayed(factory, millisecondsDelay, action, state, cancellationToken, factory.CreationOptions, factory.GetTargetScheduler());
         }
 
@@ -196,10 +238,22 @@ namespace Zen.Trunk.Extensions.TaskFactoryExtensions
             int millisecondsDelay, Action<object> action, object state,
             CancellationToken cancellationToken, TaskCreationOptions creationOptions, TaskScheduler scheduler)
         {
-            if (factory == null) throw new ArgumentNullException(nameof(factory));
-            if (millisecondsDelay < 0) throw new ArgumentOutOfRangeException(nameof(millisecondsDelay));
-            if (action == null) throw new ArgumentNullException(nameof(action));
-            if (scheduler == null) throw new ArgumentNullException(nameof(scheduler));
+            if (factory == null)
+            {
+                throw new ArgumentNullException(nameof(factory));
+            }
+            if (millisecondsDelay < 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(millisecondsDelay));
+            }
+            if (action == null)
+            {
+                throw new ArgumentNullException(nameof(action));
+            }
+            if (scheduler == null)
+            {
+                throw new ArgumentNullException(nameof(scheduler));
+            }
 
             // Create the task that will be returned; workaround for no ContinueWith(..., state) overload.
             var result = new TaskCompletionSource<object>(state);
@@ -209,7 +263,10 @@ namespace Zen.Trunk.Extensions.TaskFactoryExtensions
                 .StartNewDelayed(millisecondsDelay, cancellationToken)
                 .ContinueWith(t =>
                 {
-                    if (t.IsCanceled) result.TrySetCanceled();
+                    if (t.IsCanceled)
+                    {
+                        result.TrySetCanceled();
+                    }
                     else
                     {
                         try
@@ -236,7 +293,11 @@ namespace Zen.Trunk.Extensions.TaskFactoryExtensions
             this TaskFactory<TResult> factory,
             int millisecondsDelay, Func<TResult> function)
         {
-            if (factory == null) throw new ArgumentNullException(nameof(factory));
+            if (factory == null)
+            {
+                throw new ArgumentNullException(nameof(factory));
+            }
+
             return StartNewDelayed(factory, millisecondsDelay, function, factory.CancellationToken, factory.CreationOptions, factory.GetTargetScheduler());
         }
 
@@ -251,7 +312,11 @@ namespace Zen.Trunk.Extensions.TaskFactoryExtensions
             int millisecondsDelay, Func<TResult> function,
             TaskCreationOptions creationOptions)
         {
-            if (factory == null) throw new ArgumentNullException(nameof(factory));
+            if (factory == null)
+            {
+                throw new ArgumentNullException(nameof(factory));
+            }
+
             return StartNewDelayed(factory, millisecondsDelay, function, factory.CancellationToken, creationOptions, factory.GetTargetScheduler());
         }
 
@@ -266,7 +331,11 @@ namespace Zen.Trunk.Extensions.TaskFactoryExtensions
             int millisecondsDelay, Func<TResult> function,
             CancellationToken cancellationToken)
         {
-            if (factory == null) throw new ArgumentNullException(nameof(factory));
+            if (factory == null)
+            {
+                throw new ArgumentNullException(nameof(factory));
+            }
+
             return StartNewDelayed(factory, millisecondsDelay, function, cancellationToken, factory.CreationOptions, factory.GetTargetScheduler());
         }
 
@@ -283,10 +352,22 @@ namespace Zen.Trunk.Extensions.TaskFactoryExtensions
             int millisecondsDelay, Func<TResult> function,
             CancellationToken cancellationToken, TaskCreationOptions creationOptions, TaskScheduler scheduler)
         {
-            if (factory == null) throw new ArgumentNullException(nameof(factory));
-            if (millisecondsDelay < 0) throw new ArgumentOutOfRangeException(nameof(millisecondsDelay));
-            if (function == null) throw new ArgumentNullException(nameof(function));
-            if (scheduler == null) throw new ArgumentNullException(nameof(scheduler));
+            if (factory == null)
+            {
+                throw new ArgumentNullException(nameof(factory));
+            }
+            if (millisecondsDelay < 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(millisecondsDelay));
+            }
+            if (function == null)
+            {
+                throw new ArgumentNullException(nameof(function));
+            }
+            if (scheduler == null)
+            {
+                throw new ArgumentNullException(nameof(scheduler));
+            }
 
             // Create the trigger and the timer to start it
             var tcs = new TaskCompletionSource<object>();
@@ -311,7 +392,11 @@ namespace Zen.Trunk.Extensions.TaskFactoryExtensions
             this TaskFactory<TResult> factory,
             int millisecondsDelay, Func<object, TResult> function, object state)
         {
-            if (factory == null) throw new ArgumentNullException(nameof(factory));
+            if (factory == null)
+            {
+                throw new ArgumentNullException(nameof(factory));
+            }
+
             return StartNewDelayed(factory, millisecondsDelay, function, state, factory.CancellationToken, factory.CreationOptions, factory.GetTargetScheduler());
         }
 
@@ -327,7 +412,11 @@ namespace Zen.Trunk.Extensions.TaskFactoryExtensions
             int millisecondsDelay, Func<object, TResult> function, object state,
             CancellationToken cancellationToken)
         {
-            if (factory == null) throw new ArgumentNullException(nameof(factory));
+            if (factory == null)
+            {
+                throw new ArgumentNullException(nameof(factory));
+            }
+
             return StartNewDelayed(factory, millisecondsDelay, function, state, cancellationToken, factory.CreationOptions, factory.GetTargetScheduler());
         }
 
@@ -343,7 +432,11 @@ namespace Zen.Trunk.Extensions.TaskFactoryExtensions
             int millisecondsDelay, Func<object, TResult> function, object state,
             TaskCreationOptions creationOptions)
         {
-            if (factory == null) throw new ArgumentNullException(nameof(factory));
+            if (factory == null)
+            {
+                throw new ArgumentNullException(nameof(factory));
+            }
+
             return StartNewDelayed(factory, millisecondsDelay, function, state, factory.CancellationToken, creationOptions, factory.GetTargetScheduler());
         }
 
@@ -361,10 +454,22 @@ namespace Zen.Trunk.Extensions.TaskFactoryExtensions
             int millisecondsDelay, Func<object, TResult> function, object state,
             CancellationToken cancellationToken, TaskCreationOptions creationOptions, TaskScheduler scheduler)
         {
-            if (factory == null) throw new ArgumentNullException(nameof(factory));
-            if (millisecondsDelay < 0) throw new ArgumentOutOfRangeException(nameof(millisecondsDelay));
-            if (function == null) throw new ArgumentNullException(nameof(function));
-            if (scheduler == null) throw new ArgumentNullException(nameof(scheduler));
+            if (factory == null)
+            {
+                throw new ArgumentNullException(nameof(factory));
+            }
+            if (millisecondsDelay < 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(millisecondsDelay));
+            }
+            if (function == null)
+            {
+                throw new ArgumentNullException(nameof(function));
+            }
+            if (scheduler == null)
+            {
+                throw new ArgumentNullException(nameof(scheduler));
+            }
 
             // Create the task that will be returned
             var result = new TaskCompletionSource<TResult>(state);

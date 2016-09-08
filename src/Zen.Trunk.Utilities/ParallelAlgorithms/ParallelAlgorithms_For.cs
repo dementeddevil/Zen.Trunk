@@ -64,7 +64,10 @@ namespace Zen.Trunk.ParallelAlgorithms
         /// <returns>The enumerable of the range.</returns>
         private static IEnumerable<BigInteger> Range(BigInteger fromInclusive, BigInteger toExclusive)
         {
-            for (var i = fromInclusive; i < toExclusive; i++) yield return i;
+            for (var i = fromInclusive; i < toExclusive; i++)
+            {
+                yield return i;
+            }
         }
     }
 }

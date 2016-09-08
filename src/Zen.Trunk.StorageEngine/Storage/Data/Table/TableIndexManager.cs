@@ -687,11 +687,7 @@ namespace Zen.Trunk.Storage.Data.Table
 	public class SplitTableIndexPageParameters
 	{
 		#region Private Fields
-		private readonly IndexId _indexId;
-		private readonly TableIndexPage _parentPage;
-		private readonly TableIndexPage _pageToSplit;
-		private readonly TableIndexPage _splitPage;
-		#endregion
+	    #endregion
 
 		#region Public Constructors
 		/// <summary>
@@ -702,9 +698,9 @@ namespace Zen.Trunk.Storage.Data.Table
 			TableIndexPage pageToSplit,
 			TableIndexPage splitPage)
 		{
-			_indexId = indexId;
-			_pageToSplit = pageToSplit;
-			_splitPage = splitPage;
+			IndexId = indexId;
+			PageToSplit = pageToSplit;
+			SplitPage = splitPage;
 		}
 
 		/// <summary>
@@ -715,90 +711,81 @@ namespace Zen.Trunk.Storage.Data.Table
 			TableIndexPage pageToSplit,
 			TableIndexPage splitPage)
 		{
-			_parentPage = parentPage;
-			_pageToSplit = pageToSplit;
-			_splitPage = splitPage;
+			ParentPage = parentPage;
+			PageToSplit = pageToSplit;
+			SplitPage = splitPage;
 		}
 		#endregion
 
 		#region Public Properties
-		public IndexId IndexId => _indexId;
+		public IndexId IndexId { get; }
 
 	    /// <summary>
 		/// Gets the parent page.
 		/// </summary>
 		/// <value>The parent page.</value>
-		public TableIndexPage ParentPage => _parentPage;
+		public TableIndexPage ParentPage { get; }
 
 	    /// <summary>
 		/// Gets the page to split.
 		/// </summary>
 		/// <value>The page to split.</value>
-		public TableIndexPage PageToSplit => _pageToSplit;
+		public TableIndexPage PageToSplit { get; }
 
 	    /// <summary>
 		/// Gets the split page.
 		/// </summary>
 		/// <value>The split page.</value>
-		public TableIndexPage SplitPage => _splitPage;
+		public TableIndexPage SplitPage { get; }
 	    #endregion
 	}
 
 	public class FindTableIndexParameters
 	{
 		#region Private Fields
-		private readonly RootTableIndexInfo _rootInfo;
-		private readonly object[] _keys;
-
-		private readonly bool _forInsert;
-		private readonly object[] _clusteredKey;
-		private readonly ulong _rowLogicalPageId;
-		private readonly uint _rowId;
-
-		private readonly ushort? _rowSize;
-		#endregion
+	    #endregion
 
 		#region Public Constructors
 		public FindTableIndexParameters(RootTableIndexInfo rootInfo, object[] keys)
 		{
-			_rootInfo = rootInfo;
-			_keys = keys;
+			RootInfo = rootInfo;
+			Keys = keys;
 		}
 
 		public FindTableIndexParameters(RootTableIndexInfo rootInfo, object[] keys, ulong rowLogicalPageId, uint rowId)
 		{
-			_rootInfo = rootInfo;
-			_keys = keys;
-			_rowLogicalPageId = rowLogicalPageId;
-			_rowId = rowId;
-			_forInsert = true;
+			RootInfo = rootInfo;
+			Keys = keys;
+			RowLogicalPageId = rowLogicalPageId;
+			RowId = rowId;
+			IsForInsert = true;
 		}
 
 		public FindTableIndexParameters(RootTableIndexInfo rootInfo, object[] keys, ulong rowLogicalPageId, uint rowId, ushort rowSize)
 		{
-			_rootInfo = rootInfo;
-			_keys = keys;
-			_rowLogicalPageId = rowLogicalPageId;
-			_rowId = rowId;
-			_rowSize = rowSize;
-			_forInsert = true;
+			RootInfo = rootInfo;
+			Keys = keys;
+			RowLogicalPageId = rowLogicalPageId;
+			RowId = rowId;
+			RowSize = rowSize;
+			IsForInsert = true;
 		}
 
 		public FindTableIndexParameters(RootTableIndexInfo rootInfo, object[] keys, object[] clusteredKeys)
 		{
-			_rootInfo = rootInfo;
-			_keys = keys;
-			_clusteredKey = clusteredKeys;
-			_forInsert = true;
+			RootInfo = rootInfo;
+			Keys = keys;
+			ClusteredKey = clusteredKeys;
+			IsForInsert = true;
 		}
 
 		public FindTableIndexParameters(RootTableIndexInfo rootInfo, object[] keys, object[] clusteredKeys, ushort rowSize)
 		{
-			_rootInfo = rootInfo;
-			_keys = keys;
-			_clusteredKey = clusteredKeys;
-			_rowSize = rowSize;
-			_forInsert = true;
+			RootInfo = rootInfo;
+			Keys = keys;
+			ClusteredKey = clusteredKeys;
+			RowSize = rowSize;
+			IsForInsert = true;
 		}
 		#endregion
 
@@ -807,13 +794,13 @@ namespace Zen.Trunk.Storage.Data.Table
 		/// Gets the root index information.
 		/// </summary>
 		/// <value>The root info.</value>
-		public RootTableIndexInfo RootInfo => _rootInfo;
+		public RootTableIndexInfo RootInfo { get; }
 
 	    /// <summary>
 		/// Gets the keys.
 		/// </summary>
 		/// <value>The keys.</value>
-		public object[] Keys => _keys;
+		public object[] Keys { get; }
 
 	    /// <summary>
 		/// Gets a value indicating whether this instance is for insert.
@@ -821,7 +808,7 @@ namespace Zen.Trunk.Storage.Data.Table
 		/// <value>
 		/// 	<c>true</c> if this instance is for insert; otherwise, <c>false</c>.
 		/// </value>
-		public bool IsForInsert => _forInsert;
+		public bool IsForInsert { get; }
 
 	    /// <summary>
 		/// Gets the clustered key.
@@ -829,7 +816,7 @@ namespace Zen.Trunk.Storage.Data.Table
 		/// <value>
 		/// The clustered key.
 		/// </value>
-		public object[] ClusteredKey => _clusteredKey;
+		public object[] ClusteredKey { get; }
 
 	    /// <summary>
 		/// Gets the row logical id.
@@ -838,7 +825,7 @@ namespace Zen.Trunk.Storage.Data.Table
 		/// <remarks>
 		/// This value is only valid for index inserts.
 		/// </remarks>
-		public ulong RowLogicalPageId => _rowLogicalPageId;
+		public ulong RowLogicalPageId { get; }
 
 	    /// <summary>
 		/// Gets the row id.
@@ -847,7 +834,7 @@ namespace Zen.Trunk.Storage.Data.Table
 		/// <remarks>
 		/// This value is only valid for index inserts.
 		/// </remarks>
-		public uint RowId => _rowId;
+		public uint RowId { get; }
 
 	    /// <summary>
 		/// Gets the size of the row.
@@ -856,8 +843,7 @@ namespace Zen.Trunk.Storage.Data.Table
 		/// <remarks>
 		/// This value is only valid for index inserts for a clustered index.
 		/// </remarks>
-		public ushort? RowSize => _rowSize;
-
+		public ushort? RowSize { get; }
 	    #endregion
 	}
 
@@ -869,13 +855,9 @@ namespace Zen.Trunk.Storage.Data.Table
 			Entry = entry;
 		}
 
-		public TableIndexPage Page
-		{
-			get; }
+		public TableIndexPage Page { get; }
 
-		public TableIndexLeafInfo Entry
-		{
-			get; }
+		public TableIndexLeafInfo Entry { get; }
 	}
 
 	public class EnumerateIndexEntriesParameters
@@ -892,20 +874,12 @@ namespace Zen.Trunk.Storage.Data.Table
 			OnIteration = iterationFunc;
 		}
 
-		public RootTableIndexInfo Index
-		{
-			get; }
+		public RootTableIndexInfo Index { get; }
 
-		public object[] FromKeys
-		{
-			get; }
+		public object[] FromKeys { get; }
 
-		public object[] ToKeys
-		{
-			get; }
+		public object[] ToKeys { get; }
 
-		public Func<TableIndexPage, TableIndexLeafInfo, int, bool> OnIteration
-		{
-			get; }
+		public Func<TableIndexPage, TableIndexLeafInfo, int, bool> OnIteration { get; }
 	}
 }

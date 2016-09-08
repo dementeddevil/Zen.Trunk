@@ -37,7 +37,11 @@ namespace Zen.Trunk.TaskSchedulers
         /// <param name="maxDegreeOfParallelism">The maximum degree of parallelism provided by this scheduler.</param>
         public LimitedConcurrencyLevelTaskScheduler(int maxDegreeOfParallelism)
         {
-            if (maxDegreeOfParallelism < 1) throw new ArgumentOutOfRangeException(nameof(maxDegreeOfParallelism));
+            if (maxDegreeOfParallelism < 1)
+            {
+                throw new ArgumentOutOfRangeException(nameof(maxDegreeOfParallelism));
+            }
+
             _maxDegreeOfParallelism = maxDegreeOfParallelism;
         }
 
@@ -105,10 +109,16 @@ namespace Zen.Trunk.TaskSchedulers
         protected sealed override bool TryExecuteTaskInline(Task task, bool taskWasPreviouslyQueued)
         {
             // If this thread isn't already processing a task, we don't support inlining
-            if (!_currentThreadIsProcessingItems) return false;
+            if (!_currentThreadIsProcessingItems)
+            {
+                return false;
+            }
 
             // If the task was previously queued, remove it from the queue
-            if (taskWasPreviouslyQueued) TryDequeue(task);
+            if (taskWasPreviouslyQueued)
+            {
+                TryDequeue(task);
+            }
 
             // Try to run the task.
             return TryExecuteTask(task);
@@ -119,7 +129,10 @@ namespace Zen.Trunk.TaskSchedulers
         /// <returns>Whether the task could be found and removed.</returns>
         protected sealed override bool TryDequeue(Task task)
         {
-            lock (_tasks) return _tasks.Remove(task);
+            lock (_tasks)
+            {
+                return _tasks.Remove(task);
+            }
         }
 
         /// <summary>Gets the maximum concurrency level supported by this scheduler.</summary>
@@ -133,12 +146,21 @@ namespace Zen.Trunk.TaskSchedulers
             try
             {
                 Monitor.TryEnter(_tasks, ref lockTaken);
-                if (lockTaken) return _tasks.ToArray();
-                else throw new NotSupportedException();
+                if (lockTaken)
+                {
+                    return _tasks.ToArray();
+                }
+                else
+                {
+                    throw new NotSupportedException();
+                }
             }
             finally
             {
-                if (lockTaken) Monitor.Exit(_tasks);
+                if (lockTaken)
+                {
+                    Monitor.Exit(_tasks);
+                }
             }
         }
     }

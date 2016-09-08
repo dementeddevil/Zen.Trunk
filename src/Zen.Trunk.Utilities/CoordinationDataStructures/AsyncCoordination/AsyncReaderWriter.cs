@@ -38,18 +38,38 @@ namespace Zen.Trunk.CoordinationDataStructures.AsyncCoordination
         /// <param name="factory">The TaskFactory to use to create all tasks.</param>
         public AsyncReaderWriter(TaskFactory factory)
         {
-            if (factory == null) throw new ArgumentNullException(nameof(factory));
+            if (factory == null)
+            {
+                throw new ArgumentNullException(nameof(factory));
+            }
+
             _factory = factory;
         }
 
         /// <summary>Gets the number of exclusive operations currently queued.</summary>
-        public int WaitingExclusive { get { lock (_lock) return _waitingExclusive.Count; } }
+        public int WaitingExclusive { get { lock (_lock)
+            {
+                return _waitingExclusive.Count;
+            }
+        } }
         /// <summary>Gets the number of concurrent operations currently queued.</summary>
-        public int WaitingConcurrent { get { lock (_lock) return _waitingConcurrent.Count; } }
+        public int WaitingConcurrent { get { lock (_lock)
+            {
+                return _waitingConcurrent.Count;
+            }
+        } }
         /// <summary>Gets the number of concurrent operations currently executing.</summary>
-        public int CurrentConcurrent { get { lock (_lock) return _currentConcurrent; } }
+        public int CurrentConcurrent { get { lock (_lock)
+            {
+                return _currentConcurrent;
+            }
+        } }
         /// <summary>Gets whether an exclusive operation is currently executing.</summary>
-        public bool CurrentlyExclusive { get { lock (_lock) return _currentlyExclusive; } }
+        public bool CurrentlyExclusive { get { lock (_lock)
+            {
+                return _currentlyExclusive;
+            }
+        } }
 
         /// <summary>Queues an exclusive writer action to the ReaderWriterAsync.</summary>
         /// <param name="action">The action to be executed exclusively.</param>
@@ -72,8 +92,14 @@ namespace Zen.Trunk.CoordinationDataStructures.AsyncCoordination
             {
                 // If there's already a task running, or if there are any other exclusive tasks that need to run,
                 // queue it.  Otherwise, no one else is running or wants to run, so schedule it now.
-                if (_currentlyExclusive || _currentConcurrent > 0 || _waitingExclusive.Count > 0) _waitingExclusive.Enqueue(task);
-                else RunExclusive_RequiresLock(task);
+                if (_currentlyExclusive || _currentConcurrent > 0 || _waitingExclusive.Count > 0)
+                {
+                    _waitingExclusive.Enqueue(task);
+                }
+                else
+                {
+                    RunExclusive_RequiresLock(task);
+                }
             }
 
             // Return the created task for the caller to track.
@@ -101,8 +127,14 @@ namespace Zen.Trunk.CoordinationDataStructures.AsyncCoordination
             {
                 // If there's already a task running, or if there are any other exclusive tasks that need to run,
                 // queue it.  Otherwise, no one else is running or wants to run, so schedule it now.
-                if (_currentlyExclusive || _currentConcurrent > 0 || _waitingExclusive.Count > 0) _waitingExclusive.Enqueue(task);
-                else RunExclusive_RequiresLock(task);
+                if (_currentlyExclusive || _currentConcurrent > 0 || _waitingExclusive.Count > 0)
+                {
+                    _waitingExclusive.Enqueue(task);
+                }
+                else
+                {
+                    RunExclusive_RequiresLock(task);
+                }
             }
 
             // Return the created task for the caller to track.
@@ -129,9 +161,15 @@ namespace Zen.Trunk.CoordinationDataStructures.AsyncCoordination
             lock (_lock)
             {
                 // If there are any exclusive tasks running or waiting, queue the concurrent task
-                if (_currentlyExclusive || _waitingExclusive.Count > 0) _waitingConcurrent.Enqueue(task);
+                if (_currentlyExclusive || _waitingExclusive.Count > 0)
+                {
+                    _waitingConcurrent.Enqueue(task);
+                }
                 // Otherwise schedule it immediately
-                else RunConcurrent_RequiresLock(task);
+                else
+                {
+                    RunConcurrent_RequiresLock(task);
+                }
             }
 
             // Return the task to the caller.
@@ -158,9 +196,15 @@ namespace Zen.Trunk.CoordinationDataStructures.AsyncCoordination
             lock (_lock)
             {
                 // If there are any exclusive tasks running or waiting, queue the concurrent task
-                if (_currentlyExclusive || _waitingExclusive.Count > 0) _waitingConcurrent.Enqueue(task);
+                if (_currentlyExclusive || _waitingExclusive.Count > 0)
+                {
+                    _waitingConcurrent.Enqueue(task);
+                }
                 // Otherwise schedule it immediately
-                else RunConcurrent_RequiresLock(task);
+                else
+                {
+                    RunConcurrent_RequiresLock(task);
+                }
             }
 
             // Return the task to the caller.
@@ -189,7 +233,10 @@ namespace Zen.Trunk.CoordinationDataStructures.AsyncCoordination
         /// <remarks>This must only be executed while holding the instance's lock.</remarks>
         private void RunConcurrent_RequiresLock()
         {
-            while (_waitingConcurrent.Count > 0) RunConcurrent_RequiresLock(_waitingConcurrent.Dequeue());
+            while (_waitingConcurrent.Count > 0)
+            {
+                RunConcurrent_RequiresLock(_waitingConcurrent.Dequeue());
+            }
         }
 
         /// <summary>Completes the processing of a concurrent reader.</summary>
@@ -201,11 +248,17 @@ namespace Zen.Trunk.CoordinationDataStructures.AsyncCoordination
                 _currentConcurrent--;
 
                 // If we've now hit zero tasks running concurrently and there are any waiting writers, run one of them
-                if (_currentConcurrent == 0 && _waitingExclusive.Count > 0) RunExclusive_RequiresLock(_waitingExclusive.Dequeue());
+                if (_currentConcurrent == 0 && _waitingExclusive.Count > 0)
+                {
+                    RunExclusive_RequiresLock(_waitingExclusive.Dequeue());
+                }
 
                 // Otherwise, if there are no waiting writers but there are waiting readers for some reason (they should
                 // have started when they were added by the user), run all concurrent tasks waiting.
-                else if (_waitingExclusive.Count == 0 && _waitingConcurrent.Count > 0) RunConcurrent_RequiresLock();
+                else if (_waitingExclusive.Count == 0 && _waitingConcurrent.Count > 0)
+                {
+                    RunConcurrent_RequiresLock();
+                }
             }
         }
 
@@ -218,10 +271,16 @@ namespace Zen.Trunk.CoordinationDataStructures.AsyncCoordination
                 _currentlyExclusive = false;
 
                 // If there are any more waiting exclusive tasks, run the next one in line
-                if (_waitingExclusive.Count > 0) RunExclusive_RequiresLock(_waitingExclusive.Dequeue());
+                if (_waitingExclusive.Count > 0)
+                {
+                    RunExclusive_RequiresLock(_waitingExclusive.Dequeue());
+                }
 
                 // Otherwise, if there are any waiting concurrent tasks, run them all
-                else if (_waitingConcurrent.Count > 0) RunConcurrent_RequiresLock();
+                else if (_waitingConcurrent.Count > 0)
+                {
+                    RunConcurrent_RequiresLock();
+                }
             }
         }
     }

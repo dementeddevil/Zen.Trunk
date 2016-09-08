@@ -34,8 +34,11 @@ namespace Zen.Trunk.CoordinationDataStructures
 			: base(collection)
 		{
 			if (generator == null)
-				throw new ArgumentNullException(nameof(generator));
-			_generator = generator;
+			{
+			    throw new ArgumentNullException(nameof(generator));
+			}
+
+		    _generator = generator;
 		}
 
 		/// <summary>Adds the provided item into the pool.</summary>
@@ -61,17 +64,35 @@ namespace Zen.Trunk.CoordinationDataStructures
 			var items = new List<T>();
 			T value;
 			while (base.TryTake(out value))
-				items.Add(value);
-			return items.ToArray();
+			{
+			    items.Add(value);
+			}
+
+		    return items.ToArray();
 		}
 
-		protected override bool TryAdd(T item)
+        /// <summary>
+        /// Attempts to add the specified value to the end of the deque.
+        /// </summary>
+        /// <param name="item">The item to add.</param>
+        /// <returns>
+        /// true if the item could be added; otherwise, false.
+        /// </returns>
+        protected override bool TryAdd(T item)
 		{
 			PutObject(item);
 			return true;
 		}
 
-		protected override bool TryTake(out T item)
+        /// <summary>
+        /// Attempts to remove and return an item from the collection.
+        /// </summary>
+        /// <param name="item">When this method returns, if the operation was successful, item contains the item removed. If
+        /// no item was available to be removed, the value is unspecified.</param>
+        /// <returns>
+        /// true if an element was removed and returned from the collection; otherwise, false.
+        /// </returns>
+        protected override bool TryTake(out T item)
 		{
 			item = GetObject();
 			return true;

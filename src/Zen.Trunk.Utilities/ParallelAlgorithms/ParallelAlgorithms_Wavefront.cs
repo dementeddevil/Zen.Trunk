@@ -25,14 +25,26 @@ namespace Zen.Trunk.ParallelAlgorithms
             Action<int, int, int, int> processBlock)
         {
             // Validate parameters
-            if (numRows <= 0) throw new ArgumentOutOfRangeException(nameof(numRows));
-            if (numColumns <= 0) throw new ArgumentOutOfRangeException(nameof(numColumns));
+            if (numRows <= 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(numRows));
+            }
+            if (numColumns <= 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(numColumns));
+            }
             if (numBlocksPerRow <= 0 || numBlocksPerRow > numRows)
+            {
                 throw new ArgumentOutOfRangeException(nameof(numBlocksPerRow));
+            }
             if (numBlocksPerColumn <= 0 || numBlocksPerColumn > numColumns)
+            {
                 throw new ArgumentOutOfRangeException(nameof(numBlocksPerColumn));
+            }
             if (processBlock == null)
+            {
                 throw new ArgumentNullException(nameof(processBlock));
+            }
 
             // Compute the size of each block
             var rowBlockSize = numRows / numBlocksPerRow;
@@ -59,9 +71,18 @@ namespace Zen.Trunk.ParallelAlgorithms
         public static void Wavefront(int numRows, int numColumns, Action<int, int> processRowColumnCell)
         {
             // Validate parameters
-            if (numRows <= 0) throw new ArgumentOutOfRangeException(nameof(numRows));
-            if (numColumns <= 0) throw new ArgumentOutOfRangeException(nameof(numColumns));
-            if (processRowColumnCell == null) throw new ArgumentNullException(nameof(processRowColumnCell));
+            if (numRows <= 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(numRows));
+            }
+            if (numColumns <= 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(numColumns));
+            }
+            if (processRowColumnCell == null)
+            {
+                throw new ArgumentNullException(nameof(processRowColumnCell));
+            }
 
             // Store the previous row of tasks as well as the previous task in the current row
             var prevTaskRow = new Task[numColumns];

@@ -37,7 +37,11 @@ namespace Zen.Trunk.TaskSchedulers
         public WorkStealingTaskScheduler(int concurrencyLevel)
         {
             // Store the concurrency level
-            if (concurrencyLevel <= 0) throw new ArgumentOutOfRangeException(nameof(concurrencyLevel));
+            if (concurrencyLevel <= 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(concurrencyLevel));
+            }
+
             _concurrencyLevel = concurrencyLevel;
 
             // Set up threads
@@ -90,7 +94,10 @@ namespace Zen.Trunk.TaskSchedulers
                     lock (_queue)
                     {
                         _queue.Enqueue(task);
-                        if (_threadsWaiting > 0) Monitor.Pulse(_queue);
+                        if (_threadsWaiting > 0)
+                        {
+                            Monitor.Pulse(_queue);
+                        }
                     }
                 }
             }
@@ -128,12 +135,21 @@ namespace Zen.Trunk.TaskSchedulers
             try
             {
                 Monitor.TryEnter(_queue, ref lockTaken);
-                if (lockTaken) tasks.AddRange(_queue.ToArray());
-                else throw new NotSupportedException();
+                if (lockTaken)
+                {
+                    tasks.AddRange(_queue.ToArray());
+                }
+                else
+                {
+                    throw new NotSupportedException();
+                }
             }
             finally
             {
-                if (lockTaken) Monitor.Exit(_queue);
+                if (lockTaken)
+                {
+                    Monitor.Exit(_queue);
+                }
             }
 
             // Now get all of the tasks from the work-stealing queues
@@ -141,7 +157,10 @@ namespace Zen.Trunk.TaskSchedulers
             for (var i = 0; i < queues.Length; i++)
             {
                 var wsq = queues[i];
-                if (wsq != null) tasks.AddRange(wsq.ToArray());
+                if (wsq != null)
+                {
+                    tasks.AddRange(wsq.ToArray());
+                }
             }
 
             // Return to the debugger all of the collected task instances
@@ -222,7 +241,9 @@ namespace Zen.Trunk.TaskSchedulers
                             {
                                 // If shutdown was requested, exit the thread.
                                 if (_shutdown)
+                                {
                                     return;
+                                }
 
                                 // (2) try the global queue.
                                 if (_queue.Count != 0)
@@ -240,7 +261,9 @@ namespace Zen.Trunk.TaskSchedulers
 
                                     // If we were signaled due to shutdown, exit the thread.
                                     if (_shutdown)
+                                    {
                                         return;
+                                    }
 
                                     searchedForSteals = false;
                                     continue;
@@ -253,10 +276,16 @@ namespace Zen.Trunk.TaskSchedulers
                             for (i = 0; i < wsQueues.Length; i++)
                             {
                                 var q = wsQueues[i];
-                                if (q != null && q != wsq && q.TrySteal(out wi)) break;
+                                if (q != null && q != wsq && q.TrySteal(out wi))
+                                {
+                                    break;
+                                }
                             }
 
-                            if (i != wsQueues.Length) break;
+                            if (i != wsQueues.Length)
+                            {
+                                break;
+                            }
 
                             searchedForSteals = true;
                         }
@@ -279,8 +308,14 @@ namespace Zen.Trunk.TaskSchedulers
             if (_queue != null && _threads.IsValueCreated)
             {
                 var threads = _threads.Value;
-                lock (_queue) Monitor.PulseAll(_queue);
-                for (var i = 0; i < threads.Length; i++) threads[i].Join();
+                lock (_queue)
+                {
+                    Monitor.PulseAll(_queue);
+                }
+                for (var i = 0; i < threads.Length; i++)
+                {
+                    threads[i].Join();
+                }
             }
         }
     }
@@ -322,7 +357,9 @@ namespace Zen.Trunk.TaskSchedulers
                         // We're full; expand the queue by doubling its size.
                         var newArray = new T[_array.Length << 1];
                         for (var i = 0; i < _array.Length; i++)
+                        {
                             newArray[i] = _array[(i + head) & _mask];
+                        }
 
                         // Reset the field values, incl. the mask.
                         _array = newArray;
@@ -361,7 +398,10 @@ namespace Zen.Trunk.TaskSchedulers
                     obj = _array[idx];
 
                     // Check for nulls in the array.
-                    if (obj == null) continue;
+                    if (obj == null)
+                    {
+                        continue;
+                    }
 
                     _array[idx] = null;
                     return true;
@@ -378,7 +418,10 @@ namespace Zen.Trunk.TaskSchedulers
                             obj = _array[idx];
 
                             // Check for nulls in the array.
-                            if (obj == null) continue;
+                            if (obj == null)
+                            {
+                                continue;
+                            }
 
                             _array[idx] = null;
                             return true;
@@ -402,7 +445,9 @@ namespace Zen.Trunk.TaskSchedulers
             while (true)
             {
                 if (_headIndex >= _tailIndex)
+                {
                     return false;
+                }
 
                 lock (_foreignLock)
                 {
@@ -418,7 +463,10 @@ namespace Zen.Trunk.TaskSchedulers
                         obj = _array[idx];
 
                         // Check for nulls in the array.
-                        if (obj == null) continue;
+                        if (obj == null)
+                        {
+                            continue;
+                        }
 
                         _array[idx] = null;
                         return true;
@@ -466,9 +514,13 @@ namespace Zen.Trunk.TaskSchedulers
                         // the edge).  If we can't, we just leave nulls in the array and they'll
                         // get filtered out eventually (but may lead to superflous resizing).
                         if (i == _tailIndex)
+                        {
                             _tailIndex -= 1;
+                        }
                         else if (i == _headIndex)
+                        {
                             _headIndex += 1;
+                        }
 
                         return true;
                     }
@@ -484,7 +536,10 @@ namespace Zen.Trunk.TaskSchedulers
             for (var i = _tailIndex - 1; i >= _headIndex; i--)
             {
                 var obj = _array[i & _mask];
-                if (obj != null) list.Add(obj);
+                if (obj != null)
+                {
+                    list.Add(obj);
+                }
             }
             return list.ToArray();
         }
