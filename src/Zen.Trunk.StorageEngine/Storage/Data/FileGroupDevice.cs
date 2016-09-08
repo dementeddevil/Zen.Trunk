@@ -546,7 +546,7 @@ namespace Zen.Trunk.Storage.Data
         /// <param name="indexParams">The index parameters.</param>
         /// <returns></returns>
         /// <exception cref="BufferDeviceShuttingDownException"></exception>
-        public Task<ObjectId> AddIndex(AddTableIndexParameters indexParams)
+        public Task<IndexId> AddIndex(AddTableIndexParameters indexParams)
         {
             var request = new AddTableIndexRequest(indexParams);
             if (!AddTableIndexPort.Post(request))
@@ -1246,7 +1246,6 @@ namespace Zen.Trunk.Storage.Data
             table.FileGroupId = FileGroupId;
             table.ObjectId = request.Message.OwnerObjectId;
             table.IsNewTable = false;
-            table.AddIndex();
             //table.AddIndex
 
             return Task.FromResult(indexId);
