@@ -1,12 +1,10 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using Zen.Trunk.Storage.IO;
 
 namespace Zen.Trunk.Storage.Data.Table
 {
-	using System;
-	using System.Collections.Generic;
-	using System.Collections.ObjectModel;
-	using System.IO;
-	using IO;
 
 	public enum RowConstraintType
 	{
@@ -247,6 +245,16 @@ namespace Zen.Trunk.Storage.Data.Table
 		}
 		#endregion
 
+		#region Protected Properties
+		/// <summary>
+		/// Gets the last header field.
+		/// </summary>
+		/// <value>
+		/// The last header field.
+		/// </value>
+		protected override BufferField LastHeaderField => _indexCount;
+	    #endregion
+
 		#region Public Methods
 		/// <summary>
 		/// Gets the index key size based on the specified columns.
@@ -272,17 +280,6 @@ namespace Zen.Trunk.Storage.Data.Table
 		}
 		#endregion
 
-		#region Protected Properties
-		/// <summary>
-		/// Gets the last header field.
-		/// </summary>
-		/// <value>
-		/// The last header field.
-		/// </value>
-		protected override BufferField LastHeaderField => _indexCount;
-
-	    #endregion
-
 		#region Protected Methods
 		/// <summary>
 		/// Overridden. Initialises the page instance.
@@ -297,7 +294,11 @@ namespace Zen.Trunk.Storage.Data.Table
 			return base.OnInitAsync(e);
 		}
 
-		protected override void WriteHeader(BufferReaderWriter streamManager)
+        /// <summary>
+        /// Writes the page header block to the specified buffer writer.
+        /// </summary>
+        /// <param name="streamManager">The stream manager.</param>
+        protected override void WriteHeader(BufferReaderWriter streamManager)
 		{
 			_columnCount.Value = (byte)(_columns != null ? _columns.Count : 0);
 			_constraintCount.Value = (byte)(_constraints != null ? _constraints.Count : 0);
@@ -305,7 +306,11 @@ namespace Zen.Trunk.Storage.Data.Table
 			base.WriteHeader(streamManager);
 		}
 
-		protected override void ReadData(BufferReaderWriter streamManager)
+        /// <summary>
+        /// Reads the page data block from the specified buffer reader.
+        /// </summary>
+        /// <param name="streamManager">The stream manager.</param>
+        protected override void ReadData(BufferReaderWriter streamManager)
 		{
 			_columns.Clear();
 			for (byte index = 0; index < _columnCount.Value; ++index)
@@ -330,7 +335,11 @@ namespace Zen.Trunk.Storage.Data.Table
 			}
 		}
 
-		protected override void WriteData(BufferReaderWriter streamManager)
+        /// <summary>
+        /// Writes the page data block to the specified buffer writer.
+        /// </summary>
+        /// <param name="streamManager">The stream manager.</param>
+        protected override void WriteData(BufferReaderWriter streamManager)
 		{
 			if (_columns != null)
 			{

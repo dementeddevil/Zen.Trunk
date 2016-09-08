@@ -108,17 +108,10 @@ namespace Zen.Trunk.Storage.Data
         internal const uint DbSchemaVersion = 0x01000001;
 
         private readonly BufferFieldInt32 _deviceCount;
-        private readonly BufferFieldInt32 _indexCount;
         private readonly BufferFieldInt32 _objectCount;
 
-        private readonly PageItemCollection<DeviceInfo> _updatedDevices;
-        private readonly Dictionary<DeviceId, DeviceInfo> _devices = new Dictionary<DeviceId, DeviceInfo>();
-
-        //private readonly PageItemCollection<IndexRefInfo> _updatedIndices;
-        //private readonly Dictionary<Tuple<ObjectId, IndexId>, IndexRefInfo> _indices = new Dictionary<Tuple<ObjectId, IndexId>, IndexRefInfo> ();
-
-        private readonly PageItemCollection<ObjectRefInfo> _updatedObjects;
-        private readonly Dictionary<ObjectId, ObjectRefInfo> _objects = new Dictionary<ObjectId, ObjectRefInfo>();
+        private readonly PageItemCollection<DeviceInfo> _devices;
+        private readonly PageItemCollection<ObjectRefInfo> _objects;
         #endregion
 
         #region Public Constructors
@@ -127,12 +120,11 @@ namespace Zen.Trunk.Storage.Data
         /// </summary>
         public PrimaryFileGroupRootPage()
         {
-            _updatedDevices = new PageItemCollection<DeviceInfo>(this);
-            _updatedObjects = new PageItemCollection<ObjectRefInfo>(this);
+            _devices = new PageItemCollection<DeviceInfo>(this);
+            _objects = new PageItemCollection<ObjectRefInfo>(this);
 
             _deviceCount = new BufferFieldInt32(base.LastHeaderField);
-            _indexCount = new BufferFieldInt32(_deviceCount);
-            _objectCount = new BufferFieldInt32(_indexCount);
+            _objectCount = new BufferFieldInt32(_deviceCount);
         }
         #endregion
 
@@ -146,12 +138,20 @@ namespace Zen.Trunk.Storage.Data
         public override uint MinHeaderSize => base.MinHeaderSize + 12;
 
         /// <summary>
-        /// Gets the devices.
+        /// Gets the list of devices registered on this page.
         /// </summary>
         /// <value>
         /// The devices.
         /// </value>
-        public IEnumerable<DeviceInfo> Devices => _devices.Values.Select(item => new DeviceInfo(item));
+        public ICollection<DeviceInfo> Devices => _devices;
+
+        /// <summary>
+        /// Gets the list of objects registered on this page.
+        /// </summary>
+        /// <value>
+        /// The objects.
+        /// </value>
+        public ICollection<ObjectRefInfo> Objects => _objects;
         #endregion
 
         #region Protected Properties
@@ -192,129 +192,14 @@ namespace Zen.Trunk.Storage.Data
         public Task CreateSlaveDataDevices(FileGroupDevice pageDevice)
         {
             var addTaskList = new List<Task>();
-            foreach (var di in _devices.Values)
+            foreach (var di in _devices)
             {
                 addTaskList.Add(pageDevice.AddDataDeviceAsync(
                     new AddDataDeviceParameters(di.Name, di.PathName, di.Id)));
             }
             return TaskExtra.WhenAllOrEmpty(addTaskList.ToArray());
         }
-
-        /// <summary>
-        /// Adds the device info.
-        /// </summary>
-        /// <param name="info">The info.</param>
-        public bool AddDeviceInfo(DeviceInfo info)
-        {
-            CheckReadOnly();
-
-            // Add device
-            // TODO: Check whether we can fit this device descriptor into our 
-            //	page.
-            _devices.Add(info.Id, info);
-            ++_deviceCount.Value;
-
-            // Mark page as dirty
-            SetDirty();
-            return true;
-        }
-
-        /// <summary>
-        /// Updates the device information.
-        /// </summary>
-        /// <param name="info">The information.</param>
-        /// <returns></returns>
-        public bool UpdateDeviceInfo(DeviceInfo info)
-        {
-            var result = false;
-            CheckReadOnly();
-            if (_devices.ContainsKey(info.Id))
-            {
-                // Add device
-                // TODO: Check whether we can fit this device descriptor into our 
-                //	page.
-                _devices[info.Id] = info;
-
-                // Mark page as dirty
-                SetDirty();
-                result = true;
-            }
-            return result;
-        }
-
-        /// <summary>
-        /// Removes the device.
-        /// </summary>
-        /// <param name="id">The id.</param>
-        public void RemoveDevice(DeviceId id)
-        {
-            CheckReadOnly();
-            if (_devices.ContainsKey(id))
-            {
-                // Remove device
-                _devices.Remove(id);
-                --_deviceCount.Value;
-                SetDirty();
-            }
-        }
-
-        /// <summary>
-        /// Gets the device.
-        /// </summary>
-        /// <param name="id">The identifier.</param>
-        /// <returns></returns>
-        public DeviceInfo GetDevice(DeviceId id)
-        {
-            // Return clone of the data held in the root page.
-            return new DeviceInfo(_devices[id]);
-        }
-
-        /// <summary>
-        /// Adds the object information.
-        /// </summary>
-        /// <param name="info">The information.</param>
-        /// <returns></returns>
-        public bool AddObjectInfo(ObjectRefInfo info)
-        {
-            CheckReadOnly();
-
-            // TODO: Check we have enough space for this item on this page
-            // Add to map
-            _objects.Add(info.ObjectId, info);
-            ++_objectCount.Value;
-
-            SetDirty();
-            return true;
-        }
-
-        /// <summary>
-        /// Updates the object information.
-        /// </summary>
-        /// <param name="info">The information.</param>
-        /// <returns></returns>
-        public bool UpdateObjectInfo(ObjectRefInfo info)
-        {
-            var result = false;
-            CheckReadOnly();
-            if (_objects.ContainsKey(info.ObjectId))
-            {
-                _objects[info.ObjectId] = info;
-                SetDirty();
-                result = true;
-            }
-            return result;
-        }
-
-        /// <summary>
-        /// Gets the object.
-        /// </summary>
-        /// <param name="name">The name.</param>
-        /// <returns></returns>
-        public ObjectRefInfo GetObject(string name)
-        {
-            return _objects.Values.FirstOrDefault(item => item.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
-        }
-        #endregion`
+        #endregion
 
         #region Protected Methods
         /// <summary>
@@ -328,21 +213,13 @@ namespace Zen.Trunk.Storage.Data
             {
                 var info = new DeviceInfo();
                 info.Read(streamManager);
-                _devices.Add(info.Id, info);
+                _devices.Add(info);
             }
-            /*for (int index = 0; index < _indexCount.Value; ++index)
-			{
-				IndexRefInfo indexRef = new IndexRefInfo ();
-				indexRef.Read (streamManager);
-				indexRef.RootIndex.IndexFileGroup = _fileGroups[indexRef.FileGroupId].Name;
-
-				_indices.Add (indexRef.RootIndex.ObjectId, indexRef);
-			}*/
             for (var index = 0; index < _objectCount.Value; ++index)
             {
                 var info = new ObjectRefInfo();
                 info.Read(streamManager);
-                _objects.Add(info.ObjectId, info);
+                _objects.Add(info);
 
                 // Hookup file-group from page
                 info.FileGroupId = FileGroupId;
@@ -361,15 +238,11 @@ namespace Zen.Trunk.Storage.Data
             {
                 throw new InvalidOperationException("Device count mismatch.");
             }
-            foreach (var di in _devices.Values)
+            foreach (var di in _devices)
             {
                 di.Write(streamManager);
             }
-            /*foreach (IndexRefInfo info in _indices.Values)
-			{
-				info.Write (streamManager);
-			}*/
-            foreach (var info in _objects.Values)
+            foreach (var info in _objects)
             {
                 info.Write(streamManager);
             }

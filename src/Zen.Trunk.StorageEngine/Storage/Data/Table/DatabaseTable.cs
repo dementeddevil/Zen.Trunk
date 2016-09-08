@@ -47,22 +47,17 @@ namespace Zen.Trunk.Storage.Data.Table
                     {
                         throw new ArgumentException("Column name is empty.");
                     }
-                    if (item.DataType == TableColumnDataType.Timestamp &&
-                        _owner._updatedConstraints.HasTimestamp)
+                    if (this.Any(tc => string.Equals(tc.Name, item.Name, StringComparison.OrdinalIgnoreCase)))
+                    {
+                        throw new ArgumentException("Column name not unique.");
+                    }
+                    if (item.DataType == TableColumnDataType.Timestamp && _owner._updatedConstraints.HasTimestamp)
                     {
                         throw new ArgumentException("Table can only have a single timestamp column.");
                     }
                     if (item.AutoIncrement && _owner._updatedConstraints.HasIdentity)
                     {
                         throw new ArgumentException("Table can only have a single identity column.");
-                    }
-                    foreach (var tableColumn in this)
-                    {
-                        // Check column name
-                        if (string.Compare(tableColumn.Name, item.Name, true) == 0)
-                        {
-                            throw new ArgumentException("Column name not unique.");
-                        }
                     }
                     if (item.AutoIncrement && !item.IsIncrementSupported)
                     {
@@ -83,24 +78,19 @@ namespace Zen.Trunk.Storage.Data.Table
                     // Add constraint
                     if (item.DataType == TableColumnDataType.Timestamp)
                     {
-                        var constraint = new RowConstraint();
-                        constraint.ColumnId = item.Id;
-                        constraint.ConstraintType = RowConstraintType.Timestamp;
-                        _owner.AddConstraint(constraint);
+                        _owner.AddConstraint(
+                            new RowConstraint(item.Id, RowConstraintType.Timestamp));
                     }
                     if (item.AutoIncrement)
                     {
-                        var constraint = new RowConstraint();
-                        constraint.ColumnId = item.Id;
-                        constraint.ConstraintType = RowConstraintType.Identity;
-                        _owner.AddConstraint(constraint);
+                        _owner.AddConstraint(
+                            new RowConstraint(item.Id, RowConstraintType.Identity));
                     }
                 }
 
                 // Add column definition
                 base.InsertItem(index, item);
-                ((INotifyPropertyChanged)item).PropertyChanged +=
-                    new PropertyChangedEventHandler(_owner.Column_PropertyChanged);
+                ((INotifyPropertyChanged)item).PropertyChanged += _owner.Column_PropertyChanged;
 
                 // Adjust table row size
                 _owner.UpdateRowSize();

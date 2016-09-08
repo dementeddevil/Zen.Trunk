@@ -1192,9 +1192,15 @@ namespace Zen.Trunk.Storage.Data
             {
                 // Mark root page as writable and attempt to add object reference
                 rootPage.ReadOnly = false;
-                if (rootPage.AddObjectInfo(objectRef))
+                try
                 {
+                    rootPage.Objects.Add(objectRef);
+
+                    // If we get this far then page has space for object reference
                     break;
+                }
+                catch(PageException)
+                {
                 }
 
                 // Failed to add to existing root page; prepare to load/create new rootpage
