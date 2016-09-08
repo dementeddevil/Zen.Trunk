@@ -441,7 +441,7 @@ namespace Zen.Trunk.Storage.Data.Table
 				pageAfterSplit.FileGroupId = currentPage.FileGroupId;
 				pageAfterSplit.LogicalId = splitPage.NextLogicalId;
 				await Database.LoadFileGroupPageAsync(
-					new LoadFileGroupPageParameters(null, pageAfterSplit, false, true, false)).ConfigureAwait(false);
+					new LoadFileGroupPageParameters(null, pageAfterSplit, false, true)).ConfigureAwait(false);
 
 				// Update the previous logical index
 				pageAfterSplit.PrevLogicalId = splitPage.LogicalId;
@@ -629,7 +629,7 @@ namespace Zen.Trunk.Storage.Data.Table
 			var find = new FindTableIndexParameters(
 				request.Message.Index,
 				request.Message.FromKeys);
-			var result = await FindIndexAsync(find);
+			var result = await FindIndexAsync(find).ConfigureAwait(false);
 			if (result != null)
 			{
 				var indexPage = result.Page;
@@ -652,7 +652,7 @@ namespace Zen.Trunk.Storage.Data.Table
 					        FileGroupId = indexPage.FileGroupId,
 					        LogicalId = indexPage.NextLogicalId
 					    };
-					    var loadParams = new LoadFileGroupPageParameters(null, nextPage, false, true, false);
+					    var loadParams = new LoadFileGroupPageParameters(null, nextPage, false, true);
 						await Database.LoadFileGroupPageAsync(loadParams).ConfigureAwait(false);
 
 						// Switch pages

@@ -175,20 +175,24 @@
 
 	public class LoadDataPageParameters
 	{
-		#region Public Constructors
-		/// <summary>
-		/// Initializes a new instance of the <see cref="LoadDataPageParameters"/> class.
-		/// </summary>
-		/// <param name="page">The page.</param>
-		/// <param name="virtualPageIdValid">if set to <c>true</c> [virtual page unique identifier valid].</param>
-		/// <param name="logicalPageIdValid">if set to <c>true</c> [logical page unique identifier valid].</param>
-		/// <param name="assignLogicalId">if set to <c>true</c> [assign logical unique identifier].</param>
-		public LoadDataPageParameters(DataPage page, bool virtualPageIdValid = false, bool logicalPageIdValid = false, bool assignLogicalId = false)
+        #region Public Constructors
+        /// <summary>
+        /// Initializes a new instance of the <see cref="LoadDataPageParameters"/> class.
+        /// </summary>
+        /// <param name="page">The page.</param>
+        /// <param name="virtualPageIdValid">
+        /// Set to <c>true</c> when the virtual page id property on the page is valid;
+        /// otherwise <c>false</c>.
+        /// </param>
+        /// <param name="logicalPageIdValid">
+        /// Set to <c>true</c> when the logical page id property on the page is valid;
+        /// otherwise <c>false</c>.
+        /// </param>
+        public LoadDataPageParameters(DataPage page, bool virtualPageIdValid = false, bool logicalPageIdValid = false)
 		{
 			Page = page;
 			VirtualPageIdValid = virtualPageIdValid;
 			LogicalPageIdValid = logicalPageIdValid;
-			AssignLogicalId = assignLogicalId;
 		}
 		#endregion
 
@@ -199,11 +203,7 @@
 		/// <value>
 		/// The page.
 		/// </value>
-		public DataPage Page
-		{
-			get;
-			private set;
-		}
+		public DataPage Page { get; }
 
 		/// <summary>
 		/// Gets a value indicating whether [virtual page unique identifier valid].
@@ -211,11 +211,7 @@
 		/// <value>
 		/// <c>true</c> if [virtual page unique identifier valid]; otherwise, <c>false</c>.
 		/// </value>
-		public bool VirtualPageIdValid
-		{
-			get;
-			private set;
-		}
+		public bool VirtualPageIdValid { get; }
 
 		/// <summary>
 		/// Gets a value indicating whether [logical page unique identifier valid].
@@ -223,23 +219,7 @@
 		/// <value>
 		/// <c>true</c> if [logical page unique identifier valid]; otherwise, <c>false</c>.
 		/// </value>
-		public bool LogicalPageIdValid
-		{
-			get;
-			private set;
-		}
-
-		/// <summary>
-		/// Gets a value indicating whether [assign logical unique identifier].
-		/// </summary>
-		/// <value>
-		/// <c>true</c> if [assign logical unique identifier]; otherwise, <c>false</c>.
-		/// </value>
-		public bool AssignLogicalId
-		{
-			get;
-			private set;
-		}
+		public bool LogicalPageIdValid { get; }
 		#endregion
 	}
 

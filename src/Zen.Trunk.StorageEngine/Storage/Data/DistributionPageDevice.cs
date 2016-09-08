@@ -127,7 +127,7 @@ namespace Zen.Trunk.Storage.Data
                 }
 
                 await FileGroupDevice
-                    .InitDataPage(new InitDataPageParameters(rootPage, false, true))
+                    .InitDataPage(new InitDataPageParameters(rootPage))
                     .ConfigureAwait(false);
 
                 if (Logger.IsDebugEnabled())
@@ -143,7 +143,7 @@ namespace Zen.Trunk.Storage.Data
                 }
 
                 await FileGroupDevice
-                    .LoadDataPage(new LoadDataPageParameters(rootPage, true, IsPrimary, true))
+                    .LoadDataPage(new LoadDataPageParameters(rootPage, true))
                     .ConfigureAwait(false);
 
                 if (Logger.IsDebugEnabled())

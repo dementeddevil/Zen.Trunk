@@ -804,9 +804,9 @@ namespace Zen.Trunk.Storage.Data
 
         private async Task<bool> InitDataPageHandler(InitDataPageRequest request)
         {
-            if (!typeof(DataPage).IsInstanceOfType(request.Message.Page))
+            if (request.Message.Page == null)
             {
-                throw new Exception("Page object must be derived from DataPage.");
+                throw new ArgumentNullException();
             }
 
             // Setup page file-group id
@@ -883,12 +883,12 @@ namespace Zen.Trunk.Storage.Data
 
         private async Task<bool> LoadDataPageHandler(LoadDataPageRequest request)
         {
-            // Map filegroup Id
-            if (!typeof(DataPage).IsAssignableFrom(request.Message.Page.GetType()))
+            if (request.Message.Page == null)
             {
-                throw new Exception("Page object must be derived from DataPage.");
+                throw new ArgumentNullException();
             }
 
+            // Setup page file-group id
             request.Message.Page.FileGroupId = FileGroupId;
 
             // Setup virtual and logical defaults
