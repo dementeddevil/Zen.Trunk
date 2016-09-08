@@ -2,16 +2,18 @@
 {
 	using System;
 
+
     /// <summary>
     /// 
     /// </summary>
     /// <seealso cref="Zen.Trunk.Storage.BufferFieldWrapper" />
     /// <seealso cref="System.IComparable" />
+#pragma warning disable 660, 661
+#pragma warning disable CS0659 // Type overrides Object.Equals(object o) but does not override Object.GetHashCode()
     public class IndexInfo : BufferFieldWrapper, IComparable
-	{
-		#region Private Fields
-		#endregion
-
+#pragma warning restore CS0659 // Type overrides Object.Equals(object o) but does not override Object.GetHashCode()
+#pragma warning restore 660, 661
+    {
 		#region Public Operators
 		/// <summary>
 		/// Implements the operator !=.
@@ -21,6 +23,14 @@
 		/// <returns>The result of the operator.</returns>
 		public static bool operator !=(IndexInfo lhs, IndexInfo rhs)
 		{
+		    if (lhs == null && rhs == null)
+		    {
+                return false;
+		    }
+		    if (lhs == null || rhs == null)
+		    {
+                return true;
+		    }
 			return (lhs.CompareTo(rhs) != 0);
 		}
 
@@ -32,7 +42,15 @@
 		/// <returns>The result of the operator.</returns>
 		public static bool operator ==(IndexInfo lhs, IndexInfo rhs)
 		{
-			return (lhs.CompareTo(rhs) == 0);
+            if (lhs == null && rhs == null)
+            {
+                return true;
+            }
+            if (lhs == null || rhs == null)
+            {
+                return false;
+            }
+            return (lhs.CompareTo(rhs) == 0);
 		}
 
 		/// <summary>
@@ -43,7 +61,15 @@
 		/// <returns>The result of the operator.</returns>
 		public static bool operator >(IndexInfo lhs, IndexInfo rhs)
 		{
-			return (lhs.CompareTo(rhs) > 0);
+            if (lhs == null && rhs == null)
+            {
+                return false;
+            }
+            if (lhs == null || rhs == null)
+            {
+                return false;
+            }
+            return (lhs.CompareTo(rhs) > 0);
 		}
 
 		/// <summary>
@@ -54,33 +80,19 @@
 		/// <returns>The result of the operator.</returns>
 		public static bool operator <(IndexInfo lhs, IndexInfo rhs)
 		{
-			return (lhs.CompareTo(rhs) < 0);
+            if (lhs == null && rhs == null)
+            {
+                return false;
+            }
+            if (lhs == null || rhs == null)
+            {
+                return false;
+            }
+            return (lhs.CompareTo(rhs) < 0);
 		}
         #endregion
 
         #region Public Methods
-        /// <summary>
-        /// Returns a <see cref="System.String" /> that represents this instance.
-        /// </summary>
-        /// <returns>
-        /// A <see cref="System.String" /> that represents this instance.
-        /// </returns>
-        public override string ToString()
-	    {
-	        return base.ToString();
-	    }
-
-        /// <summary>
-        /// Returns a hash code for this instance.
-        /// </summary>
-        /// <returns>
-        /// A hash code for this instance, suitable for use in hashing algorithms and data structures like a hash table. 
-        /// </returns>
-        public override int GetHashCode()
-	    {
-	        return base.GetHashCode();
-	    }
-
 	    /// <summary>
 		/// Determines whether the specified <see cref="System.Object"/> is equal to this instance.
 		/// </summary>

@@ -222,6 +222,7 @@ namespace Zen.Trunk.CoordinationDataStructures
             public void Clear() { _items.Clear(); }
 
             /// <summary>Adds an item to the heap.</summary>
+            // ReSharper disable once UnusedMember.Local
             public void Insert(TKey key, TValue value)
             {
                 // Create the entry based on the provided key and value

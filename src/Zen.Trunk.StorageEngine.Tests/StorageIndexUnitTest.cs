@@ -39,9 +39,9 @@ namespace Zen.Trunk.Storage
 
         private class TestIndexInfo : IndexInfo
         {
-            private BufferFieldUInt64 _logicalId;
-            private BufferFieldInt64 _firstKey;
-            private BufferFieldInt32 _secondKey;
+            private readonly BufferFieldUInt64 _logicalId;
+            private readonly BufferFieldInt64 _firstKey;
+            private readonly BufferFieldInt32 _secondKey;
 
             public TestIndexInfo()
             {
@@ -165,7 +165,7 @@ namespace Zen.Trunk.Storage
             {
                 var createdDate = page.IndexEntries[0].CreatedDate;
                 var sequenceIndex = page.IndexEntries[0].SequenceIndex;
-                return new TestIndexInfo(createdDate, sequenceIndex, page.LogicalId.Value);
+                return new TestIndexInfo(createdDate, sequenceIndex, page.LogicalPageId.Value);
             }
 
             protected override TestIndexInfo CreateIndexEntry()

@@ -111,8 +111,13 @@ namespace Zen.Trunk.Storage.Data
         private readonly BufferFieldInt32 _indexCount;
         private readonly BufferFieldInt32 _objectCount;
 
+        private readonly PageItemCollection<DeviceInfo> _updatedDevices;
         private readonly Dictionary<DeviceId, DeviceInfo> _devices = new Dictionary<DeviceId, DeviceInfo>();
-        //private Dictionary<uint, IndexRefInfo> _indices = new Dictionary<uint,IndexRefInfo> ();
+
+        //private readonly PageItemCollection<IndexRefInfo> _updatedIndices;
+        //private readonly Dictionary<Tuple<ObjectId, IndexId>, IndexRefInfo> _indices = new Dictionary<Tuple<ObjectId, IndexId>, IndexRefInfo> ();
+
+        private readonly PageItemCollection<ObjectRefInfo> _updatedObjects;
         private readonly Dictionary<ObjectId, ObjectRefInfo> _objects = new Dictionary<ObjectId, ObjectRefInfo>();
         #endregion
 
@@ -122,6 +127,9 @@ namespace Zen.Trunk.Storage.Data
         /// </summary>
         public PrimaryFileGroupRootPage()
         {
+            _updatedDevices = new PageItemCollection<DeviceInfo>(this);
+            _updatedObjects = new PageItemCollection<ObjectRefInfo>(this);
+
             _deviceCount = new BufferFieldInt32(base.LastHeaderField);
             _indexCount = new BufferFieldInt32(_deviceCount);
             _objectCount = new BufferFieldInt32(_indexCount);
@@ -306,7 +314,7 @@ namespace Zen.Trunk.Storage.Data
         {
             return _objects.Values.FirstOrDefault(item => item.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
         }
-        #endregion
+        #endregion`
 
         #region Protected Methods
         /// <summary>

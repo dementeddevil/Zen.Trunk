@@ -431,6 +431,7 @@ namespace Zen.Trunk.Storage.Data
 				instance._oldBuffer = null;
 
 				// Issue save on aliased buffer - do not wait
+			    // ReSharper disable once UnusedVariable
 				var taskNoWait = instance.SaveBufferThenDisposeAsync(buffer);
 
 				// Switch to the allocated state now

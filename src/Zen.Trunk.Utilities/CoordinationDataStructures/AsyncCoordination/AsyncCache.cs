@@ -159,6 +159,7 @@ namespace Zen.Trunk.CoordinationDataStructures.AsyncCoordination
         /// <param name="arrayIndex">The zero-based index in array at which copying begins.</param>
         void ICollection<KeyValuePair<TKey, Task<TValue>>>.CopyTo(KeyValuePair<TKey, Task<TValue>>[] array, int arrayIndex)
 		{
+		    // ReSharper disable once SuspiciousTypeConversion.Global
 			((ICollection<KeyValuePair<TKey, Task<TValue>>>)_map).CopyTo(array, arrayIndex);
 		}
 

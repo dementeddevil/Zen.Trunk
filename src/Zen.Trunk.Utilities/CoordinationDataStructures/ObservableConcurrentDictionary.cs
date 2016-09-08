@@ -23,8 +23,7 @@ namespace Zen.Trunk.CoordinationDataStructures
     /// <typeparam name="TValue">Specifies the type of the values in this collection.</typeparam>
     [DebuggerDisplay("Count={Count}")]
     public class ObservableConcurrentDictionary<TKey, TValue> :
-        ICollection<KeyValuePair<TKey, TValue>>, IDictionary<TKey, TValue>,
-        INotifyCollectionChanged, INotifyPropertyChanged
+        IDictionary<TKey, TValue>, INotifyCollectionChanged, INotifyPropertyChanged
     {
         private readonly SynchronizationContext _context;
         private readonly ConcurrentDictionary<TKey, TValue> _dictionary;

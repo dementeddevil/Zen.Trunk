@@ -65,25 +65,6 @@ namespace Zen.Trunk.Storage.Data
 
 		#region Protected Methods
 		/// <summary>
-		/// Performs operations on this instance prior to being initialised.
-		/// </summary>
-		/// <param name="e">The <see cref="System.EventArgs"/> instance containing the event data.</param>
-		/// <remarks>
-		/// Overrides to this method must set their desired lock prior to
-		/// calling the base class.
-		/// The base class method will enable the locking primitives and call
-		/// LockPage.
-		/// This mechanism ensures that all lock states have been set prior to
-		/// the first call to LockPage.
-		/// </remarks>
-		protected override Task OnPreInitAsync(EventArgs e)
-		{
-			// NOTE: We do not apply a default lock here because we wish to
-			//	support reading uncommitted data....
-			return base.OnPreInitAsync(e);
-		}
-
-		/// <summary>
 		/// Overridden. Called by the system prior to loading the page
 		/// from persistent storage.
 		/// </summary>

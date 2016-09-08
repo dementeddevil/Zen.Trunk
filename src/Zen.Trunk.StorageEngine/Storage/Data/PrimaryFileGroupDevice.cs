@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Zen.Trunk.Storage.Data
+﻿namespace Zen.Trunk.Storage.Data
 {
     /// <summary>
     /// <c>PrimaryFileGroupDevice</c> represents a primary file-group.

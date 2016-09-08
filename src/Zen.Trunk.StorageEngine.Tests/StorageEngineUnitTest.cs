@@ -147,8 +147,8 @@ namespace Zen.Trunk.Storage
                                 // Update prev/next references
                                 if (lastPage != null)
                                 {
-                                    lastPage.NextLogicalId = objectPage.LogicalId;
-                                    objectPage.PrevLogicalId = lastPage.LogicalId;
+                                    lastPage.NextLogicalPageId = objectPage.LogicalPageId;
+                                    objectPage.PrevLogicalPageId = lastPage.LogicalPageId;
                                 }
                                 lastPage = objectPage;
 
