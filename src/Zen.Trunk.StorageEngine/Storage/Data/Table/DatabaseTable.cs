@@ -906,7 +906,7 @@ namespace Zen.Trunk.Storage.Data.Table
                         {
                             if (rootPage == null)
                             {
-                                rootPage = await CreateRootPageAndLinkAsync(prevRootPage, firstPage).ConfigureAwait(false);
+                                rootPage = await CreateSchemaPageAndLinkAsync(prevRootPage, firstPage).ConfigureAwait(false);
                                 if (firstPage)
                                 {
                                     initialPage = (TableSchemaRootPage)rootPage;
@@ -941,7 +941,7 @@ namespace Zen.Trunk.Storage.Data.Table
                         {
                             if (rootPage == null)
                             {
-                                rootPage = await CreateRootPageAndLinkAsync(prevRootPage, firstPage).ConfigureAwait(false);
+                                rootPage = await CreateSchemaPageAndLinkAsync(prevRootPage, firstPage).ConfigureAwait(false);
                                 if (firstPage)
                                 {
                                     initialPage = (TableSchemaRootPage)rootPage;
@@ -1262,7 +1262,6 @@ namespace Zen.Trunk.Storage.Data.Table
             var indexIndex = 0;
             TableSchemaPage currentPage = null;
             var needNewPage = true;
-            var firstPage = true;
             var complete = false;
             while (!complete)
             {
@@ -1270,19 +1269,18 @@ namespace Zen.Trunk.Storage.Data.Table
                 if (needNewPage)
                 {
                     // Create new page and link with any current page
-                    currentPage = await CreateRootPageAndLinkAsync(currentPage, firstPage).ConfigureAwait(false);
+                    currentPage = await CreateSchemaPageAndLinkAsync(currentPage)
+                        .ConfigureAwait(false);
                     _tableDef.Add(currentPage);
                     needNewPage = false;
 
-                    // If this is the first page then update first logical page
-                    //	for the table
-                    if (firstPage)
+                    // Update first logical page id for schema as needed
+                    if (SchemaFirstLogicalId == LogicalPageId.Zero)
                     {
-                        firstPage = false;
                         SchemaFirstLogicalId = currentPage.LogicalId;
                     }
 
-                    // Always update last schema logical page identifier
+                    // Always update last schema logical page id
                     SchemaLastLogicalId = currentPage.LogicalId;
                 }
 
@@ -1292,7 +1290,8 @@ namespace Zen.Trunk.Storage.Data.Table
                     //	columns to write or space in the schema page...
                     while (columnIndex < _updatedColumns.Count)
                     {
-                        currentPage.Columns.Add(_updatedColumns[columnIndex]);
+                        currentPage.Columns.Add(
+                            _updatedColumns[columnIndex]);
 
                         // If we get this far then there was room on the page
                         //	for the column data and therefore the add succeeded
@@ -1304,7 +1303,8 @@ namespace Zen.Trunk.Storage.Data.Table
                     //	constraints to write or space in the page...
                     while (constraintIndex < _updatedConstraints.Count)
                     {
-                        currentPage.Constraints.Add(_updatedConstraints[constraintIndex]);
+                        currentPage.Constraints.Add(
+                            _updatedConstraints[constraintIndex]);
 
                         // If we get this far then there was room on the page
                         //	for the column data and therefore the add succeeded
@@ -1316,7 +1316,8 @@ namespace Zen.Trunk.Storage.Data.Table
                     //  to write or space in the page...
                     /*while (indexIndex < _indices.Count)
                     {
-                        currentPage.Indices.Add(_indices[indexIndex]);
+                        currentPage.Indices.Add(
+                            _updatedIndices[indexIndex]);
 
                         // If we get this far then there was room on the page
                         //	for the column data and therefore the add succeeded
@@ -1339,9 +1340,9 @@ namespace Zen.Trunk.Storage.Data.Table
             }
         }
 
-        private async Task<TableSchemaPage> CreateRootPageAsync(bool firstPage)
+        private async Task<TableSchemaPage> CreateSchemaPageAsync(bool isFirstTablePage)
         {
-            var rootPage = firstPage ? new TableSchemaRootPage() : new TableSchemaPage();
+            var rootPage = isFirstTablePage ? new TableSchemaRootPage() : new TableSchemaPage();
             rootPage.ReadOnly = false;
             rootPage.ObjectId = ObjectId;
             rootPage.FileGroupId = FileGroupId;
@@ -1351,23 +1352,24 @@ namespace Zen.Trunk.Storage.Data.Table
             return rootPage;
         }
 
-        private async Task<TableSchemaPage> CreateRootPageAndLinkAsync(TableSchemaPage prevRootPage, bool firstPage)
+        private async Task<TableSchemaPage> CreateSchemaPageAndLinkAsync(TableSchemaPage prevSchemaPage)
         {
-            var rootPage = await CreateRootPageAsync(firstPage).ConfigureAwait(false);
+            // Create root page
+            var schemaPage = await CreateSchemaPageAsync(prevSchemaPage == null)
+                .ConfigureAwait(false);
 
-            // Setup pointer to previous table definition
-            //	page (if any)
-            if (prevRootPage != null)
+            // Setup pointer to previous table definition page (if any)
+            if (prevSchemaPage != null)
             {
                 // Hookup linked-list logical id pointers
-                rootPage.PrevLogicalId = prevRootPage.LogicalId;
-                prevRootPage.NextLogicalId = rootPage.LogicalId;
+                schemaPage.PrevLogicalId = prevSchemaPage.LogicalId;
+                prevSchemaPage.NextLogicalId = schemaPage.LogicalId;
 
                 // Force save of previous page
-                prevRootPage.Save();
+                prevSchemaPage.Save();
             }
 
-            return rootPage;
+            return schemaPage;
         }
 
         private void Column_PropertyChanged(object sender, PropertyChangedEventArgs e)

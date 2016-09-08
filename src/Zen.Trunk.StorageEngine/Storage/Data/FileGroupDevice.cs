@@ -13,7 +13,7 @@ using Zen.Trunk.Utils;
 namespace Zen.Trunk.Storage.Data
 {
     /// <summary>
-    /// Represents a group of related physical devices.
+    /// Represents a group of related physical data devices.
     /// </summary>
     /// <remarks>
     /// Logical Page Ids are scoped to the containing file-group hence each
@@ -121,19 +121,19 @@ namespace Zen.Trunk.Storage.Data
             public DeviceId DeviceId { get; }
 
             /// <summary>
-            /// Gets or sets a value indicating whether the device id is valid.
-            /// </summary>
-            /// <value>
-            /// 	<c>true</c> if the device id is valid; otherwise, <c>false</c>.
-            /// </value>
-            public bool IsDeviceIdValid => (DeviceId != DeviceId.Zero);
-
-            /// <summary>
             /// Gets or sets an integer that will be added to the existing page 
             /// count of the target device to determine the new page capacity.
             /// </summary>
             /// <value>The page count.</value>
             public uint PageCount { get; }
+
+            /// <summary>
+            /// Gets or sets a value indicating whether the device id is valid.
+            /// </summary>
+            /// <value>
+            /// <c>true</c> if the device id is valid; otherwise, <c>false</c>.
+            /// </value>
+            public bool IsDeviceIdValid => DeviceId != DeviceId.Zero;
         }
 
         private class AddTableRequest : TransactionContextTaskRequest<AddTableParameters, ObjectId>
@@ -146,7 +146,7 @@ namespace Zen.Trunk.Storage.Data
             #endregion
         }
 
-        private class AddTableIndexRequest : TransactionContextTaskRequest<AddTableIndexParameters, ObjectId>
+        private class AddTableIndexRequest : TransactionContextTaskRequest<AddTableIndexParameters, IndexId>
         {
             #region Public Constructors
             public AddTableIndexRequest(AddTableIndexParameters indexParams)
@@ -239,7 +239,7 @@ namespace Zen.Trunk.Storage.Data
                 {
                     TaskScheduler = taskInterleave.ExclusiveScheduler
                 });
-            AddTableIndexPort = new TransactionContextActionBlock<AddTableIndexRequest, ObjectId>(
+            AddTableIndexPort = new TransactionContextActionBlock<AddTableIndexRequest, IndexId>(
                 request => AddTableIndexHandler(request),
                 new ExecutionDataflowBlockOptions
                 {
@@ -1238,17 +1238,18 @@ namespace Zen.Trunk.Storage.Data
             return objectId;
         }
 
-        private Task<ObjectId> AddTableIndexHandler(AddTableIndexRequest request)
+        private Task<IndexId> AddTableIndexHandler(AddTableIndexRequest request)
         {
-            var objectId = ObjectId.Zero;
+            var indexId = IndexId.Zero;
 
             var table = ResolveDeviceService<DatabaseTable>();
             table.FileGroupId = FileGroupId;
             table.ObjectId = request.Message.OwnerObjectId;
             table.IsNewTable = false;
+            table.AddIndex();
             //table.AddIndex
 
-            return Task.FromResult(objectId);
+            return Task.FromResult(indexId);
         }
         #endregion
     }
