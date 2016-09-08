@@ -147,7 +147,7 @@
 			IndexPage<TableIndexInfo, RootTableIndexInfo> page)
 		{
 			var keys = page.IndexEntries[0].Keys;
-			return new TableIndexLogicalInfo(keys, page.LogicalId);
+			return new TableIndexLogicalInfo(keys, page.LogicalPageId);
 		}
 
 		protected override TableIndexInfo CreateIndexEntry()

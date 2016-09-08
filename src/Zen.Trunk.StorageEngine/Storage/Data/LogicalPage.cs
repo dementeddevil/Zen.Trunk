@@ -15,8 +15,8 @@ namespace Zen.Trunk.Storage.Data
 	{
 		#region Private Fields
 		private LogicalPageId _logicalId;
-		private readonly BufferFieldLogicalPageId _prevLogicalId;
-		private readonly BufferFieldLogicalPageId _nextLogicalId;
+		private readonly BufferFieldLogicalPageId _prevLogicalPageId;
+		private readonly BufferFieldLogicalPageId _nextLogicalPageId;
         #endregion
 
         #region Public Constructors
@@ -25,8 +25,8 @@ namespace Zen.Trunk.Storage.Data
         /// </summary>
         public LogicalPage()
 		{
-			_prevLogicalId = new BufferFieldLogicalPageId(base.LastHeaderField, LogicalPageId.Zero);
-			_nextLogicalId = new BufferFieldLogicalPageId(_prevLogicalId, LogicalPageId.Zero);
+			_prevLogicalPageId = new BufferFieldLogicalPageId(base.LastHeaderField, LogicalPageId.Zero);
+			_nextLogicalPageId = new BufferFieldLogicalPageId(_prevLogicalPageId, LogicalPageId.Zero);
 		}
 		#endregion
 
@@ -40,7 +40,7 @@ namespace Zen.Trunk.Storage.Data
 		/// Gets/sets the logical page ID.
 		/// </summary>
 		/// <value>Logical ID expressed as UInt32.</value>
-		public LogicalPageId LogicalId
+		public LogicalPageId LogicalPageId
 		{
 			get
 			{
@@ -48,16 +48,16 @@ namespace Zen.Trunk.Storage.Data
 				{
 					return _logicalId;
 				}
-				return DataBuffer.LogicalId;
+				return DataBuffer.LogicalPageId;
 			}
 			set
 			{
 				if (DataBuffer != null)
 				{
 					CheckReadOnly();
-					if (DataBuffer.LogicalId != value)
+					if (DataBuffer.LogicalPageId != value)
 					{
-						DataBuffer.LogicalId = value;
+						DataBuffer.LogicalPageId = value;
 					}
 				}
 				else
@@ -71,18 +71,18 @@ namespace Zen.Trunk.Storage.Data
 		/// Gets/sets the previous logical page ID.
 		/// </summary>
 		/// <value>Logical ID expressed as UInt64.</value>
-		public LogicalPageId PrevLogicalId
+		public LogicalPageId PrevLogicalPageId
 		{
 			get
 			{
-				return _prevLogicalId.Value;
+				return _prevLogicalPageId.Value;
 			}
 			set
 			{
 				CheckReadOnly();
-				if (_prevLogicalId.Value != value)
+				if (_prevLogicalPageId.Value != value)
 				{
-					_prevLogicalId.Value = value;
+					_prevLogicalPageId.Value = value;
 					SetHeaderDirty();
 				}
 			}
@@ -92,18 +92,18 @@ namespace Zen.Trunk.Storage.Data
 		/// Gets/sets the next logical page ID.
 		/// </summary>
 		/// <value>Logical ID expressed as UInt64.</value>
-		public LogicalPageId NextLogicalId
+		public LogicalPageId NextLogicalPageId
 		{
 			get
 			{
-				return _nextLogicalId.Value;
+				return _nextLogicalPageId.Value;
 			}
 			set
 			{
 				CheckReadOnly();
-				if (_nextLogicalId.Value != value)
+				if (_nextLogicalPageId.Value != value)
 				{
-					_nextLogicalId.Value = value;
+					_nextLogicalPageId.Value = value;
 					SetHeaderDirty();
 				}
 			}
@@ -117,7 +117,7 @@ namespace Zen.Trunk.Storage.Data
         /// <value>
         /// The last header field.
         /// </value>
-        protected override BufferField LastHeaderField => _nextLogicalId;
+        protected override BufferField LastHeaderField => _nextLogicalPageId;
 	    #endregion
 	}
 }

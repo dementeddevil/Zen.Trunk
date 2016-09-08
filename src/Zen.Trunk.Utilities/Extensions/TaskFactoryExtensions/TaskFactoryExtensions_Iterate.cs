@@ -187,10 +187,12 @@ namespace Zen.Trunk.Extensions.TaskFactoryExtensions
                         var nextItem = enumerator.Current;
                         
                         // If we got a Task, continue from it to continue iterating
-                        if (nextItem is Task)
+                        var nextTask = nextItem as Task;
+                        if (nextTask != null)
                         {
-                            var nextTask = (Task)nextItem;
                             /**/ nextTask.IgnoreExceptions(); // TODO: Is this a good idea?
+                            // ReSharper disable once AssignNullToNotNullAttribute
+                            // ReSharper disable once MethodSupportsCancellation
                             nextTask.ContinueWith(recursiveBody).IgnoreExceptions();
                         }
                             // If we got a scheduler, continue iterating under the new scheduler,

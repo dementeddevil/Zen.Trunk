@@ -20,6 +20,7 @@ namespace Zen.Trunk.Extensions
         /// <returns>The initialized Lazy instance.</returns>
         public static Lazy<T> Force<T>(this Lazy<T> lazy)
         {
+            // ReSharper disable once UnusedVariable
             var ignored = lazy.Value;
             return lazy;
         }

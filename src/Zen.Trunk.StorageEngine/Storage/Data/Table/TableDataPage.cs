@@ -126,7 +126,7 @@ namespace Zen.Trunk.Storage.Data.Table
 			// If we can update inplace then we're done
 			if (UpdateRow(rowIndex, newRowData, length))
 			{
-				return new Tuple<LogicalPageId, ushort>(LogicalId, rowIndex);
+				return new Tuple<LogicalPageId, ushort>(LogicalPageId, rowIndex);
 			}
 			else
 			{
@@ -160,7 +160,7 @@ namespace Zen.Trunk.Storage.Data.Table
 			{
 				// Determine last page and load if needed
 				TableDataPage lastPage = null;
-				if (LogicalId == table.DataLastLogicalId)
+				if (LogicalPageId == table.DataLastLogicalPageId)
 				{
 					lastPage = this;
 				}
@@ -168,7 +168,7 @@ namespace Zen.Trunk.Storage.Data.Table
 				{
 				    lastPage = new TableDataPage
 				    {
-				        LogicalId = table.DataLastLogicalId,
+				        LogicalPageId = table.DataLastLogicalPageId,
 				        FileGroupId = FileGroupId,
 				    };
 
@@ -182,7 +182,7 @@ namespace Zen.Trunk.Storage.Data.Table
 				// Attempt to add the row to the end of the last page
 				if (lastPage.WriteRowIfSpace(ushort.MaxValue, newRowData, length, out newRowIndex))
 				{
-					return new Tuple<LogicalPageId, ushort>(lastPage.LogicalId, newRowIndex);
+					return new Tuple<LogicalPageId, ushort>(lastPage.LogicalPageId, newRowIndex);
 				}
 
 				// If we get here then we need to add a new page to the end
@@ -197,22 +197,22 @@ namespace Zen.Trunk.Storage.Data.Table
                 await table.Owner
 					.InitDataPageAsync(new InitDataPageParameters(splitPage, true, true, true))
 					.ConfigureAwait(false);
-				splitPage.PrevLogicalId = lastPage.LogicalId;
-				lastPage.NextLogicalId = splitPage.LogicalId;
-				table.DataLastLogicalId = splitPage.LogicalId;
+				splitPage.PrevLogicalPageId = lastPage.LogicalPageId;
+				lastPage.NextLogicalPageId = splitPage.LogicalPageId;
+				table.DataLastLogicalPageId = splitPage.LogicalPageId;
 
 				if (!splitPage.WriteRowIfSpace(ushort.MaxValue, newRowData, length, out newRowIndex))
 				{
 					throw new InvalidOperationException("Failed to add row to new page.");
 				}
-				return new Tuple<LogicalPageId, ushort>(splitPage.LogicalId, newRowIndex);
+				return new Tuple<LogicalPageId, ushort>(splitPage.LogicalPageId, newRowIndex);
 			}
 
 			// Attempt: #1
 			// If we can insert inplace then we're done
 			if (WriteRowIfSpace(rowIndex, newRowData, length, out newRowIndex))
 			{
-				return new Tuple<LogicalPageId, ushort>(LogicalId, newRowIndex);
+				return new Tuple<LogicalPageId, ushort>(LogicalPageId, newRowIndex);
 			}
 
 			// Counting back from the maximum row on this page - calculate the
@@ -225,11 +225,11 @@ namespace Zen.Trunk.Storage.Data.Table
 
 			// Load the next page in preparation for split.
 			TableDataPage nextPage = null;
-			if (NextLogicalId != LogicalPageId.Zero)
+			if (NextLogicalPageId != LogicalPageId.Zero)
 			{
 			    nextPage = new TableDataPage
 			    {
-			        LogicalId = NextLogicalId,
+			        LogicalPageId = NextLogicalPageId,
 			        FileGroupId = FileGroupId,
 			    };
 			    await nextPage.SetObjectLockAsync(ObjectLock).ConfigureAwait(false);
@@ -246,7 +246,7 @@ namespace Zen.Trunk.Storage.Data.Table
 				SplitPage(nextPage, splitAtRowIndex) &&
 				WriteRowIfSpace(rowIndex, newRowData, length, out newRowIndex))
 			{
-				return new Tuple<LogicalPageId, ushort>(LogicalId, newRowIndex);
+				return new Tuple<LogicalPageId, ushort>(LogicalPageId, newRowIndex);
 			}
 
 			// Create a new page and link to this page
@@ -259,13 +259,13 @@ namespace Zen.Trunk.Storage.Data.Table
             await table.Owner
 				.InitDataPageAsync(new InitDataPageParameters(splitPage, true, true, true))
 				.ConfigureAwait(false);
-			splitPage.PrevLogicalId = LogicalId;
-			splitPage.NextLogicalId = NextLogicalId;
+			splitPage.PrevLogicalPageId = LogicalPageId;
+			splitPage.NextLogicalPageId = NextLogicalPageId;
 			if (nextPage != null)
 			{
-				nextPage.PrevLogicalId = splitPage.LogicalId;
+				nextPage.PrevLogicalPageId = splitPage.LogicalPageId;
 			}
-			NextLogicalId = splitPage.LogicalId;
+			NextLogicalPageId = splitPage.LogicalPageId;
 			if (nextPage == null)
 			{
                 // We will need a schema modification lock on the schema root page
@@ -273,7 +273,7 @@ namespace Zen.Trunk.Storage.Data.Table
 
                 // We must be splitting the last page and therefore the split
                 //	page must be the new last page so update schema
-                table.DataLastLogicalId = splitPage.LogicalId;
+                table.DataLastLogicalPageId = splitPage.LogicalPageId;
 			}
 
 			if (totalSize >= length)
@@ -285,7 +285,7 @@ namespace Zen.Trunk.Storage.Data.Table
 					throw new InvalidOperationException(
 						"Split/insert failed after creating split page.");
 				}
-				return new Tuple<LogicalPageId, ushort>(LogicalId, newRowIndex);
+				return new Tuple<LogicalPageId, ushort>(LogicalPageId, newRowIndex);
 			}
 			else
 			{
@@ -299,11 +299,11 @@ namespace Zen.Trunk.Storage.Data.Table
 				// Attempt to write row into this page or next page
 				if (WriteRowIfSpace(rowIndex, newRowData, length, out newRowIndex))
 				{
-					return new Tuple<LogicalPageId, ushort>(LogicalId, newRowIndex);
+					return new Tuple<LogicalPageId, ushort>(LogicalPageId, newRowIndex);
 				}
 				if (splitPage.WriteRowIfSpace(0, newRowData, length, out newRowIndex))
 				{
-					return new Tuple<LogicalPageId, ushort>(splitPage.LogicalId, newRowIndex);
+					return new Tuple<LogicalPageId, ushort>(splitPage.LogicalPageId, newRowIndex);
 				}
 
 				// Insert new row between this row and the split page
@@ -318,10 +318,10 @@ namespace Zen.Trunk.Storage.Data.Table
 					.ConfigureAwait(false);
 
 				// Update linked list
-				NextLogicalId = extraPage.LogicalId;
-				extraPage.PrevLogicalId = LogicalId;
-				extraPage.NextLogicalId = splitPage.LogicalId;
-				splitPage.PrevLogicalId = extraPage.LogicalId;
+				NextLogicalPageId = extraPage.LogicalPageId;
+				extraPage.PrevLogicalPageId = LogicalPageId;
+				extraPage.NextLogicalPageId = splitPage.LogicalPageId;
+				splitPage.PrevLogicalPageId = extraPage.LogicalPageId;
 
 				// Insert data into new extra page
 				if (!extraPage.WriteRowIfSpace(0, newRowData, length, out newRowIndex))
@@ -329,7 +329,7 @@ namespace Zen.Trunk.Storage.Data.Table
 					throw new InvalidOperationException(
 						"Insert failed after creating extra page.");
 				}
-				return new Tuple<LogicalPageId, ushort>(extraPage.LogicalId, newRowIndex);
+				return new Tuple<LogicalPageId, ushort>(extraPage.LogicalPageId, newRowIndex);
 			}
 		}
 

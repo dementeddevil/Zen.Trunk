@@ -431,7 +431,7 @@ namespace Zen.Trunk.Storage.Data.Table
         /// <value>
         /// The schema first logical identifier.
         /// </value>
-        public LogicalPageId SchemaFirstLogicalId { get; internal set; }
+        public LogicalPageId SchemaFirstLogicalPageId { get; internal set; }
 
         /// <summary>
         /// Gets the schema last logical identifier.
@@ -439,7 +439,7 @@ namespace Zen.Trunk.Storage.Data.Table
         /// <value>
         /// The schema last logical identifier.
         /// </value>
-        public LogicalPageId SchemaLastLogicalId { get; internal set; }
+        public LogicalPageId SchemaLastLogicalPageId { get; internal set; }
 
         /// <summary>
         /// Gets the schema root page.
@@ -461,15 +461,15 @@ namespace Zen.Trunk.Storage.Data.Table
         /// <exception cref="LockTimeoutException">
         /// Thrown if locking the table schema for modification fails due to timeout.
         /// </exception>
-        public LogicalPageId DataFirstLogicalId
+        public LogicalPageId DataFirstLogicalPageId
         {
             get
             {
-                return SchemaRootPage.DataFirstLogicalId;
+                return SchemaRootPage.DataFirstLogicalPageId;
             }
             private set
             {
-                SchemaRootPage.DataFirstLogicalId = value;
+                SchemaRootPage.DataFirstLogicalPageId = value;
             }
         }
 
@@ -485,15 +485,15 @@ namespace Zen.Trunk.Storage.Data.Table
         /// <exception cref="LockTimeoutException">
         /// Thrown if locking the table schema for modification fails due to timeout.
         /// </exception>
-        public LogicalPageId DataLastLogicalId
+        public LogicalPageId DataLastLogicalPageId
         {
             get
             {
-                return SchemaRootPage.DataLastLogicalId;
+                return SchemaRootPage.DataLastLogicalPageId;
             }
             set
             {
-                SchemaRootPage.DataLastLogicalId = value;
+                SchemaRootPage.DataLastLogicalPageId = value;
             }
         }
 
@@ -528,7 +528,7 @@ namespace Zen.Trunk.Storage.Data.Table
         /// <value>
         ///   <c>true</c> if [has data]; otherwise, <c>false</c>.
         /// </value>
-        public bool HasData => DataFirstLogicalId.Value != 0;
+        public bool HasData => DataFirstLogicalPageId.Value != 0;
 
         /// <summary>
         /// Gets the table minimum row size.
@@ -613,11 +613,11 @@ namespace Zen.Trunk.Storage.Data.Table
         /// <summary>
         /// Loads the table schema starting from the specified logical id
         /// </summary>
-        /// <param name="firstLogicalId">The first logical id.</param>
+        /// <param name="firstLogicalPageId">The first logical id.</param>
         /// <returns></returns>
-        public async Task LoadAsync(LogicalPageId firstLogicalId)
+        public async Task LoadAsync(LogicalPageId firstLogicalPageId)
         {
-            SchemaFirstLogicalId = firstLogicalId;
+            SchemaFirstLogicalPageId = firstLogicalPageId;
             IsLoading = true;
             try
             {
@@ -625,7 +625,7 @@ namespace Zen.Trunk.Storage.Data.Table
                 IsHeap = true;
 
                 // Keep loading schema pages (these are linked)
-                var logicalId = firstLogicalId;
+                var logicalId = firstLogicalPageId;
                 var firstPage = true;
                 while (logicalId != LogicalPageId.Zero)
                 {
@@ -640,7 +640,7 @@ namespace Zen.Trunk.Storage.Data.Table
                     {
                         page = new TableSchemaPage();
                     }
-                    page.LogicalId = logicalId;
+                    page.LogicalPageId = logicalId;
                     page.FileGroupId = FileGroupId;
                     page.ObjectId = ObjectId;
                     await page.SetObjectLockAsync(ObjectLockType.Shared).ConfigureAwait(false);
@@ -653,10 +653,10 @@ namespace Zen.Trunk.Storage.Data.Table
                     AddTableDefinition(page);
 
                     // Setup schema last logical id
-                    SchemaLastLogicalId = page.LogicalId;
+                    SchemaLastLogicalPageId = page.LogicalPageId;
 
                     // Advance to next logical page
-                    logicalId = page.NextLogicalId;
+                    logicalId = page.NextLogicalPageId;
                 }
             }
             finally
@@ -1164,8 +1164,8 @@ namespace Zen.Trunk.Storage.Data.Table
             //	have been executed.
 
             // If the table has no logical ids then create first data page
-            if (DataFirstLogicalId == LogicalPageId.Zero &&
-                DataLastLogicalId == LogicalPageId.Zero)
+            if (DataFirstLogicalPageId == LogicalPageId.Zero &&
+                DataLastLogicalPageId == LogicalPageId.Zero)
             {
                 // We need a schema modification lock at this point
                 var rootPage = (TableSchemaRootPage)_tableDef[0];
@@ -1180,7 +1180,7 @@ namespace Zen.Trunk.Storage.Data.Table
                     .ConfigureAwait(false);
 
                 // Update schema
-                DataFirstLogicalId = DataLastLogicalId = newPage.LogicalId;
+                DataFirstLogicalPageId = DataLastLogicalPageId = newPage.LogicalPageId;
 
                 // Write first row
                 ushort rowIndex;
@@ -1275,13 +1275,13 @@ namespace Zen.Trunk.Storage.Data.Table
                     needNewPage = false;
 
                     // Update first logical page id for schema as needed
-                    if (SchemaFirstLogicalId == LogicalPageId.Zero)
+                    if (SchemaFirstLogicalPageId == LogicalPageId.Zero)
                     {
-                        SchemaFirstLogicalId = currentPage.LogicalId;
+                        SchemaFirstLogicalPageId = currentPage.LogicalPageId;
                     }
 
                     // Always update last schema logical page id
-                    SchemaLastLogicalId = currentPage.LogicalId;
+                    SchemaLastLogicalPageId = currentPage.LogicalPageId;
                 }
 
                 try
@@ -1362,8 +1362,8 @@ namespace Zen.Trunk.Storage.Data.Table
             if (prevSchemaPage != null)
             {
                 // Hookup linked-list logical id pointers
-                schemaPage.PrevLogicalId = prevSchemaPage.LogicalId;
-                prevSchemaPage.NextLogicalId = schemaPage.LogicalId;
+                schemaPage.PrevLogicalPageId = prevSchemaPage.LogicalPageId;
+                prevSchemaPage.NextLogicalPageId = schemaPage.LogicalPageId;
 
                 // Force save of previous page
                 prevSchemaPage.Save();
@@ -1385,7 +1385,7 @@ namespace Zen.Trunk.Storage.Data.Table
             try
             {
                 TableDataPage currentReadPage = null, currentWritePage = null;
-                var readLogicalId = DataFirstLogicalId;
+                var readLogicalPageId = DataFirstLogicalPageId;
                 uint readRowIndex = 0;
                 uint writeRowIndex = 0;
                 while (true)
@@ -1394,7 +1394,7 @@ namespace Zen.Trunk.Storage.Data.Table
                     if (currentReadPage == null)
                     {
                         currentReadPage = new TableDataPage();
-                        currentReadPage.LogicalId = readLogicalId;
+                        currentReadPage.LogicalPageId = readLogicalPageId;
                         await _owner
                             .LoadDataPageAsync(new LoadDataPageParameters(currentReadPage, false, true))
                             .ConfigureAwait(false);
@@ -1434,8 +1434,8 @@ namespace Zen.Trunk.Storage.Data.Table
                     }
 
                     // The next table page is held in the page pointers
-                    readLogicalId = currentReadPage.NextLogicalId;
-                    if (readLogicalId == LogicalPageId.Zero)
+                    readLogicalPageId = currentReadPage.NextLogicalPageId;
+                    if (readLogicalPageId == LogicalPageId.Zero)
                     {
                         // Finished copy
                         break;

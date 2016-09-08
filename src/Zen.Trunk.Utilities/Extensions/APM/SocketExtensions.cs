@@ -37,6 +37,7 @@ namespace Zen.Trunk.Extensions.APM
 			SocketFlags socketFlags)
 		{
 			return Task.Factory.FromAsync(
+			    // ReSharper disable once AssignNullToNotNullAttribute
 				socket.BeginSend(buffers, socketFlags, null, null),
 				socket.EndSend);
 		}
@@ -54,7 +55,8 @@ namespace Zen.Trunk.Extensions.APM
 			SocketFlags socketFlags)
 		{
 			return Task.Factory.FromAsync(
-				socket.BeginReceive(buffers, socketFlags, null, null),
+                // ReSharper disable once AssignNullToNotNullAttribute
+                socket.BeginReceive(buffers, socketFlags, null, null),
 				socket.EndReceive);
 		}
 

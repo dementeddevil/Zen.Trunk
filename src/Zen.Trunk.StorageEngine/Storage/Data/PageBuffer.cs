@@ -252,7 +252,7 @@ namespace Zen.Trunk.Storage.Data
 				PageBuffer instance, VirtualPageId pageId, LogicalPageId logicalId)
 			{
 				instance.PageId = pageId;
-				instance.LogicalId = logicalId;
+				instance.LogicalPageId = logicalId;
 				instance.IsNew = true;
 				instance.EnsureNewBufferAllocated();
 
@@ -263,7 +263,7 @@ namespace Zen.Trunk.Storage.Data
 			public override Task RequestLoad(PageBuffer instance, VirtualPageId pageId, LogicalPageId logicalId)
 			{
 				instance.PageId = pageId;
-				instance.LogicalId = logicalId;
+				instance.LogicalPageId = logicalId;
 
 				// Switch to load state
 				return instance.SwitchStateAsync(PageBufferStateType.PendingLoad);
@@ -548,7 +548,7 @@ namespace Zen.Trunk.Storage.Data
         /// <value>
         /// The logical identifier.
         /// </value>
-        public LogicalPageId LogicalId
+        public LogicalPageId LogicalPageId
 		{
 			get;
 			internal set;

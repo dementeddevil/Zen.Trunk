@@ -22,7 +22,7 @@ namespace Zen.Trunk.Storage.Data
 			public AddLookupRequest(VirtualPageId pageId, LogicalPageId logicalId)
 			{
 				PageId = pageId;
-				LogicalId = logicalId;
+				LogicalPageId = logicalId;
 			}
 
 			public VirtualPageId PageId
@@ -30,7 +30,7 @@ namespace Zen.Trunk.Storage.Data
 				get;
 			}
 
-			public LogicalPageId LogicalId
+			public LogicalPageId LogicalPageId
 			{
 				get;
 			}
@@ -50,10 +50,10 @@ namespace Zen.Trunk.Storage.Data
 		{
 			public GetVirtualRequest(LogicalPageId logicalId)
 			{
-				LogicalId = logicalId;
+				LogicalPageId = logicalId;
 			}
 
-			public LogicalPageId LogicalId { get; }
+			public LogicalPageId LogicalPageId { get; }
 		}
 		#endregion
 
@@ -68,7 +68,7 @@ namespace Zen.Trunk.Storage.Data
 			new Dictionary<LogicalPageId, VirtualPageId>(1024);
 		private readonly Dictionary<VirtualPageId, LogicalPageId> _virtualToLogical =
 			new Dictionary<VirtualPageId, LogicalPageId>(1024);
-		private ulong _nextLogicalId = 1;
+		private ulong _nextLogicalPageId = 1;
 		#endregion
 
 		#region Public Constructors
@@ -84,9 +84,9 @@ namespace Zen.Trunk.Storage.Data
 				{
 					try
 					{
-						var nextLogicalId = _nextLogicalId;
-						_nextLogicalId++;
-						request.TrySetResult(new LogicalPageId(nextLogicalId));
+						var nextLogicalPageId = _nextLogicalPageId;
+						_nextLogicalPageId++;
+						request.TrySetResult(new LogicalPageId(nextLogicalPageId));
 					}
 					catch (Exception e)
 					{
@@ -105,16 +105,16 @@ namespace Zen.Trunk.Storage.Data
 				{
 					try
 					{
-						var logicalId = request.LogicalId;
+						var logicalId = request.LogicalPageId;
 						if (_virtualToLogical.ContainsKey(request.PageId) ||
-							_logicalToVirtual.ContainsKey(request.LogicalId))
+							_logicalToVirtual.ContainsKey(request.LogicalPageId))
 						{
 							throw new ArgumentException("Mapping already exists.");
 						}
 
-						_virtualToLogical.Add(request.PageId, request.LogicalId);
-						_logicalToVirtual.Add(request.LogicalId, request.PageId);
-						_nextLogicalId = Math.Max(_nextLogicalId, 1 + logicalId.Value);
+						_virtualToLogical.Add(request.PageId, request.LogicalPageId);
+						_logicalToVirtual.Add(request.LogicalPageId, request.PageId);
+						_nextLogicalPageId = Math.Max(_nextLogicalPageId, 1 + logicalId.Value);
 						request.TrySetResult(logicalId);
 					}
 					catch (Exception e)
@@ -159,11 +159,11 @@ namespace Zen.Trunk.Storage.Data
 					try
 					{
 						VirtualPageId pageId;
-						if (!_logicalToVirtual.TryGetValue(request.LogicalId, out pageId))
+						if (!_logicalToVirtual.TryGetValue(request.LogicalPageId, out pageId))
 						{
 							throw new ArgumentException("Logical id not found.");
 							//throw new DeviceInvalidPageException(
-							//	0, request.LogicalId, false);
+							//	0, request.LogicalPageId, false);
 						}
 						request.TrySetResult(pageId);
 					}

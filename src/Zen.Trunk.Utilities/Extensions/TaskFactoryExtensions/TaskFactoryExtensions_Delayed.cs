@@ -45,6 +45,7 @@ namespace Zen.Trunk.Extensions.TaskFactoryExtensions
             var timer = new Timer(self =>
             {
                 // Clean up both the cancellation token and the timer, and try to transition to completed
+                // ReSharper disable once AccessToModifiedClosure
                 ctr.Dispose();
                 ((Timer)self).Dispose();
                 tcs.TrySetResult(null);
@@ -373,15 +374,24 @@ namespace Zen.Trunk.Extensions.TaskFactoryExtensions
             var functionTask = new Task<TResult>(function, state, creationOptions);
 
             // When the function task completes, transfer the results to the returned task
-            functionTask.ContinueWith(t =>
-            {
-                result.SetFromTask(t);
-                timer.Dispose();
-            }, cancellationToken, ContinuationOptionsFromCreationOptions(creationOptions) | TaskContinuationOptions.ExecuteSynchronously, scheduler);
+            functionTask.ContinueWith(
+                t =>
+                {
+                    result.SetFromTask(t);
+                    // ReSharper disable once PossibleNullReferenceException
+                    // ReSharper disable once AccessToModifiedClosure
+                    timer.Dispose();
+                },
+                cancellationToken,
+                ContinuationOptionsFromCreationOptions(creationOptions) | TaskContinuationOptions.ExecuteSynchronously,
+                scheduler);
 
             // Start the timer for the trigger
-            timer = new Timer(obj => ((Task)obj).Start(scheduler),
-                functionTask, millisecondsDelay, Timeout.Infinite);
+            timer = new Timer(
+                obj => ((Task)obj).Start(scheduler),
+                functionTask,
+                millisecondsDelay,
+                Timeout.Infinite);
 
             return result.Task;
         }

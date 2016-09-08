@@ -188,7 +188,7 @@ namespace Zen.Trunk.Storage.Data.Table
 			// Setup root index page
 			rootPage.SetHeaderDirty();
 			rootPage.SetContext(_ownerTable, request.Message);
-			request.Message.RootLogicalId = rootPage.LogicalId;
+			request.Message.RootLogicalPageId = rootPage.LogicalPageId;
 			AddIndexInfo(request.Message);
 
 			// We need the zero-based ordinal positions of the columns used
@@ -206,13 +206,13 @@ namespace Zen.Trunk.Storage.Data.Table
 				//	id is zero.
 				// For each page we load, we walk the rows in the page, pull
 				//	out the index column values and add an entry to the index.
-				var logicalPageId = _ownerTable.DataFirstLogicalId;
+				var logicalPageId = _ownerTable.DataFirstLogicalPageId;
 				while (logicalPageId != LogicalPageId.Zero)
 				{
 					// Load the next table data page
 				    var dataPage = new TableDataPage
 				    {
-				        LogicalId = logicalPageId,
+				        LogicalPageId = logicalPageId,
 				        FileGroupId = _ownerTable.FileGroupId,
 				    };
 				    await dataPage.SetPageLockAsync(DataLockType.Shared).ConfigureAwait(false);
@@ -312,7 +312,7 @@ namespace Zen.Trunk.Storage.Data.Table
 					}
 
 					// Advance to next table data page
-					logicalPageId = dataPage.NextLogicalId;
+					logicalPageId = dataPage.NextLogicalPageId;
 				}
 
 				// Finalise clustered index setup
@@ -392,7 +392,7 @@ namespace Zen.Trunk.Storage.Data.Table
 				//	or leaf page).
 
 				// Hookup page to logical chain.
-				currentPage.ParentLogicalPageId = newRootPage.LogicalId;
+				currentPage.ParentLogicalPageId = newRootPage.LogicalPageId;
 
 				// Setup index page depth and type
 				newRootPage.Depth = (byte)(currentPage.Depth + 1);
@@ -417,7 +417,7 @@ namespace Zen.Trunk.Storage.Data.Table
 
 				// Notify index manager
 				var root = GetIndexInfo(request.Message.IndexId);
-				root.RootLogicalId = newRootPage.LogicalId;
+				root.RootLogicalPageId = newRootPage.LogicalPageId;
 				root.RootIndexDepth = newRootPage.Depth;
 				parentPage = newRootPage;
 			}
@@ -428,23 +428,23 @@ namespace Zen.Trunk.Storage.Data.Table
 			// Setup linkage following split.
 			// Intermediate and leaf page splits are easier...
 			// Hookup page to logical chain.
-			splitPage.PrevLogicalId = currentPage.LogicalId;
-			splitPage.NextLogicalId = currentPage.NextLogicalId;
-			splitPage.ParentLogicalPageId = parentPage.LogicalId;
+			splitPage.PrevLogicalPageId = currentPage.LogicalPageId;
+			splitPage.NextLogicalPageId = currentPage.NextLogicalPageId;
+			splitPage.ParentLogicalPageId = parentPage.LogicalPageId;
 
 			// If the next logical id is non-zero on the split page
 			//	then we need to load the page and rewire the prev id
-			if (splitPage.NextLogicalId != LogicalPageId.Zero)
+			if (splitPage.NextLogicalPageId != LogicalPageId.Zero)
 			{
 				// Prepare page for loading
 				var pageAfterSplit = new TableIndexPage();
 				pageAfterSplit.FileGroupId = currentPage.FileGroupId;
-				pageAfterSplit.LogicalId = splitPage.NextLogicalId;
+				pageAfterSplit.LogicalPageId = splitPage.NextLogicalPageId;
 				await Database.LoadFileGroupPageAsync(
 					new LoadFileGroupPageParameters(null, pageAfterSplit, false, true)).ConfigureAwait(false);
 
 				// Update the previous logical index
-				pageAfterSplit.PrevLogicalId = splitPage.LogicalId;
+				pageAfterSplit.PrevLogicalPageId = splitPage.LogicalPageId;
 			}
 
 			// Setup index page depth
@@ -471,7 +471,7 @@ namespace Zen.Trunk.Storage.Data.Table
 		private async Task<FindTableIndexResult> FindIndexHandler(FindTableIndex request)
 		{
 			TableIndexPage prevPage = null, parentPage = null;
-			var logicalId = request.Message.RootInfo.RootLogicalId;
+			var logicalId = request.Message.RootInfo.RootLogicalPageId;
 			bool isForInsert = request.Message.IsForInsert, found = false;
 
 			// Main find loop
@@ -481,7 +481,7 @@ namespace Zen.Trunk.Storage.Data.Table
 			    var indexPage = new TableIndexPage
 			    {
 			        FileGroupId = request.Message.RootInfo.IndexFileGroupId,
-			        LogicalId = logicalId
+			        LogicalPageId = logicalId
 			    };
 			    await Database
                     .LoadFileGroupPageAsync(new LoadFileGroupPageParameters(null, indexPage, false, true))
@@ -545,7 +545,7 @@ namespace Zen.Trunk.Storage.Data.Table
 						var logicalInfo = (TableIndexLogicalInfo)
 							parentPage.IndexEntries[parentPage.IndexCount - 1];
 						parentPage = indexPage;
-						logicalId = logicalInfo.LogicalId;
+						logicalId = logicalInfo.LogicalPageId;
 						indexPage = null;
 
 						// Start async load on decendant index page
@@ -592,7 +592,7 @@ namespace Zen.Trunk.Storage.Data.Table
 						{
 							// Determine new logical id and make this current
 							//	page the new parent page.
-							logicalId = ((TableIndexLogicalInfo)lhs).LogicalId;
+							logicalId = ((TableIndexLogicalInfo)lhs).LogicalPageId;
 							parentPage = indexPage;
 							indexPage = null;
 						}
@@ -607,11 +607,11 @@ namespace Zen.Trunk.Storage.Data.Table
 
 				// If we have a next page then go
 				if (indexPage != null &&
-					indexPage.NextLogicalId != LogicalPageId.Zero)
+					indexPage.NextLogicalPageId != LogicalPageId.Zero)
 				{
 					// Determine new logical id and make this page
 					//	the new previous page.
-					logicalId = indexPage.NextLogicalId;
+					logicalId = indexPage.NextLogicalPageId;
 					prevPage = indexPage;
 					indexPage = null;
 				}
@@ -641,7 +641,7 @@ namespace Zen.Trunk.Storage.Data.Table
 					if (entryIndex >= indexPage.IndexEntries.Count)
 					{
 						// Have we reached the last page of index?
-						if (indexPage.NextLogicalId == LogicalPageId.Zero)
+						if (indexPage.NextLogicalPageId == LogicalPageId.Zero)
 						{
 							break;
 						}
@@ -650,7 +650,7 @@ namespace Zen.Trunk.Storage.Data.Table
 					    var nextPage = new TableIndexPage
 					    {
 					        FileGroupId = indexPage.FileGroupId,
-					        LogicalId = indexPage.NextLogicalId
+					        LogicalPageId = indexPage.NextLogicalPageId
 					    };
 					    var loadParams = new LoadFileGroupPageParameters(null, nextPage, false, true);
 						await Database.LoadFileGroupPageAsync(loadParams).ConfigureAwait(false);
@@ -752,7 +752,7 @@ namespace Zen.Trunk.Storage.Data.Table
 
 		private readonly bool _forInsert;
 		private readonly object[] _clusteredKey;
-		private readonly ulong _rowLogicalId;
+		private readonly ulong _rowLogicalPageId;
 		private readonly uint _rowId;
 
 		private readonly ushort? _rowSize;
@@ -765,20 +765,20 @@ namespace Zen.Trunk.Storage.Data.Table
 			_keys = keys;
 		}
 
-		public FindTableIndexParameters(RootTableIndexInfo rootInfo, object[] keys, ulong rowLogicalId, uint rowId)
+		public FindTableIndexParameters(RootTableIndexInfo rootInfo, object[] keys, ulong rowLogicalPageId, uint rowId)
 		{
 			_rootInfo = rootInfo;
 			_keys = keys;
-			_rowLogicalId = rowLogicalId;
+			_rowLogicalPageId = rowLogicalPageId;
 			_rowId = rowId;
 			_forInsert = true;
 		}
 
-		public FindTableIndexParameters(RootTableIndexInfo rootInfo, object[] keys, ulong rowLogicalId, uint rowId, ushort rowSize)
+		public FindTableIndexParameters(RootTableIndexInfo rootInfo, object[] keys, ulong rowLogicalPageId, uint rowId, ushort rowSize)
 		{
 			_rootInfo = rootInfo;
 			_keys = keys;
-			_rowLogicalId = rowLogicalId;
+			_rowLogicalPageId = rowLogicalPageId;
 			_rowId = rowId;
 			_rowSize = rowSize;
 			_forInsert = true;
@@ -838,7 +838,7 @@ namespace Zen.Trunk.Storage.Data.Table
 		/// <remarks>
 		/// This value is only valid for index inserts.
 		/// </remarks>
-		public ulong RowLogicalId => _rowLogicalId;
+		public ulong RowLogicalPageId => _rowLogicalPageId;
 
 	    /// <summary>
 		/// Gets the row id.

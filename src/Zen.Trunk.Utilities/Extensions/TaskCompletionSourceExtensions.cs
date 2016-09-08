@@ -23,6 +23,7 @@ namespace Zen.Trunk.Extensions
             switch (task.Status)
             {
                 case TaskStatus.RanToCompletion: resultSetter.SetResult(task is Task<TResult> ? ((Task<TResult>)task).Result : default(TResult)); break;
+                // ReSharper disable once PossibleNullReferenceException
                 case TaskStatus.Faulted: resultSetter.SetException(task.Exception.InnerExceptions); break;
                 case TaskStatus.Canceled: resultSetter.SetCanceled(); break;
                 default: throw new InvalidOperationException("The task was not completed.");
@@ -48,6 +49,7 @@ namespace Zen.Trunk.Extensions
             switch (task.Status)
             {
                 case TaskStatus.RanToCompletion: return resultSetter.TrySetResult(task is Task<TResult> ? ((Task<TResult>)task).Result : default(TResult));
+                // ReSharper disable once PossibleNullReferenceException
                 case TaskStatus.Faulted: return resultSetter.TrySetException(task.Exception.InnerExceptions);
                 case TaskStatus.Canceled: return resultSetter.TrySetCanceled();
                 default: throw new InvalidOperationException("The task was not completed.");

@@ -1,4 +1,6 @@
-﻿namespace Zen.Trunk.Storage.Data
+﻿using System.Threading.Tasks;
+
+namespace Zen.Trunk.Storage.Data
 {
 	using System;
 	using System.Collections.Generic;
@@ -92,15 +94,15 @@
 		/// </summary>
 		/// <param name="page">The page.</param>
 		/// <param name="assignVirtualId">if set to <c>true</c> [assign virtual unique identifier].</param>
-		/// <param name="assignLogicalId">if set to <c>true</c> [assign logical unique identifier].</param>
-		/// <param name="assignAutomaticLogicalId">if set to <c>true</c> [assign automatic logical unique identifier].</param>
+		/// <param name="assignLogicalPageId">if set to <c>true</c> [assign logical unique identifier].</param>
+		/// <param name="assignAutomaticLogicalPageId">if set to <c>true</c> [assign automatic logical unique identifier].</param>
 		/// <param name="isNewObject">if set to <c>true</c> [is new object].</param>
-		public InitDataPageParameters(DataPage page, bool assignVirtualId = false, bool assignLogicalId = false, bool assignAutomaticLogicalId = false, bool isNewObject = false)
+		public InitDataPageParameters(DataPage page, bool assignVirtualId = false, bool assignLogicalPageId = false, bool assignAutomaticLogicalPageId = false, bool isNewObject = false)
 		{
 			Page = page;
 			AssignVirtualId = assignVirtualId;
-			AssignLogicalId = assignLogicalId;
-			AssignAutomaticLogicalId = assignAutomaticLogicalId;
+			AssignLogicalPageId = assignLogicalPageId;
+			AssignAutomaticLogicalPageId = assignAutomaticLogicalPageId;
 			IsNewObject = isNewObject;
 		}
 		#endregion
@@ -136,7 +138,7 @@
 		/// <value>
 		/// <c>true</c> if [assign logical unique identifier]; otherwise, <c>false</c>.
 		/// </value>
-		public bool AssignLogicalId
+		public bool AssignLogicalPageId
 		{
 			get;
 			private set;
@@ -148,7 +150,7 @@
 		/// <value>
 		/// <c>true</c> if [assign automatic logical unique identifier]; otherwise, <c>false</c>.
 		/// </value>
-		public bool AssignAutomaticLogicalId
+		public bool AssignAutomaticLogicalPageId
 		{
 			get;
 			private set;
@@ -225,38 +227,42 @@
 
 	public class AllocateDataPageParameters
 	{
-		public AllocateDataPageParameters(LogicalPageId logicalId, ObjectId objectId, ObjectType objectType, bool mixedExtent)
-		{
-			LogicalId = logicalId;
-			ObjectId = objectId;
-			ObjectType = objectType;
-			MixedExtent = mixedExtent;
-		}
+        #region Public Constructors
+        public AllocateDataPageParameters(LogicalPageId logicalId, ObjectId objectId, ObjectType objectType, bool mixedExtent)
+        {
+            LogicalPageId = logicalId;
+            ObjectId = objectId;
+            ObjectType = objectType;
+            MixedExtent = mixedExtent;
+        }
+        #endregion
 
-		public LogicalPageId LogicalId
-		{
-			get;
-			private set;
-		}
+        #region Public Properties
+        public LogicalPageId LogicalPageId
+        {
+            get;
+            private set;
+        }
 
-		public ObjectId ObjectId
-		{
-			get;
-			private set;
-		}
+        public ObjectId ObjectId
+        {
+            get;
+            private set;
+        }
 
-		public ObjectType ObjectType
-		{
-			get;
-			private set;
-		}
+        public ObjectType ObjectType
+        {
+            get;
+            private set;
+        }
 
-		public bool MixedExtent
-		{
-			get;
-			private set;
-		}
-	}
+        public bool MixedExtent
+        {
+            get;
+            private set;
+        } 
+        #endregion
+    }
 
     public class ExpandDataDeviceParameters
     {
@@ -297,44 +303,30 @@
 	{
 		private readonly List<TableColumnInfo> _columns = new List<TableColumnInfo>();
 
-		public AddTableParameters()
+        public AddTableParameters(string tableName, params TableColumnInfo[] columns)
 		{
-		}
-
-		public AddTableParameters(string tableName, params TableColumnInfo[] columns)
-		{
-			if (string.IsNullOrWhiteSpace(tableName))
-			{
-				throw new ArgumentException("Table name is required.");
-			}
+            if (string.IsNullOrWhiteSpace(tableName))
+            {
+                throw new ArgumentException("Table name is required.");
+            }
 			if (columns == null || columns.Length == 0)
 			{
 				throw new ArgumentException("Table must have at least one column definition.");
 			}
 
-			TableName = tableName;
-			if (columns != null && columns.Length > 0)
-			{
-				_columns.AddRange(columns);
-			}
+            TableName = tableName;
+    		_columns.AddRange(columns);
 		}
 
-		public string TableName
-		{
-			get;
-			set;
-		}
+		public string TableName { get; }
 
 		public IList<TableColumnInfo> Columns => _columns;
 	}
 
 	public class AddTableIndexParameters
 	{
-		private readonly List<Tuple<string, TableIndexSortDirection>> _columns = new List<Tuple<string, TableIndexSortDirection>>();
-
-		public AddTableIndexParameters()
-		{
-		}
+	    private readonly IDictionary<string, TableIndexSortDirection> _columns =
+	        new Dictionary<string, TableIndexSortDirection>(StringComparer.OrdinalIgnoreCase);
 
 		public AddTableIndexParameters(string name, TableIndexSubType indexSubType, ObjectId objectId)
 		{
@@ -349,27 +341,27 @@
 
 		public ObjectId ObjectId { get; }
 
-        public ICollection<Tuple<string, TableIndexSortDirection>> Columns => _columns;
+        public IDictionary<string, TableIndexSortDirection> Columns => _columns;
 
 	    public void AddColumn(string columnName, TableIndexSortDirection direction)
 		{
-			_columns.Add(new Tuple<string, TableIndexSortDirection>(columnName, direction));
+			_columns.Add(columnName, direction);
 		}
 	}
 
     public class CreateObjectReferenceParameters
     {
-        public CreateObjectReferenceParameters(string name, ObjectType objectType, LogicalPageId firstLogicalPageId)
+        public CreateObjectReferenceParameters(string name, ObjectType objectType, Func<ObjectId, Task<LogicalPageId>> firstPageFunc)
         {
             Name = name;
             ObjectType = objectType;
-            FirstLogicalPageId = firstLogicalPageId;
+            FirstPageFunc = firstPageFunc;
         }
 
         public string Name { get; }
 
         public ObjectType ObjectType { get; }
 
-        public LogicalPageId FirstLogicalPageId { get; }
+        public Func<ObjectId, Task<LogicalPageId>> FirstPageFunc { get; }
     }
 }

@@ -237,7 +237,7 @@ namespace Zen.Trunk.Storage.Data.Table
 		/// intermediate index pages only) or the logical ID of the
 		/// data page (leaf pages only).
 		/// </summary>
-		public LogicalPageId LogicalId
+		public LogicalPageId LogicalPageId
 		{
 			get
 			{

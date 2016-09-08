@@ -187,7 +187,7 @@ namespace Zen.Trunk.Storage.Data
 				{
 					throw new InvalidOperationException("Cannot obtain lock owner block for this transaction.");
 				}
-				await lob.LockItemAsync(LogicalId, PageLock, LockTimeout).ConfigureAwait(false);
+				await lob.LockItemAsync(LogicalPageId, PageLock, LockTimeout).ConfigureAwait(false);
 			}
 			catch
 			{
@@ -210,7 +210,7 @@ namespace Zen.Trunk.Storage.Data
 				var lob = LockBlock;
 				if (lob != null)
 				{
-					await lob.UnlockItemAsync(LogicalId).ConfigureAwait(false);
+					await lob.UnlockItemAsync(LogicalPageId).ConfigureAwait(false);
 				}
 			}
 			finally

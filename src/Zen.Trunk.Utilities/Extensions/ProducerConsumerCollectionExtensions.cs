@@ -22,7 +22,9 @@ namespace Zen.Trunk.Extensions
 		public static void Clear<T>(this IProducerConsumerCollection<T> collection)
 		{
 			T ignored;
-			while (collection.TryTake(out ignored));
+			while (collection.TryTake(out ignored))
+			{
+			}
 		}
 
 		/// <summary>Creates an enumerable which will consume and return elements from the collection.</summary>

@@ -590,10 +590,10 @@ namespace Zen.Trunk.Storage.Data
             where TPageType : LogicalPage, new()
         {
             // If previous page has next logical page identifier then load
-            if (previousPage.NextLogicalId != LogicalPageId.Zero)
+            if (previousPage.NextLogicalPageId != LogicalPageId.Zero)
             {
                 // Load the next page and return
-                var nextPage = new TPageType { LogicalId = previousPage.NextLogicalId };
+                var nextPage = new TPageType { LogicalPageId = previousPage.NextLogicalPageId };
                 await LoadDataPageAsync(new LoadDataPageParameters(nextPage, false, true))
                     .ConfigureAwait(false);
                 return nextPage;
@@ -601,10 +601,10 @@ namespace Zen.Trunk.Storage.Data
 
             // Create new next page and link up
             var newPage = new TPageType();
-            newPage.PrevLogicalId = previousPage.LogicalId;
+            newPage.PrevLogicalPageId = previousPage.LogicalPageId;
             await InitDataPageAsync(new InitDataPageParameters(newPage, true, true, true))
                 .ConfigureAwait(false);
-            previousPage.NextLogicalId = newPage.LogicalId;
+            previousPage.NextLogicalPageId = newPage.LogicalPageId;
 
             // Force save of both pages
             previousPage.Save();
@@ -870,10 +870,10 @@ namespace Zen.Trunk.Storage.Data
 
             // Stage #1: Assign logical id
             var logicalPage = request.Message.Page as LogicalPage;
-            if (logicalPage != null && request.Message.AssignAutomaticLogicalId)
+            if (logicalPage != null && request.Message.AssignAutomaticLogicalPageId)
             {
                 // Get next logical id from the logical/virtual manager
-                logicalPage.LogicalId = await LogicalVirtualManager.GetNewLogicalAsync().ConfigureAwait(false);
+                logicalPage.LogicalPageId = await LogicalVirtualManager.GetNewLogicalAsync().ConfigureAwait(false);
             }
 
             // Stage #2: Assign virtual id
@@ -888,7 +888,7 @@ namespace Zen.Trunk.Storage.Data
                 var objectPage = request.Message.Page as ObjectPage;
                 pageId = await AllocateDataPageAsync(
                     new AllocateDataPageParameters(
-                        (logicalPage != null) ? logicalPage.LogicalId : LogicalPageId.Zero,
+                        (logicalPage != null) ? logicalPage.LogicalPageId : LogicalPageId.Zero,
                         (objectPage != null) ? objectPage.ObjectId : ObjectId.Zero,
                         new ObjectType((byte)request.Message.Page.PageType),
                         request.Message.IsNewObject))
@@ -900,15 +900,15 @@ namespace Zen.Trunk.Storage.Data
 
             // Stage #3: Add virtual/logical mapping
             if (logicalPage != null &&
-                (request.Message.AssignLogicalId || request.Message.AssignAutomaticLogicalId))
+                (request.Message.AssignLogicalPageId || request.Message.AssignAutomaticLogicalPageId))
             {
                 // Post request to logical/virtual manager
-                var logicalId = await LogicalVirtualManager.AddLookupAsync(pageId, logicalPage.LogicalId).ConfigureAwait(false);
+                var logicalId = await LogicalVirtualManager.AddLookupAsync(pageId, logicalPage.LogicalPageId).ConfigureAwait(false);
 
                 // Update page with new logical id as necessary
-                if (!request.Message.AssignAutomaticLogicalId)
+                if (!request.Message.AssignAutomaticLogicalPageId)
                 {
-                    logicalPage.LogicalId = logicalId;
+                    logicalPage.LogicalPageId = logicalId;
                 }
             }
 
@@ -927,7 +927,7 @@ namespace Zen.Trunk.Storage.Data
                 {
                     // Save the logical id in the buffer if we are bound to
                     //	a logical page
-                    scope.Buffer.LogicalId = logicalPage.LogicalId;
+                    scope.Buffer.LogicalPageId = logicalPage.LogicalPageId;
                 }
 
                 // Stage #5: Attach buffer to page object and conclude initialisation
@@ -960,7 +960,7 @@ namespace Zen.Trunk.Storage.Data
                 }
 
                 // Map from logical page to virtual page
-                pageId = await LogicalVirtualManager.GetVirtualAsync(logicalPage.LogicalId).ConfigureAwait(false);
+                pageId = await LogicalVirtualManager.GetVirtualAsync(logicalPage.LogicalPageId).ConfigureAwait(false);
                 request.Message.Page.VirtualId = pageId;
             }
 
@@ -978,7 +978,7 @@ namespace Zen.Trunk.Storage.Data
                 if (logicalPage != null)
                 {
                     // Assign the buffer logical Id then assign buffer to page
-                    scope.Buffer.LogicalId = logicalPage.LogicalId;
+                    scope.Buffer.LogicalPageId = logicalPage.LogicalPageId;
                 }
 
                 // Assign buffer to the page and conclude load process
@@ -1160,7 +1160,17 @@ namespace Zen.Trunk.Storage.Data
 
         private async Task<ObjectId> CreateObjectReferenceHandler(CreateObjectReferenceRequest request)
         {
+            // Determine free object id
+            // TODO: Simply track next available object id
             var objectId = ObjectId.Zero;
+            for (uint candidateObjectId = 1; ; ++candidateObjectId)
+            {
+                if (!_assignedObjectIds.Contains(candidateObjectId))
+                {
+                    objectId = new ObjectId(candidateObjectId);
+                    break;
+                }
+            }
 
             // Build object reference for this object and assign object ID.
             var objectRef =
@@ -1169,17 +1179,8 @@ namespace Zen.Trunk.Storage.Data
                     Name = request.Message.Name,
                     ObjectType = request.Message.ObjectType,
                     FileGroupId = FileGroupId,
-                    FirstPageId = request.Message.FirstLogicalPageId
+                    FirstLogicalPageId = await request.Message.FirstPageFunc(objectId).ConfigureAwait(false)
                 };
-            for (uint candidateObjectId = 1; ; ++candidateObjectId)
-            {
-                if (!_assignedObjectIds.Contains(candidateObjectId))
-                {
-                    objectId = new ObjectId(candidateObjectId);
-                    objectRef.ObjectId = objectId;
-                    break;
-                }
-            }
 
             // Load primary file-group root page
             var rootPage = (PrimaryFileGroupRootPage)
@@ -1210,62 +1211,31 @@ namespace Zen.Trunk.Storage.Data
         private async Task<ObjectId> AddTableHandler(AddTableRequest request)
         {
             // Determine the object identifier for the table
-            var objectId = await CreateObjectReferenceAsync(
-                new CreateObjectReferenceParameters(request.Message.TableName, ObjectType.Table, LogicalPageId.Zero));
-
-            // Load primary file-group root page
-            using (var rootPage = (PrimaryFileGroupRootPage)
-                await _primaryDevice.LoadOrCreateRootPageAsync().ConfigureAwait(false))
-            {
-                // TODO: Move this into separate method
-                // ---
-                // Obtain object id for this table
-                await rootPage.SetRootLockAsync(RootLockType.Exclusive).ConfigureAwait(false);
-                rootPage.ReadOnly = false;
-                var objectRef =
-                    new ObjectRefInfo
+            return await CreateObjectReferenceAsync(
+                new CreateObjectReferenceParameters(request.Message.TableName, ObjectType.Table,
+                    async (objectId) =>
                     {
-                        Name = request.Message.TableName,
-                        ObjectType = ObjectType.Table
-                    };
-                for (uint candidateObjectId = 1; ; ++candidateObjectId)
-                {
-                    if (!_assignedObjectIds.Contains(candidateObjectId))
-                    {
-                        objectId = new ObjectId(candidateObjectId);
-                        objectRef.ObjectId = objectId;
-                        break;
-                    }
-                }
-                rootPage.AddObjectInfo(objectRef);
-                // ---
+                        // Create database table helper and setup object
+                        var table = ResolveDeviceService<DatabaseTable>();
+                        table.FileGroupId = FileGroupId;
+                        table.ObjectId = objectId;
+                        table.IsNewTable = true;
 
-                // Create database table helper and setup object
-                var table = ResolveDeviceService<DatabaseTable>();
-                table.FileGroupId = FileGroupId;
-                table.ObjectId = objectRef.ObjectId;
-                table.IsNewTable = true;
+                        // Create columns
+                        table.BeginColumnUpdate();
+                        foreach (var column in request.Message.Columns)
+                        {
+                            table.AddColumn(column, -1);
+                        }
 
-                // Create columns
-                table.BeginColumnUpdate();
-                foreach (var column in request.Message.Columns)
-                {
-                    table.AddColumn(column, -1);
-                }
+                        // Commit table changes
+                        await table
+                            .EndColumnUpdate()
+                            .ConfigureAwait(false);
 
-                // Commit table changes
-                await table
-                    .EndColumnUpdate()
-                    .ConfigureAwait(false);
-
-                // Finalise the object information
-                objectRef.FileGroupId = FileGroupId;
-                objectRef.FirstPageId = table.SchemaFirstLogicalId;
-                rootPage.Save();
-            }
-
-            // Set operation result
-            return objectId;
+                        // Return the first logical page id of the schema
+                        return table.SchemaFirstLogicalPageId;
+                    })).ConfigureAwait(false);
         }
 
         private Task<IndexId> AddTableIndexHandler(AddTableIndexRequest request)

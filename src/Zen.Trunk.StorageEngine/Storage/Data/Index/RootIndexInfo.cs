@@ -10,7 +10,7 @@
 	    private readonly BufferFieldIndexId _indexId;
 		private readonly BufferFieldObjectId _objectId;
 		private readonly BufferFieldStringFixed _name;
-		private readonly BufferFieldLogicalPageId _rootLogicalId;
+		private readonly BufferFieldLogicalPageId _rootLogicalPageId;
 		private readonly BufferFieldByte _rootIndexDepth;
 		#endregion
 
@@ -32,8 +32,8 @@
 			_indexId = new BufferFieldIndexId(indexId);
 			_objectId = new BufferFieldObjectId(_indexId, ObjectId.Zero);
 			_name = new BufferFieldStringFixed(_objectId, 16);
-			_rootLogicalId = new BufferFieldLogicalPageId(_name);
-			_rootIndexDepth = new BufferFieldByte(_rootLogicalId);
+			_rootLogicalPageId = new BufferFieldLogicalPageId(_name);
+			_rootIndexDepth = new BufferFieldByte(_rootLogicalPageId);
 		}
 		#endregion
 
@@ -68,10 +68,10 @@
 		/// Gets or sets the root logical id.
 		/// </summary>
 		/// <value>The root logical id.</value>
-		public LogicalPageId RootLogicalId
+		public LogicalPageId RootLogicalPageId
 		{
-			get { return _rootLogicalId.Value; }
-			set { _rootLogicalId.Value = value; }
+			get { return _rootLogicalPageId.Value; }
+			set { _rootLogicalPageId.Value = value; }
 		}
 
 		/// <summary>

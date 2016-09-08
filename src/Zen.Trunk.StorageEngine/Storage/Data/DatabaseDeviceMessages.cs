@@ -77,8 +77,8 @@ namespace Zen.Trunk.Storage.Data
 	{
 		#region Public Constructors
 		public InitFileGroupPageParameters(
-			string fileGroupName, DataPage page, bool assignVirtualId = false, bool assignLogicalId = false, bool assignAutomaticLogicalId = false, bool isNewObject = false)
-			: base(page, assignVirtualId, assignLogicalId, assignAutomaticLogicalId, isNewObject)
+			string fileGroupName, DataPage page, bool assignVirtualId = false, bool assignLogicalPageId = false, bool assignAutomaticLogicalPageId = false, bool isNewObject = false)
+			: base(page, assignVirtualId, assignLogicalPageId, assignAutomaticLogicalPageId, isNewObject)
 		{
 			FileGroupId = page.FileGroupId;
 			FileGroupName = fileGroupName;
@@ -124,40 +124,24 @@ namespace Zen.Trunk.Storage.Data
 
 	public class AddFileGroupTableParameters : AddTableParameters
 	{
-		public AddFileGroupTableParameters()
-		{
-		}
-
-		public AddFileGroupTableParameters(FileGroupId fileGroupId, string fileGroupName, string tableName, params TableColumnInfo[] columns)
+        public AddFileGroupTableParameters(FileGroupId fileGroupId, string fileGroupName, string tableName, params TableColumnInfo[] columns)
 			: base(tableName, columns)
 		{
 			FileGroupId = fileGroupId;
 			FileGroupName = fileGroupName;
 		}
 
-		public FileGroupId FileGroupId
-		{
-			get;
-			set;
-		}
+		public FileGroupId FileGroupId { get; }
 
-		public string FileGroupName
-		{
-			get;
-			set;
-		}
+		public string FileGroupName { get; }
 
 		public bool FileGroupIdValid => FileGroupId != FileGroupId.Invalid;
 	}
 
 	public class AddFileGroupTableIndexParameters : AddTableIndexParameters
 	{
-		public AddFileGroupTableIndexParameters()
-		{
-		}
-
-		public AddFileGroupTableIndexParameters(FileGroupId fileGroupId, string fileGroupName, string name, TableIndexSubType indexSubType, ObjectId ownerObjectId)
-			: base(name, indexSubType, ownerObjectId)
+		public AddFileGroupTableIndexParameters(FileGroupId fileGroupId, string fileGroupName, string name, TableIndexSubType indexSubType, ObjectId objectId)
+			: base(name, indexSubType, objectId)
 		{
 			FileGroupId = fileGroupId;
 			FileGroupName = fileGroupName;

@@ -116,6 +116,7 @@ namespace Zen.Trunk.Extensions
         /// <returns>The original Task.</returns>
         public static Task IgnoreExceptions(this Task task)
         {
+            // ReSharper disable once UnusedVariable
             task.ContinueWith(t => { var ignored = t.Exception; },
                 CancellationToken.None,
                 TaskContinuationOptions.ExecuteSynchronously | TaskContinuationOptions.OnlyOnFaulted,
@@ -206,6 +207,7 @@ namespace Zen.Trunk.Extensions
                             break;
 
                         case TaskStatus.Faulted:
+                            // ReSharper disable once AssignNullToNotNullAttribute
                             observer.OnError(Task.Exception);
                             break;
 

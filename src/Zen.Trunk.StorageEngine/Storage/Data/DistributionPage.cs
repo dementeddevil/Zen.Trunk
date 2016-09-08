@@ -176,7 +176,7 @@ namespace Zen.Trunk.Storage.Data
             /// <summary>
             /// Logical ID
             /// </summary>
-            internal LogicalPageId LogicalId
+            internal LogicalPageId LogicalPageId
             {
                 get
                 {
@@ -433,7 +433,7 @@ namespace Zen.Trunk.Storage.Data
                 if (!info.Pages[index].AllocationStatus)
                 {
                     info.Pages[index].AllocationStatus = true;
-                    info.Pages[index].LogicalId = allocParams.LogicalId;
+                    info.Pages[index].LogicalPageId = allocParams.LogicalPageId;
                     info.Pages[index].ObjectId = allocParams.ObjectId;
                     info.Pages[index].ObjectType = allocParams.ObjectType;
 
@@ -492,7 +492,7 @@ namespace Zen.Trunk.Storage.Data
                 // Update page information
                 _extents[extent].Pages[pageIndex].AllocationStatus = false;
                 _extents[extent].Pages[pageIndex].ObjectId = ObjectId.Zero;
-                _extents[extent].Pages[pageIndex].LogicalId = LogicalPageId.Zero;
+                _extents[extent].Pages[pageIndex].LogicalPageId = LogicalPageId.Zero;
                 _extents[extent].Pages[pageIndex].ObjectType = ObjectType.Unknown;
 
                 // Update extent information
@@ -542,7 +542,7 @@ namespace Zen.Trunk.Storage.Data
                             startPageId.PhysicalPageId + pageOffset);
 
                         addTasks.Add(logicalVirtualManager.AddLookupAsync(
-                            pageId, _extents[extentIndex].Pages[pageIndex].LogicalId));
+                            pageId, _extents[extentIndex].Pages[pageIndex].LogicalPageId));
                     }
                 }
             }
@@ -724,7 +724,7 @@ namespace Zen.Trunk.Storage.Data
                     page.AllocationStatus = false;
                     page.ObjectType = ObjectType.Unknown;
                     page.ObjectId = ObjectId.Zero;
-                    page.LogicalId = LogicalPageId.Zero;
+                    page.LogicalPageId = LogicalPageId.Zero;
                 }
             }
             return base.OnInitAsync(e);

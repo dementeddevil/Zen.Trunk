@@ -219,11 +219,11 @@ namespace Zen.Trunk.Storage.Data.Index
 					{
 						_lastInternalLockWritable = true;
 					}
-					lockManager.LockInternalIndex(ObjectId, IndexId, LogicalId, _lastInternalLockWritable, LockTimeout);
+					lockManager.LockInternalIndex(ObjectId, IndexId, LogicalPageId, _lastInternalLockWritable, LockTimeout);
 					break;
 
 				case IndexType.Leaf:
-					await lockManager.LockDataAsync(ObjectId, LogicalId, PageLock, LockTimeout).ConfigureAwait(false);
+					await lockManager.LockDataAsync(ObjectId, LogicalPageId, PageLock, LockTimeout).ConfigureAwait(false);
 					break;
 			}
 		}
@@ -241,11 +241,11 @@ namespace Zen.Trunk.Storage.Data.Index
 					break;
 
 				case IndexType.Intermediate:
-					lockManager.UnlockInternalIndex(ObjectId, IndexId, LogicalId, _lastInternalLockWritable);
+					lockManager.UnlockInternalIndex(ObjectId, IndexId, LogicalPageId, _lastInternalLockWritable);
 					break;
 
 				case IndexType.Leaf:
-					await lockManager.UnlockDataAsync(ObjectId, LogicalId).ConfigureAwait(false);
+					await lockManager.UnlockDataAsync(ObjectId, LogicalPageId).ConfigureAwait(false);
 					break;
 			}
 		}

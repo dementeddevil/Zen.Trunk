@@ -94,7 +94,7 @@
     <Compile Include="Extensions\CompletedTask.cs" />
     <Compile Include="Extensions\DelegateBasedObserver.cs" />
     <Compile Include="Extensions\DelegateExtensions.cs" />
-    <Compile Include="Extensions\IProducerConsumerCollectionExtensions.cs" />
+    <Compile Include="Extensions\ProducerConsumerCollectionExtensions.cs" />
     <Compile Include="Extensions\LazyExtensions.cs" />
     <Compile Include="Extensions\LinqToTasks.cs" />
     <Compile Include="Extensions\ParallelLinqOptions.cs" />

@@ -369,8 +369,8 @@ namespace Zen.Trunk.Storage.Data.Table
 	public class TableSchemaRootPage : TableSchemaPage
 	{
 		#region Private Fields
-		private readonly BufferFieldUInt64 _dataFirstLogicalId;
-		private readonly BufferFieldUInt64 _dataLastLogicalId;
+		private readonly BufferFieldUInt64 _dataFirstLogicalPageId;
+		private readonly BufferFieldUInt64 _dataLastLogicalPageId;
 		#endregion
 
 		#region Public Constructors
@@ -379,8 +379,8 @@ namespace Zen.Trunk.Storage.Data.Table
 		/// </summary>
 		public TableSchemaRootPage()
 		{
-			_dataFirstLogicalId = new BufferFieldUInt64(base.LastHeaderField);
-			_dataLastLogicalId = new BufferFieldUInt64(_dataFirstLogicalId);
+			_dataFirstLogicalPageId = new BufferFieldUInt64(base.LastHeaderField);
+			_dataLastLogicalPageId = new BufferFieldUInt64(_dataFirstLogicalPageId);
 		}
 		#endregion
 
@@ -399,17 +399,17 @@ namespace Zen.Trunk.Storage.Data.Table
 		/// <value>
 		/// The logical page identifier.
 		/// </value>
-		public LogicalPageId DataFirstLogicalId
+		public LogicalPageId DataFirstLogicalPageId
 		{
 			get
 			{
-				return new LogicalPageId(_dataFirstLogicalId.Value);
+				return new LogicalPageId(_dataFirstLogicalPageId.Value);
 			}
 			set
 			{
-				if (_dataFirstLogicalId.Value != value.Value)
+				if (_dataFirstLogicalPageId.Value != value.Value)
 				{
-					_dataFirstLogicalId.Value = value.Value;
+					_dataFirstLogicalPageId.Value = value.Value;
 					SetHeaderDirty();
 				}
 			}
@@ -421,17 +421,17 @@ namespace Zen.Trunk.Storage.Data.Table
 		/// <value>
 		/// The logical page identifier.
 		/// </value>
-		public LogicalPageId DataLastLogicalId
+		public LogicalPageId DataLastLogicalPageId
 		{
 			get
 			{
-				return new LogicalPageId(_dataLastLogicalId.Value);
+				return new LogicalPageId(_dataLastLogicalPageId.Value);
 			}
 			set
 			{
-				if (_dataLastLogicalId.Value != value.Value)
+				if (_dataLastLogicalPageId.Value != value.Value)
 				{
-					_dataLastLogicalId.Value = value.Value;
+					_dataLastLogicalPageId.Value = value.Value;
 					SetHeaderDirty();
 				}
 			}
@@ -445,7 +445,7 @@ namespace Zen.Trunk.Storage.Data.Table
 		/// <value>
 		/// The last header field.
 		/// </value>
-		protected override BufferField LastHeaderField => _dataLastLogicalId;
+		protected override BufferField LastHeaderField => _dataLastLogicalPageId;
 
 	    #endregion
 	}

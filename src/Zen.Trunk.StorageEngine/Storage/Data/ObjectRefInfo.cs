@@ -51,11 +51,7 @@ namespace Zen.Trunk.Storage.Data
         /// <remarks>
         /// This value is not persisted.
         /// </remarks>
-        public FileGroupId FileGroupId
-        {
-            get;
-            set;
-        }
+        public FileGroupId FileGroupId { get; set; }
 
         /// <summary>
         /// Gets or sets the root page virtual page id.
@@ -64,11 +60,7 @@ namespace Zen.Trunk.Storage.Data
         /// <remarks>
         /// This value is not persisted.
         /// </remarks>
-        public VirtualPageId RootPageVirtualPageId
-        {
-            get;
-            set;
-        }
+        public VirtualPageId RootPageVirtualPageId { get; set; }
 
         /// <summary>
         /// Gets or sets the object identifier.
@@ -125,12 +117,12 @@ namespace Zen.Trunk.Storage.Data
         }
 
         /// <summary>
-        /// Gets or sets the first page identifier.
+        /// Gets or sets the first logical page identifier.
         /// </summary>
         /// <value>
-        /// The first page identifier.
+        /// The first logical page identifier.
         /// </value>
-        public LogicalPageId FirstPageId
+        public LogicalPageId FirstLogicalPageId
         {
             get
             {
