@@ -127,7 +127,7 @@ namespace Zen.Trunk.Storage.Data
                 }
 
                 await FileGroupDevice
-                    .InitDataPage(new InitDataPageParameters(rootPage))
+                    .InitDataPageAsync(new InitDataPageParameters(rootPage))
                     .ConfigureAwait(false);
 
                 if (Logger.IsDebugEnabled())
@@ -143,7 +143,7 @@ namespace Zen.Trunk.Storage.Data
                 }
 
                 await FileGroupDevice
-                    .LoadDataPage(new LoadDataPageParameters(rootPage, true))
+                    .LoadDataPageAsync(new LoadDataPageParameters(rootPage, true))
                     .ConfigureAwait(false);
 
                 if (Logger.IsDebugEnabled())
@@ -222,7 +222,8 @@ namespace Zen.Trunk.Storage.Data
 				// NOTE: We first release the root page to be sure the
 				//	expand will succeed (although since it would be using
 				//	the same transaction id it would have the same lock)
-				await FileGroupDevice.ExpandDataDevice(DeviceId, 0).ConfigureAwait(false);
+				await FileGroupDevice.ExpandDataDevice(
+                    new ExpandDataDeviceParameters(DeviceId, 0)).ConfigureAwait(false);
 
 				// Signal we have expanded the device
 				isExpand = true;
@@ -334,7 +335,7 @@ namespace Zen.Trunk.Storage.Data
                 }
 
 				// Issue the sub-ordinate request
-				await FileGroupDevice.InitDataPage(
+				await FileGroupDevice.InitDataPageAsync(
 					new InitDataPageParameters(page)).ConfigureAwait(false);
 
 				// Notify page as to the number of usable extents
@@ -380,7 +381,7 @@ namespace Zen.Trunk.Storage.Data
 
 				// Issue the sub-ordinate request
 				await FileGroupDevice
-                    .LoadDataPage(new LoadDataPageParameters(page))
+                    .LoadDataPageAsync(new LoadDataPageParameters(page))
                     .ConfigureAwait(false);
 
                 // Mark original request as complete
@@ -402,7 +403,7 @@ namespace Zen.Trunk.Storage.Data
 		private async Task LoadDistributionPageAndImport(uint distPageIndex, DistributionPage page)
 		{
 			await LoadDistributionPage(page, distPageIndex).ConfigureAwait(false);
-			await FileGroupDevice.ImportDistributionPage(page).ConfigureAwait(false);
+		    await FileGroupDevice.ImportDistributionPageAsync(page).ConfigureAwait(false);
 		} 
 		#endregion
 	}

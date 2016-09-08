@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 namespace Zen.Trunk.Storage
 {
     /// <summary>
-    /// 
+    /// <c>IMultipleBufferDevice</c> represents a page device mapped to multiple files.
     /// </summary>
     /// <seealso cref="Zen.Trunk.Storage.IBufferDevice" />
     public interface IMultipleBufferDevice : IBufferDevice
@@ -60,31 +60,43 @@ namespace Zen.Trunk.Storage
         /// <returns></returns>
         uint ExpandDevice(DeviceId deviceId, int pageCount);
 
-		/// <summary>
-		/// Asynchronously loads a buffer from the device and page associated
-		/// with the specified pageId.
-		/// </summary>
-		/// <param name="pageId"></param>
-		/// <param name="buffer"></param>
-		/// <returns></returns>
-		Task LoadBufferAsync(VirtualPageId pageId, IVirtualBuffer buffer);
+        /// <summary>
+        /// Loads the page data from the physical page into the supplied buffer.
+        /// </summary>
+		/// <param name="pageId">The virtual page identifier.</param>
+		/// <param name="buffer">The buffer.</param>
+        /// <returns>
+        /// A <see cref="Task"/> representing the asynchronous operation.
+        /// </returns>
+        /// <remarks>
+        /// When scatter/gather I/O is enabled then the save is deferred until
+        /// pending requests are flushed via <see cref="FlushBuffersAsync"/>.
+        /// </remarks>
+        Task LoadBufferAsync(VirtualPageId pageId, IVirtualBuffer buffer);
 
-		/// <summary>
-		/// Asynchronously saves a buffer to the device and page associated
-		/// with the specified pageId.
-		/// </summary>
-		/// <param name="pageId">The page unique identifier.</param>
+        /// <summary>
+        /// Saves the page data from the supplied buffer to the physical page.
+        /// </summary>
+		/// <param name="pageId">The virtual page identifier.</param>
 		/// <param name="buffer">The buffer.</param>
 		/// <returns></returns>
 		Task SaveBufferAsync(VirtualPageId pageId, IVirtualBuffer buffer);
 
         /// <summary>
-        /// Flushes the buffers asynchronous.
+        /// Flushes pending buffer operations.
         /// </summary>
-        /// <param name="flushReads">if set to <c>true</c> [flush reads].</param>
-        /// <param name="flushWrites">if set to <c>true</c> [flush writes].</param>
-        /// <param name="deviceIds">The device ids.</param>
-        /// <returns></returns>
+        /// <param name="flushReads">
+        /// if set to <c>true</c> then read operations are flushed.
+        /// </param>
+        /// <param name="flushWrites">
+        /// if set to <c>true</c> then write operations are flushed.
+        /// </param>
+        /// <param name="deviceIds">
+        /// An optional list of device identifiers to restrict flush operation.
+        /// </param>
+        /// <returns>
+        /// A <see cref="Task"/> representing the asynchronous operation.
+        /// </returns>
         Task FlushBuffersAsync(bool flushReads, bool flushWrites, params DeviceId[] deviceIds);
 
 		/// <summary>

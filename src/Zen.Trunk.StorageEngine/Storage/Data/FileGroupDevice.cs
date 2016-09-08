@@ -85,55 +85,32 @@ namespace Zen.Trunk.Storage.Data
 
         private class AllocateDataPageRequest : TransactionContextTaskRequest<AllocateDataPageParameters, VirtualPageId>
         {
+            #region Public Constructors
             public AllocateDataPageRequest(AllocateDataPageParameters allocParams)
                 : base(allocParams)
             {
             }
+            #endregion
         }
 
-        private class ImportDistributionPageRequest : TransactionContextTaskRequest<bool>
+        private class ImportDistributionPageRequest : TransactionContextTaskRequest<DistributionPage, bool>
         {
+            #region Public Constructors
             public ImportDistributionPageRequest(DistributionPage page)
+                : base(page)
             {
-                Page = page;
             }
-
-            public DistributionPage Page { get; }
+            #endregion
         }
 
-        private class ExpandDataDeviceRequest : TransactionContextTaskRequest<bool>
+        private class ExpandDataDeviceRequest : TransactionContextTaskRequest<ExpandDataDeviceParameters, bool>
         {
-            /// <summary>
-            /// Initializes a new instance of the <see cref="ExpandDataDeviceRequest" /> class.
-            /// </summary>
-            /// <param name="deviceId">The device id.</param>
-            /// <param name="pageCount">The page count.</param>
-            public ExpandDataDeviceRequest(DeviceId deviceId, uint pageCount)
+            #region Public Constructors
+            public ExpandDataDeviceRequest(ExpandDataDeviceParameters parameters)
+                : base(parameters)
             {
-                DeviceId = deviceId;
-                PageCount = pageCount;
             }
-
-            /// <summary>
-            /// Gets or sets the device id.
-            /// </summary>
-            /// <value>The device id.</value>
-            public DeviceId DeviceId { get; }
-
-            /// <summary>
-            /// Gets or sets an integer that will be added to the existing page 
-            /// count of the target device to determine the new page capacity.
-            /// </summary>
-            /// <value>The page count.</value>
-            public uint PageCount { get; }
-
-            /// <summary>
-            /// Gets or sets a value indicating whether the device id is valid.
-            /// </summary>
-            /// <value>
-            /// <c>true</c> if the device id is valid; otherwise, <c>false</c>.
-            /// </value>
-            public bool IsDeviceIdValid => DeviceId != DeviceId.Zero;
+            #endregion
         }
 
         private class AddTableRequest : TransactionContextTaskRequest<AddTableParameters, ObjectId>
@@ -151,6 +128,16 @@ namespace Zen.Trunk.Storage.Data
             #region Public Constructors
             public AddTableIndexRequest(AddTableIndexParameters indexParams)
                 : base(indexParams)
+            {
+            }
+            #endregion
+        }
+
+        private class CreateObjectReferenceRequest : TransactionContextTaskRequest<CreateObjectReferenceParameters, ObjectId>
+        {
+            #region Public Constructors
+            public CreateObjectReferenceRequest(CreateObjectReferenceParameters parameters)
+                : base(parameters)
             {
             }
             #endregion
@@ -229,6 +216,12 @@ namespace Zen.Trunk.Storage.Data
                 });
             ImportDistributionPagePort = new TransactionContextActionBlock<ImportDistributionPageRequest, bool>(
                 request => ImportDistributionPageHandler(request),
+                new ExecutionDataflowBlockOptions
+                {
+                    TaskScheduler = taskInterleave.ConcurrentScheduler
+                });
+            CreateObjectReferencePort = new TransactionContextActionBlock<CreateObjectReferenceRequest, ObjectId>(
+                request => CreateObjectReferenceHandler(request),
                 new ExecutionDataflowBlockOptions
                 {
                     TaskScheduler = taskInterleave.ConcurrentScheduler
@@ -356,6 +349,14 @@ namespace Zen.Trunk.Storage.Data
         private ITargetBlock<ImportDistributionPageRequest> ImportDistributionPagePort { get; }
 
         /// <summary>
+        /// Gets the create object reference port.
+        /// </summary>
+        /// <value>
+        /// The create object reference port.
+        /// </value>
+        private ITargetBlock<CreateObjectReferenceRequest> CreateObjectReferencePort { get; }
+
+        /// <summary>
         /// Gets the add table port.
         /// </summary>
         /// <value>The add table port.</value>
@@ -395,7 +396,7 @@ namespace Zen.Trunk.Storage.Data
         /// <param name="deviceParams">The device parameters.</param>
         /// <returns></returns>
         /// <exception cref="BufferDeviceShuttingDownException"></exception>
-        public Task<DeviceId> AddDataDevice(AddDataDeviceParameters deviceParams)
+        public Task<DeviceId> AddDataDeviceAsync(AddDataDeviceParameters deviceParams)
         {
             var request = new AddDataDeviceRequest(deviceParams);
             if (!AddDataDevicePort.Post(request))
@@ -415,7 +416,7 @@ namespace Zen.Trunk.Storage.Data
         /// otherwise <c>false</c>.
         /// </returns>
         /// <exception cref="BufferDeviceShuttingDownException"></exception>
-        public Task<bool> RemoveDataDevice(RemoveDataDeviceParameters deviceParams)
+        public Task<bool> RemoveDataDeviceAsync(RemoveDataDeviceParameters deviceParams)
         {
             var request = new RemoveDataDeviceRequest(deviceParams);
             if (!RemoveDataDevicePort.Post(request))
@@ -431,7 +432,7 @@ namespace Zen.Trunk.Storage.Data
         /// <param name="initParams">The initialize parameters.</param>
         /// <returns></returns>
         /// <exception cref="BufferDeviceShuttingDownException"></exception>
-        public Task InitDataPage(InitDataPageParameters initParams)
+        public Task InitDataPageAsync(InitDataPageParameters initParams)
         {
             var request = new InitDataPageRequest(initParams);
             if (!InitDataPagePort.Post(request))
@@ -447,7 +448,7 @@ namespace Zen.Trunk.Storage.Data
         /// <param name="loadParams">The load parameters.</param>
         /// <returns></returns>
         /// <exception cref="BufferDeviceShuttingDownException"></exception>
-        public Task LoadDataPage(LoadDataPageParameters loadParams)
+        public Task LoadDataPageAsync(LoadDataPageParameters loadParams)
         {
             var request = new LoadDataPageRequest(loadParams);
             if (!LoadDataPagePort.Post(request))
@@ -465,7 +466,7 @@ namespace Zen.Trunk.Storage.Data
         /// <param name="endPhysicalId">The end physical identifier.</param>
         /// <returns></returns>
         /// <exception cref="BufferDeviceShuttingDownException"></exception>
-        public Task CreateDistributionPages(DeviceId deviceId, uint startPhysicalId, uint endPhysicalId)
+        public Task CreateDistributionPagesAsync(DeviceId deviceId, uint startPhysicalId, uint endPhysicalId)
         {
             var request = new CreateDistributionPagesRequest(deviceId, startPhysicalId, endPhysicalId);
             if (!CreateDistributionPagesPort.Post(request))
@@ -481,7 +482,7 @@ namespace Zen.Trunk.Storage.Data
         /// <param name="allocParams">The alloc parameters.</param>
         /// <returns></returns>
         /// <exception cref="BufferDeviceShuttingDownException"></exception>
-        public Task<VirtualPageId> AllocateDataPage(AllocateDataPageParameters allocParams)
+        public Task<VirtualPageId> AllocateDataPageAsync(AllocateDataPageParameters allocParams)
         {
             var request = new AllocateDataPageRequest(allocParams);
             if (!AllocateDataPagePort.Post(request))
@@ -497,7 +498,7 @@ namespace Zen.Trunk.Storage.Data
         /// <param name="page">The page.</param>
         /// <returns></returns>
         /// <exception cref="BufferDeviceShuttingDownException"></exception>
-        public Task ImportDistributionPage(DistributionPage page)
+        public Task ImportDistributionPageAsync(DistributionPage page)
         {
             var request = new ImportDistributionPageRequest(page);
             if (!ImportDistributionPagePort.Post(request))
@@ -508,15 +509,30 @@ namespace Zen.Trunk.Storage.Data
         }
 
         /// <summary>
-        /// Expands the data device.
+        /// Creates the object reference.
         /// </summary>
-        /// <param name="deviceId">The device identifier.</param>
-        /// <param name="pageCount">The page count.</param>
+        /// <param name="parameters">The parameters.</param>
         /// <returns></returns>
         /// <exception cref="BufferDeviceShuttingDownException"></exception>
-        public Task ExpandDataDevice(DeviceId deviceId, uint pageCount)
+        public Task<ObjectId> CreateObjectReferenceAsync(CreateObjectReferenceParameters parameters)
         {
-            var request = new ExpandDataDeviceRequest(deviceId, pageCount);
+            var request = new CreateObjectReferenceRequest(parameters);
+            if (!CreateObjectReferencePort.Post(request))
+            {
+                throw new BufferDeviceShuttingDownException();
+            }
+            return request.Task;
+        }
+
+        /// <summary>
+        /// Expands the data device.
+        /// </summary>
+        /// <param name="parameters">The parameters.</param>
+        /// <returns></returns>
+        /// <exception cref="BufferDeviceShuttingDownException"></exception>
+        public Task ExpandDataDevice(ExpandDataDeviceParameters parameters)
+        {
+            var request = new ExpandDataDeviceRequest(parameters);
             if (!ExpandDataDevicePort.Post(request))
             {
                 throw new BufferDeviceShuttingDownException();
@@ -554,6 +570,46 @@ namespace Zen.Trunk.Storage.Data
                 throw new BufferDeviceShuttingDownException();
             }
             return request.Task;
+        }
+
+        /// <summary>
+        /// Using the previous page as a marker, loads the next linked page or
+        /// creates a new linked page if one does not currently exist.
+        /// </summary>
+        /// <typeparam name="TPageType">The type of the page type.</typeparam>
+        /// <param name="previousPage">The previous page.</param>
+        /// <returns>
+        /// A <see cref="Task"/> that when completed will contain the new page.
+        /// </returns>
+        /// <remarks>
+        /// It is assumed the caller has an exclusive lock on the previous page
+        /// although we could relax this to an IX lock and only force an X lock
+        /// when the need arises to actually create a new page.
+        /// </remarks>
+        public async Task<TPageType> LoadOrCreatePageAndLinkAsync<TPageType>(TPageType previousPage)
+            where TPageType : LogicalPage, new()
+        {
+            // If previous page has next logical page identifier then load
+            if (previousPage.NextLogicalId != LogicalPageId.Zero)
+            {
+                // Load the next page and return
+                var nextPage = new TPageType { LogicalId = previousPage.NextLogicalId };
+                await LoadDataPageAsync(new LoadDataPageParameters(nextPage, false, true))
+                    .ConfigureAwait(false);
+                return nextPage;
+            }
+
+            // Create new next page and link up
+            var newPage = new TPageType();
+            newPage.PrevLogicalId = previousPage.LogicalId;
+            await InitDataPageAsync(new InitDataPageParameters(newPage, true, true, true))
+                .ConfigureAwait(false);
+            previousPage.NextLogicalId = newPage.LogicalId;
+
+            // Force save of both pages
+            previousPage.Save();
+            newPage.Save();
+            return newPage;
         }
         #endregion
 
@@ -618,7 +674,7 @@ namespace Zen.Trunk.Storage.Data
                     // Walk the list of devices recorded in the root page
                     foreach (var deviceInfo in rootPage.Devices)
                     {
-                        await AddDataDevice(new AddDataDeviceParameters(deviceInfo.Name, deviceInfo.PathName, deviceInfo.Id)).ConfigureAwait(false);
+                        await AddDataDeviceAsync(new AddDataDeviceParameters(deviceInfo.Name, deviceInfo.PathName, deviceInfo.Id)).ConfigureAwait(false);
                     }
                 }
             }
@@ -830,7 +886,7 @@ namespace Zen.Trunk.Storage.Data
             {
                 // Post allocation request to file-group device.
                 var objectPage = request.Message.Page as ObjectPage;
-                pageId = await AllocateDataPage(
+                pageId = await AllocateDataPageAsync(
                     new AllocateDataPageParameters(
                         (logicalPage != null) ? logicalPage.LogicalId : LogicalPageId.Zero,
                         (objectPage != null) ? objectPage.ObjectId : ObjectId.Zero,
@@ -935,7 +991,7 @@ namespace Zen.Trunk.Storage.Data
 
         private async Task<bool> ImportDistributionPageHandler(ImportDistributionPageRequest request)
         {
-            await request.Page.Import(LogicalVirtualManager).ConfigureAwait(false);
+            await request.Message.Import(LogicalVirtualManager).ConfigureAwait(false);
             return true;
         }
 
@@ -971,7 +1027,7 @@ namespace Zen.Trunk.Storage.Data
 
                     // Add page to the device
                     var initPage = new InitDataPageParameters(page);
-                    await InitDataPage(initPage).ConfigureAwait(false);
+                    await InitDataPageAsync(initPage).ConfigureAwait(false);
 
                     // TODO: Check - page should already be dirty.
                     // Make page explicitly dirty
@@ -984,99 +1040,19 @@ namespace Zen.Trunk.Storage.Data
             return true;
         }
 
-        private async Task ExpandDevice(DeviceId deviceId, RootPage rootPage, uint growthPages)
-        {
-            // Check device can be expanded
-            if (!rootPage.IsExpandable)
-            {
-                // This device is full...
-                throw new DeviceFullException(deviceId);
-            }
-
-            // Check for automatic growth calculation
-            if (growthPages == 0)
-            {
-                // Determine amount to increase storage by
-                if (!rootPage.IsExpandableByPercent)
-                {
-                    growthPages = rootPage.GrowthPages;
-                    if (growthPages == 0)
-                    {
-                        // Grow by 1Mb by default
-                        //	however this should never be reached
-                        growthPages = 128;
-                    }
-                }
-                else
-                {
-                    growthPages = (uint)
-                        (rootPage.AllocatedPages *
-                        rootPage.GrowthPercent /
-                        100.0);
-                }
-            }
-
-            // Limit growth amount by maximum page allocation (if defined)
-            if (rootPage.MaximumPages > 0 &&
-                (rootPage.AllocatedPages + growthPages) > rootPage.MaximumPages)
-            {
-                growthPages = rootPage.MaximumPages - rootPage.AllocatedPages;
-            }
-
-            // Final sanity check
-            if (growthPages == 0)
-            {
-                throw new DeviceFullException(deviceId);
-            }
-
-            uint oldPageCount;
-            uint newPageCount;
-
-            // Place root page into update mode
-            await rootPage.SetRootLockAsync(RootLockType.Update).ConfigureAwait(false);
-            try
-            {
-                // Transition root page into exclusive mode
-                await rootPage.SetRootLockAsync(RootLockType.Exclusive).ConfigureAwait(false);
-
-                // Delegate the request to the underlying device
-                var bufferDevice = ResolveDeviceService<IMultipleBufferDevice>();
-                oldPageCount = bufferDevice.GetDeviceInfo(deviceId).PageCount;
-                newPageCount = bufferDevice.ExpandDevice(deviceId, (int)growthPages);
-            }
-            catch
-            {
-                // Assume expand failed and revert lock
-                //	don't know if I really have to do this now
-                await rootPage.SetRootLockAsync(RootLockType.Shared).ConfigureAwait(false);
-                throw;
-            }
-
-            // Create distribution pages as necessary
-            if (newPageCount > oldPageCount)
-            {
-                await CreateDistributionPages(deviceId, oldPageCount, newPageCount - 1).ConfigureAwait(false);
-            }
-
-            // Finally update the root page.
-            rootPage.ReadOnly = false;
-            rootPage.AllocatedPages = newPageCount;
-            rootPage.Save();
-        }
-
         private async Task<bool> ExpandDataDeviceHandler(ExpandDataDeviceRequest request)
         {
             RootPage rootPage;
 
             // Do underlying device expansion
-            if (request.IsDeviceIdValid)
+            if (request.Message.IsDeviceIdValid)
             {
                 // Load the root page and obtain update lock before we start
-                var pageDevice = GetDistributionPageDevice(request.DeviceId);
+                var pageDevice = GetDistributionPageDevice(request.Message.DeviceId);
                 rootPage = await pageDevice.LoadOrCreateRootPageAsync().ConfigureAwait(false);
                 await rootPage.SetRootLockAsync(RootLockType.Shared).ConfigureAwait(false);
 
-                await ExpandDevice(request.DeviceId, rootPage, request.PageCount).ConfigureAwait(false);
+                await ExpandDeviceCoreAsync(request.Message.DeviceId, rootPage, request.Message.PageCount).ConfigureAwait(false);
             }
             else
             {
@@ -1115,7 +1091,7 @@ namespace Zen.Trunk.Storage.Data
                     // Hook root page
                     try
                     {
-                        await ExpandDevice(pair.Key, pair.Value, request.PageCount).ConfigureAwait(false);
+                        await ExpandDeviceCoreAsync(pair.Key, pair.Value, request.Message.PageCount).ConfigureAwait(false);
                         hasExpanded = true;
                         break;
                     }
@@ -1186,38 +1162,56 @@ namespace Zen.Trunk.Storage.Data
         {
             var objectId = ObjectId.Zero;
 
-            // Load primary file-group root page
-            using (var rootPage = (PrimaryFileGroupRootPage)
-                await _primaryDevice.LoadOrCreateRootPageAsync().ConfigureAwait(false))
-            {
-                // TODO: Move this into separate method
-                // ---
-                // Obtain object id for this table
-                await rootPage.SetRootLockAsync(RootLockType.Exclusive).ConfigureAwait(false);
-                rootPage.ReadOnly = false;
-                var objectRef =
-                    new ObjectRefInfo
-                    {
-                        Name = request.Message.ObjectName,
-                        ObjectType = request.Message.ObjectType
-                    };
-                for (uint candidateObjectId = 1; ; ++candidateObjectId)
+            // Build object reference for this object and assign object ID.
+            var objectRef =
+                new ObjectRefInfo
                 {
-                    if (!_assignedObjectIds.Contains(candidateObjectId))
-                    {
-                        objectId = new ObjectId(candidateObjectId);
-                        objectRef.ObjectId = objectId;
-                        break;
-                    }
+                    Name = request.Message.Name,
+                    ObjectType = request.Message.ObjectType,
+                    FileGroupId = FileGroupId,
+                    FirstPageId = request.Message.FirstLogicalPageId
+                };
+            for (uint candidateObjectId = 1; ; ++candidateObjectId)
+            {
+                if (!_assignedObjectIds.Contains(candidateObjectId))
+                {
+                    objectId = new ObjectId(candidateObjectId);
+                    objectRef.ObjectId = objectId;
+                    break;
                 }
-                rootPage.AddObjectInfo(objectRef);
-                // ---
-
             }
+
+            // Load primary file-group root page
+            var rootPage = (PrimaryFileGroupRootPage)
+                await _primaryDevice.LoadOrCreateRootPageAsync().ConfigureAwait(false);
+
+            // Obtain object id for this table
+            await rootPage.SetRootLockAsync(RootLockType.Exclusive).ConfigureAwait(false);
+            while (true)
+            {
+                // Mark root page as writable and attempt to add object reference
+                rootPage.ReadOnly = false;
+                if (rootPage.AddObjectInfo(objectRef))
+                {
+                    break;
+                }
+
+                // Failed to add to existing root page; prepare to load/create new rootpage
+                var nextRootPage = await LoadOrCreatePageAndLinkAsync(rootPage).ConfigureAwait(false);
+
+                // Lock page and try again
+                await nextRootPage.SetRootLockAsync(RootLockType.Exclusive).ConfigureAwait(false);
+                rootPage = nextRootPage;
+            }
+
+            return objectId;
+        }
 
         private async Task<ObjectId> AddTableHandler(AddTableRequest request)
         {
-            var objectId = ObjectId.Zero;
+            // Determine the object identifier for the table
+            var objectId = await CreateObjectReferenceAsync(
+                new CreateObjectReferenceParameters(request.Message.TableName, ObjectType.Table, LogicalPageId.Zero));
 
             // Load primary file-group root page
             using (var rootPage = (PrimaryFileGroupRootPage)
@@ -1280,11 +1274,91 @@ namespace Zen.Trunk.Storage.Data
 
             var table = ResolveDeviceService<DatabaseTable>();
             table.FileGroupId = FileGroupId;
-            table.ObjectId = request.Message.OwnerObjectId;
+            table.ObjectId = request.Message.ObjectId;
             table.IsNewTable = false;
             //table.AddIndex
 
             return Task.FromResult(indexId);
+        }
+
+        private async Task ExpandDeviceCoreAsync(DeviceId deviceId, RootPage rootPage, uint growthPages)
+        {
+            // Check device can be expanded
+            if (!rootPage.IsExpandable)
+            {
+                // This device is full...
+                throw new DeviceFullException(deviceId);
+            }
+
+            // Check for automatic growth calculation
+            if (growthPages == 0)
+            {
+                // Determine amount to increase storage by
+                if (!rootPage.IsExpandableByPercent)
+                {
+                    growthPages = rootPage.GrowthPages;
+                    if (growthPages == 0)
+                    {
+                        // Grow by 1Mb by default
+                        //	however this should never be reached
+                        growthPages = 128;
+                    }
+                }
+                else
+                {
+                    growthPages = (uint)
+                        (rootPage.AllocatedPages *
+                        rootPage.GrowthPercent /
+                        100.0);
+                }
+            }
+
+            // Limit growth amount by maximum page allocation (if defined)
+            if (rootPage.MaximumPages > 0 &&
+                (rootPage.AllocatedPages + growthPages) > rootPage.MaximumPages)
+            {
+                growthPages = rootPage.MaximumPages - rootPage.AllocatedPages;
+            }
+
+            // Final sanity check
+            if (growthPages == 0)
+            {
+                throw new DeviceFullException(deviceId);
+            }
+
+            uint oldPageCount;
+            uint newPageCount;
+
+            // Place root page into update mode
+            await rootPage.SetRootLockAsync(RootLockType.Update).ConfigureAwait(false);
+            try
+            {
+                // Transition root page into exclusive mode
+                await rootPage.SetRootLockAsync(RootLockType.Exclusive).ConfigureAwait(false);
+
+                // Delegate the request to the underlying device
+                var bufferDevice = ResolveDeviceService<IMultipleBufferDevice>();
+                oldPageCount = bufferDevice.GetDeviceInfo(deviceId).PageCount;
+                newPageCount = bufferDevice.ExpandDevice(deviceId, (int)growthPages);
+            }
+            catch
+            {
+                // Assume expand failed and revert lock
+                //	don't know if I really have to do this now
+                await rootPage.SetRootLockAsync(RootLockType.Shared).ConfigureAwait(false);
+                throw;
+            }
+
+            // Create distribution pages as necessary
+            if (newPageCount > oldPageCount)
+            {
+                await CreateDistributionPagesAsync(deviceId, oldPageCount, newPageCount - 1).ConfigureAwait(false);
+            }
+
+            // Finally update the root page.
+            rootPage.ReadOnly = false;
+            rootPage.AllocatedPages = newPageCount;
+            rootPage.Save();
         }
         #endregion
     }

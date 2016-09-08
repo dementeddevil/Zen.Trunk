@@ -266,7 +266,7 @@ namespace Zen.Trunk.Storage
 					        IndexFileGroupId = FileGroupDevice.Primary,
 					        IndexSubType = TableIndexSubType.Primary | TableIndexSubType.Unique,
 					        Name = "PK_Test",
-					        OwnerObjectId = 12,
+					        ObjectId = 12,
 					        ColumnIDs = new byte[] { 1 }
 				        });*/
 

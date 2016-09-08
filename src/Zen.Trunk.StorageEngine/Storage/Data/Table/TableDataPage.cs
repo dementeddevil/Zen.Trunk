@@ -175,7 +175,7 @@ namespace Zen.Trunk.Storage.Data.Table
 				    await lastPage.SetObjectLockAsync(ObjectLock).ConfigureAwait(false);
 
                     await table.Owner
-						.LoadDataPage(new LoadDataPageParameters(lastPage, false, true))
+						.LoadDataPageAsync(new LoadDataPageParameters(lastPage, false, true))
 						.ConfigureAwait(false);
 				}
 
@@ -195,7 +195,7 @@ namespace Zen.Trunk.Storage.Data.Table
 			    await splitPage.SetObjectLockAsync(ObjectLock).ConfigureAwait(false);
 
                 await table.Owner
-					.InitDataPage(new InitDataPageParameters(splitPage, true, true, true))
+					.InitDataPageAsync(new InitDataPageParameters(splitPage, true, true, true))
 					.ConfigureAwait(false);
 				splitPage.PrevLogicalId = lastPage.LogicalId;
 				lastPage.NextLogicalId = splitPage.LogicalId;
@@ -235,7 +235,7 @@ namespace Zen.Trunk.Storage.Data.Table
 			    await nextPage.SetObjectLockAsync(ObjectLock).ConfigureAwait(false);
 
                 await table.Owner
-					.LoadDataPage(new LoadDataPageParameters(nextPage, false, true))
+					.LoadDataPageAsync(new LoadDataPageParameters(nextPage, false, true))
 					.ConfigureAwait(false);
 			}
 
@@ -257,7 +257,7 @@ namespace Zen.Trunk.Storage.Data.Table
 		    await SetObjectLockAsync(ObjectLock).ConfigureAwait(false);
 
             await table.Owner
-				.InitDataPage(new InitDataPageParameters(splitPage, true, true, true))
+				.InitDataPageAsync(new InitDataPageParameters(splitPage, true, true, true))
 				.ConfigureAwait(false);
 			splitPage.PrevLogicalId = LogicalId;
 			splitPage.NextLogicalId = NextLogicalId;
@@ -314,7 +314,7 @@ namespace Zen.Trunk.Storage.Data.Table
 			    await extraPage.SetObjectLockAsync(ObjectLock).ConfigureAwait(false);
 
                 await table.Owner
-					.InitDataPage(new InitDataPageParameters(extraPage, true, true, true))
+					.InitDataPageAsync(new InitDataPageParameters(extraPage, true, true, true))
 					.ConfigureAwait(false);
 
 				// Update linked list

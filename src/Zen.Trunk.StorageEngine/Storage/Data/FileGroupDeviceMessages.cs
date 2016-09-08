@@ -258,7 +258,42 @@
 		}
 	}
 
-	public class AddTableParameters
+    public class ExpandDataDeviceParameters
+    {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ExpandDataDeviceParameters" /> class.
+        /// </summary>
+        /// <param name="deviceId">The device id.</param>
+        /// <param name="pageCount">The page count.</param>
+        public ExpandDataDeviceParameters(DeviceId deviceId, uint pageCount)
+        {
+            DeviceId = deviceId;
+            PageCount = pageCount;
+        }
+
+        /// <summary>
+        /// Gets or sets the device id.
+        /// </summary>
+        /// <value>The device id.</value>
+        public DeviceId DeviceId { get; }
+
+        /// <summary>
+        /// Gets or sets an integer that will be added to the existing page 
+        /// count of the target device to determine the new page capacity.
+        /// </summary>
+        /// <value>The page count.</value>
+        public uint PageCount { get; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether the device id is valid.
+        /// </summary>
+        /// <value>
+        /// <c>true</c> if the device id is valid; otherwise, <c>false</c>.
+        /// </value>
+        public bool IsDeviceIdValid => DeviceId != DeviceId.Zero;
+    }
+
+    public class AddTableParameters
 	{
 		private readonly List<TableColumnInfo> _columns = new List<TableColumnInfo>();
 
@@ -301,36 +336,40 @@
 		{
 		}
 
-		public AddTableIndexParameters(string name, TableIndexSubType indexSubType, ObjectId ownerObjectId)
+		public AddTableIndexParameters(string name, TableIndexSubType indexSubType, ObjectId objectId)
 		{
 			Name = name;
 			IndexSubType = indexSubType;
-			OwnerObjectId = ownerObjectId;
+			ObjectId = objectId;
 		}
 
-		public string Name
-		{
-			get;
-			set;
-		}
+		public string Name { get; }
 
-		public TableIndexSubType IndexSubType
-		{
-			get;
-			set;
-		}
+        public TableIndexSubType IndexSubType { get; }
 
-		public ObjectId OwnerObjectId
-		{
-			get;
-			set;
-		}
+		public ObjectId ObjectId { get; }
 
-		public ICollection<Tuple<string, TableIndexSortDirection>> Columns => _columns;
+        public ICollection<Tuple<string, TableIndexSortDirection>> Columns => _columns;
 
 	    public void AddColumn(string columnName, TableIndexSortDirection direction)
 		{
 			_columns.Add(new Tuple<string, TableIndexSortDirection>(columnName, direction));
 		}
 	}
+
+    public class CreateObjectReferenceParameters
+    {
+        public CreateObjectReferenceParameters(string name, ObjectType objectType, LogicalPageId firstLogicalPageId)
+        {
+            Name = name;
+            ObjectType = objectType;
+            FirstLogicalPageId = firstLogicalPageId;
+        }
+
+        public string Name { get; }
+
+        public ObjectType ObjectType { get; }
+
+        public LogicalPageId FirstLogicalPageId { get; }
+    }
 }

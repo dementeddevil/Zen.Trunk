@@ -183,7 +183,13 @@ namespace Zen.Trunk.Storage.IO
         /// </summary>
         /// <param name="deviceId">The device identifier.</param>
         /// <param name="pageCount">The page count.</param>
-        /// <returns></returns>
+        /// <returns>
+        /// An unsigned integer indicating the new size of the device in pages.
+        /// </returns>
+        /// <remarks>
+        /// If the <paramref name="pageCount"/> is negative then the device
+        /// will be shrunk.
+        /// </remarks>
         public uint ExpandDevice(DeviceId deviceId, int pageCount)
 		{
 			var device = GetDevice(deviceId);
@@ -191,12 +197,17 @@ namespace Zen.Trunk.Storage.IO
 		}
 
         /// <summary>
-        /// Asynchronously loads a buffer from the device and page associated
-        /// with the specified pageId.
+        /// Loads the page data from the physical page into the supplied buffer.
         /// </summary>
-        /// <param name="pageId"></param>
-        /// <param name="buffer"></param>
-        /// <returns></returns>
+        /// <param name="pageId">The virtual page identifier.</param>
+        /// <param name="buffer">The buffer.</param>
+        /// <returns>
+        /// A <see cref="Task" /> representing the asynchronous operation.
+        /// </returns>
+        /// <remarks>
+        /// When scatter/gather I/O is enabled then the save is deferred until
+        /// pending requests are flushed via <see cref="FlushBuffersAsync" />.
+        /// </remarks>
         public Task LoadBufferAsync(VirtualPageId pageId, IVirtualBuffer buffer)
 		{
 			var device = GetDevice(pageId.DeviceId);
@@ -204,10 +215,9 @@ namespace Zen.Trunk.Storage.IO
 		}
 
         /// <summary>
-        /// Asynchronously saves a buffer to the device and page associated
-        /// with the specified pageId.
+        /// Saves the page data from the supplied buffer to the physical page.
         /// </summary>
-        /// <param name="pageId">The page unique identifier.</param>
+        /// <param name="pageId">The virtual page identifier.</param>
         /// <param name="buffer">The buffer.</param>
         /// <returns></returns>
         public Task SaveBufferAsync(VirtualPageId pageId, IVirtualBuffer buffer)
@@ -217,12 +227,14 @@ namespace Zen.Trunk.Storage.IO
 		}
 
         /// <summary>
-        /// Flushes the buffers asynchronous.
+        /// Flushes pending buffer operations.
         /// </summary>
-        /// <param name="flushReads">if set to <c>true</c> [flush reads].</param>
-        /// <param name="flushWrites">if set to <c>true</c> [flush writes].</param>
-        /// <param name="deviceIds">The device ids.</param>
-        /// <returns></returns>
+        /// <param name="flushReads">if set to <c>true</c> then read operations are flushed.</param>
+        /// <param name="flushWrites">if set to <c>true</c> then write operations are flushed.</param>
+        /// <param name="deviceIds">An optional list of device identifiers to restrict flush operation.</param>
+        /// <returns>
+        /// A <see cref="Task" /> representing the asynchronous operation.
+        /// </returns>
         public async Task FlushBuffersAsync(bool flushReads, bool flushWrites, params DeviceId[] deviceIds)
 		{
 			var subTasks = new List<Task>();

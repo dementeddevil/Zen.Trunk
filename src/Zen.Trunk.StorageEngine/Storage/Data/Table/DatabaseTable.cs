@@ -646,7 +646,7 @@ namespace Zen.Trunk.Storage.Data.Table
                     await page.SetObjectLockAsync(ObjectLockType.Shared).ConfigureAwait(false);
                     await page.SetSchemaLockAsync(SchemaLockType.SchemaStability).ConfigureAwait(false);
                     await _owner
-                        .LoadDataPage(new LoadDataPageParameters(page, false, true))
+                        .LoadDataPageAsync(new LoadDataPageParameters(page, false, true))
                         .ConfigureAwait(false);
 
                     // Add to definitions
@@ -906,7 +906,7 @@ namespace Zen.Trunk.Storage.Data.Table
                         {
                             if (rootPage == null)
                             {
-                                rootPage = await CreateSchemaPageAndLinkAsync(prevRootPage, firstPage).ConfigureAwait(false);
+                                rootPage = await CreateSchemaPageAndLinkAsync(prevRootPage).ConfigureAwait(false);
                                 if (firstPage)
                                 {
                                     initialPage = (TableSchemaRootPage)rootPage;
@@ -941,7 +941,7 @@ namespace Zen.Trunk.Storage.Data.Table
                         {
                             if (rootPage == null)
                             {
-                                rootPage = await CreateSchemaPageAndLinkAsync(prevRootPage, firstPage).ConfigureAwait(false);
+                                rootPage = await CreateSchemaPageAndLinkAsync(prevRootPage).ConfigureAwait(false);
                                 if (firstPage)
                                 {
                                     initialPage = (TableSchemaRootPage)rootPage;
@@ -1176,7 +1176,7 @@ namespace Zen.Trunk.Storage.Data.Table
                 newPage.FileGroupId = FileGroupId;
                 await newPage.SetObjectLockAsync(ObjectLockType.Exclusive).ConfigureAwait(false);
                 await Owner
-                    .InitDataPage(new InitDataPageParameters(newPage, true, true, true))
+                    .InitDataPageAsync(new InitDataPageParameters(newPage, true, true, true))
                     .ConfigureAwait(false);
 
                 // Update schema
@@ -1347,7 +1347,7 @@ namespace Zen.Trunk.Storage.Data.Table
             rootPage.ObjectId = ObjectId;
             rootPage.FileGroupId = FileGroupId;
             await _owner
-                .InitDataPage(new InitDataPageParameters(rootPage, true, true, true, true))
+                .InitDataPageAsync(new InitDataPageParameters(rootPage, true, true, true, true))
                 .ConfigureAwait(true);
             return rootPage;
         }
@@ -1396,7 +1396,7 @@ namespace Zen.Trunk.Storage.Data.Table
                         currentReadPage = new TableDataPage();
                         currentReadPage.LogicalId = readLogicalId;
                         await _owner
-                            .LoadDataPage(new LoadDataPageParameters(currentReadPage, false, true))
+                            .LoadDataPageAsync(new LoadDataPageParameters(currentReadPage, false, true))
                             .ConfigureAwait(false);
                     }
 
@@ -1405,7 +1405,7 @@ namespace Zen.Trunk.Storage.Data.Table
                     {
                         currentWritePage = new TableDataPage();
                         await _owner
-                            .InitDataPage(new InitDataPageParameters(currentWritePage, true, true, true, true))
+                            .InitDataPageAsync(new InitDataPageParameters(currentWritePage, true, true, true, true))
                             .ConfigureAwait(false);
                     }
 

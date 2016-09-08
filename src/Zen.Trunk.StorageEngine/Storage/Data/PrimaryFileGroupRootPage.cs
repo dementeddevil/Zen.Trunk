@@ -186,7 +186,7 @@ namespace Zen.Trunk.Storage.Data
             var addTaskList = new List<Task>();
             foreach (var di in _devices.Values)
             {
-                addTaskList.Add(pageDevice.AddDataDevice(
+                addTaskList.Add(pageDevice.AddDataDeviceAsync(
                     new AddDataDeviceParameters(di.Name, di.PathName, di.Id)));
             }
             return TaskExtra.WhenAllOrEmpty(addTaskList.ToArray());

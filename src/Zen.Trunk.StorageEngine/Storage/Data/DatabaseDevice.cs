@@ -737,7 +737,7 @@ namespace Zen.Trunk.Storage.Data
 
 			// Add child device to file-group
 		    // ReSharper disable once PossibleNullReferenceException
-			var deviceId = await fileGroupDevice.AddDataDevice(request.Message).ConfigureAwait(false);
+			var deviceId = await fileGroupDevice.AddDataDeviceAsync(request.Message).ConfigureAwait(false);
 
 			// If this is the first call for a file-group AND database is open or opening
 			//	then open the new file-group device too
@@ -755,7 +755,7 @@ namespace Zen.Trunk.Storage.Data
 		private async Task<bool> RemoveFileGroupDeviceHandler(RemoveFileGroupDeviceRequest request)
 		{
 			var fileGroupDevice = GetFileGroupDevice(FileGroupId.Invalid, request.Message.FileGroupName);
-			await fileGroupDevice.RemoveDataDevice(request.Message).ConfigureAwait(false);
+			await fileGroupDevice.RemoveDataDeviceAsync(request.Message).ConfigureAwait(false);
 			return true;
 		}
 
@@ -792,7 +792,7 @@ namespace Zen.Trunk.Storage.Data
 
 			// Pass request onwards
 			await fileGroupDevice
-				.InitDataPage(request.Message)
+				.InitDataPageAsync(request.Message)
 				.ConfigureAwait(false);
 
 			// Setup file-group id on page if necessary
@@ -848,7 +848,7 @@ namespace Zen.Trunk.Storage.Data
 
 				// Pass request onwards
 				await fileGroupDevice
-					.LoadDataPage(request.Message)
+					.LoadDataPageAsync(request.Message)
 					.ConfigureAwait(false);
 
 				// Setup file-group id on page if necessary

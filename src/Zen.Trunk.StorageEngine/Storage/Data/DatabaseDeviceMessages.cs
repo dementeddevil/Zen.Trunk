@@ -163,17 +163,9 @@ namespace Zen.Trunk.Storage.Data
 			FileGroupName = fileGroupName;
 		}
 
-		public FileGroupId FileGroupId
-		{
-			get;
-			set;
-		}
+		public FileGroupId FileGroupId { get; }
 
-		public string FileGroupName
-		{
-			get;
-			set;
-		}
+		public string FileGroupName { get; }
 
 		public bool FileGroupIdValid => FileGroupId != FileGroupId.Invalid;
 	}

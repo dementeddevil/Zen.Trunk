@@ -23,10 +23,14 @@ namespace Zen.Trunk.Storage.IO
         /// <param name="name">The device name.</param>
         /// <param name="pathName">The location of the physical file.</param>
         /// <param name="createPageCount">The create page count.</param>
-        /// <param name="enableScatterGatherIo">if set to <c>true</c> then scatter-gather I/O will be enabled.</param>
+        /// <param name="enableScatterGatherIo">
+        /// if set to <c>true</c> then scatter-gather I/O will be enabled;
+        /// otherwise <c>false</c> and conventional I/O will be used.
+        /// </param>
         /// <remarks>
-        /// If the createPageCount > 0 then the underlying file will be created during the open call
-        /// and initialised to a length equal to the buffer size reported by the buffer factory
+        /// If the <paramref name="createPageCount" /> > 0 then the underlying
+        /// file will be created during the open call and initialised to a
+        /// length equal to the buffer size reported by the buffer factory
         /// multiplied by the createPageCount value.
         /// </remarks>
         public SingleBufferDevice(
@@ -38,7 +42,7 @@ namespace Zen.Trunk.Storage.IO
         {
             _bufferFactory = bufferFactory;
             Name = name;
-            PathName = pathName;
+            Pathname = pathName;
             RequiresCreate = createPageCount > 0;
             PageCount = createPageCount;
             IsScatterGatherIoEnabled = enableScatterGatherIo;
@@ -76,10 +80,12 @@ namespace Zen.Trunk.Storage.IO
         }
 
         /// <summary>
-        /// Gets or sets the name of the path.
+        /// Gets the pathname of the underlying file.
         /// </summary>
-        /// <value>The name of the path.</value>
-        public string PathName
+        /// <value>
+        /// The pathname.
+        /// </value>
+        public string Pathname
         {
             get;
         }
@@ -92,22 +98,28 @@ namespace Zen.Trunk.Storage.IO
         /// <value>
         /// <c>true</c> if this instance has scatter/gather I/O enabled; otherwise, <c>false</c>.
         /// </value>
-        protected bool IsScatterGatherIoEnabled
-        {
-            get;
-        }
+        protected bool IsScatterGatherIoEnabled { get; }
 
         /// <summary>
         /// Gets or sets a value indicating whether this instance requires create.
         /// </summary>
         /// <value><c>true</c> if [requires create]; otherwise, <c>false</c>.</value>
-        protected bool RequiresCreate
-        {
-            get;
-        }
+        protected bool RequiresCreate { get; }
         #endregion
 
         #region Public Methods
+        /// <summary>
+        /// Loads the page data from the physical page into the supplied buffer.
+        /// </summary>
+        /// <param name="physicalPageId">The physical page identifier.</param>
+        /// <param name="buffer">The buffer.</param>
+        /// <returns>
+        /// A <see cref="Task"/> representing the asynchronous operation.
+        /// </returns>
+        /// <remarks>
+        /// When scatter/gather I/O is enabled then the load is deferred until
+        /// pending requests are flushed via <see cref="FlushBuffersAsync"/>.
+        /// </remarks>
         public async Task LoadBufferAsync(uint physicalPageId, IVirtualBuffer buffer)
         {
             if (IsScatterGatherIoEnabled)
@@ -130,6 +142,18 @@ namespace Zen.Trunk.Storage.IO
             }
         }
 
+        /// <summary>
+        /// Saves the page data from the supplied buffer to the physical page.
+        /// </summary>
+        /// <param name="physicalPageId">The physical page identifier.</param>
+        /// <param name="buffer">The buffer.</param>
+        /// <returns>
+        /// A <see cref="Task"/> representing the asynchronous operation.
+        /// </returns>
+        /// <remarks>
+        /// When scatter/gather I/O is enabled then the save is deferred until
+        /// pending requests are flushed via <see cref="FlushBuffersAsync"/>.
+        /// </remarks>
         public async Task SaveBufferAsync(uint physicalPageId, IVirtualBuffer buffer)
         {
             if (IsScatterGatherIoEnabled)
@@ -153,6 +177,18 @@ namespace Zen.Trunk.Storage.IO
             }
         }
 
+        /// <summary>
+        /// Flushes pending buffer operations.
+        /// </summary>
+        /// <param name="flushReads">
+        /// if set to <c>true</c> then read operations are flushed.
+        /// </param>
+        /// <param name="flushWrites">
+        /// if set to <c>true</c> then write operations are flushed.
+        /// </param>
+        /// <returns>
+        /// A <see cref="Task"/> representing the asynchronous operation.
+        /// </returns>
         public async Task FlushBuffersAsync(bool flushReads, bool flushWrites)
         {
             if (IsScatterGatherIoEnabled)
@@ -167,6 +203,11 @@ namespace Zen.Trunk.Storage.IO
             }
         }
 
+        /// <summary>
+        /// Expands the device.
+        /// </summary>
+        /// <param name="pageCount">The page count.</param>
+        /// <returns></returns>
         public uint ExpandDevice(int pageCount)
         {
             var oldPageCapacity = PageCount;
@@ -177,9 +218,9 @@ namespace Zen.Trunk.Storage.IO
             {
                 _fileStream.SetLength(fileLengthInBytes);
             }
-            else if (_scatterGatherStream != null)
+            else
             {
-                _scatterGatherStream.SetLength(fileLengthInBytes);
+                _scatterGatherStream?.SetLength(fileLengthInBytes);
             }
 
             PageCount = newPageCapacity;
@@ -215,13 +256,17 @@ namespace Zen.Trunk.Storage.IO
             base.Dispose(disposing);
         }
 
+        /// <summary>
+        /// Called when opening the device.
+        /// </summary>
+        /// <returns></returns>
         protected override Task OnOpen()
         {
             if (IsScatterGatherIoEnabled)
             {
                 // Create the stream object
                 _scatterGatherStream = new AdvancedFileStream(
-                    PathName,
+                    Pathname,
                     RequiresCreate ? FileMode.CreateNew : FileMode.Open,
                     FileAccess.ReadWrite,
                     FileShare.None,
@@ -244,7 +289,7 @@ namespace Zen.Trunk.Storage.IO
             else
             {
                 _fileStream = new FileStream(
-                    PathName,
+                    Pathname,
                     RequiresCreate ? FileMode.CreateNew : FileMode.Open,
                     FileAccess.ReadWrite,
                     FileShare.None,
@@ -265,6 +310,10 @@ namespace Zen.Trunk.Storage.IO
             return CompletedTask.Default;
         }
 
+        /// <summary>
+        /// Raises the Close event.
+        /// </summary>
+        /// <returns></returns>
         protected override async Task OnClose()
         {
             if (IsScatterGatherIoEnabled)
