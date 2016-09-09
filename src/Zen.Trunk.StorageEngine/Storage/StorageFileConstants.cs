@@ -35,5 +35,21 @@
         /// The primary file group name
         /// </summary>
         public const string PrimaryFileGroupName = "PRIMARY";
+
+
+        /// <summary>
+        /// The data filename suffix
+        /// </summary>
+        public const string DataFilenameSuffix = "_data";
+
+        /// <summary>
+        /// The log filename suffix
+        /// </summary>
+        public const string LogFilenameSuffix = "_log";
+        
+        /// <summary>
+        /// The log file device extension
+        /// </summary>
+        public const string LogFileDeviceExtension = ".ldf";
     }
 }

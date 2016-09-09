@@ -78,6 +78,7 @@
     <Compile Include="Storage\Data\DatabaseDevice.cs" />
     <Compile Include="Storage\Data\DatabaseDeviceMessages.cs" />
     <Compile Include="Storage\Data\FileGroupDeviceMessages.cs" />
+    <Compile Include="Storage\Data\FileSize.cs" />
     <Compile Include="Storage\Data\ICachingPageBufferDevice.cs" />
     <Compile Include="Storage\Data\ILogicalVirtualManager.cs" />
     <Compile Include="Storage\Data\Index\IndexInfo.cs" />

@@ -112,13 +112,14 @@ namespace Zen.Trunk.Storage.Data
             {
                 if (request.FileGroups.Count == 0)
                 {
-                    request.AddDataFile("PRIMARY", 
+                    request.AddDataFile(
+                        StorageFileConstants.PrimaryFileGroupName,
                         new FileSpec
                         {
                             Name = request.Name,
                             FileName = Path.Combine(
                                 ResolveDeviceService<StorageEngineConfiguration>().DefaultDataFilePath,
-                                $"{request.Name}.mdf"),
+                                $"{request.Name}{StorageFileConstants.DataFilenameSuffix}{StorageFileConstants.PrimaryDeviceFileExtension}"),
                             Size = new FileSize(1, FileSize.FileSizeUnit.MegaBytes),
                             FileGrowth = new FileSize(1, FileSize.FileSizeUnit.MegaBytes)
                         });
@@ -131,7 +132,7 @@ namespace Zen.Trunk.Storage.Data
                             Name = request.Name,
                             FileName = Path.Combine(
                                 ResolveDeviceService<StorageEngineConfiguration>().DefaultLogFilePath,
-                                $"{request.Name}_log.ldf"),
+                                $"{request.Name}{StorageFileConstants.LogFilenameSuffix}{StorageFileConstants.LogFileDeviceExtension}"),
                             Size = new FileSize(1, FileSize.FileSizeUnit.MegaBytes),
                             FileGrowth = new FileSize(1, FileSize.FileSizeUnit.MegaBytes)
                         });
@@ -149,28 +150,44 @@ namespace Zen.Trunk.Storage.Data
             // Walk the list of file-groups
             var primaryName = string.Empty;
             var primaryFileName = string.Empty;
-            var mountingPrimary = true;
-            var needToCreateMasterFilegroup = mountingMaster;
-            foreach (var fileGroup in request.FileGroups)
-            {
-                var deviceId = DeviceId.Primary;
-                var primary = fileGroup.Value.FirstOrDefault(f => f.Name == "PRIMARY");
 
-                foreach (var file in fileGroup.Value.Where(f => f.Name != "PRIMARY"))
+            // Process the primary filegroup
+            var primaryFileGroup = request.FileGroups[StorageFileConstants.PrimaryFileGroupName];
+            var deviceId = DeviceId.Primary;
+            foreach (var file in primaryFileGroup)
+            {
+                await AttachDatabaseFileGroupDeviceAsync(
+                    request,
+                    file,
+                    pageSize,
+                    deviceId == DeviceId.Primary,
+                    deviceId == DeviceId.Primary,
+                    device,
+                    StorageFileConstants.PrimaryFileGroupName,
+                    deviceId).ConfigureAwait(false);
+
+                // Advance to next device
+                deviceId = deviceId.Next;
+            }
+
+            // Process any secondary filegroups
+            foreach (var fileGroup in request.FileGroups.Where(f => f.Key != StorageFileConstants.PrimaryFileGroupName))
+            {
+                deviceId = DeviceId.Primary;
+                foreach (var file in fileGroup.Value.Where(f => f.Name != StorageFileConstants.PrimaryFileGroupName))
                 {
                     await AttachDatabaseFileGroupDeviceAsync(
                         request,
                         file,
                         pageSize,
-                        mountingPrimary,
-                        needToCreateMasterFilegroup,
+                        deviceId == DeviceId.Primary,
+                        false,
                         device,
-                        fileGroup,
+                        fileGroup.Key,
                         deviceId).ConfigureAwait(false);
 
                     // Advance to next device
                     deviceId = deviceId.Next;
-                    mountingPrimary = needToCreateMasterFilegroup = false;
                 }
             }
 
@@ -417,12 +434,9 @@ namespace Zen.Trunk.Storage.Data
             bool mountingPrimary,
             bool needToCreateMasterFilegroup,
             DatabaseDevice device,
-            KeyValuePair<string, IList<FileSpec>> fileGroup,
+            string fileGroupName,
             DeviceId deviceId)
         {
-            string primaryName;
-            string primaryFileName;
-
             // Determine number of pages to use if we are creating devices
             uint createPageCount = 0;
             if (request.IsCreate)
@@ -439,7 +453,7 @@ namespace Zen.Trunk.Storage.Data
                         .AddFileGroupDeviceAsync(
                             new AddFileGroupDeviceParameters(
                                 FileGroupId.Master,
-                                fileGroup.Key,
+                                fileGroupName,
                                 file.Name,
                                 file.FileName,
                                 deviceId,
@@ -452,16 +466,13 @@ namespace Zen.Trunk.Storage.Data
                         .AddFileGroupDeviceAsync(
                             new AddFileGroupDeviceParameters(
                                 FileGroupId.Primary,
-                                fileGroup.Key,
+                                fileGroupName,
                                 file.Name,
                                 file.FileName,
                                 deviceId,
                                 createPageCount))
                         .ConfigureAwait(false);
                 }
-
-                primaryName = file.Name;
-                primaryFileName = file.FileName;
             }
             else
             {
@@ -469,7 +480,7 @@ namespace Zen.Trunk.Storage.Data
                     .AddFileGroupDeviceAsync(
                         new AddFileGroupDeviceParameters(
                             FileGroupId.Invalid,
-                            fileGroup.Key,
+                            fileGroupName,
                             file.Name,
                             file.FileName,
                             deviceId,
@@ -490,7 +501,7 @@ namespace Zen.Trunk.Storage.Data
 
         public bool IsCreate { get; set; }
 
-        public bool HasPrimaryFileGroup => _fileGroups.ContainsKey("PRIMARY");
+        public bool HasPrimaryFileGroup => _fileGroups.ContainsKey(StorageFileConstants.PrimaryFileGroupName);
 
         public IDictionary<string, IList<FileSpec>> FileGroups => new ReadOnlyDictionary<string, IList<FileSpec>>(_fileGroups);
 
@@ -582,73 +593,6 @@ namespace Zen.Trunk.Storage.Data
         {
             get;
             set;
-        }
-    }
-
-    public struct FileSize
-    {
-        public enum FileSizeUnit
-        {
-            KiloBytes,
-            MegaBytes,
-            GigaBytes,
-            TeraBytes,
-            Percentage,
-            Unlimited
-        }
-
-        public static readonly FileSize Unlimited = new FileSize(0, FileSizeUnit.Unlimited);
-
-        public FileSize(double value, FileSizeUnit unit)
-        {
-            if (unit == FileSizeUnit.Percentage &&
-                (value < 0.0 || value > 100.0))
-            {
-                throw new ArgumentException(nameof(value));
-            }
-
-            Value = value;
-            Unit = unit;
-        }
-
-        public double Value { get; }
-
-        public FileSizeUnit Unit { get; }
-
-        public bool IsUnlimited => Unit == FileSizeUnit.Unlimited;
-
-        public bool IsPercentage => Unit == FileSizeUnit.Percentage;
-
-        public uint GetSizeAsPages(uint pageSize)
-        {
-            var actualSize = 0L;
-            switch (Unit)
-            {
-                case FileSizeUnit.KiloBytes:
-                    actualSize = (long)(Value * 1024);
-                    break;
-                case FileSizeUnit.MegaBytes:
-                    actualSize = (long)(Value * 1024 * 1024);
-                    break;
-                case FileSizeUnit.GigaBytes:
-                    actualSize = (long)(Value * 1024 * 1024 * 1024);
-                    break;
-                case FileSizeUnit.TeraBytes:
-                    actualSize = (long)(Value * 1024 * 1024 * 1024 * 1024);
-                    break;
-                default:
-                    return 0;
-            }
-
-            // 1MB = 128 pages @ 8192 bytes per page
-            // 1GB = 131,072 pages @ 8192 bytes per page
-            // 1TB = 134,217,728 pages @ 8192 bytes per page
-            uint pages = (uint)(actualSize / pageSize);
-            if ((actualSize % pageSize) != 0)
-            {
-                ++pages;
-            }
-            return pages;
         }
     }
 }
