@@ -888,8 +888,8 @@ namespace Zen.Trunk.Storage.Data
                 var objectPage = request.Message.Page as ObjectPage;
                 pageId = await AllocateDataPageAsync(
                     new AllocateDataPageParameters(
-                        (logicalPage != null) ? logicalPage.LogicalPageId : LogicalPageId.Zero,
-                        (objectPage != null) ? objectPage.ObjectId : ObjectId.Zero,
+                        logicalPage?.LogicalPageId ?? LogicalPageId.Zero,
+                        objectPage?.ObjectId ?? ObjectId.Zero,
                         new ObjectType((byte)request.Message.Page.PageType),
                         request.Message.IsNewObject,
                         request.Message.Page is RootPage))
