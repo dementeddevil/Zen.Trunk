@@ -1,13 +1,18 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Zen.Trunk.Storage.Data.Table;
 
 namespace Zen.Trunk.Storage.Data
 {
-	using System;
-	using System.Collections.Generic;
-	using Storage;
-	using Table;
-
-	public class AddDataDeviceParameters : AddDeviceParameters
+    /// <summary>
+    /// <c>AddDataDeviceParameters</c> encapsulates data used with a call
+    /// to add a data device file to a file-group device.
+    /// </summary>
+    /// <seealso cref="AddDeviceParameters" />
+    /// <seealso cref="FileGroupDevice.AddDataDeviceAsync(AddDataDeviceParameters)"/>
+    public class AddDataDeviceParameters : AddDeviceParameters
 	{
         #region Public Constructors
         /// <summary>
@@ -37,15 +42,17 @@ namespace Zen.Trunk.Storage.Data
 		/// Gets or sets a value indicating whether [update root page].
 		/// </summary>
 		/// <value><c>true</c> if [update root page]; otherwise, <c>false</c>.</value>
-		public bool UpdateRootPage
-		{
-			get;
-			private set;
-		}
+		public bool UpdateRootPage { get; }
 		#endregion
 	}
 
-	public class RemoveDataDeviceParameters : RemoveDeviceParameters
+    /// <summary>
+    /// <c>RemoveDataDeviceParameters</c> encapsulates data used with a call
+    /// to remove a data device file from a file-group device.
+    /// </summary>
+    /// <seealso cref="RemoveDeviceParameters" />
+    /// <seealso cref="FileGroupDevice.RemoveDataDeviceAsync(RemoveDataDeviceParameters)"/>
+    public class RemoveDataDeviceParameters : RemoveDeviceParameters
 	{
 		#region Public Constructors
 		/// <summary>
@@ -86,7 +93,10 @@ namespace Zen.Trunk.Storage.Data
 		#endregion
 	}
 
-	public class InitDataPageParameters
+    /// <summary>
+    /// 
+    /// </summary>
+    public class InitDataPageParameters
 	{
 		#region Public Constructors
 		/// <summary>
@@ -175,7 +185,10 @@ namespace Zen.Trunk.Storage.Data
 		#endregion
 	}
 
-	public class LoadDataPageParameters
+    /// <summary>
+    /// 
+    /// </summary>
+    public class LoadDataPageParameters
 	{
         #region Public Constructors
         /// <summary>
@@ -225,9 +238,20 @@ namespace Zen.Trunk.Storage.Data
 		#endregion
 	}
 
-	public class AllocateDataPageParameters
+    /// <summary>
+    /// 
+    /// </summary>
+    public class AllocateDataPageParameters
 	{
         #region Public Constructors
+        /// <summary>
+        /// Initializes a new instance of the <see cref="AllocateDataPageParameters"/> class.
+        /// </summary>
+        /// <param name="logicalId">The logical identifier.</param>
+        /// <param name="objectId">The object identifier.</param>
+        /// <param name="objectType">Type of the object.</param>
+        /// <param name="mixedExtent">if set to <c>true</c> [mixed extent].</param>
+        /// <param name="onlyUsePrimaryDevice">if set to <c>true</c> [only use primary device].</param>
         public AllocateDataPageParameters(LogicalPageId logicalId, ObjectId objectId, ObjectType objectType, bool mixedExtent, bool onlyUsePrimaryDevice)
         {
             LogicalPageId = logicalId;
@@ -239,18 +263,51 @@ namespace Zen.Trunk.Storage.Data
         #endregion
 
         #region Public Properties
+        /// <summary>
+        /// Gets the logical page identifier.
+        /// </summary>
+        /// <value>
+        /// The logical page identifier.
+        /// </value>
         public LogicalPageId LogicalPageId { get; }
 
+        /// <summary>
+        /// Gets the object identifier.
+        /// </summary>
+        /// <value>
+        /// The object identifier.
+        /// </value>
         public ObjectId ObjectId { get; }
 
+        /// <summary>
+        /// Gets the type of the object.
+        /// </summary>
+        /// <value>
+        /// The type of the object.
+        /// </value>
         public ObjectType ObjectType { get; }
 
+        /// <summary>
+        /// Gets a value indicating whether [mixed extent].
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if [mixed extent]; otherwise, <c>false</c>.
+        /// </value>
         public bool MixedExtent { get; }
 
+        /// <summary>
+        /// Gets a value indicating whether [only use primary device].
+        /// </summary>
+        /// <value>
+        /// <c>true</c> if [only use primary device]; otherwise, <c>false</c>.
+        /// </value>
         public bool OnlyUsePrimaryDevice { get; }
         #endregion
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
     public class ExpandDataDeviceParameters
     {
         /// <summary>
@@ -286,10 +343,21 @@ namespace Zen.Trunk.Storage.Data
         public bool IsDeviceIdValid => DeviceId != DeviceId.Zero;
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
     public class AddTableParameters
 	{
-		private readonly List<TableColumnInfo> _columns = new List<TableColumnInfo>();
-
+        /// <summary>
+        /// Initializes a new instance of the <see cref="AddTableParameters"/> class.
+        /// </summary>
+        /// <param name="tableName">Name of the table.</param>
+        /// <param name="columns">The columns.</param>
+        /// <exception cref="ArgumentException">
+        /// Table name is required.
+        /// or
+        /// Table must have at least one column definition.
+        /// </exception>
         public AddTableParameters(string tableName, params TableColumnInfo[] columns)
 		{
             if (string.IsNullOrWhiteSpace(tableName))
@@ -302,42 +370,104 @@ namespace Zen.Trunk.Storage.Data
 			}
 
             TableName = tableName;
-    		_columns.AddRange(columns);
+		    foreach (var column in columns)
+		    {
+		        Columns.Add(column);
+		    }
 		}
 
-		public string TableName { get; }
+        /// <summary>
+        /// Gets the name of the table.
+        /// </summary>
+        /// <value>
+        /// The name of the table.
+        /// </value>
+        public string TableName { get; }
 
-		public IList<TableColumnInfo> Columns => _columns;
-	}
+        /// <summary>
+        /// Gets the columns.
+        /// </summary>
+        /// <value>
+        /// The columns.
+        /// </value>
+        public IList<TableColumnInfo> Columns { get; } = new List<TableColumnInfo>();
+    }
 
-	public class AddTableIndexParameters
+    /// <summary>
+    /// 
+    /// </summary>
+    public class AddTableIndexParameters
 	{
 	    private readonly IDictionary<string, TableIndexSortDirection> _columns =
 	        new Dictionary<string, TableIndexSortDirection>(StringComparer.OrdinalIgnoreCase);
 
-		public AddTableIndexParameters(string name, TableIndexSubType indexSubType, ObjectId objectId)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="AddTableIndexParameters"/> class.
+        /// </summary>
+        /// <param name="name">The name.</param>
+        /// <param name="indexSubType">Type of the index sub.</param>
+        /// <param name="objectId">The object identifier.</param>
+        public AddTableIndexParameters(string name, TableIndexSubType indexSubType, ObjectId objectId)
 		{
 			Name = name;
 			IndexSubType = indexSubType;
 			ObjectId = objectId;
 		}
 
-		public string Name { get; }
+        /// <summary>
+        /// Gets the name.
+        /// </summary>
+        /// <value>
+        /// The name.
+        /// </value>
+        public string Name { get; }
 
+        /// <summary>
+        /// Gets the type of the index sub.
+        /// </summary>
+        /// <value>
+        /// The type of the index sub.
+        /// </value>
         public TableIndexSubType IndexSubType { get; }
 
-		public ObjectId ObjectId { get; }
+        /// <summary>
+        /// Gets the object identifier for the associated table.
+        /// </summary>
+        /// <value>
+        /// The object identifier.
+        /// </value>
+        public ObjectId ObjectId { get; }
 
+        /// <summary>
+        /// Gets the columns.
+        /// </summary>
+        /// <value>
+        /// The columns.
+        /// </value>
         public IDictionary<string, TableIndexSortDirection> Columns => _columns;
 
-	    public void AddColumn(string columnName, TableIndexSortDirection direction)
+        /// <summary>
+        /// Adds the column and sort direction to the index definition.
+        /// </summary>
+        /// <param name="columnName">Name of the column.</param>
+        /// <param name="direction">The direction.</param>
+        public void AddColumnAndSortDirection(string columnName, TableIndexSortDirection direction)
 		{
 			_columns.Add(columnName, direction);
 		}
 	}
 
+    /// <summary>
+    /// 
+    /// </summary>
     public class CreateObjectReferenceParameters
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="CreateObjectReferenceParameters"/> class.
+        /// </summary>
+        /// <param name="name">The name.</param>
+        /// <param name="objectType">Type of the object.</param>
+        /// <param name="firstPageFunc">The first page function.</param>
         public CreateObjectReferenceParameters(string name, ObjectType objectType, Func<ObjectId, Task<LogicalPageId>> firstPageFunc)
         {
             Name = name;
@@ -345,10 +475,30 @@ namespace Zen.Trunk.Storage.Data
             FirstPageFunc = firstPageFunc;
         }
 
+        /// <summary>
+        /// Gets the name.
+        /// </summary>
+        /// <value>
+        /// The name.
+        /// </value>
         public string Name { get; }
 
+        /// <summary>
+        /// Gets the type of the object.
+        /// </summary>
+        /// <value>
+        /// The type of the object.
+        /// </value>
         public ObjectType ObjectType { get; }
 
+        /// <summary>
+        /// Gets the function that when called with an <see cref="ObjectId"/>
+        /// returns a <see cref="Task{LogicalPageId}"/> resolves to the first
+        /// logical page identifier for the object.
+        /// </summary>
+        /// <value>
+        /// The first page function.
+        /// </value>
         public Func<ObjectId, Task<LogicalPageId>> FirstPageFunc { get; }
     }
 }

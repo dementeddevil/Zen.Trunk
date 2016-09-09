@@ -1,7 +1,7 @@
-﻿namespace Zen.Trunk.Storage
-{
-	using System;
+﻿using System;
 
+namespace Zen.Trunk.Storage
+{
     /// <summary>
     /// 
     /// </summary>
@@ -212,6 +212,12 @@
 		/// Gets or sets the create page count.
 		/// </summary>
 		/// <value>The create page count.</value>
+		/// <remarks>
+		/// When this value is greater than zero then the request is interpreted
+		/// as a request to create the underlying file when the owner device is
+		/// opened.
+		/// <seealso cref="IsCreate"/>
+		/// </remarks>
 		public uint CreatePageCount { get; }
 
 		/// <summary>
@@ -229,9 +235,11 @@
 	    /// <summary>
 		/// Gets or sets a value indicating whether this instance is create.
 		/// </summary>
-		/// <value><c>true</c> if this instance is create; otherwise, <c>false</c>.</value>
+		/// <value>
+		/// <c>true</c> if this parameter denotes create-new; otherwise,
+		/// <c>false</c> if open-existing.
+		/// </value>
 		public bool IsCreate => CreatePageCount != 0;
-
 	    #endregion
 	}
 
