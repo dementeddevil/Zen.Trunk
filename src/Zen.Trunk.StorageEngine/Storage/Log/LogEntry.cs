@@ -44,12 +44,24 @@ namespace Zen.Trunk.Storage.Log
 			_logId = new BufferFieldUInt32();
 			_lastLog = new BufferFieldUInt32(_logId);
 		}
-		#endregion
+        #endregion
 
-		#region Public Properties
-		public virtual uint RawSize => (uint)(TotalFieldLength + 1);
+        #region Public Properties
+        /// <summary>
+        /// Gets the raw size of this log entry record.
+        /// </summary>
+        /// <value>
+        /// The size of this record in bytes.
+        /// </value>
+        public virtual uint RawSize => (uint)(TotalFieldLength + 1);
 
-	    public uint LogId
+        /// <summary>
+        /// Gets or sets the log identifier.
+        /// </summary>
+        /// <value>
+        /// The log identifier.
+        /// </value>
+        public uint LogId
 		{
 			get
 			{
@@ -61,7 +73,13 @@ namespace Zen.Trunk.Storage.Log
 			}
 		}
 
-		public uint LastLog
+        /// <summary>
+        /// Gets or sets the last log.
+        /// </summary>
+        /// <value>
+        /// The last log.
+        /// </value>
+        public uint LastLog
 		{
 			get
 			{
@@ -73,12 +91,23 @@ namespace Zen.Trunk.Storage.Log
 			}
 		}
 
-		public LogEntryType LogType => _logType;
+        /// <summary>
+        /// Gets the type of the log.
+        /// </summary>
+        /// <value>
+        /// The type of the log.
+        /// </value>
+        public LogEntryType LogType => _logType;
+        #endregion
 
-	    #endregion
-
-		#region Public Methods
-		public static LogEntry ReadEntry(BufferReaderWriter streamManager)
+        #region Public Methods
+        /// <summary>
+        /// Reads the entry.
+        /// </summary>
+        /// <param name="streamManager">The stream manager.</param>
+        /// <returns></returns>
+        /// <exception cref="InvalidOperationException">Illegal log entry type detected.</exception>
+        public static LogEntry ReadEntry(BufferReaderWriter streamManager)
 		{
 			LogEntry entry;
 			var logType = ReadLogType(streamManager);
@@ -140,17 +169,32 @@ namespace Zen.Trunk.Storage.Log
 		{
 			return CompletedTask.Default;
 		}
-		#endregion
+        #endregion
 
-		#region Protected Properties
-		protected override BufferField FirstField => _logId;
+        #region Protected Properties
+        /// <summary>
+        /// Gets the first buffer field object.
+        /// </summary>
+        /// <value>
+        /// A <see cref="T:BufferField" /> object.
+        /// </value>
+        protected override BufferField FirstField => _logId;
 
-	    protected override BufferField LastField => _lastLog;
+        /// <summary>
+        /// Gets the last buffer field object.
+        /// </summary>
+        /// <value>
+        /// A <see cref="T:BufferField" /> object.
+        /// </value>
+        protected override BufferField LastField => _lastLog;
+        #endregion
 
-	    #endregion
-
-		#region Protected Methods
-		protected override void DoWrite(BufferReaderWriter streamManager)
+        #region Protected Methods
+        /// <summary>
+        /// Writes the field chain to the specified stream manager.
+        /// </summary>
+        /// <param name="streamManager">A <see cref="T:BufferReaderWriter" /> object.</param>
+        protected override void DoWrite(BufferReaderWriter streamManager)
 		{
 			streamManager.Write((byte)(int)_logType);
 			base.DoWrite(streamManager);
@@ -205,33 +249,57 @@ namespace Zen.Trunk.Storage.Log
 	{
 		#region Private Fields
 		private readonly BufferFieldUInt32 _transactionId;
-		#endregion
+        #endregion
 
-		#region Public Constructors
-		public TransactionLogEntry(LogEntryType logType)
+        #region Public Constructors
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TransactionLogEntry"/> class.
+        /// </summary>
+        /// <param name="logType">Type of the log.</param>
+        public TransactionLogEntry(LogEntryType logType)
 			: base(logType)
 		{
 			_transactionId = new BufferFieldUInt32(base.LastField);
 		}
 
-		public TransactionLogEntry(LogEntryType logType, TransactionId transactionId)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TransactionLogEntry"/> class.
+        /// </summary>
+        /// <param name="logType">Type of the log.</param>
+        /// <param name="transactionId">The transaction identifier.</param>
+        public TransactionLogEntry(LogEntryType logType, TransactionId transactionId)
 			: base(logType)
 		{
 			_transactionId = new BufferFieldUInt32(base.LastField, transactionId.Value);
 		}
-		protected TransactionLogEntry()
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TransactionLogEntry"/> class.
+        /// </summary>
+        protected TransactionLogEntry()
 		{
 			_transactionId = new BufferFieldUInt32(base.LastField);
 		}
-		#endregion
+        #endregion
 
-		#region Public Properties
-		public TransactionId TransactionId => new TransactionId(_transactionId.Value);
-	    #endregion
+        #region Public Properties
+        /// <summary>
+        /// Gets the transaction identifier.
+        /// </summary>
+        /// <value>
+        /// The transaction identifier.
+        /// </value>
+        public TransactionId TransactionId => new TransactionId(_transactionId.Value);
+        #endregion
 
-		#region Protected Properties
-		protected override BufferField LastField => _transactionId;
-
+        #region Protected Properties
+        /// <summary>
+        /// Gets the last buffer field object.
+        /// </summary>
+        /// <value>
+        /// A <see cref="T:BufferField" /> object.
+        /// </value>
+        protected override BufferField LastField => _transactionId;
 	    #endregion
 
 		#region Internal Methods
@@ -256,10 +324,15 @@ namespace Zen.Trunk.Storage.Log
 	{
 		#region Private Fields
 		private List<ActiveTransaction> _activeTransactions;
-		#endregion
+        #endregion
 
-		#region Public Constructors
-		public CheckPointLogEntry(LogEntryType logType)
+        #region Protected Constructors
+        /// <summary>
+        /// Initializes a new instance of the <see cref="CheckPointLogEntry"/> class.
+        /// </summary>
+        /// <param name="logType">Type of the log.</param>
+        /// <exception cref="ArgumentException">Invalid log entry type for checkpoint record.</exception>
+        protected CheckPointLogEntry(LogEntryType logType)
 			: base(logType)
 		{
 			// Sanity check
@@ -269,10 +342,16 @@ namespace Zen.Trunk.Storage.Log
 				throw new ArgumentException("Invalid log entry type for checkpoint record.");
 			}
 		}
-		#endregion
+        #endregion
 
-		#region Public Properties
-		public override uint RawSize
+        #region Public Properties
+        /// <summary>
+        /// Gets the size of the raw.
+        /// </summary>
+        /// <value>
+        /// The size of the raw.
+        /// </value>
+        public override uint RawSize
 		{
 			get
 			{
@@ -284,7 +363,14 @@ namespace Zen.Trunk.Storage.Log
 				return rawSize;
 			}
 		}
-		public int TransactionCount
+
+        /// <summary>
+        /// Gets the transaction count.
+        /// </summary>
+        /// <value>
+        /// The transaction count.
+        /// </value>
+        public int TransactionCount
 		{
 			get
 			{
@@ -296,9 +382,22 @@ namespace Zen.Trunk.Storage.Log
 			}
 		}
 
-		public IEnumerable<ActiveTransaction> ActiveTransactions => _activeTransactions;
+        /// <summary>
+        /// Gets the active transactions.
+        /// </summary>
+        /// <value>
+        /// The active transactions.
+        /// </value>
+        public IEnumerable<ActiveTransaction> ActiveTransactions => _activeTransactions;
 
-	    public ActiveTransaction FirstProtectedTransaction
+        /// <summary>
+        /// Gets the first protected transaction.
+        /// </summary>
+        /// <value>
+        /// The first protected transaction.
+        /// </value>
+        /// <exception cref="InvalidOperationException">Active transactions is null.</exception>
+        public ActiveTransaction FirstProtectedTransaction
 		{
 			get
 			{
@@ -307,22 +406,27 @@ namespace Zen.Trunk.Storage.Log
 					throw new InvalidOperationException("Active transactions is null.");
 				}
 
-				ActiveTransaction first = null;
-				for (var index = 0; index < _activeTransactions.Count; ++index)
+				ActiveTransaction firstProtectedTransaction = null;
+				foreach (var activeTransaction in _activeTransactions)
 				{
-					if (index == 0 ||
-						first.FirstLogId > _activeTransactions[index].FirstLogId)
-					{
-						first = _activeTransactions[index];
-					}
+				    if (firstProtectedTransaction == null || firstProtectedTransaction.FirstLogId > activeTransaction.FirstLogId)
+				    {
+				        firstProtectedTransaction = activeTransaction;
+				    }
 				}
-				return first;
+				return firstProtectedTransaction;
 			}
 		}
-		#endregion
+        #endregion
 
-		#region Public Methods
-		public ActiveTransaction GetTransactionAt(int index)
+        #region Public Methods
+        /// <summary>
+        /// Gets the transaction at the specified index.
+        /// </summary>
+        /// <param name="index">The index.</param>
+        /// <returns></returns>
+        /// <exception cref="InvalidOperationException">Active transactions is null.</exception>
+        public ActiveTransaction GetTransactionAt(int index)
 		{
 			if (_activeTransactions == null)
 			{
@@ -331,10 +435,14 @@ namespace Zen.Trunk.Storage.Log
 
 			return _activeTransactions[index];
 		}
-		#endregion
+        #endregion
 
-		#region Protected Methods
-		protected override void DoWrite(BufferReaderWriter streamManager)
+        #region Protected Methods
+        /// <summary>
+        /// Writes the field chain to the specified stream manager.
+        /// </summary>
+        /// <param name="streamManager">A <see cref="T:BufferReaderWriter" /> object.</param>
+        protected override void DoWrite(BufferReaderWriter streamManager)
 		{
 			base.DoWrite(streamManager);
 
@@ -348,7 +456,11 @@ namespace Zen.Trunk.Storage.Log
 			}
 		}
 
-		protected override void DoRead(BufferReaderWriter streamManager)
+        /// <summary>
+        /// Reads the field chain from the specified stream manager.
+        /// </summary>
+        /// <param name="streamManager">A <see cref="T:BufferReaderWriter" /> object.</param>
+        protected override void DoRead(BufferReaderWriter streamManager)
 		{
 			base.DoRead(streamManager);
 
@@ -390,7 +502,10 @@ namespace Zen.Trunk.Storage.Log
 	[Serializable]
 	public class BeginCheckPointLogEntry : CheckPointLogEntry
 	{
-		public BeginCheckPointLogEntry()
+        /// <summary>
+        /// Initializes a new instance of the <see cref="BeginCheckPointLogEntry"/> class.
+        /// </summary>
+        public BeginCheckPointLogEntry()
 			: base(LogEntryType.BeginCheckpoint)
 		{
 		}
@@ -402,7 +517,10 @@ namespace Zen.Trunk.Storage.Log
 	[Serializable]
 	public class EndCheckPointLogEntry : CheckPointLogEntry
 	{
-		public EndCheckPointLogEntry()
+        /// <summary>
+        /// Initializes a new instance of the <see cref="EndCheckPointLogEntry"/> class.
+        /// </summary>
+        public EndCheckPointLogEntry()
 			: base(LogEntryType.EndCheckpoint)
 		{
 		}
@@ -418,10 +536,15 @@ namespace Zen.Trunk.Storage.Log
 	[Serializable]
 	public class BeginTransactionLogEntry : TransactionLogEntry
 	{
-		public BeginTransactionLogEntry(TransactionId transactionId)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="BeginTransactionLogEntry"/> class.
+        /// </summary>
+        /// <param name="transactionId">The transaction identifier.</param>
+        public BeginTransactionLogEntry(TransactionId transactionId)
 			: base(LogEntryType.BeginXact, transactionId)
 		{
 		}
+
 		internal BeginTransactionLogEntry()
 		{
 		}
@@ -433,10 +556,15 @@ namespace Zen.Trunk.Storage.Log
 	[Serializable]
 	public class CommitTransactionLogEntry : TransactionLogEntry
 	{
-		public CommitTransactionLogEntry(TransactionId transactionId)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="CommitTransactionLogEntry"/> class.
+        /// </summary>
+        /// <param name="transactionId">The transaction identifier.</param>
+        public CommitTransactionLogEntry(TransactionId transactionId)
 			: base(LogEntryType.CommitXact, transactionId)
 		{
 		}
+
 		internal CommitTransactionLogEntry()
 		{
 		}
@@ -448,10 +576,15 @@ namespace Zen.Trunk.Storage.Log
 	[Serializable]
 	public class RollbackTransactionLogEntry : TransactionLogEntry
 	{
-		public RollbackTransactionLogEntry(TransactionId transactionId)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="RollbackTransactionLogEntry"/> class.
+        /// </summary>
+        /// <param name="transactionId">The transaction identifier.</param>
+        public RollbackTransactionLogEntry(TransactionId transactionId)
 			: base(LogEntryType.RollbackXact, transactionId)
 		{
 		}
+
 		internal RollbackTransactionLogEntry()
 		{
 		}
@@ -473,16 +606,16 @@ namespace Zen.Trunk.Storage.Log
 		#region Private Fields
 		private readonly BufferFieldUInt64 _virtualPageId;
 		private readonly BufferFieldInt64 _timestamp;
-		#endregion
+        #endregion
 
-		#region Public Constructors
-		/// <summary>
-		/// Initializes a new instance of the <see cref="PageLogEntry"/> class.
-		/// </summary>
-		/// <param name="virtualPageId">The virtual page id.</param>
-		/// <param name="timestamp">The timestamp.</param>
-		/// <param name="logType">Type of the log.</param>
-		public PageLogEntry(
+        #region Protected Constructors
+        /// <summary>
+        /// Initializes a new instance of the <see cref="PageLogEntry" /> class.
+        /// </summary>
+        /// <param name="virtualPageId">The virtual page id.</param>
+        /// <param name="timestamp">The timestamp.</param>
+        /// <param name="logType">Type of the log.</param>
+        protected PageLogEntry(
 			ulong virtualPageId,
 			long timestamp,
 			LogEntryType logType)
@@ -511,7 +644,6 @@ namespace Zen.Trunk.Storage.Log
 		/// </summary>
 		/// <value>The timestamp.</value>
 		public long Timestamp => _timestamp.Value;
-
 	    #endregion
 
 		#region Protected Properties
@@ -520,7 +652,6 @@ namespace Zen.Trunk.Storage.Log
 		/// </summary>
 		/// <value>The last field.</value>
 		protected override BufferField LastField => _timestamp;
-
 	    #endregion
 
 		#region Public Methods
@@ -567,7 +698,7 @@ namespace Zen.Trunk.Storage.Log
         /// This method is only called if a mismatch in timestamps has
         /// been detected.
         /// </remarks>
-        internal abstract void OnUndoChanges(PageBuffer dataBuffer);
+        protected abstract void OnUndoChanges(PageBuffer dataBuffer);
 
         /// <summary>
         /// <b>OnRedoChanges</b> is called during recovery to redo DataBuffer
@@ -578,7 +709,7 @@ namespace Zen.Trunk.Storage.Log
         /// This method is only called if a mismatch in timestamps has
         /// been detected.
         /// </remarks>
-        internal abstract void OnRedoChanges(PageBuffer dataBuffer);
+        protected abstract void OnRedoChanges(PageBuffer dataBuffer);
 		#endregion
 
 		#region Private Methods
@@ -630,31 +761,58 @@ namespace Zen.Trunk.Storage.Log
 		internal PageImageCreateLogEntry()
 		{
 		}
-		#endregion
+        #endregion
 
-		#region Public Properties
-		public override uint RawSize => (uint)(base.RawSize + _image.Length);
+        #region Public Properties
+        /// <summary>
+        /// Gets the raw size of this log entry record.
+        /// </summary>
+        /// <value>
+        /// The size of this record in bytes.
+        /// </value>
+        public override uint RawSize => (uint)(base.RawSize + _image.Length);
 
-	    public byte[] Image => _image;
+        /// <summary>
+        /// Gets the image.
+        /// </summary>
+        /// <value>
+        /// The image.
+        /// </value>
+        public byte[] Image => _image;
 
-	    #endregion
+        #endregion
 
-		#region Protected Methods
-		protected override void DoWrite(BufferReaderWriter streamManager)
+        #region Protected Methods
+        /// <summary>
+        /// Writes the field chain to the specified stream manager.
+        /// </summary>
+        /// <param name="streamManager">A <see cref="T:BufferReaderWriter" /> object.</param>
+        protected override void DoWrite(BufferReaderWriter streamManager)
 		{
 			base.DoWrite(streamManager);
 			streamManager.Write(_image);
 		}
 
-		protected override void DoRead(BufferReaderWriter streamManager)
+        /// <summary>
+        /// Reads the field chain from the specified stream manager.
+        /// </summary>
+        /// <param name="streamManager">A <see cref="T:BufferReaderWriter" /> object.</param>
+        protected override void DoRead(BufferReaderWriter streamManager)
 		{
 			base.DoRead(streamManager);
 			_image = streamManager.ReadBytes(8192);
 		}
-		#endregion
 
-		#region Internal Methods
-		internal override void OnUndoChanges(PageBuffer dataBuffer)
+        /// <summary>
+        /// <b>OnUndoChanges</b> is called during recovery to undo DataBuffer
+        /// changes to the given page object.
+        /// </summary>
+        /// <param name="dataBuffer"></param>
+        /// <remarks>
+        /// This method is only called if a mismatch in timestamps has
+        /// been detected.
+        /// </remarks>
+        protected override void OnUndoChanges(PageBuffer dataBuffer)
 		{
 			// Copy before image into page DataBuffer
 			using (var stream = dataBuffer.GetBufferStream(0, 8192, false))
@@ -669,7 +827,16 @@ namespace Zen.Trunk.Storage.Log
 			dataBuffer.SetDirtyAsync();
 		}
 
-		internal override void OnRedoChanges(PageBuffer dataBuffer)
+        /// <summary>
+        /// <b>OnRedoChanges</b> is called during recovery to redo DataBuffer
+        /// changes to the given page object.
+        /// </summary>
+        /// <param name="dataBuffer"></param>
+        /// <remarks>
+        /// This method is only called if a mismatch in timestamps has
+        /// been detected.
+        /// </remarks>
+        protected override void OnRedoChanges(PageBuffer dataBuffer)
 		{
 			// Copy after image into page DataBuffer
 			using (var stream = dataBuffer.GetBufferStream(0, 8192, false))
@@ -693,10 +860,17 @@ namespace Zen.Trunk.Storage.Log
 		#region Private Fields
 		private byte[] _beforeImage;
 		private byte[] _afterImage;
-		#endregion
+        #endregion
 
-		#region Public Constructors
-		public PageImageUpdateLogEntry(
+        #region Public Constructors
+        /// <summary>
+        /// Initializes a new instance of the <see cref="PageImageUpdateLogEntry"/> class.
+        /// </summary>
+        /// <param name="before">The before.</param>
+        /// <param name="after">The after.</param>
+        /// <param name="virtualPageId">The virtual page identifier.</param>
+        /// <param name="timestamp">The timestamp.</param>
+        public PageImageUpdateLogEntry(
 			IVirtualBuffer before,
 			IVirtualBuffer after,
 			ulong virtualPageId,
@@ -709,38 +883,73 @@ namespace Zen.Trunk.Storage.Log
 			_afterImage = new byte[after.BufferSize];
 			after.CopyTo(_afterImage);
 		}
+
 		internal PageImageUpdateLogEntry()
 		{
 		}
-		#endregion
+        #endregion
 
-		#region Public Properties
-		public override uint RawSize => base.RawSize + 16384;
+        #region Public Properties
+        /// <summary>
+        /// Gets the raw size of this log entry record.
+        /// </summary>
+        /// <value>
+        /// The size of this record in bytes.
+        /// </value>
+        public override uint RawSize => base.RawSize + 16384;
 
-	    public byte[] BeforeImage => _beforeImage;
+        /// <summary>
+        /// Gets the before image.
+        /// </summary>
+        /// <value>
+        /// The before image.
+        /// </value>
+        public byte[] BeforeImage => _beforeImage;
 
-	    public byte[] AfterImage => _afterImage;
+        /// <summary>
+        /// Gets the after image.
+        /// </summary>
+        /// <value>
+        /// The after image.
+        /// </value>
+        public byte[] AfterImage => _afterImage;
+        #endregion
 
-	    #endregion
-
-		#region Protected Methods
-		protected override void DoWrite(BufferReaderWriter streamManager)
+        #region Protected Methods
+        /// <summary>
+        /// Writes the field chain to the specified stream manager.
+        /// </summary>
+        /// <param name="streamManager">A <see cref="T:BufferReaderWriter" /> object.</param>
+        protected override void DoWrite(BufferReaderWriter streamManager)
 		{
 			base.DoWrite(streamManager);
 			streamManager.Write(_beforeImage);
 			streamManager.Write(_afterImage);
 		}
 
-		protected override void DoRead(BufferReaderWriter streamManager)
+        /// <summary>
+        /// Reads the field chain from the specified stream manager.
+        /// </summary>
+        /// <param name="streamManager">A <see cref="T:BufferReaderWriter" /> object.</param>
+        protected override void DoRead(BufferReaderWriter streamManager)
 		{
 			base.DoRead(streamManager);
 			_beforeImage = streamManager.ReadBytes(8192);
 			_afterImage = streamManager.ReadBytes(8192);
 		}
-		#endregion
+        #endregion
 
-		#region Internal Methods
-		internal override void OnUndoChanges(PageBuffer dataBuffer)
+        #region Protected Methods
+        /// <summary>
+        /// <b>OnUndoChanges</b> is called during recovery to undo DataBuffer
+        /// changes to the given page object.
+        /// </summary>
+        /// <param name="dataBuffer"></param>
+        /// <remarks>
+        /// This method is only called if a mismatch in timestamps has
+        /// been detected.
+        /// </remarks>
+        protected override void OnUndoChanges(PageBuffer dataBuffer)
 		{
 			// Copy before image into page DataBuffer
 			using (var stream = dataBuffer.GetBufferStream(0, 8192, false))
@@ -753,7 +962,16 @@ namespace Zen.Trunk.Storage.Log
 			dataBuffer.SetDirtyAsync();
 		}
 
-		internal override void OnRedoChanges(PageBuffer dataBuffer)
+        /// <summary>
+        /// <b>OnRedoChanges</b> is called during recovery to redo DataBuffer
+        /// changes to the given page object.
+        /// </summary>
+        /// <param name="dataBuffer"></param>
+        /// <remarks>
+        /// This method is only called if a mismatch in timestamps has
+        /// been detected.
+        /// </remarks>
+        protected override void OnRedoChanges(PageBuffer dataBuffer)
 		{
 			// Copy after image into page DataBuffer
 			using (var stream = dataBuffer.GetBufferStream(0, 8192, false))
@@ -776,10 +994,16 @@ namespace Zen.Trunk.Storage.Log
 	{
 		#region Private Fields
 		private byte[] _image;
-		#endregion
+        #endregion
 
-		#region Public Constructors
-		public PageImageDeleteLogEntry(
+        #region Public Constructors
+        /// <summary>
+        /// Initializes a new instance of the <see cref="PageImageDeleteLogEntry"/> class.
+        /// </summary>
+        /// <param name="buffer">The buffer.</param>
+        /// <param name="virtualPageId">The virtual page identifier.</param>
+        /// <param name="timestamp">The timestamp.</param>
+        public PageImageDeleteLogEntry(
 			IVirtualBuffer buffer,
 			ulong virtualPageId,
 			long timestamp)
@@ -788,34 +1012,61 @@ namespace Zen.Trunk.Storage.Log
 			_image = new byte[buffer.BufferSize];
 			buffer.CopyTo(_image);
 		}
+
 		internal PageImageDeleteLogEntry()
 		{
 		}
-		#endregion
+        #endregion
 
-		#region Public Properties
-		public override uint RawSize => base.RawSize + 8192;
+        #region Public Properties
+        /// <summary>
+        /// Gets the raw size of this log entry record.
+        /// </summary>
+        /// <value>
+        /// The size of this record in bytes.
+        /// </value>
+        public override uint RawSize => base.RawSize + 8192;
 
-	    public byte[] Image => _image;
+        /// <summary>
+        /// Gets the image.
+        /// </summary>
+        /// <value>
+        /// The image.
+        /// </value>
+        public byte[] Image => _image;
+        #endregion
 
-	    #endregion
-
-		#region Protected Methods
-		protected override void DoWrite(BufferReaderWriter streamManager)
+        #region Protected Methods
+        /// <summary>
+        /// Writes the field chain to the specified stream manager.
+        /// </summary>
+        /// <param name="streamManager">A <see cref="T:BufferReaderWriter" /> object.</param>
+        protected override void DoWrite(BufferReaderWriter streamManager)
 		{
 			base.DoWrite(streamManager);
 			streamManager.Write(_image);
 		}
 
-		protected override void DoRead(BufferReaderWriter streamManager)
+        /// <summary>
+        /// Reads the field chain from the specified stream manager.
+        /// </summary>
+        /// <param name="streamManager">A <see cref="T:BufferReaderWriter" /> object.</param>
+        protected override void DoRead(BufferReaderWriter streamManager)
 		{
 			base.DoRead(streamManager);
 			_image = streamManager.ReadBytes(8192);
 		}
-		#endregion
 
-		#region Internal Methods
-		internal override void OnUndoChanges(PageBuffer dataBuffer)
+        /// <summary>
+        /// <b>OnUndoChanges</b> is called during recovery to undo DataBuffer
+        /// changes to the given page object.
+        /// </summary>
+        /// <param name="dataBuffer"></param>
+        /// <remarks>
+        /// This method is only called if a mismatch in timestamps has
+        /// been detected.
+        /// </remarks>
+        protected override void OnUndoChanges(PageBuffer dataBuffer)
 		{
 			// Copy before image into page DataBuffer
 			using (var stream = dataBuffer.GetBufferStream(0, 8192, false))
@@ -828,7 +1079,16 @@ namespace Zen.Trunk.Storage.Log
 			dataBuffer.SetDirtyAsync();
 		}
 
-		internal override void OnRedoChanges(PageBuffer dataBuffer)
+        /// <summary>
+        /// <b>OnRedoChanges</b> is called during recovery to redo DataBuffer
+        /// changes to the given page object.
+        /// </summary>
+        /// <param name="dataBuffer"></param>
+        /// <remarks>
+        /// This method is only called if a mismatch in timestamps has
+        /// been detected.
+        /// </remarks>
+        protected override void OnRedoChanges(PageBuffer dataBuffer)
 		{
 			// Copy after image into page DataBuffer
 			using (var stream = dataBuffer.GetBufferStream(0, 8192, false))
