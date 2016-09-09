@@ -228,39 +228,26 @@ namespace Zen.Trunk.Storage.Data
 	public class AllocateDataPageParameters
 	{
         #region Public Constructors
-        public AllocateDataPageParameters(LogicalPageId logicalId, ObjectId objectId, ObjectType objectType, bool mixedExtent)
+        public AllocateDataPageParameters(LogicalPageId logicalId, ObjectId objectId, ObjectType objectType, bool mixedExtent, bool onlyUsePrimaryDevice)
         {
             LogicalPageId = logicalId;
             ObjectId = objectId;
             ObjectType = objectType;
             MixedExtent = mixedExtent;
+            OnlyUsePrimaryDevice = onlyUsePrimaryDevice;
         }
         #endregion
 
         #region Public Properties
-        public LogicalPageId LogicalPageId
-        {
-            get;
-            private set;
-        }
+        public LogicalPageId LogicalPageId { get; }
 
-        public ObjectId ObjectId
-        {
-            get;
-            private set;
-        }
+        public ObjectId ObjectId { get; }
 
-        public ObjectType ObjectType
-        {
-            get;
-            private set;
-        }
+        public ObjectType ObjectType { get; }
 
-        public bool MixedExtent
-        {
-            get;
-            private set;
-        } 
+        public bool MixedExtent { get; }
+
+        public bool OnlyUsePrimaryDevice { get; }
         #endregion
     }
 

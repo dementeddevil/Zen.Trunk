@@ -891,7 +891,8 @@ namespace Zen.Trunk.Storage.Data
                         (logicalPage != null) ? logicalPage.LogicalPageId : LogicalPageId.Zero,
                         (objectPage != null) ? objectPage.ObjectId : ObjectId.Zero,
                         new ObjectType((byte)request.Message.Page.PageType),
-                        request.Message.IsNewObject))
+                        request.Message.IsNewObject,
+                        request.Message.Page is RootPage))
                     .ConfigureAwait(false);
 
                 // Setup the page virtual id
@@ -1131,9 +1132,20 @@ namespace Zen.Trunk.Storage.Data
 
         private async Task<VirtualPageId> AllocateDataPageHandler(AllocateDataPageRequest request)
         {
-            // Get device keys and perform randomisation
-            var deviceIds = GetDistributionPageDeviceKeys();
-            deviceIds.Randomize();
+            // TODO: Implement support for constraining allocation to particular device
+            //  typically used to ensure root pages are placed on the primary device in filegroup.
+            List<DeviceId> deviceIds;
+            if (request.Message.OnlyUsePrimaryDevice)
+            {
+                deviceIds = new List<DeviceId>();
+                deviceIds.Add(PrimaryDeviceId);
+            }
+            else
+            {
+                // Get device keys and perform randomisation
+                deviceIds = GetDistributionPageDeviceKeys();
+                deviceIds.Randomize();
+            }
 
             // Walk each device and attempt to allocate page
             foreach (var deviceId in deviceIds)
