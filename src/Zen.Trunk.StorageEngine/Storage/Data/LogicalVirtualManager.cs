@@ -180,15 +180,25 @@ namespace Zen.Trunk.Storage.Data
 					CancellationToken = _shutdownToken.Token
 				});
 		}
-		#endregion
+        #endregion
 
-		#region Public Methods
-		public void Dispose()
+        #region Public Methods
+        /// <summary>
+        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
+        /// </summary>
+        public void Dispose()
 		{
 			_shutdownToken.Cancel();
 		}
 
-		public Task<LogicalPageId> GetNewLogicalAsync()
+        /// <summary>
+        /// Gets a new logical page identifier.
+        /// </summary>
+        /// <returns>
+        /// A <see cref="LogicalPageId" /> object representing the new logical id.
+        /// </returns>
+        /// <exception cref="BufferDeviceShuttingDownException"></exception>
+        public Task<LogicalPageId> GetNewLogicalAsync()
 		{
 			var request = new GetNewLogicalRequest();
 			if (!_getNewLogicalPort.Post(request))
@@ -198,7 +208,16 @@ namespace Zen.Trunk.Storage.Data
 			return request.Task;
 		}
 
-		public Task<LogicalPageId> AddLookupAsync(VirtualPageId virtualPageId, LogicalPageId logicalPageId)
+        /// <summary>
+        /// Adds a lookup between the specified virtual page id and logical page id.
+        /// </summary>
+        /// <param name="virtualPageId">A <see cref="VirtualPageId" /> representing the virtual page identifier.</param>
+        /// <param name="logicalPageId">A <see cref="LogicalPageId" /> representing the logical page identifier.</param>
+        /// <returns>
+        /// A <see cref="LogicalPageId" /> object representing the logical id.
+        /// </returns>
+        /// <exception cref="BufferDeviceShuttingDownException"></exception>
+        public Task<LogicalPageId> AddLookupAsync(VirtualPageId virtualPageId, LogicalPageId logicalPageId)
 		{
 			var request = new AddLookupRequest(virtualPageId, logicalPageId);
 			if (!_addLookupPort.Post(request))
@@ -208,7 +227,15 @@ namespace Zen.Trunk.Storage.Data
 			return request.Task;
 		}
 
-		public Task<LogicalPageId> GetLogicalAsync(VirtualPageId virtualPageId)
+        /// <summary>
+        /// Gets the logical page identifier that corresponds to the specified virtual page id.
+        /// </summary>
+        /// <param name="virtualPageId"></param>
+        /// <returns>
+        /// A <see cref="LogicalPageId" /> object representing the logical id.
+        /// </returns>
+        /// <exception cref="BufferDeviceShuttingDownException"></exception>
+        public Task<LogicalPageId> GetLogicalAsync(VirtualPageId virtualPageId)
 		{
 			var request = new GetLogicalRequest(virtualPageId);
 			if (!_getLogicalPort.Post(request))
@@ -218,7 +245,15 @@ namespace Zen.Trunk.Storage.Data
 			return request.Task;
 		}
 
-		public Task<VirtualPageId> GetVirtualAsync(LogicalPageId logicalPageId)
+        /// <summary>
+        /// Gets the virtual page identifier that corresponds to the specified logical id.
+        /// </summary>
+        /// <param name="logicalPageId">A <see cref="LogicalPageId" /> representing the logical page identifier.</param>
+        /// <returns>
+        /// A <see cref="VirtualPageId" /> representing the virtual page identifier.
+        /// </returns>
+        /// <exception cref="BufferDeviceShuttingDownException"></exception>
+        public Task<VirtualPageId> GetVirtualAsync(LogicalPageId logicalPageId)
 		{
 			var request = new GetVirtualRequest(logicalPageId);
 			if (!_getVirtualPort.Post(request))

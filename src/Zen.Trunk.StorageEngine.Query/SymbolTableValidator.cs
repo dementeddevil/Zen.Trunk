@@ -9,7 +9,7 @@ namespace Zen.Trunk.Storage.Query
     /// <summary>
     /// 
     /// </summary>
-    /// <seealso cref="Zen.Trunk.Storage.Query.TrunkSqlBaseVisitor{System.Boolean}" />
+    /// <seealso cref="TrunkSqlBaseVisitor{Boolean}" />
     public class SymbolTableValidator : TrunkSqlBaseVisitor<bool>
     {
         private readonly GlobalSymbolScope _globalScope =

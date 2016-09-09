@@ -25,6 +25,7 @@
         /// </value>
         public string Name { get; }
 
+        // ReSharper disable once RedundantOverriddenMember
         /// <summary>
         /// Validates the symbol.
         /// </summary>

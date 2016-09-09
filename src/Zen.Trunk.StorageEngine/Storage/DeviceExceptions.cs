@@ -3,6 +3,10 @@ using System.Runtime.Serialization;
     
 namespace Zen.Trunk.Storage
 {
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <seealso cref="Zen.Trunk.Storage.StorageEngineException" />
     [Serializable]
     public class DeviceException : StorageEngineException
     {
@@ -84,6 +88,10 @@ namespace Zen.Trunk.Storage
         #endregion
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <seealso cref="Zen.Trunk.Storage.DeviceException" />
     [Serializable]
     public class DeviceFullException : DeviceException
     {
@@ -120,10 +128,20 @@ namespace Zen.Trunk.Storage
         #endregion
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <seealso cref="Zen.Trunk.Storage.DeviceException" />
     [Serializable]
     public class FileGroupException : DeviceException
     {
         #region Public Constructors
+        /// <summary>
+        /// Initializes a new instance of the <see cref="FileGroupException"/> class.
+        /// </summary>
+        /// <param name="deviceId">The device identifier.</param>
+        /// <param name="fileGroupId">The file group identifier.</param>
+        /// <param name="fileGroupName">Name of the file group.</param>
         public FileGroupException(DeviceId deviceId, FileGroupId fileGroupId, string fileGroupName)
             : base(deviceId)
         {
@@ -131,6 +149,13 @@ namespace Zen.Trunk.Storage
             FileGroupName = fileGroupName;
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="FileGroupException"/> class.
+        /// </summary>
+        /// <param name="deviceId">The device identifier.</param>
+        /// <param name="fileGroupId">The file group identifier.</param>
+        /// <param name="fileGroupName">Name of the file group.</param>
+        /// <param name="message">The message.</param>
         public FileGroupException(
             DeviceId deviceId, FileGroupId fileGroupId, string fileGroupName, string message)
             : base(deviceId, message)
@@ -139,6 +164,14 @@ namespace Zen.Trunk.Storage
             FileGroupName = fileGroupName;
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="FileGroupException"/> class.
+        /// </summary>
+        /// <param name="deviceId">The device identifier.</param>
+        /// <param name="fileGroupId">The file group identifier.</param>
+        /// <param name="fileGroupName">Name of the file group.</param>
+        /// <param name="message">The message.</param>
+        /// <param name="innerException">The inner exception.</param>
         public FileGroupException(
             DeviceId deviceId,
             FileGroupId fileGroupId,
@@ -167,19 +200,46 @@ namespace Zen.Trunk.Storage
         #endregion
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <seealso cref="Zen.Trunk.Storage.FileGroupException" />
     [Serializable]
     public class FileGroupInvalidException : FileGroupException
     {
         #region Public Constructors
+        /// <summary>
+        /// Initializes a new instance of the <see cref="FileGroupInvalidException"/> class.
+        /// </summary>
+        /// <param name="deviceId">The device identifier.</param>
+        /// <param name="fileGroupId">The file group identifier.</param>
+        /// <param name="fileGroupName">Name of the file group.</param>
         public FileGroupInvalidException(DeviceId deviceId, FileGroupId fileGroupId, string fileGroupName)
             : base(deviceId, fileGroupId, fileGroupName)
         {
         }
+        
+        /// <summary>
+        /// Initializes a new instance of the <see cref="FileGroupInvalidException" /> class.
+        /// </summary>
+        /// <param name="deviceId">The device identifier.</param>
+        /// <param name="fileGroupId">The file group identifier.</param>
+        /// <param name="fileGroupName">Name of the file group.</param>
+        /// <param name="message">The message.</param>
         public FileGroupInvalidException(
             DeviceId deviceId, FileGroupId fileGroupId, string fileGroupName, string message)
             : base(deviceId, fileGroupId, fileGroupName, message)
         {
         }
+        
+        /// <summary>
+        /// Initializes a new instance of the <see cref="FileGroupInvalidException" /> class.
+        /// </summary>
+        /// <param name="deviceId">The device identifier.</param>
+        /// <param name="fileGroupId">The file group identifier.</param>
+        /// <param name="fileGroupName">Name of the file group.</param>
+        /// <param name="message">The message.</param>
+        /// <param name="innerException">The inner exception.</param>
         public FileGroupInvalidException(
             DeviceId deviceId,
             FileGroupId fileGroupId,
@@ -192,19 +252,46 @@ namespace Zen.Trunk.Storage
         #endregion
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <seealso cref="Zen.Trunk.Storage.FileGroupException" />
     [Serializable]
     public class FileGroupFullException : FileGroupException
     {
         #region Public Constructors
+        /// <summary>
+        /// Initializes a new instance of the <see cref="FileGroupFullException"/> class.
+        /// </summary>
+        /// <param name="deviceId">The device identifier.</param>
+        /// <param name="fileGroupId">The file group identifier.</param>
+        /// <param name="fileGroupName">Name of the file group.</param>
         public FileGroupFullException(DeviceId deviceId, FileGroupId fileGroupId, string fileGroupName)
             : base(deviceId, fileGroupId, fileGroupName)
         {
         }
+        
+        /// <summary>
+        /// Initializes a new instance of the <see cref="FileGroupFullException"/> class.
+        /// </summary>
+        /// <param name="deviceId">The device identifier.</param>
+        /// <param name="fileGroupId">The file group identifier.</param>
+        /// <param name="fileGroupName">Name of the file group.</param>
+        /// <param name="message">The message.</param>
         public FileGroupFullException(
             DeviceId deviceId, FileGroupId fileGroupId, string fileGroupName, string message)
             : base(deviceId, fileGroupId, fileGroupName, message)
         {
         }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="FileGroupFullException"/> class.
+        /// </summary>
+        /// <param name="deviceId">The device identifier.</param>
+        /// <param name="fileGroupId">The file group identifier.</param>
+        /// <param name="fileGroupName">Name of the file group.</param>
+        /// <param name="message">The message.</param>
+        /// <param name="innerException">The inner exception.</param>
         public FileGroupFullException(
             DeviceId deviceId,
             FileGroupId fileGroupId,

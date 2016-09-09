@@ -3,7 +3,11 @@ namespace Zen.Trunk.Storage.Log
 	using System.IO;
 	using IO;
 
-	public class LogPage : Page
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <seealso cref="Zen.Trunk.Storage.Page" />
+    public class LogPage : Page
 	{
 		#region Private Fields
 		private Stream _backingStore;
@@ -20,15 +24,43 @@ namespace Zen.Trunk.Storage.Log
 		/// </summary>
 		public override uint PageSize => (128 * 1024);
 
-	    public uint ExtentPages => 4;
+        /// <summary>
+        /// Gets the extent pages.
+        /// </summary>
+        /// <value>
+        /// The extent pages.
+        /// </value>
+        public uint ExtentPages => 4;
 
-	    public uint AllocationPages => 4;
+        /// <summary>
+        /// Gets the allocation pages.
+        /// </summary>
+        /// <value>
+        /// The allocation pages.
+        /// </value>
+        public uint AllocationPages => 4;
 
-	    public uint ExtentSize => ExtentPages * PageSize;
+        /// <summary>
+        /// Gets the size of the extent.
+        /// </summary>
+        /// <value>
+        /// The size of the extent.
+        /// </value>
+        public uint ExtentSize => ExtentPages * PageSize;
 
-	    public uint AllocationSize => AllocationPages * PageSize;
+        /// <summary>
+        /// Gets the size of the allocation.
+        /// </summary>
+        /// <value>
+        /// The size of the allocation.
+        /// </value>
+        public uint AllocationSize => AllocationPages * PageSize;
 
-	    public override bool IsNewPage
+        /// <summary>
+        /// Gets a value indicating whether this page is attached to a new
+        /// <see cref="T:BufferBase" /> object.
+        /// </summary>
+        public override bool IsNewPage
 		{
 			get
 			{

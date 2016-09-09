@@ -195,13 +195,19 @@ namespace Zen.Trunk.Storage.Data.Table
 		{
 			_clusteredKey = new BufferFieldTableRow(clusteredKeys);
 		}
-		#endregion
+        #endregion
 
-		#region Public Properties
-		#endregion
+        #region Public Properties
+        #endregion
 
-		#region Public Methods
-		public override void SetContext(DatabaseTable def, RootTableIndexInfo rootInfo)
+        #region Public Methods
+        /// <summary>
+        /// Sets the context.
+        /// </summary>
+        /// <param name="def">The definition.</param>
+        /// <param name="rootInfo">The root information.</param>
+        /// <exception cref="InvalidOperationException">Column ID not found in index.</exception>
+        public override void SetContext(DatabaseTable def, RootTableIndexInfo rootInfo)
 		{
 			base.SetContext(def, rootInfo);
 

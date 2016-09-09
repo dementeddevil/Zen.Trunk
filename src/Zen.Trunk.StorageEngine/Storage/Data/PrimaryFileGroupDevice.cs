@@ -19,6 +19,10 @@
         {
         }
 
+        /// <summary>
+        /// Creates the root page for this file-group device.
+        /// </summary>
+        /// <returns></returns>
         public override RootPage CreateRootPage()
         {
             return new PrimaryFileGroupRootPage { FileGroupId = FileGroupId };

@@ -1,6 +1,10 @@
 namespace Zen.Trunk.Storage.Log
 {
-	public class VirtualLogFileInfo : BufferFieldWrapper
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <seealso cref="Zen.Trunk.Storage.BufferFieldWrapper" />
+    public class VirtualLogFileInfo : BufferFieldWrapper
 	{
 		#region Private Fields
 		private readonly BufferFieldBitVector8 _status;
@@ -9,10 +13,13 @@ namespace Zen.Trunk.Storage.Log
 		private readonly BufferFieldUInt32 _length;
 
 		private VirtualLogFileHeader _currentHeader;
-		#endregion
+        #endregion
 
-		#region Public Constructors
-		public VirtualLogFileInfo()
+        #region Public Constructors
+        /// <summary>
+        /// Initializes a new instance of the <see cref="VirtualLogFileInfo"/> class.
+        /// </summary>
+        public VirtualLogFileInfo()
 		{
 			_status = new BufferFieldBitVector8();
 			_id = new BufferFieldLogFileId(_status);
@@ -116,7 +123,13 @@ namespace Zen.Trunk.Storage.Log
 			}
 		}
 
-		public bool IsAllocated
+        /// <summary>
+        /// Gets or sets a value indicating whether this instance is allocated.
+        /// </summary>
+        /// <value>
+        /// <c>true</c> if this instance is allocated; otherwise, <c>false</c>.
+        /// </value>
+        public bool IsAllocated
 		{
 			get
 			{
@@ -128,7 +141,13 @@ namespace Zen.Trunk.Storage.Log
 			}
 		}
 
-		public bool IsFull
+        /// <summary>
+        /// Gets or sets a value indicating whether this instance is full.
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if this instance is full; otherwise, <c>false</c>.
+        /// </value>
+        public bool IsFull
 		{
 			get
 			{
@@ -140,7 +159,13 @@ namespace Zen.Trunk.Storage.Log
 			}
 		}
 
-		public VirtualLogFileHeader CurrentHeader
+        /// <summary>
+        /// Gets or sets the current header.
+        /// </summary>
+        /// <value>
+        /// The current header.
+        /// </value>
+        public VirtualLogFileHeader CurrentHeader
 		{
 			get
 			{
@@ -151,17 +176,33 @@ namespace Zen.Trunk.Storage.Log
 				_currentHeader = value;
 			}
 		}
-		#endregion
+        #endregion
 
-		#region Protected Properties
-		protected override BufferField FirstField => _status;
+        #region Protected Properties
+        /// <summary>
+        /// Gets the first buffer field object.
+        /// </summary>
+        /// <value>
+        /// A <see cref="T:BufferField" /> object.
+        /// </value>
+        protected override BufferField FirstField => _status;
 
-	    protected override BufferField LastField => _length;
+        /// <summary>
+        /// Gets the last buffer field object.
+        /// </summary>
+        /// <value>
+        /// A <see cref="T:BufferField" /> object.
+        /// </value>
+        protected override BufferField LastField => _length;
 
 	    #endregion
 	}
 
-	public class VirtualLogFileHeader : BufferFieldWrapper
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <seealso cref="BufferFieldWrapper" />
+    public class VirtualLogFileHeader : BufferFieldWrapper
 	{
 		#region Private Fields
 		private readonly BufferFieldInt64 _timestamp;
@@ -170,10 +211,13 @@ namespace Zen.Trunk.Storage.Log
 		private readonly BufferFieldUInt32 _prevFileId;
 		private readonly BufferFieldUInt32 _nextFileId;
 		private readonly BufferFieldInt32 _hash;
-		#endregion
+        #endregion
 
-		#region Public Constructors
-		public VirtualLogFileHeader()
+        #region Public Constructors
+        /// <summary>
+        /// Initializes a new instance of the <see cref="VirtualLogFileHeader"/> class.
+        /// </summary>
+        public VirtualLogFileHeader()
 		{
 			_timestamp = new BufferFieldInt64();
 			_lastCursor = new BufferFieldUInt32(_timestamp);
@@ -274,13 +318,24 @@ namespace Zen.Trunk.Storage.Log
 				_hash.Value = value;
 			}
 		}
-		#endregion
+        #endregion
 
-		#region Protected Properties
-		protected override BufferField FirstField => _timestamp;
+        #region Protected Properties
+        /// <summary>
+        /// Gets the first buffer field object.
+        /// </summary>
+        /// <value>
+        /// A <see cref="T:BufferField" /> object.
+        /// </value>
+        protected override BufferField FirstField => _timestamp;
 
-	    protected override BufferField LastField => _hash;
-
+        /// <summary>
+        /// Gets the last buffer field object.
+        /// </summary>
+        /// <value>
+        /// A <see cref="T:BufferField" /> object.
+        /// </value>
+        protected override BufferField LastField => _hash;
 	    #endregion
 	}
 }

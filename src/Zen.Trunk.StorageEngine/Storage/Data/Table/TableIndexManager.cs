@@ -8,7 +8,11 @@ using Zen.Trunk.Storage.Locking;
 
 namespace Zen.Trunk.Storage.Data.Table
 {
-	internal class TableIndexManager : IndexManager<RootTableIndexInfo>
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <seealso cref="IndexManager{RootTableIndexInfo}" />
+    internal class TableIndexManager : IndexManager<RootTableIndexInfo>
 	{
 		#region Private Types
 		private class CreateTableIndex : TransactionContextTaskRequest<RootTableIndexInfo, bool>
@@ -104,32 +108,66 @@ namespace Zen.Trunk.Storage.Data.Table
         #endregion
 
         #region Public Properties
+        /// <summary>
+        /// Gets the timeout.
+        /// </summary>
+        /// <value>
+        /// The timeout.
+        /// </value>
         public TimeSpan Timeout => TimeSpan.FromSeconds(1);
-	    #endregion
+        #endregion
 
-		#region Public Methods
-		public Task<bool> CreateIndexAsync(RootTableIndexInfo parameters)
+        #region Public Methods
+        /// <summary>
+        /// Creates a table index.
+        /// </summary>
+        /// <param name="parameters">The table index parameters.</param>
+        /// <returns>
+        /// A <see cref="Task"/> representing the asynchronous operation.
+        /// </returns>
+        public Task<bool> CreateIndexAsync(RootTableIndexInfo parameters)
 		{
 			var request = new CreateTableIndex(parameters);
 			_createIndexPort.Post(request);
 			return request.Task;
 		}
 
-		public Task<bool> SplitPageAsync(SplitTableIndexPageParameters parameters)
+        /// <summary>
+        /// Splits the an index page.
+        /// </summary>
+        /// <param name="parameters">The parameters.</param>
+        /// <returns>
+        /// A <see cref="Task"/> representing the asynchronous operation.
+        /// </returns>
+        public Task<bool> SplitPageAsync(SplitTableIndexPageParameters parameters)
 		{
 			var request = new SplitTableIndexPage(parameters);
 			_splitPagePort.Post(request);
 			return request.Task;
 		}
 
-		public Task<FindTableIndexResult> FindIndexAsync(FindTableIndexParameters parameters)
+        /// <summary>
+        /// Finds the index matching the find parameters.
+        /// </summary>
+        /// <param name="parameters">The parameters.</param>
+        /// <returns>
+        /// A <see cref="Task"/> representing the asynchronous operation.
+        /// </returns>
+        public Task<FindTableIndexResult> FindIndexAsync(FindTableIndexParameters parameters)
 		{
 			var findLeaf = new FindTableIndex(parameters);
 			_findIndexPort.Post(findLeaf);
 			return findLeaf.Task;
 		}
 
-		public Task<bool> EnumerateIndexAsync(EnumerateIndexEntriesParameters parameters)
+        /// <summary>
+        /// Enumerates the index entries.
+        /// </summary>
+        /// <param name="parameters">The parameters.</param>
+        /// <returns>
+        /// A <see cref="Task"/> representing the asynchronous operation.
+        /// </returns>
+        public Task<bool> EnumerateIndexAsync(EnumerateIndexEntriesParameters parameters)
 		{
 			var iter = new EnumerateIndexEntries(parameters);
 			_enumerateIndexEntriesPort.Post(iter);
@@ -682,204 +720,5 @@ namespace Zen.Trunk.Storage.Data.Table
 			return success;
 		}
 		#endregion
-	}
-
-	public class SplitTableIndexPageParameters
-	{
-		#region Private Fields
-	    #endregion
-
-		#region Public Constructors
-		/// <summary>
-		/// Initialises an instance of <see cref="T:SplitTableIndexPageParameters" />.
-		/// </summary>
-		public SplitTableIndexPageParameters(
-			IndexId indexId,
-			TableIndexPage pageToSplit,
-			TableIndexPage splitPage)
-		{
-			IndexId = indexId;
-			PageToSplit = pageToSplit;
-			SplitPage = splitPage;
-		}
-
-		/// <summary>
-		/// Initialises an instance of <see cref="T:SplitTableIndexPageParameters" />.
-		/// </summary>
-		public SplitTableIndexPageParameters(
-			TableIndexPage parentPage,
-			TableIndexPage pageToSplit,
-			TableIndexPage splitPage)
-		{
-			ParentPage = parentPage;
-			PageToSplit = pageToSplit;
-			SplitPage = splitPage;
-		}
-		#endregion
-
-		#region Public Properties
-		public IndexId IndexId { get; }
-
-	    /// <summary>
-		/// Gets the parent page.
-		/// </summary>
-		/// <value>The parent page.</value>
-		public TableIndexPage ParentPage { get; }
-
-	    /// <summary>
-		/// Gets the page to split.
-		/// </summary>
-		/// <value>The page to split.</value>
-		public TableIndexPage PageToSplit { get; }
-
-	    /// <summary>
-		/// Gets the split page.
-		/// </summary>
-		/// <value>The split page.</value>
-		public TableIndexPage SplitPage { get; }
-	    #endregion
-	}
-
-	public class FindTableIndexParameters
-	{
-		#region Private Fields
-	    #endregion
-
-		#region Public Constructors
-		public FindTableIndexParameters(RootTableIndexInfo rootInfo, object[] keys)
-		{
-			RootInfo = rootInfo;
-			Keys = keys;
-		}
-
-		public FindTableIndexParameters(RootTableIndexInfo rootInfo, object[] keys, ulong rowLogicalPageId, uint rowId)
-		{
-			RootInfo = rootInfo;
-			Keys = keys;
-			RowLogicalPageId = rowLogicalPageId;
-			RowId = rowId;
-			IsForInsert = true;
-		}
-
-		public FindTableIndexParameters(RootTableIndexInfo rootInfo, object[] keys, ulong rowLogicalPageId, uint rowId, ushort rowSize)
-		{
-			RootInfo = rootInfo;
-			Keys = keys;
-			RowLogicalPageId = rowLogicalPageId;
-			RowId = rowId;
-			RowSize = rowSize;
-			IsForInsert = true;
-		}
-
-		public FindTableIndexParameters(RootTableIndexInfo rootInfo, object[] keys, object[] clusteredKeys)
-		{
-			RootInfo = rootInfo;
-			Keys = keys;
-			ClusteredKey = clusteredKeys;
-			IsForInsert = true;
-		}
-
-		public FindTableIndexParameters(RootTableIndexInfo rootInfo, object[] keys, object[] clusteredKeys, ushort rowSize)
-		{
-			RootInfo = rootInfo;
-			Keys = keys;
-			ClusteredKey = clusteredKeys;
-			RowSize = rowSize;
-			IsForInsert = true;
-		}
-		#endregion
-
-		#region Public Properties
-		/// <summary>
-		/// Gets the root index information.
-		/// </summary>
-		/// <value>The root info.</value>
-		public RootTableIndexInfo RootInfo { get; }
-
-	    /// <summary>
-		/// Gets the keys.
-		/// </summary>
-		/// <value>The keys.</value>
-		public object[] Keys { get; }
-
-	    /// <summary>
-		/// Gets a value indicating whether this instance is for insert.
-		/// </summary>
-		/// <value>
-		/// 	<c>true</c> if this instance is for insert; otherwise, <c>false</c>.
-		/// </value>
-		public bool IsForInsert { get; }
-
-	    /// <summary>
-		/// Gets the clustered key.
-		/// </summary>
-		/// <value>
-		/// The clustered key.
-		/// </value>
-		public object[] ClusteredKey { get; }
-
-	    /// <summary>
-		/// Gets the row logical id.
-		/// </summary>
-		/// <value>The row logical id.</value>
-		/// <remarks>
-		/// This value is only valid for index inserts.
-		/// </remarks>
-		public ulong RowLogicalPageId { get; }
-
-	    /// <summary>
-		/// Gets the row id.
-		/// </summary>
-		/// <value>The row id.</value>
-		/// <remarks>
-		/// This value is only valid for index inserts.
-		/// </remarks>
-		public uint RowId { get; }
-
-	    /// <summary>
-		/// Gets the size of the row.
-		/// </summary>
-		/// <value>The size of the row.</value>
-		/// <remarks>
-		/// This value is only valid for index inserts for a clustered index.
-		/// </remarks>
-		public ushort? RowSize { get; }
-	    #endregion
-	}
-
-	public class FindTableIndexResult
-	{
-		public FindTableIndexResult(TableIndexPage page, TableIndexLeafInfo entry)
-		{
-			Page = page;
-			Entry = entry;
-		}
-
-		public TableIndexPage Page { get; }
-
-		public TableIndexLeafInfo Entry { get; }
-	}
-
-	public class EnumerateIndexEntriesParameters
-	{
-		public EnumerateIndexEntriesParameters(
-			RootTableIndexInfo index,
-			object[] fromKeys,
-			object[] toKeys,
-			Func<TableIndexPage, TableIndexLeafInfo, int, bool> iterationFunc)
-		{
-			Index = index;
-			FromKeys = fromKeys;
-			ToKeys = toKeys;
-			OnIteration = iterationFunc;
-		}
-
-		public RootTableIndexInfo Index { get; }
-
-		public object[] FromKeys { get; }
-
-		public object[] ToKeys { get; }
-
-		public Func<TableIndexPage, TableIndexLeafInfo, int, bool> OnIteration { get; }
 	}
 }

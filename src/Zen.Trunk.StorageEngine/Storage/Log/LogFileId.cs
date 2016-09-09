@@ -8,9 +8,16 @@ namespace Zen.Trunk.Storage.Log
     [Serializable]
     public class LogFileId : IComparable, ICloneable
     {
+        /// <summary>
+        /// The zero
+        /// </summary>
         public static readonly LogFileId Zero = new LogFileId(0);
 
         #region Public Constructors
+        /// <summary>
+        /// Initializes a new instance of the <see cref="LogFileId"/> class.
+        /// </summary>
+        /// <param name="fileId">The file identifier.</param>
         public LogFileId(uint fileId)
         {
             DeviceId = new DeviceId((ushort)((fileId >> 16) & 0xffff));
@@ -18,6 +25,11 @@ namespace Zen.Trunk.Storage.Log
             FileId = fileId;
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="LogFileId"/> class.
+        /// </summary>
+        /// <param name="deviceId">The device identifier.</param>
+        /// <param name="index">The index.</param>
         public LogFileId(DeviceId deviceId, ushort index)
         {
             DeviceId = deviceId;
@@ -161,6 +173,10 @@ namespace Zen.Trunk.Storage.Log
         #endregion
 
         #region ICloneable Members
+        /// <summary>
+        /// Clones this instance.
+        /// </summary>
+        /// <returns></returns>
         public LogFileId Clone()
         {
             return (LogFileId)MemberwiseClone();

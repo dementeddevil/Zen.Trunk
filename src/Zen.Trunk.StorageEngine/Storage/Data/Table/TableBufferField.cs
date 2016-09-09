@@ -201,7 +201,11 @@ namespace Zen.Trunk.Storage.Data.Table
 		#endregion
 	}
 
-	public class BufferFieldTableRow : BufferFieldWrapper
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <seealso cref="Zen.Trunk.Storage.BufferFieldWrapper" />
+    public class BufferFieldTableRow : BufferFieldWrapper
 	{
 		#region Private Fields
 		private readonly BufferFieldColumn[] _keys;
@@ -209,10 +213,14 @@ namespace Zen.Trunk.Storage.Data.Table
 		private bool _indexMode;
 		private bool _hasRowSize;
 		private int _rowSize;
-		#endregion
+        #endregion
 
-		#region Public Constructors
-		public BufferFieldTableRow(int keySize)
+        #region Public Constructors
+        /// <summary>
+        /// Initializes a new instance of the <see cref="BufferFieldTableRow"/> class.
+        /// </summary>
+        /// <param name="keySize">Size of the key.</param>
+        public BufferFieldTableRow(int keySize)
 		{
 			_keys = new BufferFieldColumn[keySize];
 
@@ -224,7 +232,11 @@ namespace Zen.Trunk.Storage.Data.Table
 			}
 		}
 
-		public BufferFieldTableRow(object[] keys)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="BufferFieldTableRow"/> class.
+        /// </summary>
+        /// <param name="keys">The keys.</param>
+        public BufferFieldTableRow(object[] keys)
 		{
 			_keys = new BufferFieldColumn[keys.Length];
 
@@ -253,7 +265,13 @@ namespace Zen.Trunk.Storage.Data.Table
 			}
 		}
 
-		public bool IndexMode
+        /// <summary>
+        /// Gets or sets a value indicating whether [index mode].
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if [index mode]; otherwise, <c>false</c>.
+        /// </value>
+        public bool IndexMode
 		{
 			get
 			{
@@ -273,9 +291,21 @@ namespace Zen.Trunk.Storage.Data.Table
 			}
 		}
 
-		public int KeyLength => _keys.Length;
+        /// <summary>
+        /// Gets the length of the key.
+        /// </summary>
+        /// <value>
+        /// The length of the key.
+        /// </value>
+        public int KeyLength => _keys.Length;
 
-	    public int RowSize
+        /// <summary>
+        /// Gets the size of the row.
+        /// </summary>
+        /// <value>
+        /// The size of the row.
+        /// </value>
+        public int RowSize
 		{
 			get
 			{
@@ -292,10 +322,15 @@ namespace Zen.Trunk.Storage.Data.Table
 				return _rowSize;
 			}
 		}
-		#endregion
+        #endregion
 
-		#region Public Methods
-		public void SetContext(TableColumnInfo[] columns)
+        #region Public Methods
+        /// <summary>
+        /// Sets the context.
+        /// </summary>
+        /// <param name="columns">The columns.</param>
+        /// <exception cref="ArgumentException">Root information of differing key length.</exception>
+        public void SetContext(TableColumnInfo[] columns)
 		{
 			if (columns != null && columns.Length != _keys.Length)
 			{
@@ -322,12 +357,21 @@ namespace Zen.Trunk.Storage.Data.Table
 			}
 		}
 
-		public IComparer GetComparer(int index)
+        /// <summary>
+        /// Gets the comparer.
+        /// </summary>
+        /// <param name="index">The index.</param>
+        /// <returns></returns>
+        public IComparer GetComparer(int index)
 		{
 			return _keys[index].ColumnInfo;
 		}
 
-		public void WriteData(BufferReaderWriter streamManager)
+        /// <summary>
+        /// Writes the data.
+        /// </summary>
+        /// <param name="streamManager">The stream manager.</param>
+        public void WriteData(BufferReaderWriter streamManager)
 		{
 			CheckHasContext();
 			foreach (var column in _keys)
@@ -336,7 +380,11 @@ namespace Zen.Trunk.Storage.Data.Table
 			}
 		}
 
-		public void ReadData(BufferReaderWriter streamManager)
+        /// <summary>
+        /// Reads the data.
+        /// </summary>
+        /// <param name="streamManager">The stream manager.</param>
+        public void ReadData(BufferReaderWriter streamManager)
 		{
 			CheckHasContext();
 			foreach (var column in _keys)
@@ -344,12 +392,24 @@ namespace Zen.Trunk.Storage.Data.Table
 				column.ReadData(streamManager);
 			}
 		}
-		#endregion
+        #endregion
 
-		#region Protected Properties
-		protected override BufferField FirstField => _keys[0];
+        #region Protected Properties
+        /// <summary>
+        /// Gets the first buffer field object.
+        /// </summary>
+        /// <value>
+        /// A <see cref="T:BufferField" /> object.
+        /// </value>
+        protected override BufferField FirstField => _keys[0];
 
-	    protected override BufferField LastField => _keys[_keys.Length - 1];
+        /// <summary>
+        /// Gets the last buffer field object.
+        /// </summary>
+        /// <value>
+        /// A <see cref="T:BufferField" /> object.
+        /// </value>
+        protected override BufferField LastField => _keys[_keys.Length - 1];
 	    #endregion
 
 		#region Private Methods

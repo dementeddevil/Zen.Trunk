@@ -1,6 +1,10 @@
 ﻿namespace Zen.Trunk.Storage.Log
 {
-	public class AddLogDeviceParameters : AddDeviceParameters
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <seealso cref="Zen.Trunk.Storage.AddDeviceParameters" />
+    public class AddLogDeviceParameters : AddDeviceParameters
 	{
 		#region Public Constructors
 		/// <summary>
@@ -47,21 +51,41 @@
 		#endregion
 	}
 
-	public class RemoveLogDeviceParameters : RemoveDeviceParameters
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <seealso cref="Zen.Trunk.Storage.RemoveDeviceParameters" />
+    public class RemoveLogDeviceParameters : RemoveDeviceParameters
 	{
-		public RemoveLogDeviceParameters(DeviceId deviceId, bool updateRootPage = false)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="RemoveLogDeviceParameters" /> class.
+        /// </summary>
+        /// <param name="deviceId">The device identifier.</param>
+        /// <param name="updateRootPage">if set to <c>true</c> [update root page].</param>
+        public RemoveLogDeviceParameters(DeviceId deviceId, bool updateRootPage = false)
 			: base(deviceId)
 		{
 			UpdateRootPage = updateRootPage;
 		}
 
-		public RemoveLogDeviceParameters(string name, bool updateRootPage = false)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="RemoveLogDeviceParameters" /> class.
+        /// </summary>
+        /// <param name="name">The name.</param>
+        /// <param name="updateRootPage">if set to <c>true</c> [update root page].</param>
+        public RemoveLogDeviceParameters(string name, bool updateRootPage = false)
 			: base(name)
 		{
 			UpdateRootPage = updateRootPage;
 		}
 
-		public bool UpdateRootPage
+        /// <summary>
+        /// Gets a value indicating whether [update root page].
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if [update root page]; otherwise, <c>false</c>.
+        /// </value>
+        public bool UpdateRootPage
 		{
 			get;
 			private set;

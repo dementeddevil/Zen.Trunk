@@ -1,12 +1,15 @@
-﻿namespace Zen.Trunk.Storage.Data.Table
-{
-	using System;
-	using System.Collections.Generic;
-	using System.IO;
-	using System.Linq;
-	using IO;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using Zen.Trunk.Storage.IO;
 
-	public class RowReaderWriter
+namespace Zen.Trunk.Storage.Data.Table
+{
+    /// <summary>
+    /// 
+    /// </summary>
+    public class RowReaderWriter
 	{
 		#region Private Fields
 		private readonly BufferReaderWriter _bufferReaderWriter;

@@ -10,16 +10,30 @@ namespace Zen.Trunk.Storage
 	[Serializable]
 	public class StorageEngineException : CoreException
 	{
-		#region Public Constructors
-		public StorageEngineException ()
+        #region Public Constructors
+        /// <summary>
+        /// Initializes a new instance of the <see cref="StorageEngineException"/> class.
+        /// </summary>
+        public StorageEngineException ()
 			: this ("Storage engine exception occurred")
 		{
 		}
-		public StorageEngineException (string message)
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="StorageEngineException"/> class.
+        /// </summary>
+        /// <param name="message"></param>
+        public StorageEngineException (string message)
 			: base (message, "Zen.Trunk.Storage")
 		{
 		}
-		public StorageEngineException (string message, Exception innerException)
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="StorageEngineException"/> class.
+        /// </summary>
+        /// <param name="message"></param>
+        /// <param name="innerException"></param>
+        public StorageEngineException (string message, Exception innerException)
 			: base(message, "Zen.Trunk.Storage", innerException)
 		{
 		}

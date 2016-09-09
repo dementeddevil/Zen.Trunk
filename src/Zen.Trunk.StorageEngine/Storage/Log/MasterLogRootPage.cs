@@ -310,16 +310,24 @@ namespace Zen.Trunk.Storage.Log
 		/// <value>The last header field.</value>
 		protected override BufferField LastHeaderField => _checkPointHistoryCount;
 
-	    #endregion
+        #endregion
 
-		#region Protected Methods
-		protected override void WriteHeader(BufferReaderWriter streamManager)
+        #region Protected Methods
+        /// <summary>
+        /// Writes the page header block to the specified buffer writer.
+        /// </summary>
+        /// <param name="streamManager">The stream manager.</param>
+        protected override void WriteHeader(BufferReaderWriter streamManager)
 		{
 			_deviceCount.Value = (ushort)_devicesByIndex.Count;
 			base.WriteHeader(streamManager);
 		}
 
-		protected override void WriteData(BufferReaderWriter streamManager)
+        /// <summary>
+        /// Writes the page data block to the specified buffer writer.
+        /// </summary>
+        /// <param name="streamManager">The stream manager.</param>
+        protected override void WriteData(BufferReaderWriter streamManager)
 		{
 			base.WriteData(streamManager);
 
@@ -341,7 +349,11 @@ namespace Zen.Trunk.Storage.Log
 			}
 		}
 
-		protected override void ReadData(BufferReaderWriter streamManager)
+        /// <summary>
+        /// Reads the page data block from the specified buffer reader.
+        /// </summary>
+        /// <param name="streamManager">The stream manager.</param>
+        protected override void ReadData(BufferReaderWriter streamManager)
 		{
 			base.ReadData(streamManager);
 

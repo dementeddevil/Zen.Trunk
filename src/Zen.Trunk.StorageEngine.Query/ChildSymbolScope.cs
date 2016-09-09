@@ -11,6 +11,7 @@
         /// </summary>
         /// <param name="parentScope">The parent scope.</param>
         protected ChildSymbolScope(SymbolScope parentScope)
+            : base(parentScope)
         {
         }
     }

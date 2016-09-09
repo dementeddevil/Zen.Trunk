@@ -12,7 +12,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 using Autofac;
-using Zen.Trunk.Storage.Data;
 using Zen.Trunk.Utils;
 
 namespace Zen.Trunk.Storage.Log
@@ -63,7 +62,7 @@ namespace Zen.Trunk.Storage.Log
 		private DeviceId _nextLogDeviceId;
 
 		private bool _trucateLog = false;
-		private bool _isInRecovery = false;
+		private bool _isInRecovery;
 		#endregion
 
 		#region Public Constructors
@@ -103,11 +102,29 @@ namespace Zen.Trunk.Storage.Log
         #endregion
 
         #region Public Properties
+        /// <summary>
+        /// Gets the current log file identifier.
+        /// </summary>
+        /// <value>
+        /// The current log file identifier.
+        /// </value>
         public uint CurrentLogFileId => _currentStream.FileId;
 
-	    public uint CurrentLogFileOffset => (uint)_currentStream.Position;
+        /// <summary>
+        /// Gets the current log file offset.
+        /// </summary>
+        /// <value>
+        /// The current log file offset.
+        /// </value>
+        public uint CurrentLogFileOffset => (uint)_currentStream.Position;
 
-	    public long Position
+        /// <summary>
+        /// Gets or sets the position.
+        /// </summary>
+        /// <value>
+        /// The position.
+        /// </value>
+        public long Position
 		{
 			get
 			{
@@ -118,7 +135,7 @@ namespace Zen.Trunk.Storage.Log
 				_currentStream.Position = value;
 			}
 		}
-		/*public uint LogStartFileId
+        /*public uint LogStartFileId
 		{
 			get
 			{
@@ -147,9 +164,21 @@ namespace Zen.Trunk.Storage.Log
 			}
 		}*/
 
-		public override bool IsInRecovery => _isInRecovery;
+        /// <summary>
+        /// Gets a value indicating whether this instance is in recovery.
+        /// </summary>
+        /// <value>
+        /// <c>true</c> if this instance is in recovery; otherwise, <c>false</c>.
+        /// </value>
+        public override bool IsInRecovery => _isInRecovery;
 
-	    public bool IsTruncatingLog => _trucateLog;
+        /// <summary>
+        /// Gets a value indicating whether this instance is truncating log.
+        /// </summary>
+        /// <value>
+        /// <c>true</c> if this instance is truncating log; otherwise, <c>false</c>.
+        /// </value>
+        public bool IsTruncatingLog => _trucateLog;
 
 	    #endregion
 
@@ -162,10 +191,16 @@ namespace Zen.Trunk.Storage.Log
 
 	    private ITargetBlock<PerformRecoveryRequest> PerformRecoveryPort { get; }
 
-	    #endregion
+        #endregion
 
-		#region Public Methods
-		public Task<DeviceId> AddDevice(AddLogDeviceParameters deviceParams)
+        #region Public Methods
+        /// <summary>
+        /// Adds the device.
+        /// </summary>
+        /// <param name="deviceParams">The device parameters.</param>
+        /// <returns></returns>
+        /// <exception cref="BufferDeviceShuttingDownException"></exception>
+        public Task<DeviceId> AddDevice(AddLogDeviceParameters deviceParams)
 		{
 			var request = new AddLogDeviceRequest(deviceParams);
 			if (!AddLogDevicePort.Post(request))
@@ -175,7 +210,13 @@ namespace Zen.Trunk.Storage.Log
 			return request.Task;
 		}
 
-		public Task RemoveDevice(RemoveLogDeviceParameters deviceParams)
+        /// <summary>
+        /// Removes the device.
+        /// </summary>
+        /// <param name="deviceParams">The device parameters.</param>
+        /// <returns></returns>
+        /// <exception cref="BufferDeviceShuttingDownException"></exception>
+        public Task RemoveDevice(RemoveLogDeviceParameters deviceParams)
 		{
 			var request = new RemoveLogDeviceRequest(deviceParams);
 			if (!RemoveLogDevicePort.Post(request))
@@ -185,7 +226,13 @@ namespace Zen.Trunk.Storage.Log
 			return request.Task;
 		}
 
-		public Task WriteEntry(LogEntry entry)
+        /// <summary>
+        /// Writes the entry.
+        /// </summary>
+        /// <param name="entry">The entry.</param>
+        /// <returns></returns>
+        /// <exception cref="BufferDeviceShuttingDownException"></exception>
+        public Task WriteEntry(LogEntry entry)
 		{
 			var request = new WriteLogEntryRequest(entry);
 			if (!WriteLogEntryPort.Post(request))
@@ -195,7 +242,12 @@ namespace Zen.Trunk.Storage.Log
 			return request.Task;
 		}
 
-		public Task PerformRecovery()
+        /// <summary>
+        /// Performs the recovery.
+        /// </summary>
+        /// <returns></returns>
+        /// <exception cref="BufferDeviceShuttingDownException"></exception>
+        public Task PerformRecovery()
 		{
 			var request = new PerformRecoveryRequest();
 			if (!PerformRecoveryPort.Post(request))
@@ -205,7 +257,11 @@ namespace Zen.Trunk.Storage.Log
 			return request.Task;
 		}
 
-		public TransactionId GetNextTransactionId()
+        /// <summary>
+        /// Gets the next transaction identifier.
+        /// </summary>
+        /// <returns></returns>
+        public TransactionId GetNextTransactionId()
 		{
 			return new TransactionId((uint)Interlocked.Increment(ref _nextTransactionId));
 		}
@@ -334,10 +390,14 @@ namespace Zen.Trunk.Storage.Log
 					.ConfigureAwait(false);
 			}
 		}
-		#endregion
+        #endregion
 
-		#region Protected Methods
-		protected override async Task OnOpen()
+        #region Protected Methods
+        /// <summary>
+        /// Called when opening the device.
+        /// </summary>
+        /// <returns></returns>
+        protected override async Task OnOpen()
 		{
 			// Do base class work first
 			await base.OnOpen().ConfigureAwait(false);
@@ -395,7 +455,11 @@ namespace Zen.Trunk.Storage.Log
 			}
 		}
 
-	    protected override async Task OnClose()
+        /// <summary>
+        /// Raises the Close event.
+        /// </summary>
+        /// <returns></returns>
+        protected override async Task OnClose()
 	    {
 
             // Close secondary devices first
@@ -406,7 +470,11 @@ namespace Zen.Trunk.Storage.Log
 	        await base.OnClose().ConfigureAwait(false);
 	    }
 
-	    protected override LogRootPage CreateRootPage()
+        /// <summary>
+        /// Creates the root page.
+        /// </summary>
+        /// <returns></returns>
+        protected override LogRootPage CreateRootPage()
 		{
 			return new MasterLogRootPage();
 		}
@@ -519,6 +587,7 @@ namespace Zen.Trunk.Storage.Log
 			return proposedDeviceId;
 		}
 
+	    // ReSharper disable once UnusedParameter.Local
 		private bool RemoveLogDeviceHandler(RemoveLogDeviceRequest request)
 		{
 			return true;
@@ -553,10 +622,6 @@ namespace Zen.Trunk.Storage.Log
 				// Track end checkpoint to ensure we have full record
 				else if (entry.LogType == LogEntryType.EndCheckpoint)
 				{
-					if (endCheck != null)
-					{
-						throw new InvalidOperationException("End checkpoint already found.");
-					}
 					endCheck = (EndCheckPointLogEntry)entry;
 				}
 
@@ -612,6 +677,7 @@ namespace Zen.Trunk.Storage.Log
 				var cple = entry as CheckPointLogEntry;
 				var tranlist = new List<ActiveTransaction>(
 					_activeTransactions.Keys);
+			    // ReSharper disable once PossibleNullReferenceException
 				cple.UpdateTransactions(tranlist);
 			}
 
@@ -625,6 +691,7 @@ namespace Zen.Trunk.Storage.Log
 			{
 				var tle = entry as TransactionLogEntry;
 				var tran = new ActiveTransaction(
+				    // ReSharper disable once PossibleNullReferenceException
 					tle.TransactionId.Value,
 					rootPage.LogEndFileId,
 					rootPage.LogEndOffset,
@@ -652,9 +719,11 @@ namespace Zen.Trunk.Storage.Log
 				entry.LogType == LogEntryType.CommitXact)
 			{
 				var tle = entry as TransactionLogEntry;
+			    // ReSharper disable once PossibleNullReferenceException
 				foreach (var tran in _activeTransactions.Keys.ToArray())
 				{
 					// Is this the matching transaction?
+				    // ReSharper disable once PossibleNullReferenceException
 					if (tran.TransactionId == tle.TransactionId.Value)
 					{
 						// Remove the active transaction from the list
@@ -668,6 +737,7 @@ namespace Zen.Trunk.Storage.Log
 			else if (entry is TransactionLogEntry)
 			{
 				var tle = entry as TransactionLogEntry;
+			    // ReSharper disable once PossibleNullReferenceException
 			    var tran = _activeTransactions.Keys
 			        .FirstOrDefault(item => item.TransactionId == tle.TransactionId.Value);
 				if (tran != null)

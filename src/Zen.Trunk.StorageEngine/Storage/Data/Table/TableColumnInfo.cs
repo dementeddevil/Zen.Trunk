@@ -5,7 +5,10 @@
 	using System.ComponentModel;
 	using IO;
 
-	public enum TableColumnDataType
+    /// <summary>
+    /// 
+    /// </summary>
+    public enum TableColumnDataType
 	{
 		/// <summary>
 		/// Error trapping state
@@ -88,7 +91,17 @@
 		Guid = 15,
 	}
 
-	public class TableColumnInfo : BufferFieldWrapper,
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <seealso cref="BufferFieldWrapper" />
+    /// <seealso cref="IComparable{TableColumnInfo}" />
+    /// <seealso cref="IEquatable{TableColumnInfo}" />
+    /// <seealso cref="INotifyPropertyChanging" />
+    /// <seealso cref="INotifyPropertyChanged" />
+    /// <seealso cref="IComparer" />
+    /// <seealso cref="ICloneable" />
+    public class TableColumnInfo : BufferFieldWrapper,
 		IComparable<TableColumnInfo>,
 		IEquatable<TableColumnInfo>,
 		INotifyPropertyChanging,
@@ -107,10 +120,13 @@
 		private readonly BufferFieldUInt32 _incrementValue;
 
 		private Type _columnType;
-		#endregion
+        #endregion
 
-		#region Public Constructors
-		public TableColumnInfo()
+        #region Public Constructors
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TableColumnInfo"/> class.
+        /// </summary>
+        public TableColumnInfo()
 		{
 			_id = new BufferFieldByte();
 			_name = new BufferFieldStringFixed(_id, 32);
@@ -122,7 +138,12 @@
 			_incrementValue = new BufferFieldUInt32(_incrementAmount);
 		}
 
-		public TableColumnInfo(
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TableColumnInfo"/> class.
+        /// </summary>
+        /// <param name="name">The name.</param>
+        /// <param name="dataType">Type of the data.</param>
+        public TableColumnInfo(
 			string name,
 			TableColumnDataType dataType)
 			: this()
@@ -131,7 +152,13 @@
 			DataType = dataType;
 		}
 
-		public TableColumnInfo(
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TableColumnInfo"/> class.
+        /// </summary>
+        /// <param name="name">The name.</param>
+        /// <param name="dataType">Type of the data.</param>
+        /// <param name="nullable">if set to <c>true</c> [nullable].</param>
+        public TableColumnInfo(
 			string name,
 			TableColumnDataType dataType,
 			bool nullable)
@@ -142,7 +169,14 @@
 			Nullable = nullable;
 		}
 
-		public TableColumnInfo(
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TableColumnInfo"/> class.
+        /// </summary>
+        /// <param name="name">The name.</param>
+        /// <param name="dataType">Type of the data.</param>
+        /// <param name="nullable">if set to <c>true</c> [nullable].</param>
+        /// <param name="length">The length.</param>
+        public TableColumnInfo(
 			string name,
 			TableColumnDataType dataType,
 			bool nullable,
@@ -155,7 +189,16 @@
 			Length = length;
 		}
 
-		public TableColumnInfo(
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TableColumnInfo"/> class.
+        /// </summary>
+        /// <param name="name">The name.</param>
+        /// <param name="dataType">Type of the data.</param>
+        /// <param name="nullable">if set to <c>true</c> [nullable].</param>
+        /// <param name="length">The length.</param>
+        /// <param name="autoIncrSeed">The automatic incr seed.</param>
+        /// <param name="autoIncrValue">The automatic incr value.</param>
+        public TableColumnInfo(
 			string name,
 			TableColumnDataType dataType,
 			bool nullable,
@@ -664,10 +707,16 @@
 				return maxLength;
 			}
 		}
-		#endregion
+        #endregion
 
-		#region Public Methods
-		public int GetActualDataSize(object value)
+        #region Public Methods
+        /// <summary>
+        /// Gets the actual size of the data.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <returns></returns>
+        /// <exception cref="InvalidOperationException">Unknown column type specified.</exception>
+        public int GetActualDataSize(object value)
 		{
 			switch (DataType)
 			{
@@ -698,7 +747,14 @@
 			}
 		}
 
-		public object ReadData(BufferReaderWriter streamManager)
+        /// <summary>
+        /// Reads the data.
+        /// </summary>
+        /// <param name="streamManager">The stream manager.</param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="InvalidOperationException">Unknown column type specified.</exception>
+        public object ReadData(BufferReaderWriter streamManager)
 		{
 			// Sanity checks
 			if (streamManager == null)
@@ -707,7 +763,7 @@
 			}
 
 			// TODO: Deal with NULL processing
-			object value = null;
+			object value;
 			switch (DataType)
 			{
 				case TableColumnDataType.Bit:
@@ -786,7 +842,14 @@
 			return value;
 		}
 
-		public void WriteData(BufferReaderWriter streamManager, object value)
+        /// <summary>
+        /// Writes the data.
+        /// </summary>
+        /// <param name="streamManager">The stream manager.</param>
+        /// <param name="value">The value.</param>
+        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="InvalidOperationException">Unknown column type specified.</exception>
+        public void WriteData(BufferReaderWriter streamManager, object value)
 		{
 			// Sanity checks
 			if (streamManager == null)
@@ -870,13 +933,24 @@
 					throw new InvalidOperationException("Unknown column type specified.");
 			}
 		}
-		#endregion
+        #endregion
 
-		#region Protected Properties
-		protected override BufferField FirstField => _id;
+        #region Protected Properties
+        /// <summary>
+        /// Gets the first buffer field object.
+        /// </summary>
+        /// <value>
+        /// A <see cref="T:BufferField" /> object.
+        /// </value>
+        protected override BufferField FirstField => _id;
 
-	    protected override BufferField LastField => _incrementValue;
-
+        /// <summary>
+        /// Gets the last buffer field object.
+        /// </summary>
+        /// <value>
+        /// A <see cref="T:BufferField" /> object.
+        /// </value>
+        protected override BufferField LastField => _incrementValue;
 	    #endregion
 
 		#region Private Methods
@@ -911,10 +985,17 @@
 				PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
 			}
 		}
-		#endregion
+        #endregion
 
-		#region IComparable<ColumnInfo> Members
-		public int CompareTo(TableColumnInfo other)
+        #region IComparable<ColumnInfo> Members
+        /// <summary>
+        /// Compares the current instance with another object of the same type and returns an integer that indicates whether the current instance precedes, follows, or occurs in the same position in the sort order as the other object.
+        /// </summary>
+        /// <param name="other">An object to compare with this instance.</param>
+        /// <returns>
+        /// A value that indicates the relative order of the objects being compared. The return value has these meanings: Value Meaning Less than zero This instance precedes <paramref name="other" /> in the sort order.  Zero This instance occurs in the same position in the sort order as <paramref name="other" />. Greater than zero This instance follows <paramref name="other" /> in the sort order.
+        /// </returns>
+        public int CompareTo(TableColumnInfo other)
 		{
 			/*if (IsVariableLength == other.IsVariableLength)
 			{
@@ -931,26 +1012,43 @@
 			}*/
 			return 1;
 		}
-		#endregion
+        #endregion
 
-		#region IEquatable<ColumnInfo> Members
-		public bool Equals(TableColumnInfo other)
+        #region IEquatable<ColumnInfo> Members
+        /// <summary>
+        /// Indicates whether the current object is equal to another object of the same type.
+        /// </summary>
+        /// <param name="other">An object to compare with this object.</param>
+        /// <returns>
+        /// true if the current object is equal to the <paramref name="other" /> parameter; otherwise, false.
+        /// </returns>
+        public bool Equals(TableColumnInfo other)
 		{
 			//return Index == other.Index;
 			return false;
 		}
-		#endregion
+        #endregion
 
-		#region INotifyPropertyChanging Members
-		public event PropertyChangingEventHandler PropertyChanging;
-		#endregion
+        #region INotifyPropertyChanging Members
+        /// <summary>
+        /// Occurs when a property value is changing.
+        /// </summary>
+        public event PropertyChangingEventHandler PropertyChanging;
+        #endregion
 
-		#region INotifyPropertyChanged Members
-		public event PropertyChangedEventHandler PropertyChanged;
-		#endregion
+        #region INotifyPropertyChanged Members
+        /// <summary>
+        /// Occurs when a property value changes.
+        /// </summary>
+        public event PropertyChangedEventHandler PropertyChanged;
+        #endregion
 
-		#region ICloneable Members
-		public TableColumnInfo Clone()
+        #region ICloneable Members
+        /// <summary>
+        /// Clones this instance.
+        /// </summary>
+        /// <returns></returns>
+        public TableColumnInfo Clone()
 		{
 			return (TableColumnInfo)MemberwiseClone();
 		}

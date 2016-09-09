@@ -89,10 +89,17 @@ namespace Zen.Trunk.Storage.Data.Table
 				return keys;
 			}
 		}
-		#endregion
+        #endregion
 
-		#region Public Methods
-		public virtual void SetContext(DatabaseTable def, RootTableIndexInfo rootInfo)
+        #region Public Methods
+        /// <summary>
+        /// Sets the context.
+        /// </summary>
+        /// <param name="def">The definition.</param>
+        /// <param name="rootInfo">The root information.</param>
+        /// <exception cref="ArgumentException">Root information of differing key length.</exception>
+        /// <exception cref="InvalidOperationException">Column ID not found in index.</exception>
+        public virtual void SetContext(DatabaseTable def, RootTableIndexInfo rootInfo)
 		{
 			if (rootInfo.ColumnIDs.Length != _keyRow.KeyLength)
 			{
@@ -123,7 +130,28 @@ namespace Zen.Trunk.Storage.Data.Table
 			_keyRow.SetContext(columns);
 		}
 
-		public override int CompareTo(IndexInfo rhs)
+        /// <summary>
+        /// Compares the current instance with another object of the same type
+        /// and returns an integer that indicates whether the current instance
+        /// precedes, follows, or occurs in the same position in the sort order
+        /// as the other object.
+        /// </summary>
+        /// <param name="rhs">An object to compare with this instance.</param>
+        /// <returns>
+        /// A value that indicates the relative order of the objects being
+        /// compared. The return value has these meanings:
+        /// <list type="bulleted"><listheader>
+        /// Value Meaning
+        /// </listheader><item>
+        /// Less than zero This instance is less than <paramref name="rhs" />.
+        /// </item><item>
+        /// Zero This instance is equal to <paramref name="rhs" />.
+        /// </item><item>
+        /// Greater than zero This instance is greater than <paramref name="rhs" />.
+        /// </item></list>
+        /// </returns>
+        /// <exception cref="ArgumentException">Key length mismatch.</exception>
+        public override int CompareTo(IndexInfo rhs)
 		{
 			var tiRhs = (TableIndexInfo)rhs;
 			if (tiRhs._keyRow.KeyLength != _keyRow.KeyLength)

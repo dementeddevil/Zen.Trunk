@@ -17,6 +17,10 @@ namespace Zen.Trunk.Storage.Data.Table
     public class DatabaseTable
     {
         #region Public Objects
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <seealso cref="Collection{TableColumnInfo}" />
         public class ColumnCollection : Collection<TableColumnInfo>
         {
             #region Private Fields
@@ -25,6 +29,10 @@ namespace Zen.Trunk.Storage.Data.Table
             #endregion
 
             #region Public Constructors
+            /// <summary>
+            /// Initializes a new instance of the <see cref="ColumnCollection"/> class.
+            /// </summary>
+            /// <param name="owner">The owner.</param>
             public ColumnCollection(DatabaseTable owner)
             {
                 _owner = owner;
@@ -36,6 +44,23 @@ namespace Zen.Trunk.Storage.Data.Table
             #endregion
 
             #region Protected Methods
+            /// <summary>
+            /// Inserts an element into the <see cref="T:System.Collections.ObjectModel.Collection`1" /> at the specified index.
+            /// </summary>
+            /// <param name="index">The zero-based index at which <paramref name="item" /> should be inserted.</param>
+            /// <param name="item">The object to insert. The value can be null for reference types.</param>
+            /// <exception cref="ArgumentException">
+            /// Column name is empty.
+            /// or
+            /// Column name not unique.
+            /// or
+            /// Table can only have a single timestamp column.
+            /// or
+            /// Table can only have a single identity column.
+            /// or
+            /// Table row size is above maximum allowed.
+            /// </exception>
+            /// <exception cref="InvalidOperationException">Auto increment specified on unsupported data-type.</exception>
             protected override void InsertItem(int index, TableColumnInfo item)
             {
                 VerifyColumnsUpdatable();
@@ -96,17 +121,30 @@ namespace Zen.Trunk.Storage.Data.Table
                 _owner.UpdateRowSize();
             }
 
+            /// <summary>
+            /// Replaces the element at the specified index.
+            /// </summary>
+            /// <param name="index">The zero-based index of the element to replace.</param>
+            /// <param name="item">The new value for the element at the specified index. The value can be null for reference types.</param>
+            /// <exception cref="NotSupportedException"></exception>
             protected override void SetItem(int index, TableColumnInfo item)
             {
                 throw new NotSupportedException();
             }
 
+            /// <summary>
+            /// Removes all elements from the <see cref="T:System.Collections.ObjectModel.Collection`1" />.
+            /// </summary>
             protected override void ClearItems()
             {
                 VerifyColumnsUpdatable();
                 base.ClearItems();
             }
 
+            /// <summary>
+            /// Removes the element at the specified index of the <see cref="T:System.Collections.ObjectModel.Collection`1" />.
+            /// </summary>
+            /// <param name="index">The zero-based index of the element to remove.</param>
             protected override void RemoveItem(int index)
             {
                 VerifyColumnsUpdatable();
@@ -777,7 +815,7 @@ namespace Zen.Trunk.Storage.Data.Table
 
             for (var index = 0; index < _updatedColumns.Count; ++index)
             {
-                if (string.Compare(_updatedColumns[index].Name, name, true) == 0)
+                if (string.Equals(_updatedColumns[index].Name, name, StringComparison.OrdinalIgnoreCase))
                 {
                     RemoveColumn(index);
                     break;
@@ -845,7 +883,7 @@ namespace Zen.Trunk.Storage.Data.Table
             }
 
             _canUpdateSchema = false;
-            var lm = LockingManager;
+            //var lm = LockingManager;
             if (IsNewTable)
             {
                 await CreateTableDefinition().ConfigureAwait(false);
@@ -970,11 +1008,18 @@ namespace Zen.Trunk.Storage.Data.Table
             UpdateRowSize();
         }
 
+        /// <summary>
+        /// Adds the index.
+        /// </summary>
+        /// <param name="info">The information.</param>
         public void AddIndex(RootTableIndexInfo info)
         {
             _lifetimeScope.Resolve<TableIndexManager>().AddIndexInfo(info);
         }
 
+        /// <summary>
+        /// Updates the size of the row.
+        /// </summary>
         public void UpdateRowSize()
         {
             _rowSize.Min = 0;
@@ -1013,10 +1058,20 @@ namespace Zen.Trunk.Storage.Data.Table
             return null;
         }
 
+        /// <summary>
+        /// Determines the schema changes.
+        /// </summary>
+        /// <param name="rewriteSchema">if set to <c>true</c> [rewrite schema].</param>
+        /// <param name="rewriteTable">if set to <c>true</c> [rewrite table].</param>
         public void DetermineSchemaChanges(bool rewriteSchema, bool rewriteTable)
         {
         }
 
+        /// <summary>
+        /// Processes the constraints.
+        /// </summary>
+        /// <param name="rowData">The row data.</param>
+        /// <param name="forInsert">if set to <c>true</c> [for insert].</param>
         public void ProcessConstraints(object[] rowData, bool forInsert)
         {
             if (_canUpdateSchema)
@@ -1062,7 +1117,7 @@ namespace Zen.Trunk.Storage.Data.Table
                 {
                     // If caller specified data, we must have identity insert
                     //	switched on
-                    object incrValue = null;
+                    object incrValue;
                     if (columnIDs.Any(item => item == column.Id))
                     {
                         if (!AllowIdentityInsert)
@@ -1256,6 +1311,7 @@ namespace Zen.Trunk.Storage.Data.Table
             while (!complete)
             {
                 // Create new page if we need to
+                // ReSharper disable once ConditionIsAlwaysTrueOrFalse
                 if (needNewPage)
                 {
                     // Create new page and link with any current page
@@ -1324,7 +1380,7 @@ namespace Zen.Trunk.Storage.Data.Table
                 }
             }
 
-            if (currentPage != null && currentPage.IsDirty)
+            if (currentPage.IsDirty)
             {
                 currentPage.Save();
             }
@@ -1455,6 +1511,10 @@ namespace Zen.Trunk.Storage.Data.Table
         #endregion
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <seealso cref="TransactionContextTaskRequest{Object}" />
     public class RewriteTableRequest : TransactionContextTaskRequest<object>
     {
         #region Private Fields
@@ -1476,21 +1536,29 @@ namespace Zen.Trunk.Storage.Data.Table
         #endregion
 
         #region Public Properties
-        public TableColumnInfo[] OldColumns
-        {
-            get;
-        }
+        /// <summary>
+        /// Gets the old columns.
+        /// </summary>
+        /// <value>
+        /// The old columns.
+        /// </value>
+        public TableColumnInfo[] OldColumns { get; }
 
-        public TableColumnInfo[] NewColumns
-        {
-            get;
-        }
+        /// <summary>
+        /// Gets the new columns.
+        /// </summary>
+        /// <value>
+        /// The new columns.
+        /// </value>
+        public TableColumnInfo[] NewColumns { get; }
 
-        public RowConstraint[] NewConstraints
-        {
-            get;
-            private set;
-        }
+        /// <summary>
+        /// Gets the new constraints.
+        /// </summary>
+        /// <value>
+        /// The new constraints.
+        /// </value>
+        public RowConstraint[] NewConstraints { get; }
         #endregion
     }
 }

@@ -3,41 +3,72 @@ namespace Zen.Trunk.Storage
 	using System;
 	using System.Runtime.Serialization;
 
-	[Serializable]
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <seealso cref="Zen.Trunk.Storage.StorageEngineException" />
+    [Serializable]
 	public class PageException : StorageEngineException
 	{
 		#region Private Fields
 		private readonly Page _page;
-		#endregion
+        #endregion
 
-		#region Public Constructors
-		public PageException ()
+        #region Public Constructors
+        /// <summary>
+        /// Initializes a new instance of the <see cref="PageException"/> class.
+        /// </summary>
+        public PageException ()
 			: this ((Page) null)
 		{
 		}
 
-		public PageException (Page page)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="PageException"/> class.
+        /// </summary>
+        /// <param name="page">The page.</param>
+        public PageException (Page page)
 			: this ("Generic page exception", page)
 		{
 		}
 
-		public PageException (string message)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="PageException"/> class.
+        /// </summary>
+        /// <param name="message">The message.</param>
+        public PageException (string message)
 			: this (message, (Page)null)
 		{
 		}
 
-		public PageException (string message, Page page)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="PageException"/> class.
+        /// </summary>
+        /// <param name="message">The message.</param>
+        /// <param name="page">The page.</param>
+        public PageException (string message, Page page)
 			: base (message)
 		{
 			_page = page;
 		}
 
-		public PageException (string message, Exception innerException)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="PageException"/> class.
+        /// </summary>
+        /// <param name="message">The message.</param>
+        /// <param name="innerException">The inner exception.</param>
+        public PageException (string message, Exception innerException)
 			: this (message, null, innerException)
 		{
 		}
 
-		public PageException (string message, Page page, Exception innerException)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="PageException"/> class.
+        /// </summary>
+        /// <param name="message">The message.</param>
+        /// <param name="page">The page.</param>
+        /// <param name="innerException">The inner exception.</param>
+        public PageException (string message, Page page, Exception innerException)
 			: base (message, innerException)
 		{
 			_page = page;
@@ -55,15 +86,27 @@ namespace Zen.Trunk.Storage
 		{
 			_page = (Page) info.GetValue ("Page", typeof (Page));
 		}
-		#endregion
+        #endregion
 
-		#region Public Properties
-		public Page Page => _page;
+        #region Public Properties
+        /// <summary>
+        /// Gets the page.
+        /// </summary>
+        /// <value>
+        /// The page.
+        /// </value>
+        public Page Page => _page;
 
-	    #endregion
+        #endregion
 
-		#region Public Methods
-		public override void GetObjectData (SerializationInfo info, StreamingContext context)
+        #region Public Methods
+        /// <summary>
+        /// Fills serialization information with details of this exception object.
+        /// </summary>
+        /// <param name="info"></param>
+        /// <param name="context"></param>
+        /// <exception cref="ArgumentNullException"></exception>
+        public override void GetObjectData (SerializationInfo info, StreamingContext context)
 		{
 			if (info == null)
 			{
@@ -82,22 +125,38 @@ namespace Zen.Trunk.Storage
 	[Serializable]
 	public class PageReadOnlyException : PageException
 	{
-		public PageReadOnlyException ()
+        /// <summary>
+        /// Initializes a new instance of the <see cref="PageReadOnlyException"/> class.
+        /// </summary>
+        public PageReadOnlyException ()
 			: this ("Page readonly exception occurred.")
 		{
 		}
 
-		public PageReadOnlyException (Page page) 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="PageReadOnlyException"/> class.
+        /// </summary>
+        /// <param name="page">The page.</param>
+        public PageReadOnlyException (Page page) 
 			: base ("Page readonly exception occurred.", page)
 		{
 		}
 
-		public PageReadOnlyException (string message)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="PageReadOnlyException"/> class.
+        /// </summary>
+        /// <param name="message">The message.</param>
+        public PageReadOnlyException (string message)
 			: this (message, null)
 		{
 		}
 
-		public PageReadOnlyException (string message, Page page)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="PageReadOnlyException"/> class.
+        /// </summary>
+        /// <param name="message">The message.</param>
+        /// <param name="page">The page.</param>
+        public PageReadOnlyException (string message, Page page)
 			: base (message, page)
 		{
 			

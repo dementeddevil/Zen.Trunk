@@ -4,11 +4,21 @@ namespace Zen.Trunk.Storage.Log
 	using System.Collections.Generic;
 	using IO;
 
-	public class LogRootPage : LogPage
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <seealso cref="Zen.Trunk.Storage.Log.LogPage" />
+    public class LogRootPage : LogPage
 	{
-		#region Public Constants
-		public const byte StatusIsExpandable = 1;
-		public const byte StatusIsExpandablePercent = 2;
+        #region Public Constants
+        /// <summary>
+        /// The status is expandable
+        /// </summary>
+        public const byte StatusIsExpandable = 1;
+        /// <summary>
+        /// The status is expandable percent
+        /// </summary>
+        public const byte StatusIsExpandablePercent = 2;
 		#endregion
 
 		#region Private Fields
@@ -200,10 +210,19 @@ namespace Zen.Trunk.Storage.Log
 		/// <value>The last header field.</value>
 		protected override BufferField LastHeaderField => _logFileCount;
 
-	    #endregion
+        #endregion
 
-		#region Public Methods
-		public VirtualLogFileInfo AddLogFile(
+        #region Public Methods
+        /// <summary>
+        /// Adds the log file.
+        /// </summary>
+        /// <param name="deviceId">The device identifier.</param>
+        /// <param name="length">The length.</param>
+        /// <param name="lastLogFile">The last log file.</param>
+        /// <returns></returns>
+        /// <exception cref="Zen.Trunk.Storage.DeviceFullException"></exception>
+        /// <exception cref="ArgumentException">LastFileId is invalid - already pointing to different FileId!</exception>
+        public VirtualLogFileInfo AddLogFile(
             DeviceId deviceId, uint length, uint lastLogFile)
 		{
 			// Check whether we can fit another log file on this device.
@@ -273,12 +292,23 @@ namespace Zen.Trunk.Storage.Log
 			return info;
 		}
 
-		public VirtualLogFileInfo GetLogFile(LogFileId id)
+        /// <summary>
+        /// Gets the log file.
+        /// </summary>
+        /// <param name="id">The identifier.</param>
+        /// <returns></returns>
+        public VirtualLogFileInfo GetLogFile(LogFileId id)
 		{
 			return GetLogFile(id.Index);
 		}
 
-		public VirtualLogFileInfo GetLogFile(ushort index)
+        /// <summary>
+        /// Gets the log file.
+        /// </summary>
+        /// <param name="index">The index.</param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
+        public VirtualLogFileInfo GetLogFile(ushort index)
 		{
 			// Check within bounds...
 			if (index >= LogFileCount)
@@ -288,16 +318,27 @@ namespace Zen.Trunk.Storage.Log
 
 			return _logFiles[index];
 		}
-		#endregion
+        #endregion
 
-		#region Protected Methods
-		protected override void OnPreSave(EventArgs e)
+        #region Protected Methods
+        /// <summary>
+        /// Performs operations prior to saving this page.
+        /// </summary>
+        /// <param name="e">The <see cref="System.EventArgs" /> instance containing the event data.</param>
+        /// <remarks>
+        /// If the header and/or data sections are dirty then they will be rewritten.
+        /// </remarks>
+        protected override void OnPreSave(EventArgs e)
 		{
 			_logFileCount.Value = LogFileCount;
 			base.OnPreSave(e);
 		}
 
-		protected override void ReadData(BufferReaderWriter streamManager)
+        /// <summary>
+        /// Reads the page data block from the specified buffer reader.
+        /// </summary>
+        /// <param name="streamManager">The stream manager.</param>
+        protected override void ReadData(BufferReaderWriter streamManager)
 		{
 			base.ReadData(streamManager);
 			if (_logFileCount.Value > 0)
@@ -311,7 +352,11 @@ namespace Zen.Trunk.Storage.Log
 			}
 		}
 
-		protected override void WriteData(BufferReaderWriter streamManager)
+        /// <summary>
+        /// Writes the page data block to the specified buffer writer.
+        /// </summary>
+        /// <param name="streamManager">The stream manager.</param>
+        protected override void WriteData(BufferReaderWriter streamManager)
 		{
 			base.WriteData(streamManager);
 			for (var index = 0; index < _logFiles.Count; ++index)

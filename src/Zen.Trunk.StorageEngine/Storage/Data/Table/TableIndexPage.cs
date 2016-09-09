@@ -117,10 +117,15 @@
         /// Gets a value indicating whether the owner table has a clustered index.
         /// </summary>
         public bool IsOwnerTableClustered => !_ownerTable.IsHeap;
-		#endregion
+        #endregion
 
-		#region Public Methods
-		public void SetContext(DatabaseTable def, RootTableIndexInfo rootIndex)
+        #region Public Methods
+        /// <summary>
+        /// Sets the context.
+        /// </summary>
+        /// <param name="def">The definition.</param>
+        /// <param name="rootIndex">Index of the root.</param>
+        public void SetContext(DatabaseTable def, RootTableIndexInfo rootIndex)
 		{
 			_ownerTable = def;
 			_rootIndex = rootIndex;
@@ -130,7 +135,13 @@
 			}
 		}
 
-		public int CompareIndex(int index, object[] keys)
+        /// <summary>
+        /// Compares the index.
+        /// </summary>
+        /// <param name="index">The index.</param>
+        /// <param name="keys">The keys.</param>
+        /// <returns></returns>
+        public int CompareIndex(int index, object[] keys)
 		{
 			var lhs = IndexEntries[index];
 			var rhs = new TableIndexInfo(keys);
@@ -150,7 +161,11 @@
 			return new TableIndexLogicalInfo(keys, page.LogicalPageId);
 		}
 
-		protected override TableIndexInfo CreateIndexEntry()
+        /// <summary>
+        /// Adds an intermediate link to the given page.
+        /// </summary>
+        /// <returns></returns>
+        protected override TableIndexInfo CreateIndexEntry()
 		{
 			if (IsLeafIndex)
 			{

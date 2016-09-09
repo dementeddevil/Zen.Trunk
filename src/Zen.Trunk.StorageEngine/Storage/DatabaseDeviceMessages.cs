@@ -54,6 +54,10 @@ namespace Zen.Trunk.Storage
         #endregion
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <seealso cref="Zen.Trunk.Storage.Data.RemoveDataDeviceParameters" />
     public class RemoveFileGroupDeviceParameters : RemoveDataDeviceParameters
 	{
 		#region Public Constructors

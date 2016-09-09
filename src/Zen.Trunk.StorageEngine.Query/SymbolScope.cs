@@ -28,6 +28,10 @@ namespace Zen.Trunk.Storage.Query
         /// </value>
         public virtual SymbolScope ParentScope { get; }
 
+        /// <summary>
+        /// Adds the symbol.
+        /// </summary>
+        /// <param name="symbol">The symbol.</param>
         public void AddSymbol(Symbol symbol)
         {
             ValidateSymbol(symbol);

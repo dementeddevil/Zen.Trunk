@@ -13,15 +13,42 @@ namespace Zen.Trunk.Storage.Log
 	/// </summary>
 	public enum LogEntryType
 	{
-		NoOp = 0,
-		BeginCheckpoint = 1,
-		EndCheckpoint = 2,
-		BeginXact = 3,
-		CommitXact = 4,
-		RollbackXact = 5,
-		CreatePage = 6,
-		ModifyPage = 7,
-		DeletePage = 8,
+        /// <summary>
+        /// The no op
+        /// </summary>
+        NoOp = 0,
+        /// <summary>
+        /// The begin checkpoint
+        /// </summary>
+        BeginCheckpoint = 1,
+        /// <summary>
+        /// The end checkpoint
+        /// </summary>
+        EndCheckpoint = 2,
+        /// <summary>
+        /// The begin xact
+        /// </summary>
+        BeginXact = 3,
+        /// <summary>
+        /// The commit xact
+        /// </summary>
+        CommitXact = 4,
+        /// <summary>
+        /// The rollback xact
+        /// </summary>
+        RollbackXact = 5,
+        /// <summary>
+        /// The create page
+        /// </summary>
+        CreatePage = 6,
+        /// <summary>
+        /// The modify page
+        /// </summary>
+        ModifyPage = 7,
+        /// <summary>
+        /// The delete page
+        /// </summary>
+        DeletePage = 8,
 	}
 
 	/// <summary>
@@ -35,10 +62,14 @@ namespace Zen.Trunk.Storage.Log
 
 		private readonly BufferFieldUInt32 _logId;
 		private readonly BufferFieldUInt32 _lastLog;
-		#endregion
+        #endregion
 
-		#region Public Constructors
-		public LogEntry(LogEntryType logType = LogEntryType.NoOp)
+        #region Public Constructors
+        /// <summary>
+        /// Initializes a new instance of the <see cref="LogEntry"/> class.
+        /// </summary>
+        /// <param name="logType">Type of the log.</param>
+        public LogEntry(LogEntryType logType = LogEntryType.NoOp)
 		{
 			_logType = logType;
 			_logId = new BufferFieldUInt32();
@@ -625,7 +656,10 @@ namespace Zen.Trunk.Storage.Log
 			_timestamp = new BufferFieldInt64(_virtualPageId, timestamp);
 		}
 
-		protected PageLogEntry()
+        /// <summary>
+        /// Initializes a new instance of the <see cref="PageLogEntry"/> class.
+        /// </summary>
+        protected PageLogEntry()
 		{
 			_virtualPageId = new BufferFieldUInt64(base.LastField);
 			_timestamp = new BufferFieldInt64(_virtualPageId);

@@ -7,6 +7,10 @@ using Zen.Trunk.Storage.Locking;
 
 namespace Zen.Trunk.Storage.Data.Table
 {
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <seealso cref="Zen.Trunk.Storage.Data.ObjectDataPage" />
     public class TableDataPage : ObjectDataPage
 	{
 		#region Private Fields
@@ -50,10 +54,16 @@ namespace Zen.Trunk.Storage.Data.Table
 		    // ReSharper disable once RedundantBaseQualifier
 			_totalRowDataSize = new BufferFieldUInt16(base.LastHeaderField);
 		}
-		#endregion
+        #endregion
 
-		#region Public Properties
-		public uint RowCount
+        #region Public Properties
+        /// <summary>
+        /// Gets the row count.
+        /// </summary>
+        /// <value>
+        /// The row count.
+        /// </value>
+        public uint RowCount
 		{
 			get
 			{
@@ -408,20 +418,23 @@ namespace Zen.Trunk.Storage.Data.Table
 			return true;
 		}
 
-		/// <summary>
-		/// Updates a row on a given data page.
-		/// </summary>
-		/// <param name="rowIndex">Row index being updated</param>
-		/// <param name="newRowData">New row data</param>
-		/// <param name="length">Row data length</param>
-		/// <returns>True if row was updated, false if not.</returns>
-		/// <remarks>
-		/// This method will fail if the page does not contain enough free 
-		/// space to accommodate the new row data in which case the caller
-		/// will have to initiate a page-split operation before attempting
-		/// the operation again.
-		/// </remarks>
-		public bool UpdateRow(ushort rowIndex, byte[] newRowData,
+        /// <summary>
+        /// Updates a row on a given data page.
+        /// </summary>
+        /// <param name="rowIndex">Row index being updated</param>
+        /// <param name="newRowData">New row data</param>
+        /// <param name="length">Row data length</param>
+        /// <returns>
+        /// True if row was updated, false if not.
+        /// </returns>
+        /// <exception cref="InvalidOperationException">Row removed but failed to insert new row on existing page!</exception>
+        /// <remarks>
+        /// This method will fail if the page does not contain enough free
+        /// space to accommodate the new row data in which case the caller
+        /// will have to initiate a page-split operation before attempting
+        /// the operation again.
+        /// </remarks>
+        public bool UpdateRow(ushort rowIndex, byte[] newRowData,
 			ushort length)
 		{
 			// Determine reservation space
@@ -594,15 +607,34 @@ namespace Zen.Trunk.Storage.Data.Table
 			SetDataDirty();
 			return true;
 		}
-		#endregion
+        #endregion
 
-		#region Protected Methods
-		protected override Task OnInitAsync(EventArgs e)
+        #region Protected Methods
+        /// <summary>
+        /// Raises the <see cref="E:Init" /> event.
+        /// </summary>
+        /// <param name="e">The <see cref="System.EventArgs" /> instance containing the event data.</param>
+        /// <returns></returns>
+        protected override Task OnInitAsync(EventArgs e)
 		{
 			PageType = PageType.Table;
 			return base.OnInitAsync(e);
 		}
-		protected override Task OnPreLoadAsync(EventArgs e)
+        /// <summary>
+        /// Overridden. Called by the system prior to loading the page
+        /// from persistent storage.
+        /// </summary>
+        /// <param name="e"></param>
+        /// <returns></returns>
+        /// <remarks>
+        /// Overrides to this method must set their desired lock prior to
+        /// calling the base class.
+        /// The base class method will enable the locking primitives and call
+        /// LockPage.
+        /// This mechanism ensures that all lock states have been set prior to
+        /// the first call to LockPage.
+        /// </remarks>
+        protected override Task OnPreLoadAsync(EventArgs e)
 		{
 			_pageData = null;
 			_rowInfo = null;
@@ -610,26 +642,43 @@ namespace Zen.Trunk.Storage.Data.Table
 			return base.OnPreLoadAsync(e);
 		}
 
-		protected override void ReadData(BufferReaderWriter streamManager)
+        /// <summary>
+        /// Reads the page data block from the specified buffer reader.
+        /// </summary>
+        /// <param name="streamManager">The stream manager.</param>
+        protected override void ReadData(BufferReaderWriter streamManager)
 		{
 			_pageData = streamManager.ReadBytes((int)DataSize);
 		}
 
-		protected override Task OnPostLoadAsync(EventArgs e)
+        /// <summary>
+        /// Raises the <see cref="E:PostLoadAsync" /> event.
+        /// </summary>
+        /// <param name="e">The <see cref="EventArgs" /> instance containing the event data.</param>
+        /// <returns></returns>
+        protected override Task OnPostLoadAsync(EventArgs e)
 		{
 			// Setup page row information
 			ReadPageInfo();
 			return base.OnPostLoadAsync(e);
 		}
 
-		protected override void OnPreSave(EventArgs e)
+        /// <summary>
+        /// Raises the <see cref="E:PreSave" /> event.
+        /// </summary>
+        /// <param name="e">The <see cref="System.EventArgs" /> instance containing the event data.</param>
+        protected override void OnPreSave(EventArgs e)
 		{
 			// Update row offset block
 			WritePageInfo();
 			base.OnPreSave(e);
 		}
 
-		protected override void WriteData(BufferReaderWriter streamManager)
+        /// <summary>
+        /// Writes the page data block to the specified buffer writer.
+        /// </summary>
+        /// <param name="streamManager">The stream manager.</param>
+        protected override void WriteData(BufferReaderWriter streamManager)
 		{
 			if (_pageData != null)
 			{
