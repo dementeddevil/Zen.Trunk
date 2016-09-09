@@ -807,55 +807,29 @@ namespace Zen.Trunk.Storage.Data
 
 		private async Task<bool> LoadFileGroupPageHandler(LoadFileGroupPageRequest request)
 		{
-			// Detect attempt to load using only a virtual id
-			if (request.Message.VirtualPageIdValid &&
-				!request.Message.LogicalPageIdValid &&
-				!request.Message.FileGroupIdValid &&
-				string.IsNullOrEmpty(request.Message.FileGroupName))
+		    if (!request.Message.FileGroupIdValid &&
+		        string.IsNullOrEmpty(request.Message.FileGroupName))
+		    {
+		        throw new InvalidOperationException("Cannot load file-group page without filegroup id or filegroup name.");
+		    }
+
+            if (Logger.IsDebugEnabled())
+            {
+                Logger.Debug($"LoadFileGroupPage - By File-Group [{request.Message.FileGroupId},{request.Message.FileGroupName}]");
+            }
+			var fileGroupDevice = GetFileGroupDevice(
+				request.Message.FileGroupId, request.Message.FileGroupName);
+
+			// Pass request onwards
+			await fileGroupDevice
+				.LoadDataPageAsync(request.Message)
+				.ConfigureAwait(false);
+
+			// Setup file-group id on page if necessary
+            // TODO: This shouldn't be necessary as FGD fills this in
+			if (!request.Message.FileGroupIdValid)
 			{
-			    // This type of load request is typically only ever 
-				//	performed during database recovery
-                // We may with to disallow use of this entry-point at any other time
-			    if (!ResolveDeviceService<MasterLogPageDevice>().IsInRecovery)
-			    {
-			        throw new InvalidOperationException(
-			            "LoadFileGroupPage[By VirtualPageId] is only permitted during database recovery");
-			    }
-
-			    if (Logger.IsDebugEnabled())
-			    {
-			        Logger.Debug($"LoadFileGroupPage - By VirtualPageId {request.Message.Page.VirtualPageId}");
-			    }
-
-				// Setup page site and notify page of impending load
-				HookupPageSite(request.Message.Page);
-				request.Message.Page.PreLoadInternal();
-
-				// Load the buffer from the underlying cache
-				request.Message.Page.DataBuffer = await CachingBufferDevice
-                    .LoadPageAsync(request.Message.Page.VirtualPageId)
-                    .ConfigureAwait(false);
-				request.Message.Page.PostLoadInternal();
-			}
-			else
-			{
-                if (Logger.IsDebugEnabled())
-                {
-                    Logger.Debug($"LoadFileGroupPage - By File-Group [{request.Message.FileGroupId},{request.Message.FileGroupName}]");
-                }
-				var fileGroupDevice = GetFileGroupDevice(
-					request.Message.FileGroupId, request.Message.FileGroupName);
-
-				// Pass request onwards
-				await fileGroupDevice
-					.LoadDataPageAsync(request.Message)
-					.ConfigureAwait(false);
-
-				// Setup file-group id on page if necessary
-				if (!request.Message.FileGroupIdValid)
-				{
-					request.Message.Page.FileGroupId = fileGroupDevice.FileGroupId;
-				}
+				request.Message.Page.FileGroupId = fileGroupDevice.FileGroupId;
 			}
 			return true;
 		}
@@ -875,6 +849,7 @@ namespace Zen.Trunk.Storage.Data
 			return fileGroupDevice.AddTable(request.Message);
 		}
 
+	    // ReSharper disable once UnusedParameter.Local
 		private Task<bool> IssueCheckPointHandler(IssueCheckPointRequest request)
 		{
 			var tcs = new TaskCompletionSource<bool>();
