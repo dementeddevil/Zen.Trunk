@@ -76,12 +76,25 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ChildSymbolScope.cs" />
+    <Compile Include="ExecutionContext.cs" />
+    <Compile Include="FunctionSymbol.cs" />
+    <Compile Include="FunctionSymbolScope.cs" />
+    <Compile Include="GlobalSymbolScope.cs" />
+    <Compile Include="LocalSymbolScope.cs" />
+    <Compile Include="ParameterSymbol.cs" />
+    <Compile Include="ProcedureSymbol.cs" />
+    <Compile Include="SqlBatchOperationBuilder.cs" />
+    <Compile Include="Symbol.cs" />
+    <Compile Include="SymbolScope.cs" />
+    <Compile Include="SymbolTableValidator.cs" />
     <Compile Include="TrunkSql.g4.lexer.cs">
       <DependentUpon>TrunkSql.g4</DependentUpon>
     </Compile>
     <Compile Include="TrunkSql.g4.parser.cs">
       <DependentUpon>TrunkSql.g4</DependentUpon>
     </Compile>
+    <Compile Include="VariableSymbol.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="QueryExecutive.cs" />

@@ -53,7 +53,7 @@ namespace Zen.Trunk.Storage
                     batch.AppendLine("size=1024KB");
                     batch.AppendLine(")");
                     batch.AppendLine("go");
-                    await executive.Execute(batch.ToString());
+                    await executive.ExecuteAsync(batch.ToString());
                     await manager.OpenAsync(true).ConfigureAwait(true);
                     await TrunkTransactionContext.CommitAsync().ConfigureAwait(true);
 
@@ -102,7 +102,7 @@ namespace Zen.Trunk.Storage
                         $"SET TRANSACTION ISOLATION LEVEL {requestedIsolationLevel};");
                     batch.AppendLine("GO");
 
-                    await executive.Execute(batch.ToString()).ConfigureAwait(true);
+                    await executive.ExecuteAsync(batch.ToString()).ConfigureAwait(true);
 
                     //executive.Batches.FirstOrDefault().
                 }
