@@ -7,11 +7,12 @@ using System.Transactions;
 using Autofac;
 using Zen.Trunk.Extensions;
 using Zen.Trunk.Logging;
+using Zen.Trunk.Storage.Data;
 using Zen.Trunk.Storage.Locking;
 using Zen.Trunk.Storage.Log;
 using Zen.Trunk.Utils;
 
-namespace Zen.Trunk.Storage.Data
+namespace Zen.Trunk.Storage
 {
     /// <summary>
     /// <c>DatabaseDevice</c> encapsulates all the operations needed to support
@@ -709,14 +710,14 @@ namespace Zen.Trunk.Storage.Data
                 var fileGroupId = request.Message.FileGroupId;
                 if (fileGroupId == FileGroupId.Master)
                 {
-                    fileGroupName = StorageFileConstants.PrimaryFileGroupName;
+                    fileGroupName = StorageConstants.PrimaryFileGroupName;
                     fileGroupDevice = ResolveDeviceService<MasterDatabasePrimaryFileGroupDevice>(
                         new NamedParameter("id", fileGroupId),
                         new NamedParameter("name", fileGroupName));
                 }
                 else if (fileGroupId == FileGroupId.Primary)
                 {
-                    fileGroupName = StorageFileConstants.PrimaryFileGroupName;
+                    fileGroupName = StorageConstants.PrimaryFileGroupName;
                     fileGroupDevice = ResolveDeviceService<PrimaryFileGroupDevice>(
                         new NamedParameter("id", fileGroupId),
                         new NamedParameter("name", fileGroupName));

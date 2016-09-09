@@ -75,8 +75,8 @@
     <Compile Include="Storage\Data\CachingPageBufferDevice.cs" />
     <Compile Include="CoreException.cs" />
     <Compile Include="Storage\Data\CachingPageBufferDeviceSettings.cs" />
-    <Compile Include="Storage\Data\DatabaseDevice.cs" />
-    <Compile Include="Storage\Data\DatabaseDeviceMessages.cs" />
+    <Compile Include="Storage\DatabaseDevice.cs" />
+    <Compile Include="Storage\DatabaseDeviceMessages.cs" />
     <Compile Include="Storage\Data\FileGroupDeviceMessages.cs" />
     <Compile Include="Storage\Data\FileSize.cs" />
     <Compile Include="Storage\Data\ICachingPageBufferDevice.cs" />
@@ -88,10 +88,12 @@
     <Compile Include="Storage\Data\Index\RootIndexInfo.cs" />
     <Compile Include="Storage\Data\ITransactionContextTaskRequest.cs" />
     <Compile Include="Storage\Data\LogicalVirtualManager.cs" />
-    <Compile Include="Storage\Data\MasterDatabaseDevice.cs" />
+    <Compile Include="Storage\FileSpec.cs" />
+    <Compile Include="Storage\MasterDatabaseDevice.cs" />
     <Compile Include="Storage\Data\MasterDatabasePrimaryFileGroupDevice.cs" />
     <Compile Include="Storage\Data\MasterDatabasePrimaryFileGroupRootPage.cs" />
-    <Compile Include="Storage\Data\ModelDatabaseDevice.cs" />
+    <Compile Include="Storage\MasterDatabaseMessages.cs" />
+    <Compile Include="Storage\ModelDatabaseDevice.cs" />
     <Compile Include="Storage\Data\ObjectDataPage.cs" />
     <Compile Include="Storage\Data\ObjectPage.cs" />
     <Compile Include="Storage\Data\ObjectRefInfo.cs" />
@@ -118,7 +120,7 @@
     <Compile Include="Storage\Data\Table\TableIndexManager.cs" />
     <Compile Include="Storage\Data\Table\TableIndexPage.cs" />
     <Compile Include="Storage\Data\Table\TableSchemaPage.cs" />
-    <Compile Include="Storage\Data\TemporaryDatabaseDevice.cs" />
+    <Compile Include="Storage\TemporaryDatabaseDevice.cs" />
     <Compile Include="Storage\FileGroupId.cs" />
     <Compile Include="Storage\IMountableDevice.cs" />
     <Compile Include="Storage\Locking\GlobalLockManager.cs" />
@@ -184,7 +186,7 @@
     <Compile Include="Storage\PageExceptions.cs" />
     <Compile Include="Storage\StatefulBuffer.cs" />
     <Compile Include="Storage\Data\TransactionContextTaskRequest.cs" />
-    <Compile Include="Storage\StorageFileConstants.cs" />
+    <Compile Include="Storage\StorageConstants.cs" />
     <Compile Include="Storage\TransactionId.cs" />
     <Compile Include="Storage\TransactionSynchronizationContext.cs" />
   </ItemGroup>

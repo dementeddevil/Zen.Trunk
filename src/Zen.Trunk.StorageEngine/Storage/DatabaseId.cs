@@ -10,24 +10,29 @@ namespace Zen.Trunk.Storage
     {
         #region Public Fields
         /// <summary>
-        /// The zero
+        /// The database identifier for a zeroed identifier
         /// </summary>
         public static readonly DatabaseId Zero = new DatabaseId(0);
 
         /// <summary>
-        /// The master
+        /// The database identifier for the master database (MASTER)
         /// </summary>
         public static readonly DatabaseId Master = new DatabaseId(1);
 
         /// <summary>
-        /// The model
+        /// The database identifier for the model database (MODEL)
         /// </summary>
         public static readonly DatabaseId Model = new DatabaseId(2);
 
         /// <summary>
-        /// The temporary
+        /// The database identifier for the temporary database (TEMPDB)
         /// </summary>
         public static readonly DatabaseId Temporary = new DatabaseId(3);
+
+        /// <summary>
+        /// The database identifier for the first free database
+        /// </summary>
+        public static readonly DatabaseId FirstFree = new DatabaseId(4);
         #endregion
 
         #region Public Constructors

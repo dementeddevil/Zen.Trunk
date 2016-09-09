@@ -1,6 +1,9 @@
 ﻿namespace Zen.Trunk.Storage
 {
-    public static class StorageFileConstants
+    /// <summary>
+    /// <c>StorageConstants</c> defines constants used throughout the storage engine
+    /// </summary>
+    public static class StorageConstants
     {
         /// <summary>
         /// The primary file group primary device file extension
@@ -36,7 +39,6 @@
         /// </summary>
         public const string PrimaryFileGroupName = "PRIMARY";
 
-
         /// <summary>
         /// The data filename suffix
         /// </summary>
@@ -51,5 +53,20 @@
         /// The log file device extension
         /// </summary>
         public const string LogFileDeviceExtension = ".ldf";
+
+        /// <summary>
+        /// The master database name
+        /// </summary>
+        public const string MasterDatabaseName = "master";
+
+        /// <summary>
+        /// The model database name
+        /// </summary>
+        public const string ModelDatabaseName = "model";
+
+        /// <summary>
+        /// The temporary database name
+        /// </summary>
+        public const string TemporaryDatabaseName = "tempdb";
     }
 }

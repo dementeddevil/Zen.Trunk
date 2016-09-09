@@ -12,11 +12,12 @@ using System.Linq;
 using System.Threading.Tasks;
 using Autofac;
 using Zen.Trunk.Extensions;
+using Zen.Trunk.Storage.Data;
 using Zen.Trunk.Storage.Locking;
 using Zen.Trunk.Storage.Log;
 using Zen.Trunk.Utils;
 
-namespace Zen.Trunk.Storage.Data
+namespace Zen.Trunk.Storage
 {
     /// <summary>
     /// <c>MasterDatabaseDevice</c> represents the master database device.
@@ -25,7 +26,7 @@ namespace Zen.Trunk.Storage.Data
     /// This device contains core system tables and maintains links to all
     /// other databases defined on the instance.
     /// </remarks>
-    /// <seealso cref="Zen.Trunk.Storage.Data.DatabaseDevice" />
+    /// <seealso cref="DatabaseDevice" />
     public class MasterDatabaseDevice : DatabaseDevice
     {
         #region Public Fields
@@ -33,13 +34,17 @@ namespace Zen.Trunk.Storage.Data
         /// The reserved database names
         /// </summary>
         public static readonly string[] ReservedDatabaseNames =
-            { "MASTER", "TEMPDB", "MODEL" };
+        {
+            StorageConstants.MasterDatabaseName,
+            StorageConstants.TemporaryDatabaseName,
+            StorageConstants.ModelDatabaseName
+        };
         #endregion
 
         #region Private Fields
         private readonly Dictionary<string, DatabaseDevice> _userDatabases =
             new Dictionary<string, DatabaseDevice>(StringComparer.OrdinalIgnoreCase);
-        private DatabaseId _nextDatabaseId;
+        private DatabaseId _nextDatabaseId = DatabaseId.FirstFree;
         private bool _hasAttachedMaster;
         #endregion
 
@@ -74,14 +79,14 @@ namespace Zen.Trunk.Storage.Data
         /// or
         /// Database with same name already exists.
         /// </exception>
-        public async Task AttachDatabase(AttachDatabaseParameters request)
+        public async Task AttachDatabaseAsync(AttachDatabaseParameters request)
         {
             // Determine whether we are attaching the master database
             var mountingMaster = false;
             DatabaseDevice device;
             if (!_hasAttachedMaster)
             {
-                if (!request.Name.Equals("master", StringComparison.OrdinalIgnoreCase))
+                if (!request.Name.Equals(StorageConstants.MasterDatabaseName, StringComparison.OrdinalIgnoreCase))
                 {
                     throw new ArgumentException("First database attached must be master database.");
                 }
@@ -91,13 +96,14 @@ namespace Zen.Trunk.Storage.Data
             }
             else
             {
-                if (request.Name.Equals("master", StringComparison.OrdinalIgnoreCase))
+                if (request.Name.Equals(StorageConstants.MasterDatabaseName, StringComparison.OrdinalIgnoreCase))
                 {
                     throw new ArgumentException("Master database has already been attached.");
                 }
 
                 // Create new database device
-                var dbId = _nextDatabaseId = _nextDatabaseId.Next;
+                var dbId = _nextDatabaseId;
+                _nextDatabaseId = _nextDatabaseId.Next;
                 device = ResolveDeviceService<DatabaseDevice>(
                     new NamedParameter("dbId", dbId));
             }
@@ -117,13 +123,13 @@ namespace Zen.Trunk.Storage.Data
                 if (request.FileGroups.Count == 0)
                 {
                     request.AddDataFile(
-                        StorageFileConstants.PrimaryFileGroupName,
+                        StorageConstants.PrimaryFileGroupName,
                         new FileSpec
                         {
                             Name = request.Name,
                             FileName = Path.Combine(
                                 ResolveDeviceService<StorageEngineConfiguration>().DefaultDataFilePath,
-                                $"{request.Name}{StorageFileConstants.DataFilenameSuffix}{StorageFileConstants.PrimaryDeviceFileExtension}"),
+                                $"{request.Name}{StorageConstants.DataFilenameSuffix}{StorageConstants.PrimaryDeviceFileExtension}"),
                             Size = new FileSize(1, FileSize.FileSizeUnit.MegaBytes),
                             FileGrowth = new FileSize(1, FileSize.FileSizeUnit.MegaBytes)
                         });
@@ -136,7 +142,7 @@ namespace Zen.Trunk.Storage.Data
                             Name = request.Name,
                             FileName = Path.Combine(
                                 ResolveDeviceService<StorageEngineConfiguration>().DefaultLogFilePath,
-                                $"{request.Name}{StorageFileConstants.LogFilenameSuffix}{StorageFileConstants.LogFileDeviceExtension}"),
+                                $"{request.Name}{StorageConstants.LogFilenameSuffix}{StorageConstants.LogFileDeviceExtension}"),
                             Size = new FileSize(1, FileSize.FileSizeUnit.MegaBytes),
                             FileGrowth = new FileSize(1, FileSize.FileSizeUnit.MegaBytes)
                         });
@@ -156,7 +162,7 @@ namespace Zen.Trunk.Storage.Data
             var primaryFileName = string.Empty;
 
             // Process the primary filegroup
-            var primaryFileGroup = request.FileGroups[StorageFileConstants.PrimaryFileGroupName];
+            var primaryFileGroup = request.FileGroups[StorageConstants.PrimaryFileGroupName];
             var deviceId = DeviceId.Primary;
             foreach (var file in primaryFileGroup)
             {
@@ -167,7 +173,7 @@ namespace Zen.Trunk.Storage.Data
                     deviceId == DeviceId.Primary,
                     deviceId == DeviceId.Primary,
                     device,
-                    StorageFileConstants.PrimaryFileGroupName,
+                    StorageConstants.PrimaryFileGroupName,
                     deviceId).ConfigureAwait(false);
 
                 // Advance to next device
@@ -175,10 +181,10 @@ namespace Zen.Trunk.Storage.Data
             }
 
             // Process any secondary filegroups
-            foreach (var fileGroup in request.FileGroups.Where(f => f.Key != StorageFileConstants.PrimaryFileGroupName))
+            foreach (var fileGroup in request.FileGroups.Where(f => f.Key != StorageConstants.PrimaryFileGroupName))
             {
                 deviceId = DeviceId.Primary;
-                foreach (var file in fileGroup.Value.Where(f => f.Name != StorageFileConstants.PrimaryFileGroupName))
+                foreach (var file in fileGroup.Value.Where(f => f.Name != StorageConstants.PrimaryFileGroupName))
                 {
                     await AttachDatabaseFileGroupDeviceAsync(
                         request,
@@ -255,7 +261,7 @@ namespace Zen.Trunk.Storage.Data
         /// or
         /// Database not found.
         /// </exception>
-        public Task DetachDatabase(string name)
+        public Task DetachDatabaseAsync(string name)
         {
             // Check for reserved database names
             foreach (var reserved in ReservedDatabaseNames)
@@ -299,7 +305,7 @@ namespace Zen.Trunk.Storage.Data
         /// or
         /// Database not found.
         /// </exception>
-        public Task ChangeDatabaseStatus(ChangeDatabaseStatusParameters request)
+        public Task ChangeDatabaseStatusAsync(ChangeDatabaseStatusParameters request)
         {
             // Check for reserved database names
             foreach (var reserved in ReservedDatabaseNames)
@@ -337,7 +343,7 @@ namespace Zen.Trunk.Storage.Data
         /// <exception cref="ArgumentException">Database not found</exception>
         public DatabaseDevice GetDatabaseDevice(string databaseName)
         {
-            if (string.Equals(databaseName, "master", StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(databaseName, StorageConstants.MasterDatabaseName, StringComparison.OrdinalIgnoreCase))
             {
                 return this;
             }
@@ -392,12 +398,7 @@ namespace Zen.Trunk.Storage.Data
                     .Where(item => item.IsOnline))
                 {
                     // Create attach request and post - no need to wait...
-                    var attach =
-                        new AttachDatabaseParameters
-                        {
-                            Name = deviceInfo.Name,
-                            IsCreate = false,
-                        };
+                    var attach = new AttachDatabaseParameters(deviceInfo.Name);
                     attach.AddDataFile(
                         "PRIMARY",
                         new FileSpec
@@ -405,7 +406,7 @@ namespace Zen.Trunk.Storage.Data
                             Name = deviceInfo.PrimaryName,
                             FileName = deviceInfo.PrimaryFilePathName
                         });
-                    await AttachDatabase(attach).ConfigureAwait(false);
+                    await AttachDatabaseAsync(attach).ConfigureAwait(false);
                 }
             }
         }
@@ -493,110 +494,5 @@ namespace Zen.Trunk.Storage.Data
             }
         }
         #endregion
-    }
-
-    public class AttachDatabaseParameters
-    {
-        private readonly IDictionary<string, IList<FileSpec>> _fileGroups =
-            new Dictionary<string, IList<FileSpec>>(StringComparer.OrdinalIgnoreCase);
-        private readonly List<FileSpec> _logFiles = new List<FileSpec>();
-
-        public string Name { get; set; }
-
-        public bool IsCreate { get; set; }
-
-        public bool HasPrimaryFileGroup => _fileGroups.ContainsKey(StorageFileConstants.PrimaryFileGroupName);
-
-        public IDictionary<string, IList<FileSpec>> FileGroups => new ReadOnlyDictionary<string, IList<FileSpec>>(_fileGroups);
-
-        public ICollection<FileSpec> LogFiles => _logFiles.AsReadOnly();
-
-        public void AddDataFile(string fileGroup, FileSpec file)
-        {
-            // Find or create filegroup entry
-            IList<FileSpec> files;
-            if (!_fileGroups.TryGetValue(fileGroup, out files))
-            {
-                files = new List<FileSpec>();
-                _fileGroups.Add(fileGroup, files);
-            }
-
-            // Validate files have unique filename
-            if (files.Any(item => string.Equals(item.FileName, file.FileName, StringComparison.OrdinalIgnoreCase)))
-            {
-                throw new ArgumentException("Data file must have unique filename.");
-            }
-
-            // Validate files have unique name
-            if (files.Any(item => string.Equals(item.Name, file.Name, StringComparison.OrdinalIgnoreCase)))
-            {
-                throw new ArgumentException("Data file must have unique logical name.");
-            }
-
-            files.Add(file);
-        }
-
-        public void AddLogFile(FileSpec file)
-        {
-            // Validate files have unique filename
-            if (_logFiles.Any(item => string.Equals(item.FileName, file.FileName, StringComparison.OrdinalIgnoreCase)))
-            {
-                throw new ArgumentException("Log file must have unique filename.");
-            }
-
-            // Validate files have unique name
-            if (_logFiles.Any(item => string.Equals(item.Name, file.Name, StringComparison.OrdinalIgnoreCase)))
-            {
-                throw new ArgumentException("Log file must have unique logical name.");
-            }
-
-            _logFiles.Add(file);
-        }
-    }
-
-    public class ChangeDatabaseStatusParameters
-    {
-        public ChangeDatabaseStatusParameters(string name, bool isOnline)
-        {
-            Name = name;
-            IsOnline = isOnline;
-        }
-
-        public string Name { get; }
-
-        public bool IsOnline { get; }
-    }
-
-    public class FileSpec
-    {
-        public string Name
-        {
-            get;
-            set;
-        }
-
-        public string FileName
-        {
-            get;
-            set;
-        }
-
-        public FileSize? Size
-        {
-            get;
-            set;
-        }
-
-        public FileSize? MaxSize
-        {
-            get;
-            set;
-        }
-
-        public FileSize? FileGrowth
-        {
-            get;
-            set;
-        }
     }
 }

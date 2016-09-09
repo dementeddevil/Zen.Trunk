@@ -1,4 +1,4 @@
-﻿namespace Zen.Trunk.Storage.Data
+﻿namespace Zen.Trunk.Storage
 {
     /// <summary>
     /// <c>ModelDatabaseDevice</c> extends database device to provide the

@@ -1,6 +1,7 @@
-﻿using Zen.Trunk.Storage.Data.Table;
+﻿using Zen.Trunk.Storage.Data;
+using Zen.Trunk.Storage.Data.Table;
 
-namespace Zen.Trunk.Storage.Data
+namespace Zen.Trunk.Storage
 {
     /// <summary>
     /// 

@@ -1,9 +1,9 @@
-﻿namespace Zen.Trunk.Storage.Data
+﻿namespace Zen.Trunk.Storage
 {
     /// <summary>
     /// 
     /// </summary>
-    /// <seealso cref="Zen.Trunk.Storage.Data.DatabaseDevice" />
+    /// <seealso cref="DatabaseDevice" />
     public class TemporaryDatabaseDevice : DatabaseDevice
     {
         #region Public Constructors

@@ -790,16 +790,16 @@ namespace Zen.Trunk.Storage.Data
             var priFileGroupDevice = _devices.Count == 0;
 
             // Determine file-extension for DBF
-            var extn = StorageFileConstants.SecondaryDeviceFileExtension;
+            var extn = StorageConstants.SecondaryDeviceFileExtension;
             if (priFileGroupDevice)
             {
                 if (IsPrimaryFileGroup)
                 {
-                    extn = StorageFileConstants.PrimaryFileGroupPrimaryDeviceFileExtension;
+                    extn = StorageConstants.PrimaryFileGroupPrimaryDeviceFileExtension;
                 }
                 else
                 {
-                    extn = StorageFileConstants.PrimaryDeviceFileExtension;
+                    extn = StorageConstants.PrimaryDeviceFileExtension;
                 }
             }
 
@@ -807,7 +807,7 @@ namespace Zen.Trunk.Storage.Data
             string fileName;
             if (IsPrimaryFileGroup && priFileGroupDevice)
             {
-                fileName = StorageFileConstants.PrimaryFileGroupPrimaryDeviceFilename + extn;
+                fileName = StorageConstants.PrimaryFileGroupPrimaryDeviceFilename + extn;
             }
             else
             {
@@ -832,7 +832,7 @@ namespace Zen.Trunk.Storage.Data
             if (priFileGroupDevice && IsPrimaryFileGroup)
             {
                 deviceId = await pageBufferDevice
-                    .AddDeviceAsync(StorageFileConstants.PrimaryFileGroupPrimaryDeviceName, fullPathName, DeviceId.Primary, allocationPages)
+                    .AddDeviceAsync(StorageConstants.PrimaryFileGroupPrimaryDeviceName, fullPathName, DeviceId.Primary, allocationPages)
                     .ConfigureAwait(false);
             }
             else
