@@ -222,7 +222,7 @@ namespace Zen.Trunk.Storage.Data
 
                 // Hookup file-group from page
                 info.FileGroupId = FileGroupId;
-                info.RootPageVirtualPageId = VirtualId;
+                info.RootPageVirtualPageId = VirtualPageId;
             }
         }
 

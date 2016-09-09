@@ -77,8 +77,8 @@ namespace Zen.Trunk.Storage.Data
 	{
 		#region Public Constructors
 		public InitFileGroupPageParameters(
-			string fileGroupName, DataPage page, bool assignVirtualId = false, bool assignLogicalPageId = false, bool assignAutomaticLogicalPageId = false, bool isNewObject = false)
-			: base(page, assignVirtualId, assignLogicalPageId, assignAutomaticLogicalPageId, isNewObject)
+			string fileGroupName, DataPage page, bool assignVirtualPageId = false, bool assignLogicalPageId = false, bool assignAutomaticLogicalPageId = false, bool isNewObject = false)
+			: base(page, assignVirtualPageId, assignLogicalPageId, assignAutomaticLogicalPageId, isNewObject)
 		{
 			FileGroupId = page.FileGroupId;
 			FileGroupName = fileGroupName;

@@ -43,7 +43,7 @@ namespace Zen.Trunk.Storage
 				var page = new TPage();
 				HookupPageSite(page);
 
-				page.VirtualId = pageId;
+				page.VirtualPageId = pageId;
 
 				if (treatAsInit)
 				{

@@ -255,7 +255,7 @@ namespace Zen.Trunk.Storage
 		/// <summary>
 		/// Gets/sets the virtual page ID.
 		/// </summary>
-		public virtual VirtualPageId VirtualId { get; set; }
+		public virtual VirtualPageId VirtualPageId { get; set; }
 	    #endregion
 
 		#region Internal Properties

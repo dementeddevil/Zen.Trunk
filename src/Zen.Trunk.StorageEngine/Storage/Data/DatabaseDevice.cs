@@ -711,21 +711,23 @@ namespace Zen.Trunk.Storage.Data
 				// Create new file group device and add to map
 				if (fileGroupId == FileGroupId.Master)
 				{
+				    fileGroupName = StorageFileConstants.PrimaryFileGroupName;
 				    fileGroupDevice = ResolveDeviceService<MasterDatabasePrimaryFileGroupDevice>(
 				        new NamedParameter("id", fileGroupId),
-				        new NamedParameter("name", request.Message.FileGroupName));
+				        new NamedParameter("name", fileGroupName));
 				}
 				else if (fileGroupId == FileGroupId.Primary)
 				{
+                    fileGroupName = StorageFileConstants.PrimaryFileGroupName;
                     fileGroupDevice = ResolveDeviceService<PrimaryFileGroupDevice>(
                         new NamedParameter("id", fileGroupId),
-                        new NamedParameter("name", request.Message.FileGroupName));
+                        new NamedParameter("name", fileGroupName));
 				}
 				else
 				{
                     fileGroupDevice = ResolveDeviceService<SecondaryFileGroupDevice>(
                         new NamedParameter("id", fileGroupId),
-                        new NamedParameter("name", request.Message.FileGroupName));
+                        new NamedParameter("name", fileGroupName));
 				}
 
 				_fileGroupById.Add(fileGroupId, fileGroupDevice);
@@ -811,21 +813,19 @@ namespace Zen.Trunk.Storage.Data
 				!request.Message.FileGroupIdValid &&
 				string.IsNullOrEmpty(request.Message.FileGroupName))
 			{
-			    if (Logger.IsDebugEnabled())
-			    {
-			        Logger.Debug($"LoadFileGroupPage - By VirtualId {request.Message.Page.VirtualId}");
-			    }
-
 			    // This type of load request is typically only ever 
 				//	performed during database recovery
-				// TODO: Consider making this type of load illegal outside
-				//	of recovery - for now it is allowed only if the page
-				//	type is DataPage.
-				if (request.Message.Page.GetType() != typeof(DataPage))
-				{
-					throw new StorageEngineException(
-						"VirtualId-only page loading only supported for DataPage page type.");
-				}
+                // We may with to disallow use of this entry-point at any other time
+			    if (!ResolveDeviceService<MasterLogPageDevice>().IsInRecovery)
+			    {
+			        throw new InvalidOperationException(
+			            "LoadFileGroupPage[By VirtualPageId] is only permitted during database recovery");
+			    }
+
+			    if (Logger.IsDebugEnabled())
+			    {
+			        Logger.Debug($"LoadFileGroupPage - By VirtualPageId {request.Message.Page.VirtualPageId}");
+			    }
 
 				// Setup page site and notify page of impending load
 				HookupPageSite(request.Message.Page);
@@ -833,7 +833,7 @@ namespace Zen.Trunk.Storage.Data
 
 				// Load the buffer from the underlying cache
 				request.Message.Page.DataBuffer = await CachingBufferDevice
-                    .LoadPageAsync(request.Message.Page.VirtualId)
+                    .LoadPageAsync(request.Message.Page.VirtualPageId)
                     .ConfigureAwait(false);
 				request.Message.Page.PostLoadInternal();
 			}
@@ -862,7 +862,7 @@ namespace Zen.Trunk.Storage.Data
 
 		private async Task<bool> FlushDeviceBuffersHandler(FlushFileGroupRequest request)
 		{
-			await CachingBufferDevice.FlushPagesAsync(request.Message);
+			await CachingBufferDevice.FlushPagesAsync(request.Message).ConfigureAwait(false);
 			return true;
 		}
 
@@ -902,7 +902,9 @@ namespace Zen.Trunk.Storage.Data
 		    }
 
 			// Issue begin checkpoint
-			await ResolveDeviceService<MasterLogPageDevice>().WriteEntry(new BeginCheckPointLogEntry()).ConfigureAwait(false);
+			await ResolveDeviceService<MasterLogPageDevice>()
+                .WriteEntry(new BeginCheckPointLogEntry())
+                .ConfigureAwait(false);
 
 			Exception exception = null;
 			try
@@ -920,7 +922,9 @@ namespace Zen.Trunk.Storage.Data
 			}
 
 			// Issue end checkpoint
-			await ResolveDeviceService<MasterLogPageDevice>().WriteEntry(new EndCheckPointLogEntry()).ConfigureAwait(false);
+			await ResolveDeviceService<MasterLogPageDevice>()
+                .WriteEntry(new EndCheckPointLogEntry())
+                .ConfigureAwait(false);
 
 			// Discard current check-point task
 			_currentCheckPointTask = null;
@@ -934,13 +938,11 @@ namespace Zen.Trunk.Storage.Data
                 }
 				throw exception;
 			}
-			else
-			{
-                if (Logger.IsDebugEnabled())
-                {
-                    Logger.Debug("CheckPoint - Exit");
-                }
-			}
+
+            if (Logger.IsDebugEnabled())
+            {
+                Logger.Debug("CheckPoint - Exit");
+            }
 		}
 
 		private FileGroupDevice GetPrimaryFileGroupDevice()

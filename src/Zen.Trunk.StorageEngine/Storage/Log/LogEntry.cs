@@ -718,7 +718,7 @@ namespace Zen.Trunk.Storage.Log
 			// Create generic page object and load
 		    var page = new DataPage
 		    {
-		        VirtualId = VirtualPageId,
+		        VirtualPageId = VirtualPageId,
 		        FileGroupId = FileGroupId.Invalid
 		    };
 		    await device

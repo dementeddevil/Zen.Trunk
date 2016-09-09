@@ -308,7 +308,7 @@ namespace Zen.Trunk.Storage.Data
                 var txnLocks = TrunkTransactionContext.TransactionLocks;
 
                 // Return the lock-owner block for this object instance
-                return txnLocks?.GetOrCreateDistributionLockOwnerBlock(VirtualId);
+                return txnLocks?.GetOrCreateDistributionLockOwnerBlock(VirtualPageId);
             }
         }
         #endregion
@@ -352,7 +352,7 @@ namespace Zen.Trunk.Storage.Data
         public async Task<VirtualPageId> AllocatePageAsync(AllocateDataPageParameters allocParams)
         {
             System.Diagnostics.Debug.WriteLine(
-                $"Allocate page via DistributionPage {VirtualId}");
+                $"Allocate page via DistributionPage {VirtualPageId}");
 
             // Ensure we have some kind of lock on the page...
             if (DistributionLock == ObjectLockType.None)
@@ -388,7 +388,7 @@ namespace Zen.Trunk.Storage.Data
                 // Escalate the extent lock if necessary
                 if (DistributionLock != ObjectLockType.Exclusive)
                 {
-                    var extentLock = LockManager.GetExtentLock(VirtualId, result.Extent);
+                    var extentLock = LockManager.GetExtentLock(VirtualPageId, result.Extent);
                     if (!await extentLock.HasLockAsync(DataLockType.Exclusive).ConfigureAwait(false))
                     {
                         await LockExtentAsync(result.Extent, DataLockType.Update).ConfigureAwait(false);
@@ -439,7 +439,7 @@ namespace Zen.Trunk.Storage.Data
 
                     // Determine the virtual id for this page
                     var pageIndex = (result.Extent * PagesPerExtent) + index;
-                    virtPageId = VirtualId.Offset((int)(pageIndex + 1));
+                    virtPageId = VirtualPageId.Offset((int)(pageIndex + 1));
                     break;
                 }
             }
@@ -517,7 +517,7 @@ namespace Zen.Trunk.Storage.Data
         /// <returns></returns>
         public Task Import(ILogicalVirtualManager logicalVirtualManager)
         {
-            var startPageId = VirtualId.NextPage;
+            var startPageId = VirtualPageId.NextPage;
 
             // Loop through next 512 device pages adding logical
             //	lookups where we have allocated pages.
@@ -573,7 +573,7 @@ namespace Zen.Trunk.Storage.Data
             }
 
             // Determine the physical page index for this page
-            var pageIndex = VirtualId.PhysicalPageId;
+            var pageIndex = VirtualPageId.PhysicalPageId;
 
             // Determine the number of extents that are usable
             var usableExtents = ExtentTrackingCount;
@@ -792,7 +792,7 @@ namespace Zen.Trunk.Storage.Data
                     // Release all distribution page locks
                     foreach (var extent in _lockedExtents)
                     {
-                        await lockManager.UnlockDistributionExtentAsync(VirtualId, extent).ConfigureAwait(false);
+                        await lockManager.UnlockDistributionExtentAsync(VirtualPageId, extent).ConfigureAwait(false);
                     }
                     _lockedExtents.Clear();
                     _lockedExtents = null;
@@ -919,7 +919,7 @@ namespace Zen.Trunk.Storage.Data
             if (!alreadyHasLock)
             {
                 // NOTE: We only need to check for exclusive lock
-                var extentLock = LockManager.GetExtentLock(VirtualId, extentIndex);
+                var extentLock = LockManager.GetExtentLock(VirtualPageId, extentIndex);
                 alreadyHasLock = await extentLock.HasLockAsync(DataLockType.Exclusive).ConfigureAwait(false);
             }
 

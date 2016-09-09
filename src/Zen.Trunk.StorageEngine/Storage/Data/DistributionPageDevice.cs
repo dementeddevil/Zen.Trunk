@@ -117,7 +117,7 @@ namespace Zen.Trunk.Storage.Data
 
 			// Load or initialise the file-group root page
 			var rootPage = FileGroupDevice.CreateRootPage();
-			rootPage.VirtualId = new VirtualPageId(DeviceId, 0);
+			rootPage.VirtualPageId = new VirtualPageId(DeviceId, 0);
 			HookupPageSite(rootPage);
 			if (IsCreate && _firstCallForRootPage)
 			{
@@ -328,7 +328,7 @@ namespace Zen.Trunk.Storage.Data
 
 				// Setup the page virtual id
 				var pageId = new VirtualPageId(DeviceId, physicalId);
-				page.VirtualId = pageId;
+				page.VirtualPageId = pageId;
                 if (Logger.IsDebugEnabled())
                 {
                     Logger.Debug($"Distribution page at {pageId}");
@@ -373,7 +373,7 @@ namespace Zen.Trunk.Storage.Data
 				// Determine the virtual id for the page
 				var physicalId = ((distributionPageIndex * (DistributionPage.PageTrackingCount + 1)) + DistributionPageOffset);
 				var pageId = new VirtualPageId(DeviceId, physicalId);
-				page.VirtualId = pageId;
+				page.VirtualPageId = pageId;
                 if (Logger.IsDebugEnabled())
                 {
                     Logger.Debug($"Distribution page at {pageId}");

@@ -138,7 +138,7 @@ namespace Zen.Trunk.Storage.Data
 		/// <exception cref="InvalidOperationException">
 		/// Thrown if the setter is called after the page has been initialised.
 		/// </exception>
-		public override VirtualPageId VirtualId
+		public override VirtualPageId VirtualPageId
 		{
 			get
 			{
@@ -146,7 +146,7 @@ namespace Zen.Trunk.Storage.Data
 				{
 					return _buffer.PageId;
 				}
-				return base.VirtualId;
+				return base.VirtualPageId;
 			}
 			set
 			{
@@ -154,7 +154,7 @@ namespace Zen.Trunk.Storage.Data
 				{
 					throw new InvalidOperationException("Cannot change virtual ID once buffer has been set.");
 				}
-				base.VirtualId = value;
+				base.VirtualPageId = value;
 			}
 		}
 

@@ -103,14 +103,14 @@ namespace Zen.Trunk.Storage.Data
 		/// Initializes a new instance of the <see cref="InitDataPageParameters"/> class.
 		/// </summary>
 		/// <param name="page">The page.</param>
-		/// <param name="assignVirtualId">if set to <c>true</c> [assign virtual unique identifier].</param>
+		/// <param name="assignVirtualPageId">if set to <c>true</c> [assign virtual unique identifier].</param>
 		/// <param name="assignLogicalPageId">if set to <c>true</c> [assign logical unique identifier].</param>
 		/// <param name="assignAutomaticLogicalPageId">if set to <c>true</c> [assign automatic logical unique identifier].</param>
 		/// <param name="isNewObject">if set to <c>true</c> [is new object].</param>
-		public InitDataPageParameters(DataPage page, bool assignVirtualId = false, bool assignLogicalPageId = false, bool assignAutomaticLogicalPageId = false, bool isNewObject = false)
+		public InitDataPageParameters(DataPage page, bool assignVirtualPageId = false, bool assignLogicalPageId = false, bool assignAutomaticLogicalPageId = false, bool isNewObject = false)
 		{
 			Page = page;
-			AssignVirtualId = assignVirtualId;
+			AssignVirtualPageId = assignVirtualPageId;
 			AssignLogicalPageId = assignLogicalPageId;
 			AssignAutomaticLogicalPageId = assignAutomaticLogicalPageId;
 			IsNewObject = isNewObject;
@@ -136,7 +136,7 @@ namespace Zen.Trunk.Storage.Data
 		/// <value>
 		/// <c>true</c> if [assign virtual unique identifier]; otherwise, <c>false</c>.
 		/// </value>
-		public bool AssignVirtualId
+		public bool AssignVirtualPageId
 		{
 			get;
 			private set;

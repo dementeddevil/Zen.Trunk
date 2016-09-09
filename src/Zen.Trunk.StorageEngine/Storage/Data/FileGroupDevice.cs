@@ -153,7 +153,8 @@ namespace Zen.Trunk.Storage.Data
         private PrimaryDistributionPageDevice _primaryDevice;
         private readonly Dictionary<DeviceId, SecondaryDistributionPageDevice> _devices =
             new Dictionary<DeviceId, SecondaryDistributionPageDevice>();
-        private readonly HashSet<uint> _assignedObjectIds = new HashSet<uint>();
+
+        private ObjectId _nextObjectId = new ObjectId(1);
 
         // Logical id mapping
         private ILogicalVirtualManager _logicalVirtual;
@@ -638,17 +639,18 @@ namespace Zen.Trunk.Storage.Data
             }
             await _primaryDevice.OpenAsync(IsCreate).ConfigureAwait(false);
 
-            // Load or create the root page
+            // Load or create the root page(s)
             if (Logger.IsInfoEnabled())
             {
                 Logger.Info("OnOpen : Opening secondary devices");
             }
-            using (var rootPage = (PrimaryFileGroupRootPage)
-                await _primaryDevice.LoadOrCreateRootPageAsync().ConfigureAwait(false))
+            if (IsCreate)
             {
-                var bufferDevice = ResolveDeviceService<IMultipleBufferDevice>();
-                if (IsCreate)
+                using (var rootPage = (PrimaryFileGroupRootPage)
+                    await _primaryDevice.LoadOrCreateRootPageAsync().ConfigureAwait(false))
                 {
+                    var bufferDevice = ResolveDeviceService<IMultipleBufferDevice>();
+
                     // TODO: We need to initialise the root page device list with
                     //	information from the current devices in our collection
                     //	We can only do this once we have extended the 
@@ -669,13 +671,39 @@ namespace Zen.Trunk.Storage.Data
                         rootPage.AllocatedPages += bufferDevice.GetDeviceInfo(distPageDevice.DeviceId).PageCount;
                     }
                 }
-                else
+            }
+            else
+            {
+                var rootPage = (PrimaryFileGroupRootPage)await _primaryDevice
+                    .LoadOrCreateRootPageAsync().ConfigureAwait(false);
+                while (true)
                 {
+                    // We need to adjust our "next object identifier" so we skip over existing object ids
+                    foreach (var objRef in rootPage.Objects)
+                    {
+                        if (objRef.ObjectId > _nextObjectId)
+                        {
+                            _nextObjectId = new ObjectId(objRef.ObjectId.Value + 1);
+                        }
+                    }
+
                     // Walk the list of devices recorded in the root page
                     foreach (var deviceInfo in rootPage.Devices)
                     {
                         await AddDataDeviceAsync(new AddDataDeviceParameters(deviceInfo.Name, deviceInfo.PathName, deviceInfo.Id)).ConfigureAwait(false);
                     }
+
+                    // If we have run out of root pages then exit loop
+                    if (rootPage.NextLogicalPageId == LogicalPageId.Zero)
+                    {
+                        break;
+                    }
+
+                    // Load the next primary file group root page
+                    var nextLogicalPage = new PrimaryFileGroupRootPage { LogicalPageId = rootPage.NextLogicalPageId };
+                    await LoadDataPageAsync(new LoadDataPageParameters(nextLogicalPage, false, true))
+                        .ConfigureAwait(false);
+                    rootPage = nextLogicalPage;
                 }
             }
 
@@ -762,34 +790,35 @@ namespace Zen.Trunk.Storage.Data
             var priFileGroupDevice = _devices.Count == 0;
 
             // Determine file-extension for DBF
-            var extn = ".sdf";
+            var extn = StorageFileConstants.SecondaryDeviceFileExtension;
             if (priFileGroupDevice)
             {
                 if (IsPrimaryFileGroup)
                 {
-                    extn = ".mddf";
+                    extn = StorageFileConstants.PrimaryFileGroupPrimaryDeviceFileExtension;
                 }
                 else
                 {
-                    extn = ".mfdf";
+                    extn = StorageFileConstants.PrimaryDeviceFileExtension;
                 }
             }
 
             // Rewrite filename and extension as required
-            string fileName = null;
+            string fileName;
             if (IsPrimaryFileGroup && priFileGroupDevice)
             {
-                fileName = "master" + extn;
+                fileName = StorageFileConstants.PrimaryFileGroupPrimaryDeviceFilename + extn;
             }
             else
             {
                 fileName = Path.GetFileNameWithoutExtension(request.Message.PathName) + extn;
             }
-            var fullPathName = Path.Combine(Path.Combine(
-                Path.GetPathRoot(request.Message.PathName),
-                Path.GetDirectoryName(request.Message.PathName)), fileName);
 
-            // Enforce minimum size
+            // Derive full pathname
+            // ReSharper disable once AssignNullToNotNullAttribute
+            var fullPathName = Path.Combine(Path.GetDirectoryName(request.Message.PathName), fileName);
+
+            // Enforce minimum size (1MB)
             uint allocationPages = 0;
             if (request.Message.IsCreate)
             {
@@ -803,7 +832,7 @@ namespace Zen.Trunk.Storage.Data
             if (priFileGroupDevice && IsPrimaryFileGroup)
             {
                 deviceId = await pageBufferDevice
-                    .AddDeviceAsync("MASTER", fullPathName, DeviceId.Primary, allocationPages)
+                    .AddDeviceAsync(StorageFileConstants.PrimaryFileGroupPrimaryDeviceName, fullPathName, DeviceId.Primary, allocationPages)
                     .ConfigureAwait(false);
             }
             else
@@ -878,9 +907,9 @@ namespace Zen.Trunk.Storage.Data
 
             // Stage #2: Assign virtual id
             VirtualPageId pageId;
-            if (!request.Message.AssignVirtualId)
+            if (!request.Message.AssignVirtualPageId)
             {
-                pageId = request.Message.Page.VirtualId;
+                pageId = request.Message.Page.VirtualPageId;
             }
             else
             {
@@ -896,7 +925,7 @@ namespace Zen.Trunk.Storage.Data
                     .ConfigureAwait(false);
 
                 // Setup the page virtual id
-                request.Message.Page.VirtualId = pageId;
+                request.Message.Page.VirtualPageId = pageId;
             }
 
             // Stage #3: Add virtual/logical mapping
@@ -949,7 +978,7 @@ namespace Zen.Trunk.Storage.Data
             request.Message.Page.FileGroupId = FileGroupId;
 
             // Setup virtual and logical defaults
-            var pageId = request.Message.Page.VirtualId;
+            var pageId = request.Message.Page.VirtualPageId;
 
             // Stage #1: Determine virtual id if we only have logical id.
             var logicalPage = request.Message.Page as LogicalPage;
@@ -962,7 +991,7 @@ namespace Zen.Trunk.Storage.Data
 
                 // Map from logical page to virtual page
                 pageId = await LogicalVirtualManager.GetVirtualAsync(logicalPage.LogicalPageId).ConfigureAwait(false);
-                request.Message.Page.VirtualId = pageId;
+                request.Message.Page.VirtualPageId = pageId;
             }
 
             // Stage #2: Load the buffer from the underlying cache
@@ -1023,7 +1052,7 @@ namespace Zen.Trunk.Storage.Data
                 var pageId = new VirtualPageId(request.DeviceId, distPhyId);
                 using (var page = new DistributionPage())
                 {
-                    page.VirtualId = pageId;
+                    page.VirtualPageId = pageId;
                     await page.SetDistributionLockAsync(ObjectLockType.Exclusive).ConfigureAwait(false);
 
                     // Add page to the device
@@ -1173,16 +1202,8 @@ namespace Zen.Trunk.Storage.Data
         private async Task<ObjectId> CreateObjectReferenceHandler(CreateObjectReferenceRequest request)
         {
             // Determine free object id
-            // TODO: Simply track next available object id
-            var objectId = ObjectId.Zero;
-            for (uint candidateObjectId = 1; ; ++candidateObjectId)
-            {
-                if (!_assignedObjectIds.Contains(candidateObjectId))
-                {
-                    objectId = new ObjectId(candidateObjectId);
-                    break;
-                }
-            }
+            var objectId = _nextObjectId;
+            _nextObjectId = new ObjectId(_nextObjectId.Value + 1);
 
             // Build object reference for this object and assign object ID.
             var objectRef =
@@ -1211,7 +1232,7 @@ namespace Zen.Trunk.Storage.Data
                     // If we get this far then page has space for object reference
                     break;
                 }
-                catch(PageException)
+                catch (PageException)
                 {
                 }
 
