@@ -91,6 +91,7 @@
     <Compile Include="Storage\Data\MasterDatabaseDevice.cs" />
     <Compile Include="Storage\Data\MasterDatabasePrimaryFileGroupDevice.cs" />
     <Compile Include="Storage\Data\MasterDatabasePrimaryFileGroupRootPage.cs" />
+    <Compile Include="Storage\Data\ModelDatabaseDevice.cs" />
     <Compile Include="Storage\Data\ObjectDataPage.cs" />
     <Compile Include="Storage\Data\ObjectPage.cs" />
     <Compile Include="Storage\Data\ObjectRefInfo.cs" />
@@ -117,6 +118,7 @@
     <Compile Include="Storage\Data\Table\TableIndexManager.cs" />
     <Compile Include="Storage\Data\Table\TableIndexPage.cs" />
     <Compile Include="Storage\Data\Table\TableSchemaPage.cs" />
+    <Compile Include="Storage\Data\TemporaryDatabaseDevice.cs" />
     <Compile Include="Storage\FileGroupId.cs" />
     <Compile Include="Storage\IMountableDevice.cs" />
     <Compile Include="Storage\Locking\GlobalLockManager.cs" />

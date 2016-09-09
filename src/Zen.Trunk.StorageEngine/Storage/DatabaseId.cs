@@ -18,6 +18,16 @@ namespace Zen.Trunk.Storage
         /// The master
         /// </summary>
         public static readonly DatabaseId Master = new DatabaseId(1);
+
+        /// <summary>
+        /// The model
+        /// </summary>
+        public static readonly DatabaseId Model = new DatabaseId(2);
+
+        /// <summary>
+        /// The temporary
+        /// </summary>
+        public static readonly DatabaseId Temporary = new DatabaseId(3);
         #endregion
 
         #region Public Constructors

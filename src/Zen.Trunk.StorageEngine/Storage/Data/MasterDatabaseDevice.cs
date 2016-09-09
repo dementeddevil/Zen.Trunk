@@ -19,8 +19,12 @@ using Zen.Trunk.Utils;
 namespace Zen.Trunk.Storage.Data
 {
     /// <summary>
-    /// 
+    /// <c>MasterDatabaseDevice</c> represents the master database device.
     /// </summary>
+    /// <remarks>
+    /// This device contains core system tables and maintains links to all
+    /// other databases defined on the instance.
+    /// </remarks>
     /// <seealso cref="Zen.Trunk.Storage.Data.DatabaseDevice" />
     public class MasterDatabaseDevice : DatabaseDevice
     {
