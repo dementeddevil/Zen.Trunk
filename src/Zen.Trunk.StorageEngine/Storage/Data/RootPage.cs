@@ -35,8 +35,7 @@ namespace Zen.Trunk.Storage.Data
 		private readonly BufferFieldUInt32 _maximumPages;
 		private readonly BufferFieldUInt32 _growthPages;
 		private readonly BufferFieldDouble _growthPercent;
-		private RootLockType _rootLock;
-		#endregion
+	    #endregion
 
 		#region Protected Constructors
 		/// <summary>
@@ -44,7 +43,9 @@ namespace Zen.Trunk.Storage.Data
 		/// </summary>
 		protected RootPage()
 		{
+		    // ReSharper disable once VirtualMemberCallInConstructor
 			_signature = new BufferFieldUInt64(base.LastHeaderField, RootPageSignature);
+		    // ReSharper disable once VirtualMemberCallInConstructor
 			_schemaVersion = new BufferFieldUInt32(_signature, RootPageSchemaVersion);
 			_status = new BufferFieldBitVector8(_schemaVersion);
 			_allocatedPages = new BufferFieldUInt32(_status);
@@ -60,9 +61,9 @@ namespace Zen.Trunk.Storage.Data
 	    /// Gets or sets the type of the lock.
 	    /// </summary>
 	    /// <value>The type of the lock.</value>
-	    public RootLockType RootLock { get { return _rootLock; } }
+	    public RootLockType RootLock { get; private set; }
 
-		/// <summary>
+	    /// <summary>
 		/// Overridden. Gets/sets the page status.
 		/// </summary>
 		/// <value></value>
@@ -283,17 +284,17 @@ namespace Zen.Trunk.Storage.Data
         /// <returns></returns>
         public async Task SetRootLockAsync(RootLockType value)
         {
-            if (_rootLock != value)
+            if (RootLock != value)
             {
-                var oldLock = _rootLock;
+                var oldLock = RootLock;
                 try
                 {
-                    _rootLock = value;
+                    RootLock = value;
                     await LockPageAsync().ConfigureAwait(false);
                 }
                 catch
                 {
-                    _rootLock = oldLock;
+                    RootLock = oldLock;
                     throw;
                 }
             }

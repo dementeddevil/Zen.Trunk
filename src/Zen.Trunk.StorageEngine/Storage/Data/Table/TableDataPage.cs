@@ -7,8 +7,7 @@ using Zen.Trunk.Storage.Locking;
 
 namespace Zen.Trunk.Storage.Data.Table
 {
-
-	public class TableDataPage : ObjectDataPage
+    public class TableDataPage : ObjectDataPage
 	{
 		#region Private Fields
 		/// <summary>
@@ -48,7 +47,8 @@ namespace Zen.Trunk.Storage.Data.Table
 		/// </summary>
 		public TableDataPage()
 		{
-			_totalRowDataSize = new BufferFieldUInt16(LastHeaderField);
+		    // ReSharper disable once RedundantBaseQualifier
+			_totalRowDataSize = new BufferFieldUInt16(base.LastHeaderField);
 		}
 		#endregion
 
@@ -159,7 +159,7 @@ namespace Zen.Trunk.Storage.Data.Table
 			if (table.IsHeap)
 			{
 				// Determine last page and load if needed
-				TableDataPage lastPage = null;
+				TableDataPage lastPage;
 				if (LogicalPageId == table.DataLastLogicalPageId)
 				{
 					lastPage = this;

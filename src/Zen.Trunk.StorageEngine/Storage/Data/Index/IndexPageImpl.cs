@@ -22,11 +22,11 @@ namespace Zen.Trunk.Storage.Data.Index
 		private bool _lastInternalLockWritable;
 		#endregion
 
-		#region Public Constructors
+		#region Protected Constructors
 		/// <summary>
 		/// Initializes a new instance of the <see cref="IndexPage&lt;IndexClass, IndexRootClass&gt;"/> class.
 		/// </summary>
-		public IndexPage()
+		protected IndexPage()
 		{
 			_indexEntryCount = new BufferFieldUInt16(base.LastHeaderField);
 			_indexEntries = new List<TIndexClass>(MaxIndexEntries);
@@ -61,7 +61,6 @@ namespace Zen.Trunk.Storage.Data.Index
 		/// </summary>
 		/// <value>The last header field.</value>
 		protected override BufferField LastHeaderField => _indexEntryCount;
-
 	    #endregion
 
 		#region Public Methods

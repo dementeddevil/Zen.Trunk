@@ -130,7 +130,7 @@ namespace Zen.Trunk.Storage.Data.Table
 					if (!ColumnInfo.Nullable)
 					{
 						throw new ArgumentException(
-						    $"Column {ColumnInfo.Name} does not allow nulls.", "value");
+						    $"Column {ColumnInfo.Name} does not allow nulls.");
 					}
 					e.NewValue = DBNull.Value;
 				}
@@ -139,7 +139,7 @@ namespace Zen.Trunk.Storage.Data.Table
 				else if (!ColumnInfo.ColumnType.IsInstanceOfType(e.NewValue))
 				{
 					throw new ArgumentException(
-					    $"Column {ColumnInfo.Name} expects CLR type {ColumnInfo.ColumnType.FullName} and {e.NewValue.GetType().FullName} is not a convertable type.", "value");
+					    $"Column {ColumnInfo.Name} expects CLR type {ColumnInfo.ColumnType.FullName} and {e.NewValue.GetType().FullName} is not a convertable type.");
 				}
 
 				// Truncate or pad fixed length fields
@@ -324,7 +324,7 @@ namespace Zen.Trunk.Storage.Data.Table
 
 		public IComparer GetComparer(int index)
 		{
-			return _keys[index].ColumnInfo as IComparer;
+			return _keys[index].ColumnInfo;
 		}
 
 		public void WriteData(BufferReaderWriter streamManager)

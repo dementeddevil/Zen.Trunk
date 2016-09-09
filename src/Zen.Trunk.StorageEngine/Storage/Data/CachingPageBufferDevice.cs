@@ -43,54 +43,53 @@ namespace Zen.Trunk.Storage.Data
 
         private class BufferCacheInfo : IDisposable
         {
-            #region Private Fields
-            private readonly DateTime _createdWhen = DateTime.UtcNow;
-            private DateTime _lastAccess = DateTime.UtcNow;
-            private PageBuffer _buffer;
-            #endregion
-
             #region Internal Constructors
             internal BufferCacheInfo(PageBuffer buffer)
             {
-                _buffer = buffer;
-                _buffer.AddRef();
+                BufferInternal = buffer;
+                BufferInternal.AddRef();
             }
             #endregion
 
             #region Internal Properties
-            internal DateTime Created => _createdWhen;
+            // ReSharper disable once MemberCanBePrivate.Local
+            internal DateTime Created { get; } = DateTime.UtcNow;
 
-            internal DateTime LastAccess => _lastAccess;
+            // ReSharper disable once MemberCanBePrivate.Local
+            // ReSharper disable once UnusedAutoPropertyAccessor.Local
+            internal DateTime LastAccess { get; private set; } = DateTime.UtcNow;
 
+            // ReSharper disable once UnusedMember.Local
             internal TimeSpan Age => DateTime.UtcNow - Created;
 
-            internal VirtualPageId PageId => _buffer.PageId;
+            internal VirtualPageId PageId => BufferInternal.PageId;
 
             internal PageBuffer PageBuffer
             {
                 get
                 {
-                    _lastAccess = DateTime.UtcNow;
-                    _buffer.AddRef();
-                    return _buffer;
+                    LastAccess = DateTime.UtcNow;
+                    BufferInternal.AddRef();
+                    return BufferInternal;
                 }
             }
 
-            internal PageBuffer BufferInternal => _buffer;
+            internal PageBuffer BufferInternal { get; private set; }
 
-            internal bool IsReadPending => _buffer.IsReadPending;
+            internal bool IsReadPending => BufferInternal.IsReadPending;
 
-            internal bool IsWritePending => _buffer.IsWritePending;
+            internal bool IsWritePending => BufferInternal.IsWritePending;
 
-            internal bool CanFree => _buffer.CanFree;
+            internal bool CanFree => BufferInternal.CanFree;
 
             #endregion
 
             #region Internal Methods
+            // ReSharper disable once UnusedMethodReturnValue.Local
             internal PageBuffer RemoveBufferInternal()
             {
-                var returnBuffer = _buffer;
-                _buffer = null;
+                var returnBuffer = BufferInternal;
+                BufferInternal = null;
                 return returnBuffer;
             }
             #endregion
@@ -98,10 +97,10 @@ namespace Zen.Trunk.Storage.Data
             #region IDisposable Members
             public void Dispose()
             {
-                if (_buffer != null)
+                if (BufferInternal != null)
                 {
-                    _buffer.Release();
-                    _buffer = null;
+                    BufferInternal.Release();
+                    BufferInternal = null;
                 }
             }
             #endregion
@@ -175,6 +174,7 @@ namespace Zen.Trunk.Storage.Data
         #endregion
 
         #region Private Fields
+        // ReSharper disable once UnusedMember.Local
         private static readonly ILog Logger = LogProvider.For<CachingPageBufferDevice>();
 
         private readonly CachingPageBufferDeviceSettings _cacheSettings;

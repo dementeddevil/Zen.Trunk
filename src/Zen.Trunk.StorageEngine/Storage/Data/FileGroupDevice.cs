@@ -872,6 +872,7 @@ namespace Zen.Trunk.Storage.Data
             return deviceId;
         }
 
+        // ReSharper disable once UnusedParameter.Local
         private Task<bool> RemoveDataDeviceHandler(RemoveDataDeviceRequest request)
         {
             var tcs = new TaskCompletionSource<bool>();

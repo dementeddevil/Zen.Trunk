@@ -26,7 +26,8 @@ namespace Zen.Trunk
                 .Replace("file:///", string.Empty));
 
             // Get to the solution root folder
-            basePath = new DirectoryInfo(basePath).Parent.Parent.Parent.Parent.Parent.FullName;
+            // ReSharper disable once AssignNullToNotNullAttribute
+            basePath = new DirectoryInfo(basePath).Parent?.Parent?.Parent?.Parent?.Parent?.FullName ?? basePath;
 
             // Setup test results and assembly folder
             basePath = Path.Combine(basePath, "TestResults");

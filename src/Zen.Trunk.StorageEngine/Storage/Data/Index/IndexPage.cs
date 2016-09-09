@@ -58,7 +58,7 @@
         /// Gets/sets the page type.
         /// </summary>
         /// <value></value>
-        public override PageType PageType
+        public sealed override PageType PageType
         {
             set
             {
