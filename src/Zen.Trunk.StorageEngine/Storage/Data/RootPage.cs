@@ -156,7 +156,7 @@ namespace Zen.Trunk.Storage.Data
 					IsExpandable = true;
 					IsExpandableByPercent = false;
 				}
-				else if (_growthPercent.Value == 0.0)
+				else
 				{
 					IsExpandable = IsExpandableByPercent = false;
 				}
@@ -185,7 +185,7 @@ namespace Zen.Trunk.Storage.Data
 					IsExpandable = true;
 					IsExpandableByPercent = true;
 				}
-				else if (_growthPages.Value == 0)
+				else
 				{
 					IsExpandable = IsExpandableByPercent = false;
 				}

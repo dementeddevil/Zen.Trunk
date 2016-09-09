@@ -48,21 +48,46 @@ namespace Zen.Trunk.Storage.Log
         #endregion
 
         #region Public Properties
+        /// <summary>
+        /// Gets the device identifier.
+        /// </summary>
+        /// <value>
+        /// The device identifier.
+        /// </value>
         public DeviceId DeviceId { get; }
 
-		public string PathName { get; protected set; }
+        /// <summary>
+        /// Gets or sets the name of the path.
+        /// </summary>
+        /// <value>
+        /// The name of the path.
+        /// </value>
+        public string PathName { get; protected set; }
 
-		public bool IsReadOnly
+        /// <summary>
+        /// Gets a value indicating whether this instance is read only.
+        /// </summary>
+        /// <value>
+        /// <c>true</c> if this instance is read only; otherwise, <c>false</c>.
+        /// </value>
+        public bool IsReadOnly
 		{
 			get
 			{
-				var parent = ResolveDeviceService<DatabaseDevice>();
+				//var parent = ResolveDeviceService<DatabaseDevice>();
 				//return parent.IsReadOnly;
+			    // ReSharper disable once ConvertPropertyToExpressionBody
 				return false;
 			}
 		}
 
-		public virtual bool IsInRecovery
+        /// <summary>
+        /// Gets a value indicating whether this instance is in recovery.
+        /// </summary>
+        /// <value>
+        /// <c>true</c> if this instance is in recovery; otherwise, <c>false</c>.
+        /// </value>
+        public virtual bool IsInRecovery
 		{
 			get
 			{
@@ -70,12 +95,6 @@ namespace Zen.Trunk.Storage.Log
 				return master.IsInRecovery;
 			}
 		}
-		#endregion
-
-		#region Protected Properties
-		#endregion
-
-		#region Public Methods
 		#endregion
 
 		#region Internal Methods
@@ -213,15 +232,14 @@ namespace Zen.Trunk.Storage.Log
 			}
 			return (T)_rootPage;
 		}
+        #endregion
 
-		internal protected void SaveRootPage()
-		{
-			_rootPage.Save();
-		}
-		#endregion
-
-		#region Protected Methods
-		protected override Task OnOpen()
+        #region Protected Methods
+        /// <summary>
+        /// Called when opening the device.
+        /// </summary>
+        /// <returns></returns>
+        protected override Task OnOpen()
 		{
 			if (_rootPage == null)
 			{
@@ -263,7 +281,11 @@ namespace Zen.Trunk.Storage.Log
 			return CompletedTask.Default;
 		}
 
-		protected override Task OnClose()
+        /// <summary>
+        /// Called when closing the device.
+        /// </summary>
+        /// <returns></returns>
+        protected override Task OnClose()
 		{
 			// Flush the device stream and close
 			// NOTE: Assume virtual log file streams have been flushed
@@ -277,9 +299,21 @@ namespace Zen.Trunk.Storage.Log
 			return base.OnClose();
 		}
 
-		protected virtual LogRootPage CreateRootPage()
+        /// <summary>
+        /// Creates the root page.
+        /// </summary>
+        /// <returns></returns>
+        protected virtual LogRootPage CreateRootPage()
 		{
 			return new LogRootPage();
+		}
+
+        /// <summary>
+        /// Saves the root page.
+        /// </summary>
+        protected void SaveRootPage()
+		{
+			_rootPage.Save();
 		}
 		#endregion
 
