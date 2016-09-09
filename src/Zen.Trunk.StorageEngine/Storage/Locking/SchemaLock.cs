@@ -54,63 +54,165 @@ namespace Zen.Trunk.Storage.Locking
 		private static readonly SchemaStabilityState SchemaStabilityStateObject = new SchemaStabilityState();
 		private static readonly BulkUpdateState BulkUpdateStateObject = new BulkUpdateState();
 		private static readonly SchemaModificationState SchemaModificationStateObject = new SchemaModificationState();
-		#endregion
+        #endregion
 
-		#region Schema Lock State
-		protected abstract class SchemaLockState : State
+        #region Schema Lock State
+        /// <summary>
+        /// Represents the base state from which all schema lock states are derived.
+        /// </summary>
+        /// <seealso cref="TransactionLock{SchemaLockType}.State" />
+        protected abstract class SchemaLockState : State
 		{
-			public override bool IsExclusiveLock(SchemaLockType lockType)
+            /// <summary>
+            /// Determines whether the specified lock type is equivalent to an
+            /// exclusive lock.
+            /// </summary>
+            /// <param name="lockType">Type of the lock.</param>
+            /// <returns>
+            /// <c>true</c> if the lock type is an exclusive lock; otherwise,
+            /// <c>false</c>.
+            /// </returns>
+            public override bool IsExclusiveLock(SchemaLockType lockType)
 			{
 				return lockType == SchemaLockType.SchemaModification;
 			}
 		}
-		protected class NoneState : SchemaLockState
-		{
-			public override SchemaLockType Lock => SchemaLockType.None;
 
-		    public override SchemaLockType[] CompatableLocks => new[]
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <seealso cref="SchemaLockState" />
+        protected class NoneState : SchemaLockState
+		{
+            /// <summary>
+            /// Gets the lock type that this state represents.
+            /// </summary>
+            /// <value>
+            /// The lock.
+            /// </value>
+            public override SchemaLockType Lock => SchemaLockType.None;
+
+            /// <summary>
+            /// Gets an array of lock types that this state is compatable with.
+            /// </summary>
+            /// <value>
+            /// The compatable locks.
+            /// </value>
+            public override SchemaLockType[] CompatableLocks => new[]
 		    {
 		        SchemaLockType.SchemaStability,
 		        SchemaLockType.BulkUpdate,
 		        SchemaLockType.SchemaModification,
 		    };
 		}
-		protected class SchemaStabilityState : SchemaLockState
-		{
-			public override SchemaLockType Lock => SchemaLockType.SchemaStability;
 
-		    public override SchemaLockType[] CompatableLocks => new[]
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <seealso cref="SchemaLockState" />
+        protected class SchemaStabilityState : SchemaLockState
+		{
+            /// <summary>
+            /// Gets the lock type that this state represents.
+            /// </summary>
+            /// <value>
+            /// The lock.
+            /// </value>
+            public override SchemaLockType Lock => SchemaLockType.SchemaStability;
+
+            /// <summary>
+            /// Gets an array of lock types that this state is compatable with.
+            /// </summary>
+            /// <value>
+            /// The compatable locks.
+            /// </value>
+            public override SchemaLockType[] CompatableLocks => new[]
 			{
 			    SchemaLockType.SchemaStability,
 			    SchemaLockType.BulkUpdate,
 			};
 		}
-		protected class BulkUpdateState : SchemaLockState
-		{
-			public override SchemaLockType Lock => SchemaLockType.BulkUpdate;
 
-		    public override SchemaLockType[] CompatableLocks => new[]
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <seealso cref="SchemaLockState" />
+        protected class BulkUpdateState : SchemaLockState
+		{
+            /// <summary>
+            /// Gets the lock type that this state represents.
+            /// </summary>
+            /// <value>
+            /// The lock.
+            /// </value>
+            public override SchemaLockType Lock => SchemaLockType.BulkUpdate;
+
+            /// <summary>
+            /// Gets an array of lock types that this state is compatable with.
+            /// </summary>
+            /// <value>
+            /// The compatable locks.
+            /// </value>
+            public override SchemaLockType[] CompatableLocks => new[]
             {
 		        SchemaLockType.SchemaStability,
 		        SchemaLockType.BulkUpdate,
 		    };
 		}
-		protected class SchemaModificationState : SchemaLockState
+        
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <seealso cref="SchemaLockState" />
+        protected class SchemaModificationState : SchemaLockState
 		{
-			public override SchemaLockType Lock => SchemaLockType.SchemaModification;
+            /// <summary>
+            /// Gets the lock type that this state represents.
+            /// </summary>
+            /// <value>
+            /// The lock.
+            /// </value>
+            public override SchemaLockType Lock => SchemaLockType.SchemaModification;
 
-		    public override SchemaLockType[] CompatableLocks => new SchemaLockType[0];
+            /// <summary>
+            /// Gets an array of lock types that this state is compatable with.
+            /// </summary>
+            /// <value>
+            /// The compatable locks.
+            /// </value>
+            public override SchemaLockType[] CompatableLocks => new SchemaLockType[0];
 
+            /// <summary>
+            /// Gets a boolean value indicating whether an exclusive lock can
+            /// be acquired from this state.
+            /// </summary>
+            /// <value>
+            /// <c>true</c> if an exclusive lock can be acquired from this
+            /// state; otherwise, <c>false</c>. The default is <c>false</c>.
+            /// </value>
             public override bool CanEnterExclusiveLock => true;
         }
         #endregion
 
-		#region Protected Properties
-		protected override SchemaLockType NoneLockType => SchemaLockType.None;
-	    #endregion
+        #region Protected Properties
+        /// <summary>
+        /// Gets enumeration value for the lock representing the "none" lock.
+        /// </summary>
+        /// <value>
+        /// The type of the none lock.
+        /// </value>
+        protected override SchemaLockType NoneLockType => SchemaLockType.None;
+        #endregion
 
-		#region Protected Methods
-		protected override State GetStateFromType (SchemaLockType lockType)
+        #region Protected Methods
+        /// <summary>
+        /// When overridden by derived class, gets the state object from
+        /// the specified state type.
+        /// </summary>
+        /// <param name="lockType">Type of the lock.</param>
+        /// <returns></returns>
+        /// <exception cref="InvalidOperationException"></exception>
+        protected override State GetStateFromType (SchemaLockType lockType)
 		{
 			switch (lockType)
 			{

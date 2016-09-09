@@ -38,20 +38,49 @@ namespace Zen.Trunk.Storage.Locking
 	/// </summary>
 	public class DataLock : ChildTransactionLock<DataLockType, ObjectLock>
 	{
-		#region Data Locking State
-		protected abstract class DataLockState : State
+        #region Data Locking State
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <seealso cref="TransactionLock{DataLockType}.State" />
+        protected abstract class DataLockState : State
 		{
-			public override bool IsExclusiveLock(DataLockType lockType)
+            /// <summary>
+            /// Determines whether the specified lock type is equivalent to an
+            /// exclusive lock.
+            /// </summary>
+            /// <param name="lockType">Type of the lock.</param>
+            /// <returns>
+            /// <c>true</c> if the lock type is an exclusive lock; otherwise,
+            /// <c>false</c>.
+            /// </returns>
+            public override bool IsExclusiveLock(DataLockType lockType)
 			{
 				return lockType == DataLockType.Exclusive;
 			}
 		}
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <seealso cref="Zen.Trunk.Storage.Locking.DataLock.DataLockState" />
         protected class NoneState : DataLockState
 		{
-			public override DataLockType Lock => DataLockType.None;
+            /// <summary>
+            /// Gets the lock type that this state represents.
+            /// </summary>
+            /// <value>
+            /// The lock.
+            /// </value>
+            public override DataLockType Lock => DataLockType.None;
 
-		    public override DataLockType[] CompatableLocks =>
+            /// <summary>
+            /// Gets an array of lock types that this state is compatable with.
+            /// </summary>
+            /// <value>
+            /// The compatable locks.
+            /// </value>
+            public override DataLockType[] CompatableLocks =>
                 new[]
 		        {
 		            DataLockType.Shared,
@@ -60,11 +89,27 @@ namespace Zen.Trunk.Storage.Locking
 		        };
 		}
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <seealso cref="Zen.Trunk.Storage.Locking.DataLock.DataLockState" />
         protected class SharedState : DataLockState
 		{
-			public override DataLockType Lock => DataLockType.Shared;
+            /// <summary>
+            /// Gets the lock type that this state represents.
+            /// </summary>
+            /// <value>
+            /// The lock.
+            /// </value>
+            public override DataLockType Lock => DataLockType.Shared;
 
-		    public override DataLockType[] CompatableLocks =>
+            /// <summary>
+            /// Gets an array of lock types that this state is compatable with.
+            /// </summary>
+            /// <value>
+            /// The compatable locks.
+            /// </value>
+            public override DataLockType[] CompatableLocks =>
                 new[]
 		        {
 		            DataLockType.Shared,
@@ -72,26 +117,74 @@ namespace Zen.Trunk.Storage.Locking
 		        };
 		}
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <seealso cref="Zen.Trunk.Storage.Locking.DataLock.DataLockState" />
         protected class UpdateState : DataLockState
 		{
-			public override DataLockType Lock => DataLockType.Update;
+            /// <summary>
+            /// Gets the lock type that this state represents.
+            /// </summary>
+            /// <value>
+            /// The lock.
+            /// </value>
+            public override DataLockType Lock => DataLockType.Update;
 
-		    public override DataLockType[] CompatableLocks =>
+            /// <summary>
+            /// Gets an array of lock types that this state is compatable with.
+            /// </summary>
+            /// <value>
+            /// The compatable locks.
+            /// </value>
+            public override DataLockType[] CompatableLocks =>
                 new[] 
 		        {
 		            DataLockType.Shared,
 		        };
 
-		    public override bool CanEnterExclusiveLock => true;
+            /// <summary>
+            /// Gets a boolean value indicating whether an exclusive lock can
+            /// be acquired from this state.
+            /// </summary>
+            /// <value>
+            /// <c>true</c> if an exclusive lock can be acquired from this
+            /// state; otherwise, <c>false</c>. The default is <c>false</c>.
+            /// </value>
+            public override bool CanEnterExclusiveLock => true;
 		}
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <seealso cref="Zen.Trunk.Storage.Locking.DataLock.DataLockState" />
         protected class ExclusiveState : DataLockState
 		{
-			public override DataLockType Lock => DataLockType.Exclusive;
+            /// <summary>
+            /// Gets the lock type that this state represents.
+            /// </summary>
+            /// <value>
+            /// The lock.
+            /// </value>
+            public override DataLockType Lock => DataLockType.Exclusive;
 
-		    public override DataLockType[] CompatableLocks =>
+            /// <summary>
+            /// Gets an array of lock types that this state is compatable with.
+            /// </summary>
+            /// <value>
+            /// The compatable locks.
+            /// </value>
+            public override DataLockType[] CompatableLocks =>
                 new DataLockType[0];
 
+            /// <summary>
+            /// Gets a boolean value indicating whether an exclusive lock can
+            /// be acquired from this state.
+            /// </summary>
+            /// <value>
+            /// <c>true</c> if an exclusive lock can be acquired from this
+            /// state; otherwise, <c>false</c>. The default is <c>false</c>.
+            /// </value>
             public override bool CanEnterExclusiveLock => true;
         }
         #endregion
@@ -101,14 +194,27 @@ namespace Zen.Trunk.Storage.Locking
 		private static readonly SharedState SharedStateObject = new SharedState();
 		private static readonly UpdateState UpdateStateObject = new UpdateState();
 		private static readonly ExclusiveState ExclusiveStateObject = new ExclusiveState();
-		#endregion
+        #endregion
 
-		#region Protected Properties
-		protected override DataLockType NoneLockType => DataLockType.None;
-	    #endregion
+        #region Protected Properties
+        /// <summary>
+        /// Gets enumeration value for the lock representing the "none" lock.
+        /// </summary>
+        /// <value>
+        /// The type of the none lock.
+        /// </value>
+        protected override DataLockType NoneLockType => DataLockType.None;
+        #endregion
 
-		#region Protected Methods
-		protected override State GetStateFromType(DataLockType lockType)
+        #region Protected Methods
+        /// <summary>
+        /// When overridden by derived class, gets the state object from
+        /// the specified state type.
+        /// </summary>
+        /// <param name="lockType">Type of the lock.</param>
+        /// <returns></returns>
+        /// <exception cref="InvalidOperationException"></exception>
+        protected override State GetStateFromType(DataLockType lockType)
 		{
 			switch (lockType)
 			{

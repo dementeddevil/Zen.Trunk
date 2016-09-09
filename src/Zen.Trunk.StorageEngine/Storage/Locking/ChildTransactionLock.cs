@@ -1,7 +1,7 @@
+using System;
+
 namespace Zen.Trunk.Storage.Locking
 {
-	using System;
-
     /// <summary>
     /// <c>ChildTransactionLock</c> encapsulates the semantics necessary
     /// for a lock object that has a parent lock.

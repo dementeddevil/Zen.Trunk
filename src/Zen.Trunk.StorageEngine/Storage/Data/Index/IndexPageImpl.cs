@@ -6,7 +6,6 @@ using Zen.Trunk.Storage.Locking;
 
 namespace Zen.Trunk.Storage.Data.Index
 {
-
     /// <summary>
     /// Abstract class containing the generic implementation for index page
     /// splitting and merging.

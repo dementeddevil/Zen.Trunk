@@ -47,35 +47,80 @@ namespace Zen.Trunk.Storage.Locking
 	/// </summary>
 	public class ObjectLock : ChildTransactionLock<ObjectLockType, DatabaseLock>
 	{
-		#region Object Locking State
-		protected abstract class ObjectLockState : State
+        #region Object Locking State
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <seealso cref="TransactionLock{ObjectLockType}.State" />
+        protected abstract class ObjectLockState : State
 		{
-			public override bool IsExclusiveLock(ObjectLockType lockType)
+            /// <summary>
+            /// Determines whether the specified lock type is equivalent to an
+            /// exclusive lock.
+            /// </summary>
+            /// <param name="lockType">Type of the lock.</param>
+            /// <returns>
+            /// <c>true</c> if the lock type is an exclusive lock; otherwise,
+            /// <c>false</c>.
+            /// </returns>
+            public override bool IsExclusiveLock(ObjectLockType lockType)
 			{
 				return lockType == ObjectLockType.Exclusive;
 			}
 		}
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <seealso cref="Zen.Trunk.Storage.Locking.ObjectLock.ObjectLockState" />
         protected class NoneState : ObjectLockState
-		{
-			public override ObjectLockType Lock => ObjectLockType.None;
+        {
+            /// <summary>
+            /// Gets the lock type that this state represents.
+            /// </summary>
+            /// <value>
+            /// The lock.
+            /// </value>
+            public override ObjectLockType Lock => ObjectLockType.None;
 
-		    public override ObjectLockType[] CompatableLocks =>
-                new[] 
-		        {
-		            ObjectLockType.IntentShared,
-		            ObjectLockType.Shared,
-		            ObjectLockType.IntentExclusive,
-		            ObjectLockType.SharedIntentExclusive,
-		            ObjectLockType.Exclusive,
-		        };
-		}
+            /// <summary>
+            /// Gets an array of lock types that this state is compatable with.
+            /// </summary>
+            /// <value>
+            /// The compatable locks.
+            /// </value>
+            public override ObjectLockType[] CompatableLocks =>
+                new[]
+                {
+                    ObjectLockType.IntentShared,
+                    ObjectLockType.Shared,
+                    ObjectLockType.IntentExclusive,
+                    ObjectLockType.SharedIntentExclusive,
+                    ObjectLockType.Exclusive,
+                };
+        }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <seealso cref="Zen.Trunk.Storage.Locking.ObjectLock.ObjectLockState" />
         protected class IntentSharedState : ObjectLockState
 		{
-			public override ObjectLockType Lock => ObjectLockType.IntentShared;
+            /// <summary>
+            /// Gets the lock type that this state represents.
+            /// </summary>
+            /// <value>
+            /// The lock.
+            /// </value>
+            public override ObjectLockType Lock => ObjectLockType.IntentShared;
 
-		    public override ObjectLockType[] CompatableLocks =>
+            /// <summary>
+            /// Gets an array of lock types that this state is compatable with.
+            /// </summary>
+            /// <value>
+            /// The compatable locks.
+            /// </value>
+            public override ObjectLockType[] CompatableLocks =>
                 new[]
 		        {
 		            ObjectLockType.IntentShared,
@@ -85,11 +130,27 @@ namespace Zen.Trunk.Storage.Locking
 		        };
 		}
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <seealso cref="Zen.Trunk.Storage.Locking.ObjectLock.ObjectLockState" />
         protected class SharedState : ObjectLockState
 		{
-			public override ObjectLockType Lock => ObjectLockType.Shared;
+            /// <summary>
+            /// Gets the lock type that this state represents.
+            /// </summary>
+            /// <value>
+            /// The lock.
+            /// </value>
+            public override ObjectLockType Lock => ObjectLockType.Shared;
 
-		    public override ObjectLockType[] CompatableLocks => 
+            /// <summary>
+            /// Gets an array of lock types that this state is compatable with.
+            /// </summary>
+            /// <value>
+            /// The compatable locks.
+            /// </value>
+            public override ObjectLockType[] CompatableLocks => 
                 new[]
 		        {
 		            ObjectLockType.IntentShared,
@@ -97,38 +158,102 @@ namespace Zen.Trunk.Storage.Locking
 		        };
 		}
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <seealso cref="Zen.Trunk.Storage.Locking.ObjectLock.ObjectLockState" />
         protected class IntentExclusiveState : ObjectLockState
 		{
-			public override ObjectLockType Lock => ObjectLockType.IntentExclusive;
+            /// <summary>
+            /// Gets the lock type that this state represents.
+            /// </summary>
+            /// <value>
+            /// The lock.
+            /// </value>
+            public override ObjectLockType Lock => ObjectLockType.IntentExclusive;
 
-		    public override ObjectLockType[] CompatableLocks =>
+            /// <summary>
+            /// Gets an array of lock types that this state is compatable with.
+            /// </summary>
+            /// <value>
+            /// The compatable locks.
+            /// </value>
+            public override ObjectLockType[] CompatableLocks =>
                 new[] 
 		        {
 		            ObjectLockType.IntentShared,
 		            ObjectLockType.IntentExclusive,
 		        };
 
-		    public override bool CanEnterExclusiveLock => true;
+            /// <summary>
+            /// Gets a boolean value indicating whether an exclusive lock can
+            /// be acquired from this state.
+            /// </summary>
+            /// <value>
+            /// <c>true</c> if an exclusive lock can be acquired from this
+            /// state; otherwise, <c>false</c>. The default is <c>false</c>.
+            /// </value>
+            public override bool CanEnterExclusiveLock => true;
 		}
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <seealso cref="Zen.Trunk.Storage.Locking.ObjectLock.ObjectLockState" />
         protected class SharedIntentExclusiveState : ObjectLockState
 		{
-			public override ObjectLockType Lock => ObjectLockType.SharedIntentExclusive;
+            /// <summary>
+            /// Gets the lock type that this state represents.
+            /// </summary>
+            /// <value>
+            /// The lock.
+            /// </value>
+            public override ObjectLockType Lock => ObjectLockType.SharedIntentExclusive;
 
-		    public override ObjectLockType[] CompatableLocks =>
+            /// <summary>
+            /// Gets an array of lock types that this state is compatable with.
+            /// </summary>
+            /// <value>
+            /// The compatable locks.
+            /// </value>
+            public override ObjectLockType[] CompatableLocks =>
                 new[]
 		        {
 		            ObjectLockType.IntentShared,
 		        };
 		}
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <seealso cref="Zen.Trunk.Storage.Locking.ObjectLock.ObjectLockState" />
         protected class ExclusiveState : ObjectLockState
 		{
-			public override ObjectLockType Lock => ObjectLockType.Exclusive;
+            /// <summary>
+            /// Gets the lock type that this state represents.
+            /// </summary>
+            /// <value>
+            /// The lock.
+            /// </value>
+            public override ObjectLockType Lock => ObjectLockType.Exclusive;
 
-		    public override ObjectLockType[] CompatableLocks =>
+            /// <summary>
+            /// Gets an array of lock types that this state is compatable with.
+            /// </summary>
+            /// <value>
+            /// The compatable locks.
+            /// </value>
+            public override ObjectLockType[] CompatableLocks =>
                 new ObjectLockType[0];
 
+            /// <summary>
+            /// Gets a boolean value indicating whether an exclusive lock can
+            /// be acquired from this state.
+            /// </summary>
+            /// <value>
+            /// <c>true</c> if an exclusive lock can be acquired from this
+            /// state; otherwise, <c>false</c>. The default is <c>false</c>.
+            /// </value>
             public override bool CanEnterExclusiveLock => true;
         }
         #endregion
@@ -140,14 +265,26 @@ namespace Zen.Trunk.Storage.Locking
 		private static readonly IntentExclusiveState IntentExclusiveStateObject = new IntentExclusiveState();
 		private static readonly SharedIntentExclusiveState SharedIntentExclusiveStateObject = new SharedIntentExclusiveState();
 		private static readonly ExclusiveState ExclusiveStateObject = new ExclusiveState();
-		#endregion
+        #endregion
 
-		#region Protected Properties
-		protected override ObjectLockType NoneLockType => ObjectLockType.None;
-	    #endregion
+        #region Protected Properties
+        /// <summary>
+        /// Gets enumeration value for the lock representing the "none" lock.
+        /// </summary>
+        /// <value>
+        /// The type of the none lock.
+        /// </value>
+        protected override ObjectLockType NoneLockType => ObjectLockType.None;
+        #endregion
 
-		#region Protected Methods
-		protected override State GetStateFromType(ObjectLockType objectLockType)
+        #region Protected Methods
+        /// <summary>
+        /// Gets the type of the state from.
+        /// </summary>
+        /// <param name="objectLockType">Type of the object lock.</param>
+        /// <returns></returns>
+        /// <exception cref="InvalidOperationException"></exception>
+        protected override State GetStateFromType(ObjectLockType objectLockType)
 		{
 			switch (objectLockType)
 			{

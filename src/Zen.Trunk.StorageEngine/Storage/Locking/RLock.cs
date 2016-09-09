@@ -1,9 +1,12 @@
+using System;
+using System.Threading;
+
 namespace Zen.Trunk.Storage.Locking
 {
-	using System;
-	using System.Threading;
-
-	public class RLock
+    /// <summary>
+    /// 
+    /// </summary>
+    public class RLock
 	{
 		#region Private Fields
 		private readonly object _readLock = new object();

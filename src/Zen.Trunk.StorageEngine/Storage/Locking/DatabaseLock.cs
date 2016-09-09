@@ -29,8 +29,8 @@ namespace Zen.Trunk.Storage.Locking
 	}
 
 	/// <summary>
-	/// Implements a schema lock for locking table schema and 
-	/// sample wave format blocks.
+	/// Implements a lock for locking database objects and is the root for
+	/// all child lock objects.
 	/// </summary>
 	public class DatabaseLock : TransactionLock<DatabaseLockType>
 	{
@@ -39,29 +39,67 @@ namespace Zen.Trunk.Storage.Locking
 		private static readonly SharedState SharedStateObject = new SharedState();
 		private static readonly UpdateState UpdateStateObject = new UpdateState();
 		private static readonly ExclusiveState ExclusiveStateObject = new ExclusiveState();
-		#endregion
+        #endregion
 
-		#region Database Lock State
-		protected abstract class DatabaseLockState : State
+        #region Database Lock State
+        /// <summary>
+        /// Represents the base state object for all database lock states.
+        /// </summary>
+        /// <seealso cref="TransactionLock{DatabaseLockType}.State" />
+        protected abstract class DatabaseLockState : State
 		{
-			public override bool IsExclusiveLock(DatabaseLockType lockType)
+            /// <summary>
+            /// Determines whether the specified lock type is equivalent to an
+            /// exclusive lock.
+            /// </summary>
+            /// <param name="lockType">Type of the lock.</param>
+            /// <returns>
+            /// <c>true</c> if the lock type is an exclusive lock; otherwise,
+            /// <c>false</c>.
+            /// </returns>
+            public override bool IsExclusiveLock(DatabaseLockType lockType)
 			{
 				return lockType == DatabaseLockType.Exclusive;
 			}
 		}
 
-		protected class NoneState : DatabaseLockState
+        /// <summary>
+        /// Represents the state used when no lock is currently held.
+        /// </summary>
+        /// <seealso cref="Zen.Trunk.Storage.Locking.DatabaseLock.DatabaseLockState" />
+        protected class NoneState : DatabaseLockState
 		{
-			public override DatabaseLockType Lock => DatabaseLockType.None;
+            /// <summary>
+            /// Gets the lock type that this state represents.
+            /// </summary>
+            /// <value>
+            /// The lock.
+            /// </value>
+            public override DatabaseLockType Lock => DatabaseLockType.None;
 
-		    public override DatabaseLockType[] CompatableLocks =>
+            /// <summary>
+            /// Gets an array of lock types that this state is compatable with.
+            /// </summary>
+            /// <value>
+            /// The compatable locks.
+            /// </value>
+            public override DatabaseLockType[] CompatableLocks =>
                 new[] 
 		        {
 		            DatabaseLockType.Shared,
 		            DatabaseLockType.Update
 		        };
 
-		    public override bool CanAcquireLock(
+            /// <summary>
+            /// Determines whether the specified request can acquire the lock.
+            /// </summary>
+            /// <param name="owner">The owner.</param>
+            /// <param name="request">The request.</param>
+            /// <returns>
+            /// <c>true</c> if the request can acquire lock; otherwise,
+            /// <c>false</c>.
+            /// </returns>
+            public override bool CanAcquireLock(
 				TransactionLock<DatabaseLockType> owner,
 				AcquireLock request)
 			{
@@ -69,11 +107,27 @@ namespace Zen.Trunk.Storage.Locking
 			}
 		}
 
-		protected class SharedState : DatabaseLockState
+        /// <summary>
+        /// Represents state used to when shared access to the database is held
+        /// </summary>
+        /// <seealso cref="Zen.Trunk.Storage.Locking.DatabaseLock.DatabaseLockState" />
+        protected class SharedState : DatabaseLockState
 		{
-			public override DatabaseLockType Lock => DatabaseLockType.Shared;
+            /// <summary>
+            /// Gets the lock type that this state represents.
+            /// </summary>
+            /// <value>
+            /// The lock.
+            /// </value>
+            public override DatabaseLockType Lock => DatabaseLockType.Shared;
 
-		    public override DatabaseLockType[] CompatableLocks =>
+            /// <summary>
+            /// Gets an array of lock types that this state is compatable with.
+            /// </summary>
+            /// <value>
+            /// The compatable locks.
+            /// </value>
+            public override DatabaseLockType[] CompatableLocks =>
                 new[] 
 		        {
 		            DatabaseLockType.Shared,
@@ -81,36 +135,97 @@ namespace Zen.Trunk.Storage.Locking
 		        };
 		}
 
-		protected class UpdateState : DatabaseLockState
+        /// <summary>
+        /// Represents the state used when update access to the database is held
+        /// </summary>
+        /// <seealso cref="Zen.Trunk.Storage.Locking.DatabaseLock.DatabaseLockState" />
+        protected class UpdateState : DatabaseLockState
 		{
-			public override DatabaseLockType Lock => DatabaseLockType.Update;
+            /// <summary>
+            /// Gets the lock type that this state represents.
+            /// </summary>
+            /// <value>
+            /// The lock.
+            /// </value>
+            public override DatabaseLockType Lock => DatabaseLockType.Update;
 
-		    public override DatabaseLockType[] CompatableLocks =>
+            /// <summary>
+            /// Gets an array of lock types that this state is compatable with.
+            /// </summary>
+            /// <value>
+            /// The compatable locks.
+            /// </value>
+            public override DatabaseLockType[] CompatableLocks =>
                 new[] 
 		        {
 		            DatabaseLockType.Shared
 		        };
 
-		    public override bool CanEnterExclusiveLock => true;
+            /// <summary>
+            /// Gets a boolean value indicating whether an exclusive lock can
+            /// be acquired from this state.
+            /// </summary>
+            /// <value>
+            /// <c>true</c> if an exclusive lock can be acquired from this
+            /// state; otherwise, <c>false</c>. The default is <c>false</c>.
+            /// </value>
+            public override bool CanEnterExclusiveLock => true;
 		}
 
-		protected class ExclusiveState : DatabaseLockState
+        /// <summary>
+        /// Represents the state when exclusive access to the database is held
+        /// </summary>
+        /// <seealso cref="Zen.Trunk.Storage.Locking.DatabaseLock.DatabaseLockState" />
+        protected class ExclusiveState : DatabaseLockState
 		{
-			public override DatabaseLockType Lock => DatabaseLockType.Exclusive;
+            /// <summary>
+            /// Gets the lock type that this state represents.
+            /// </summary>
+            /// <value>
+            /// The lock.
+            /// </value>
+            public override DatabaseLockType Lock => DatabaseLockType.Exclusive;
 
-		    public override DatabaseLockType[] CompatableLocks =>
+            /// <summary>
+            /// Gets an array of lock types that this state is compatable with.
+            /// </summary>
+            /// <value>
+            /// The compatable locks.
+            /// </value>
+            public override DatabaseLockType[] CompatableLocks =>
                 new DatabaseLockType[0];
 
+            /// <summary>
+            /// Gets a boolean value indicating whether an exclusive lock can
+            /// be acquired from this state.
+            /// </summary>
+            /// <value>
+            /// <c>true</c> if an exclusive lock can be acquired from this
+            /// state; otherwise, <c>false</c>. The default is <c>false</c>.
+            /// </value>
             public override bool CanEnterExclusiveLock => true;
         }
         #endregion
 
-		#region Protected Properties
-		protected override DatabaseLockType NoneLockType => DatabaseLockType.None;
-	    #endregion
+        #region Protected Properties
+        /// <summary>
+        /// Gets enumeration value for the lock representing the "none" lock.
+        /// </summary>
+        /// <value>
+        /// The type of the none lock.
+        /// </value>
+        protected override DatabaseLockType NoneLockType => DatabaseLockType.None;
+        #endregion
 
-		#region Protected Methods
-		protected override State GetStateFromType(DatabaseLockType lockType)
+        #region Protected Methods
+        /// <summary>
+        /// When overridden by derived class, gets the state object from
+        /// the specified state type.
+        /// </summary>
+        /// <param name="lockType">Type of the lock.</param>
+        /// <returns></returns>
+        /// <exception cref="InvalidOperationException"></exception>
+        protected override State GetStateFromType(DatabaseLockType lockType)
 		{
 			switch (lockType)
 			{
