@@ -1,6 +1,6 @@
 ﻿// -----------------------------------------------------------------------
-// <copyright file="MasterLogPageDevice.cs" company="Zen Design Corp">
-// TODO: Update copyright text.
+// <copyright file="MasterLogPageDevice.cs" company="Zen Design Software">
+// © Zen Design Software 2009 - 2016
 // </copyright>
 // -----------------------------------------------------------------------
 

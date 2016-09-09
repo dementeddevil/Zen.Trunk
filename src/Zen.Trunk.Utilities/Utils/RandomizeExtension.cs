@@ -1,6 +1,6 @@
 ﻿// -----------------------------------------------------------------------
-// <copyright file="Randomize.cs" company="Zen Design Corp">
-// TODO: Update copyright text.
+// <copyright file="Randomize.cs" company="Zen Design Software">
+// © Zen Design Software 2009 - 2016
 // </copyright>
 // -----------------------------------------------------------------------
 
