@@ -2,7 +2,11 @@
 
 namespace Zen.Trunk.Storage
 {
-	[Serializable]
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <seealso cref="System.Exception" />
+    [Serializable]
 	public class BufferDeviceShuttingDownException : Exception
 	{
 	}

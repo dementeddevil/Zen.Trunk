@@ -3,6 +3,7 @@ using System.Collections.Specialized;
 using System.IO;
 using Zen.Trunk.Storage.IO;
 using Zen.Trunk.Storage.Log;
+// ReSharper disable MissingXmlDoc
 
 namespace Zen.Trunk.Storage
 {

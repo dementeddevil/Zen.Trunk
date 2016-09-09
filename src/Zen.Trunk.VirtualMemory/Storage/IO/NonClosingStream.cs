@@ -3,21 +3,32 @@ using System.IO;
 
 namespace Zen.Trunk.Storage.IO
 {
-	public class NonClosingStream : Stream
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <seealso cref="System.IO.Stream" />
+    public class NonClosingStream : Stream
 	{
 		#region Private Fields
 		private readonly Stream _innerStream;
-		#endregion
+        #endregion
 
-		#region Public Constructors
-		public NonClosingStream(Stream stream)
+        #region Public Constructors
+        /// <summary>
+        /// Initializes a new instance of the <see cref="NonClosingStream"/> class.
+        /// </summary>
+        /// <param name="stream">The stream.</param>
+        public NonClosingStream(Stream stream)
 		{
 			_innerStream = stream;
 		}
-		#endregion
+        #endregion
 
-		#region Public Properties
-		public override bool CanRead
+        #region Public Properties
+        /// <summary>
+        /// When overridden in a derived class, gets a value indicating whether the current stream supports reading.
+        /// </summary>
+        public override bool CanRead
 		{
 			get
 			{
@@ -26,7 +37,10 @@ namespace Zen.Trunk.Storage.IO
 			}
 		}
 
-		public override bool CanSeek
+        /// <summary>
+        /// When overridden in a derived class, gets a value indicating whether the current stream supports seeking.
+        /// </summary>
+        public override bool CanSeek
 		{
 			get
 			{
@@ -35,7 +49,10 @@ namespace Zen.Trunk.Storage.IO
 			}
 		}
 
-		public override bool CanWrite
+        /// <summary>
+        /// When overridden in a derived class, gets a value indicating whether the current stream supports writing.
+        /// </summary>
+        public override bool CanWrite
 		{
 			get
 			{
@@ -44,7 +61,10 @@ namespace Zen.Trunk.Storage.IO
 			}
 		}
 
-		public override bool CanTimeout
+        /// <summary>
+        /// Gets a value that determines whether the current stream can time out.
+        /// </summary>
+        public override bool CanTimeout
 		{
 			get
 			{
@@ -53,13 +73,19 @@ namespace Zen.Trunk.Storage.IO
 			}
 		}
 
-		public override void Flush()
+        /// <summary>
+        /// When overridden in a derived class, clears all buffers for this stream and causes any buffered data to be written to the underlying device.
+        /// </summary>
+        public override void Flush()
 		{
 			CheckDisposed();
 			_innerStream.Flush();
 		}
 
-		public override long Length
+        /// <summary>
+        /// When overridden in a derived class, gets the length in bytes of the stream.
+        /// </summary>
+        public override long Length
 		{
 			get
 			{
@@ -68,7 +94,10 @@ namespace Zen.Trunk.Storage.IO
 			}
 		}
 
-		public override long Position
+        /// <summary>
+        /// When overridden in a derived class, gets or sets the position within the current stream.
+        /// </summary>
+        public override long Position
 		{
 			get
 			{

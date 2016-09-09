@@ -44,10 +44,13 @@ namespace Zen.Trunk.Storage.IO
 				},
 				_shutdown.Token);
 		}
-		#endregion
+        #endregion
 
-		#region Public Methods
-		public void Dispose()
+        #region Public Methods
+        /// <summary>
+        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
+        /// </summary>
+        public void Dispose()
 		{
 			DisposeManagedObjects();
 		}

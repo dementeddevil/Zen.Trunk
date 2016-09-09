@@ -7,6 +7,10 @@ using Zen.Trunk.Logging;
 
 namespace Zen.Trunk.Storage.IO
 {
+    /// <summary>
+    /// <c>ScatterGatherRequestArray</c> encapsulates a number of scatter/gather
+    /// requests into a batch of operations to be performed simultaneously.
+    /// </summary>
     public class ScatterGatherRequestArray
     {
         private static readonly ILog Logger = LogProvider.For<ScatterGatherRequestArray>();
@@ -16,7 +20,11 @@ namespace Zen.Trunk.Storage.IO
 		private uint _startBlockNo;
 		private uint _endBlockNo;
 
-		[CLSCompliant(false)]
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ScatterGatherRequestArray"/> class.
+        /// </summary>
+        /// <param name="request">The request.</param>
+        [CLSCompliant(false)]
 		public ScatterGatherRequestArray(ScatterGatherRequest request)
 		{
 			_createdDate = DateTime.UtcNow;
@@ -24,7 +32,12 @@ namespace Zen.Trunk.Storage.IO
 			_callbackInfo.Add(request);
 		}
 
-		[CLSCompliant(false)]
+        /// <summary>
+        /// Adds the request.
+        /// </summary>
+        /// <param name="request">The request.</param>
+        /// <returns></returns>
+        [CLSCompliant(false)]
 		public bool AddRequest(ScatterGatherRequest request)
 		{
 			if (request.PhysicalPageId == _startBlockNo - 1)
@@ -33,32 +46,49 @@ namespace Zen.Trunk.Storage.IO
 				_callbackInfo.Insert(0, request);
 				return true;
 			}
-			else if (request.PhysicalPageId == _endBlockNo + 1)
+
+            if (request.PhysicalPageId == _endBlockNo + 1)
 			{
 				_endBlockNo = request.PhysicalPageId;
 				_callbackInfo.Add(request);
 				return true;
 			}
-			else
-			{
-				return false;
-			}
+
+            return false;
 		}
 
-		public bool RequiresFlush(TimeSpan maximumAge, int maximumLength)
+        /// <summary>
+        /// Determines whether a flush of the underlying stream is required given
+        /// the specified maximum request age and/or maximum count of requests
+        /// </summary>
+        /// <param name="maximumAge">The maximum age.</param>
+        /// <param name="maximumLength">The maximum length.</param>
+        /// <returns>
+        /// <c>true</c> if a flush is required; otherwise <c>false</c>.
+        /// </returns>
+        public bool RequiresFlush(TimeSpan maximumAge, int maximumLength)
 		{
 			if ((_endBlockNo - _startBlockNo + 1) > maximumLength)
 			{
 				return true;
 			}
-			if ((DateTime.UtcNow - _createdDate) > maximumAge)
+
+            if ((DateTime.UtcNow - _createdDate) > maximumAge)
 			{
 				return true;
 			}
-			return false;
+
+            return false;
 		}
 
-		public bool Consume(ScatterGatherRequestArray other)
+        /// <summary>
+        /// Consumes the specified request array into this instance.
+        /// </summary>
+        /// <param name="other">The other.</param>
+        /// <returns>
+        /// <c>true</c> if the array was successfully consumed; otherwise <c>false</c>.
+        /// </returns>
+        public bool Consume(ScatterGatherRequestArray other)
 		{
 			if (_endBlockNo == (other._startBlockNo - 1))
 			{
@@ -66,16 +96,24 @@ namespace Zen.Trunk.Storage.IO
 				_callbackInfo.AddRange(other._callbackInfo);
 				return true;
 			}
-			else if (_startBlockNo == (other._endBlockNo + 1))
+
+            if (_startBlockNo == (other._endBlockNo + 1))
 			{
 				_startBlockNo = other._startBlockNo;
 				_callbackInfo.InsertRange(0, other._callbackInfo);
 				return true;
 			}
-			return false;
+
+            return false;
 		}
 
-		public async Task FlushAsReadAsync(AdvancedFileStream stream)
+        /// <summary>
+        /// Flushes the request array under the assumption that each element
+        /// relates to a pending read from the underlying stream.
+        /// </summary>
+        /// <param name="stream">The stream.</param>
+        /// <returns></returns>
+        public async Task FlushAsReadAsync(AdvancedFileStream stream)
 		{
 		    if (Logger.IsDebugEnabled())
 		    {
@@ -119,7 +157,13 @@ namespace Zen.Trunk.Storage.IO
 			}
 		}
 
-		public async Task FlushAsWriteAsync(AdvancedFileStream stream)
+        /// <summary>
+        /// Flushes the request array under the assumption that each element
+        /// relates to a pending write to the underlying stream.
+        /// </summary>
+        /// <param name="stream">The stream.</param>
+        /// <returns></returns>
+        public async Task FlushAsWriteAsync(AdvancedFileStream stream)
 		{
             if (Logger.IsDebugEnabled())
             {

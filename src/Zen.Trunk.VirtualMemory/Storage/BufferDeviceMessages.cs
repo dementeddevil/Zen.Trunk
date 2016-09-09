@@ -2,7 +2,10 @@
 {
 	using System;
 
-	[CLSCompliant(false)]
+    /// <summary>
+    /// 
+    /// </summary>
+    [CLSCompliant(false)]
 	public class FlushParameters
 	{
 		#region Public Constructors
@@ -54,7 +57,11 @@
 		#endregion
 	}
 
-	[CLSCompliant(false)]
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <seealso cref="Zen.Trunk.Storage.FlushParameters" />
+    [CLSCompliant(false)]
 	public class FlushDeviceParameters : FlushParameters
 	{
 		#region Public Constructors
@@ -105,7 +112,11 @@
 		#endregion
 	}
 
-	[CLSCompliant(false)]
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <seealso cref="Zen.Trunk.Storage.FlushDeviceParameters" />
+    [CLSCompliant(false)]
 	public class FlushCachingDeviceParameters : FlushDeviceParameters
 	{
 		#region Public Constructors
@@ -153,7 +164,10 @@
 		#endregion
 	}
 
-	[CLSCompliant(false)]
+    /// <summary>
+    /// 
+    /// </summary>
+    [CLSCompliant(false)]
 	public class AddDeviceParameters
 	{
 		#region Public Constructors
@@ -221,7 +235,10 @@
 	    #endregion
 	}
 
-	[CLSCompliant(false)]
+    /// <summary>
+    /// 
+    /// </summary>
+    [CLSCompliant(false)]
 	public class RemoveDeviceParameters
 	{
 		#region Public Constructors

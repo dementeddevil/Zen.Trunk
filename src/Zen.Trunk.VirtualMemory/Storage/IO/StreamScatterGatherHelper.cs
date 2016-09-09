@@ -5,7 +5,10 @@ using Zen.Trunk.Extensions;
 
 namespace Zen.Trunk.Storage.IO
 {
-	public class StreamScatterGatherHelper
+    /// <summary>
+    /// 
+    /// </summary>
+    public class StreamScatterGatherHelper
 	{
 		#region Private Fields
 		private readonly AdvancedFileStream _stream;

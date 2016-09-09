@@ -39,6 +39,10 @@
 #pragma warning disable 1591
 
 using System.Diagnostics.CodeAnalysis;
+// ReSharper disable MissingXmlDoc
+// ReSharper disable InconsistentNaming
+// ReSharper disable UnusedMember.Local
+// ReSharper disable PartialTypeWithSinglePart
 
 [assembly: SuppressMessage("Microsoft.Design", "CA1020:AvoidNamespacesWithFewTypes", Scope = "namespace", Target = "Zen.Trunk.Logging")]
 [assembly: SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed", Scope = "member", Target = "Zen.Trunk.Logging.Logger.#Invoke(Zen.Trunk.Logging.LogLevel,System.Func`1<System.String>,System.Exception,System.Object[])")]

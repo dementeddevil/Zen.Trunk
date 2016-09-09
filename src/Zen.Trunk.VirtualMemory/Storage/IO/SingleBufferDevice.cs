@@ -5,6 +5,11 @@ using Zen.Trunk.Extensions;
 
 namespace Zen.Trunk.Storage.IO
 {
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <seealso cref="Zen.Trunk.Storage.IO.BufferDevice" />
+    /// <seealso cref="Zen.Trunk.Storage.ISingleBufferDevice" />
     [CLSCompliant(false)]
     public class SingleBufferDevice : BufferDevice, ISingleBufferDevice
     {
