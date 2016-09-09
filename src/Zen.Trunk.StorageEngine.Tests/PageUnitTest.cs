@@ -141,6 +141,7 @@ Then the allocation fails.")]
                             new LogicalPageId(1024 + index),
                             new ObjectId(1 + index),
                             ObjectType.Sample,
+                            false,
                             false))
                     .ConfigureAwait(true);
 				Assert.True(virtualId != VirtualPageId.Zero, "Expected allocation to succeed.");
@@ -153,6 +154,7 @@ Then the allocation fails.")]
                         new LogicalPageId(1024 + extentsToTest),
                         new ObjectId(1 + extentsToTest),
                         ObjectType.Sample, 
+                        false,
                         false))
                 .ConfigureAwait(true);
 			Assert.True(virtualId == VirtualPageId.Zero, "Expected allocation to fail.");
