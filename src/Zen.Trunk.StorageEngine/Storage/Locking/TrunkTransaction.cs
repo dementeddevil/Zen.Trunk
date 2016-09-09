@@ -271,7 +271,7 @@ namespace Zen.Trunk.Storage.Locking
             if (LoggingDevice != null)
             {
                 _transactionLogs.Add(entry);
-                await LoggingDevice.WriteEntry(entry).ConfigureAwait(false);
+                await LoggingDevice.WriteEntryAsync(entry).ConfigureAwait(false);
             }
         }
 
@@ -674,7 +674,7 @@ namespace Zen.Trunk.Storage.Locking
                 if (LoggingDevice != null)
                 {
                     // Write begin transaction entry
-                    await LoggingDevice.WriteEntry(new BeginTransactionLogEntry(_transactionId)).ConfigureAwait(false);
+                    await LoggingDevice.WriteEntryAsync(new BeginTransactionLogEntry(_transactionId)).ConfigureAwait(false);
                 }
                 _isBeginLogWritten = true;
             }
@@ -707,7 +707,7 @@ namespace Zen.Trunk.Storage.Locking
                 {
                     entry = new RollbackTransactionLogEntry(_transactionId);
                 }
-                await LoggingDevice.WriteEntry(entry).ConfigureAwait(false);
+                await LoggingDevice.WriteEntryAsync(entry).ConfigureAwait(false);
             }
         }
         #endregion

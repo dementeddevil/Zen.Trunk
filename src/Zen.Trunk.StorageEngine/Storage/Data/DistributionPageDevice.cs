@@ -236,7 +236,7 @@ namespace Zen.Trunk.Storage.Data
 		/// Called when opening the device.
 		/// </summary>
 		/// <returns></returns>
-		protected override async Task OnOpen()
+		protected override async Task OnOpenAsync()
 		{
 			using (var rootPage = (PrimaryFileGroupRootPage)
 				await LoadOrCreateRootPageAsync().ConfigureAwait(false))

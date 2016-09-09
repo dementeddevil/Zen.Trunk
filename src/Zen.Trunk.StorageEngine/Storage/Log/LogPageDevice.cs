@@ -238,8 +238,10 @@ namespace Zen.Trunk.Storage.Log
         /// <summary>
         /// Called when opening the device.
         /// </summary>
-        /// <returns></returns>
-        protected override Task OnOpen()
+        /// <returns>
+        /// A <see cref="Task" /> representing the asynchronous operation.
+        /// </returns>
+        protected override Task OnOpenAsync()
 		{
 			if (_rootPage == null)
 			{
@@ -284,8 +286,10 @@ namespace Zen.Trunk.Storage.Log
         /// <summary>
         /// Called when closing the device.
         /// </summary>
-        /// <returns></returns>
-        protected override Task OnClose()
+        /// <returns>
+        /// A <see cref="Task" /> representing the asynchronous operation.
+        /// </returns>
+        protected override Task OnCloseAsync()
 		{
 			// Flush the device stream and close
 			// NOTE: Assume virtual log file streams have been flushed
@@ -296,7 +300,7 @@ namespace Zen.Trunk.Storage.Log
 				_deviceStream = null;
 			}
 
-			return base.OnClose();
+			return base.OnCloseAsync();
 		}
 
         /// <summary>

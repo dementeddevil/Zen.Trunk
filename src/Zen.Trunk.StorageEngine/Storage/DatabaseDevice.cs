@@ -539,10 +539,18 @@ namespace Zen.Trunk.Storage
         }
 
         /// <summary>
-        /// Performs a device-specific mount operation.
+        /// Called when opening the device.
         /// </summary>
         /// <returns></returns>
-        protected override async Task OnOpen()
+        /// <exception cref="InvalidOperationException">
+        /// No file-groups.
+        /// or
+        /// No primary file-group device.
+        /// </exception>
+        /// <returns>
+        /// A <see cref="Task"/> representing the asynchronous operation.
+        /// </returns>
+        protected override async Task OnOpenAsync()
         {
             if (Logger.IsInfoEnabled())
             {
@@ -600,7 +608,7 @@ namespace Zen.Trunk.Storage
                 {
                     Logger.Debug("Initiating recovery...");
                 }
-                await ResolveDeviceService<MasterLogPageDevice>().PerformRecovery().ConfigureAwait(false);
+                await ResolveDeviceService<MasterLogPageDevice>().PerformRecoveryAsync().ConfigureAwait(false);
             }
             else
             {
@@ -625,8 +633,10 @@ namespace Zen.Trunk.Storage
         /// <summary>
         /// Called when closing the device.
         /// </summary>
-        /// <returns></returns>
-        protected override async Task OnClose()
+        /// <returns>
+        /// A <see cref="Task"/> representing the asynchronous operation.
+        /// </returns>
+        protected override async Task OnCloseAsync()
         {
             TrunkTransactionContext.BeginTransaction(LifetimeScope);
             var committed = false;
@@ -640,7 +650,7 @@ namespace Zen.Trunk.Storage
                 }
                 await request.Task.ConfigureAwait(false);
 
-                await TrunkTransactionContext.CommitAsync();
+                await TrunkTransactionContext.CommitAsync().ConfigureAwait(false);
                 committed = true;
             }
             // ReSharper disable once EmptyGeneralCatchClause
@@ -649,7 +659,7 @@ namespace Zen.Trunk.Storage
             }
             if (!committed)
             {
-                await TrunkTransactionContext.RollbackAsync();
+                await TrunkTransactionContext.RollbackAsync().ConfigureAwait(false);
             }
 
             // Close all secondary file-groups in parallel
@@ -778,7 +788,7 @@ namespace Zen.Trunk.Storage
                 _masterLogPageDevice.InitialiseDeviceLifetimeScope(LifetimeScope);
             }
 
-            return await _masterLogPageDevice.AddDevice(request.Message).ConfigureAwait(false);
+            return await _masterLogPageDevice.AddDeviceAsync(request.Message).ConfigureAwait(false);
         }
 
         private async Task<bool> RemoveLogDeviceHandler(RemoveLogDeviceRequest request)
@@ -790,7 +800,7 @@ namespace Zen.Trunk.Storage
                     throw new InvalidOperationException();
                 }
 
-                await _masterLogPageDevice.RemoveDevice(request.Message).ConfigureAwait(false);
+                await _masterLogPageDevice.RemoveDeviceAsync(request.Message).ConfigureAwait(false);
                 return true;
             }
             return false;
@@ -868,7 +878,7 @@ namespace Zen.Trunk.Storage
 
             // Issue begin checkpoint
             await ResolveDeviceService<MasterLogPageDevice>()
-                .WriteEntry(new BeginCheckPointLogEntry())
+                .WriteEntryAsync(new BeginCheckPointLogEntry())
                 .ConfigureAwait(false);
 
             Exception exception = null;
@@ -888,7 +898,7 @@ namespace Zen.Trunk.Storage
 
             // Issue end checkpoint
             await ResolveDeviceService<MasterLogPageDevice>()
-                .WriteEntry(new EndCheckPointLogEntry())
+                .WriteEntryAsync(new EndCheckPointLogEntry())
                 .ConfigureAwait(false);
 
             // Discard current check-point task

@@ -1,4 +1,6 @@
-﻿namespace Zen.Trunk.Storage
+﻿using System.Threading.Tasks;
+
+namespace Zen.Trunk.Storage
 {
     /// <summary>
     /// 
@@ -15,5 +17,20 @@
         {
         }
         #endregion
+
+        /// <summary>
+        /// Called when closing the device.
+        /// </summary>
+        /// <returns>
+        /// A <see cref="Task"/> representing the asynchronous operation.
+        /// </returns>
+        protected override async Task OnCloseAsync()
+        {
+            // Do base class work
+            await base.OnCloseAsync().ConfigureAwait(false);
+
+            // Now delete underlying files.
+            //this[]
+        }
     }
 }

@@ -179,7 +179,6 @@ namespace Zen.Trunk.Storage.Log
         /// <c>true</c> if this instance is truncating log; otherwise, <c>false</c>.
         /// </value>
         public bool IsTruncatingLog => _trucateLog;
-
 	    #endregion
 
 		#region Private Properties
@@ -200,7 +199,7 @@ namespace Zen.Trunk.Storage.Log
         /// <param name="deviceParams">The device parameters.</param>
         /// <returns></returns>
         /// <exception cref="BufferDeviceShuttingDownException"></exception>
-        public Task<DeviceId> AddDevice(AddLogDeviceParameters deviceParams)
+        public Task<DeviceId> AddDeviceAsync(AddLogDeviceParameters deviceParams)
 		{
 			var request = new AddLogDeviceRequest(deviceParams);
 			if (!AddLogDevicePort.Post(request))
@@ -216,7 +215,7 @@ namespace Zen.Trunk.Storage.Log
         /// <param name="deviceParams">The device parameters.</param>
         /// <returns></returns>
         /// <exception cref="BufferDeviceShuttingDownException"></exception>
-        public Task RemoveDevice(RemoveLogDeviceParameters deviceParams)
+        public Task RemoveDeviceAsync(RemoveLogDeviceParameters deviceParams)
 		{
 			var request = new RemoveLogDeviceRequest(deviceParams);
 			if (!RemoveLogDevicePort.Post(request))
@@ -232,7 +231,7 @@ namespace Zen.Trunk.Storage.Log
         /// <param name="entry">The entry.</param>
         /// <returns></returns>
         /// <exception cref="BufferDeviceShuttingDownException"></exception>
-        public Task WriteEntry(LogEntry entry)
+        public Task WriteEntryAsync(LogEntry entry)
 		{
 			var request = new WriteLogEntryRequest(entry);
 			if (!WriteLogEntryPort.Post(request))
@@ -247,7 +246,7 @@ namespace Zen.Trunk.Storage.Log
         /// </summary>
         /// <returns></returns>
         /// <exception cref="BufferDeviceShuttingDownException"></exception>
-        public Task PerformRecovery()
+        public Task PerformRecoveryAsync()
 		{
 			var request = new PerformRecoveryRequest();
 			if (!PerformRecoveryPort.Post(request))
@@ -396,11 +395,13 @@ namespace Zen.Trunk.Storage.Log
         /// <summary>
         /// Called when opening the device.
         /// </summary>
-        /// <returns></returns>
-        protected override async Task OnOpen()
+        /// <returns>
+        /// A <see cref="Task" /> representing the asynchronous operation.
+        /// </returns>
+        protected override async Task OnOpenAsync()
 		{
 			// Do base class work first
-			await base.OnOpen().ConfigureAwait(false);
+			await base.OnOpenAsync().ConfigureAwait(false);
 
 			var rootPage = GetRootPage<MasterLogRootPage>();
 			if (IsCreate)
@@ -456,18 +457,19 @@ namespace Zen.Trunk.Storage.Log
 		}
 
         /// <summary>
-        /// Raises the Close event.
+        /// Called when closing the device.
         /// </summary>
-        /// <returns></returns>
-        protected override async Task OnClose()
+        /// <returns>
+        /// A <see cref="Task" /> representing the asynchronous operation.
+        /// </returns>
+        protected override async Task OnCloseAsync()
 	    {
-
             // Close secondary devices first
 	        foreach (var secondaryDevice in _secondaryDevices.Values)
 	        {
 	            await secondaryDevice.CloseAsync().ConfigureAwait(false);
 	        }
-	        await base.OnClose().ConfigureAwait(false);
+	        await base.OnCloseAsync().ConfigureAwait(false);
 	    }
 
         /// <summary>
@@ -858,7 +860,7 @@ namespace Zen.Trunk.Storage.Log
 					var subTasks = new List<Task>();
 					foreach (var transactionId in rollbackList)
 					{
-						subTasks.Add(WriteEntry(new RollbackTransactionLogEntry(transactionId)));
+						subTasks.Add(WriteEntryAsync(new RollbackTransactionLogEntry(transactionId)));
 					}
 					await TaskExtra
 						.WhenAllOrEmpty(subTasks.ToArray())

@@ -373,10 +373,10 @@ namespace Zen.Trunk.Storage
         /// Performs a device-specific mount operation.
         /// </summary>
         /// <returns></returns>
-        protected override async Task OnOpen()
+        protected override async Task OnOpenAsync()
         {
             // Perform base class mounting
-            await base.OnOpen().ConfigureAwait(false);
+            await base.OnOpenAsync().ConfigureAwait(false);
 
             // If we are in non-create mode then we need to mount any other
             //	online databases
@@ -414,7 +414,7 @@ namespace Zen.Trunk.Storage
         /// Called when closing the device.
         /// </summary>
         /// <returns></returns>
-        protected override async Task OnClose()
+        protected override async Task OnCloseAsync()
         {
             // TODO: Make sure we close TEMPDB last
 
@@ -426,7 +426,7 @@ namespace Zen.Trunk.Storage
                 .ConfigureAwait(false);
 
             // Finally close the master device
-            await base.OnClose().ConfigureAwait(false);
+            await base.OnCloseAsync().ConfigureAwait(false);
         }
         #endregion
 

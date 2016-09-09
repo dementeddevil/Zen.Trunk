@@ -619,7 +619,7 @@ namespace Zen.Trunk.Storage.Data
         /// Performs a device-specific mount operation.
         /// </summary>
         /// <returns></returns>
-        protected override async Task OnOpen()
+        protected override async Task OnOpenAsync()
         {
             if (Logger.IsInfoEnabled())
             {
@@ -717,7 +717,7 @@ namespace Zen.Trunk.Storage.Data
         /// Called when closing the device.
         /// </summary>
         /// <returns></returns>
-        protected override async Task OnClose()
+        protected override async Task OnCloseAsync()
         {
             // Close secondary distribution page devices
             foreach (var device in _devices.Values)

@@ -43,7 +43,6 @@ namespace Zen.Trunk.Storage
         /// The lifetime scope.
         /// </value>
         public ILifetimeScope LifetimeScope { get; private set; }
-
 	    #endregion
 
         #region Public Methods
@@ -59,7 +58,14 @@ namespace Zen.Trunk.Storage
         /// <summary>
         /// Opens this instance.
         /// </summary>
-        /// <returns></returns>
+        /// <param name="isCreate">
+        /// if set to <c>true</c> then open will be treated as create;
+        /// otherwise; <c>false</c>.
+        /// </param>
+        /// <returns>
+        /// A <see cref="Task"/> representing the asynchronous operation.
+        /// </returns>
+        /// <exception cref="InvalidOperationException"></exception>
         public async Task OpenAsync(bool isCreate)
 		{
 		    if (LifetimeScope == null)
@@ -76,7 +82,7 @@ namespace Zen.Trunk.Storage
 			try
 			{
 				IsCreate = isCreate;
-				await Task.Run(OnOpen).ConfigureAwait(false);
+				await Task.Run(OnOpenAsync).ConfigureAwait(false);
 			}
 			catch
 			{
@@ -94,11 +100,13 @@ namespace Zen.Trunk.Storage
             MutateStateOrThrow(MountableDeviceState.Opening, MountableDeviceState.Open);
 		}
 
-		/// <summary>
-		/// Closes this instance.
-		/// </summary>
-		/// <returns></returns>
-		public async Task CloseAsync()
+        /// <summary>
+        /// Closes this instance.
+        /// </summary>
+        /// <returns>
+        /// A <see cref="Task"/> representing the asynchronous operation.
+        /// </returns>
+        public async Task CloseAsync()
 		{
             if (Logger.IsDebugEnabled())
             {
@@ -108,7 +116,7 @@ namespace Zen.Trunk.Storage
 			MutateStateOrThrow(MountableDeviceState.Open, MountableDeviceState.Closing);
 			try
 			{
-				await Task.Run(OnClose).ConfigureAwait(false);
+				await Task.Run(OnCloseAsync).ConfigureAwait(false);
 			}
 			finally
 			{
@@ -203,20 +211,24 @@ namespace Zen.Trunk.Storage
 			}
 		}
 
-		/// <summary>
-		/// Called when opening the device.
-		/// </summary>
-		/// <returns></returns>
-		protected virtual Task OnOpen()
+        /// <summary>
+        /// Called when opening the device.
+        /// </summary>
+        /// <returns>
+        /// A <see cref="Task"/> representing the asynchronous operation.
+        /// </returns>
+        protected virtual Task OnOpenAsync()
 		{
 			return CompletedTask.Default;
 		}
 
-		/// <summary>
-		/// Called when closing the device.
-		/// </summary>
-		/// <returns></returns>
-		protected virtual Task OnClose()
+        /// <summary>
+        /// Called when closing the device.
+        /// </summary>
+        /// <returns>
+        /// A <see cref="Task"/> representing the asynchronous operation.
+        /// </returns>
+        protected virtual Task OnCloseAsync()
 		{
 			return CompletedTask.Default;
 		}
