@@ -48,13 +48,47 @@ namespace Zen.Trunk.Storage
         /// <value>
         /// The next.
         /// </value>
-        public FileGroupId Next
-        {
-            get
-            {
-                return new FileGroupId((byte)(Value + 1));
-            }
-        }
+        public FileGroupId Next => new FileGroupId((byte)(Value + 1));
+
+        /// <summary>
+        /// Gets a value indicating whether this instance is invalid.
+        /// </summary>
+        /// <value>
+        /// <c>true</c> if this instance is invalid; otherwise, <c>false</c>.
+        /// </value>
+        public bool IsInvalid => this == Invalid;
+
+        /// <summary>
+        /// Gets a value indicating whether this instance is valid.
+        /// </summary>
+        /// <value>
+        /// <c>true</c> if this instance is valid; otherwise, <c>false</c>.
+        /// </value>
+        public bool IsValid => this != Invalid;
+
+        /// <summary>
+        /// Gets a value indicating whether this instance is equal to the master file group id.
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if this instance is master; otherwise, <c>false</c>.
+        /// </value>
+        public bool IsMaster => this == Master;
+
+        /// <summary>
+        /// Gets a value indicating whether this instance is equal to the primary file group id.
+        /// </summary>
+        /// <value>
+        /// <c>true</c> if this instance is primary; otherwise, <c>false</c>.
+        /// </value>
+        public bool IsPrimary => this == Primary;
+
+        /// <summary>
+        /// Gets a value indicating whether this instance is equal to a reserved file group id.
+        /// </summary>
+        /// <value>
+        /// <c>true</c> if this instance is reserved; otherwise, <c>false</c>.
+        /// </value>
+        public bool IsReserved => IsMaster || IsPrimary;
         #endregion
 
         #region Public Methods

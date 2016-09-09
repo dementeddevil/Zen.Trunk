@@ -23,110 +23,110 @@ namespace Zen.Trunk.Storage.Data
     /// Open, close, grow, shrink, page allocation/deallocation.
     /// </remarks>
     public class DatabaseDevice : PageDevice
-	{
-		#region Private Types
-		private class AddFileGroupDeviceRequest : TransactionContextTaskRequest<AddFileGroupDeviceParameters, DeviceId>
-		{
-			public AddFileGroupDeviceRequest(AddFileGroupDeviceParameters deviceParams)
-				: base(deviceParams)
-			{
-			}
-		}
+    {
+        #region Private Types
+        private class AddFileGroupDeviceRequest : TransactionContextTaskRequest<AddFileGroupDeviceParameters, DeviceId>
+        {
+            public AddFileGroupDeviceRequest(AddFileGroupDeviceParameters deviceParams)
+                : base(deviceParams)
+            {
+            }
+        }
 
-		private class RemoveFileGroupDeviceRequest : TransactionContextTaskRequest<RemoveFileGroupDeviceParameters, bool>
-		{
-			public RemoveFileGroupDeviceRequest(RemoveFileGroupDeviceParameters deviceParams)
-				: base(deviceParams)
-			{
-			}
-		}
+        private class RemoveFileGroupDeviceRequest : TransactionContextTaskRequest<RemoveFileGroupDeviceParameters, bool>
+        {
+            public RemoveFileGroupDeviceRequest(RemoveFileGroupDeviceParameters deviceParams)
+                : base(deviceParams)
+            {
+            }
+        }
 
-		private class InitFileGroupPageRequest : TransactionContextTaskRequest<InitFileGroupPageParameters, bool>
-		{
-			#region Public Constructors
-			public InitFileGroupPageRequest(InitFileGroupPageParameters initParams)
-				: base(initParams)
-			{
-			}
-			#endregion
-		}
+        private class InitFileGroupPageRequest : TransactionContextTaskRequest<InitFileGroupPageParameters, bool>
+        {
+            #region Public Constructors
+            public InitFileGroupPageRequest(InitFileGroupPageParameters initParams)
+                : base(initParams)
+            {
+            }
+            #endregion
+        }
 
-		private class LoadFileGroupPageRequest : TransactionContextTaskRequest<LoadFileGroupPageParameters, bool>
-		{
-			#region Public Constructors
-			public LoadFileGroupPageRequest(LoadFileGroupPageParameters loadParams)
-				: base(loadParams)
-			{
-			}
-			#endregion
-		}
+        private class LoadFileGroupPageRequest : TransactionContextTaskRequest<LoadFileGroupPageParameters, bool>
+        {
+            #region Public Constructors
+            public LoadFileGroupPageRequest(LoadFileGroupPageParameters loadParams)
+                : base(loadParams)
+            {
+            }
+            #endregion
+        }
 
-		private class AddFileGroupTableRequest : TransactionContextTaskRequest<AddFileGroupTableParameters, ObjectId>
-		{
-			#region Public Constructors
-			/// <summary>
-			/// Initializes a new instance of the <see cref="AddFileGroupTableRequest"/> class.
-			/// </summary>
-			/// <param name="tableParams">The table parameters.</param>
-			public AddFileGroupTableRequest(AddFileGroupTableParameters tableParams)
-				: base(tableParams)
-			{
-			}
-			#endregion
-		}
+        private class AddFileGroupTableRequest : TransactionContextTaskRequest<AddFileGroupTableParameters, ObjectId>
+        {
+            #region Public Constructors
+            /// <summary>
+            /// Initializes a new instance of the <see cref="AddFileGroupTableRequest"/> class.
+            /// </summary>
+            /// <param name="tableParams">The table parameters.</param>
+            public AddFileGroupTableRequest(AddFileGroupTableParameters tableParams)
+                : base(tableParams)
+            {
+            }
+            #endregion
+        }
 
-		private class FlushFileGroupRequest : TransactionContextTaskRequest<FlushCachingDeviceParameters, bool>
-		{
-			#region Public Constructors
-			/// <summary>
-			/// Initializes a new instance of the <see cref="FlushFileGroupRequest"/> class.
-			/// </summary>
-			/// <param name="flushParams">The flush parameters.</param>
-			public FlushFileGroupRequest(FlushCachingDeviceParameters flushParams)
-				: base(flushParams)
-			{
-			}
-			#endregion
-		}
+        private class FlushFileGroupRequest : TransactionContextTaskRequest<FlushCachingDeviceParameters, bool>
+        {
+            #region Public Constructors
+            /// <summary>
+            /// Initializes a new instance of the <see cref="FlushFileGroupRequest"/> class.
+            /// </summary>
+            /// <param name="flushParams">The flush parameters.</param>
+            public FlushFileGroupRequest(FlushCachingDeviceParameters flushParams)
+                : base(flushParams)
+            {
+            }
+            #endregion
+        }
 
-		private class IssueCheckPointRequest : TransactionContextTaskRequest<bool>
-		{
-		}
+        private class IssueCheckPointRequest : TransactionContextTaskRequest<bool>
+        {
+        }
 
-	    private class AddLogDeviceRequest : TransactionContextTaskRequest<AddLogDeviceParameters, DeviceId>
-	    {
-	        public AddLogDeviceRequest(AddLogDeviceParameters parameters) : base(parameters)
-	        {
-	        }
-	    }
+        private class AddLogDeviceRequest : TransactionContextTaskRequest<AddLogDeviceParameters, DeviceId>
+        {
+            public AddLogDeviceRequest(AddLogDeviceParameters parameters) : base(parameters)
+            {
+            }
+        }
 
-	    private class RemoveLogDeviceRequest : TransactionContextTaskRequest<RemoveLogDeviceParameters, bool>
-	    {
-	        public RemoveLogDeviceRequest(RemoveLogDeviceParameters parameters) : base(parameters)
-	        {
-	        }
-	    }
-		#endregion
+        private class RemoveLogDeviceRequest : TransactionContextTaskRequest<RemoveLogDeviceParameters, bool>
+        {
+            public RemoveLogDeviceRequest(RemoveLogDeviceParameters parameters) : base(parameters)
+            {
+            }
+        }
+        #endregion
 
-		#region Private Fields
-	    private static readonly ILog Logger = LogProvider.For<DatabaseDevice>();
+        #region Private Fields
+        private static readonly ILog Logger = LogProvider.For<DatabaseDevice>();
 
-		private readonly DatabaseId _dbId;
+        private readonly DatabaseId _dbId;
 
-	    // Underlying page buffer storage
-		private IMultipleBufferDevice _bufferDevice;
-		private CachingPageBufferDevice _dataBufferDevice;
+        // Underlying page buffer storage
+        private IMultipleBufferDevice _bufferDevice;
+        private CachingPageBufferDevice _dataBufferDevice;
 
-		// File-group mapping
-		private readonly Dictionary<FileGroupId, FileGroupDevice> _fileGroupById =
-			new Dictionary<FileGroupId, FileGroupDevice>();
-		private readonly Dictionary<string, FileGroupDevice> _fileGroupByName =
-			new Dictionary<string, FileGroupDevice>();
-		private FileGroupId _nextFileGroupId = FileGroupId.Primary.Next;
+        // File-group mapping
+        private readonly Dictionary<FileGroupId, FileGroupDevice> _fileGroupById =
+            new Dictionary<FileGroupId, FileGroupDevice>();
+        private readonly Dictionary<string, FileGroupDevice> _fileGroupByName =
+            new Dictionary<string, FileGroupDevice>();
+        private FileGroupId _nextFileGroupId = FileGroupId.Primary.Next;
 
-		// Log device
-	    private MasterLogPageDevice _masterLogPageDevice;
-		private Task _currentCheckPointTask;
+        // Log device
+        private MasterLogPageDevice _masterLogPageDevice;
+        private Task _currentCheckPointTask;
         #endregion
 
         #region Public Constructors
@@ -135,7 +135,7 @@ namespace Zen.Trunk.Storage.Data
         /// </summary>
         /// <param name="dbId">The database identifier.</param>
         public DatabaseDevice(DatabaseId dbId)
-	    {
+        {
             _dbId = dbId;
 
             // Setup ports
@@ -242,83 +242,83 @@ namespace Zen.Trunk.Storage.Data
         #endregion
 
         #region Protected Properties
-	    /// <summary>
-		/// Gets the primary file group id.
-		/// </summary>
-		/// <value>The primary file group id.</value>
-		protected virtual FileGroupId PrimaryFileGroupId => FileGroupId.Primary;
-	    #endregion
+        /// <summary>
+        /// Gets the primary file group id.
+        /// </summary>
+        /// <value>The primary file group id.</value>
+        protected virtual FileGroupId PrimaryFileGroupId => FileGroupId.Primary;
+        #endregion
 
-		#region Private Properties
-	    private IMultipleBufferDevice RawBufferDevice
-	    {
-	        get
-	        {
-	            if (_bufferDevice == null)
-	            {
-	                _bufferDevice = ResolveDeviceService<IMultipleBufferDevice>();
-	            }
-	            return _bufferDevice;
-	        }
-	    }
+        #region Private Properties
+        private IMultipleBufferDevice RawBufferDevice
+        {
+            get
+            {
+                if (_bufferDevice == null)
+                {
+                    _bufferDevice = ResolveDeviceService<IMultipleBufferDevice>();
+                }
+                return _bufferDevice;
+            }
+        }
 
-	    private CachingPageBufferDevice CachingBufferDevice
-	    {
-	        get
-	        {
-	            if (_dataBufferDevice == null)
-	            {
-	                _dataBufferDevice = ResolveDeviceService<CachingPageBufferDevice>();
-	            }
-	            return _dataBufferDevice;
-	        }
-	    }
+        private CachingPageBufferDevice CachingBufferDevice
+        {
+            get
+            {
+                if (_dataBufferDevice == null)
+                {
+                    _dataBufferDevice = ResolveDeviceService<CachingPageBufferDevice>();
+                }
+                return _dataBufferDevice;
+            }
+        }
 
-		/// <summary>
-		/// Gets the add file group data device port.
-		/// </summary>
-		/// <value>The add file group data device port.</value>
-		private ITargetBlock<AddFileGroupDeviceRequest> AddFileGroupDevicePort { get; }
+        /// <summary>
+        /// Gets the add file group data device port.
+        /// </summary>
+        /// <value>The add file group data device port.</value>
+        private ITargetBlock<AddFileGroupDeviceRequest> AddFileGroupDevicePort { get; }
 
-	    /// <summary>
-		/// Gets the remove file group device port.
-		/// </summary>
-		/// <value>The remove file group device port.</value>
-		private ITargetBlock<RemoveFileGroupDeviceRequest> RemoveFileGroupDevicePort { get; }
+        /// <summary>
+        /// Gets the remove file group device port.
+        /// </summary>
+        /// <value>The remove file group device port.</value>
+        private ITargetBlock<RemoveFileGroupDeviceRequest> RemoveFileGroupDevicePort { get; }
 
-	    /// <summary>
-		/// Gets the init file group page port.
-		/// </summary>
-		/// <value>The init file group page port.</value>
-		private ITargetBlock<InitFileGroupPageRequest> InitFileGroupPagePort { get; }
+        /// <summary>
+        /// Gets the init file group page port.
+        /// </summary>
+        /// <value>The init file group page port.</value>
+        private ITargetBlock<InitFileGroupPageRequest> InitFileGroupPagePort { get; }
 
-	    /// <summary>
-		/// Gets the load file group page port.
-		/// </summary>
-		/// <value>The load file group page port.</value>
-		private ITargetBlock<LoadFileGroupPageRequest> LoadFileGroupPagePort { get; }
+        /// <summary>
+        /// Gets the load file group page port.
+        /// </summary>
+        /// <value>The load file group page port.</value>
+        private ITargetBlock<LoadFileGroupPageRequest> LoadFileGroupPagePort { get; }
 
-	    /// <summary>
-		/// Gets the flush device buffers port.
-		/// </summary>
-		/// <value>The flush device buffers port.</value>
-		private ITargetBlock<FlushFileGroupRequest> FlushPageBuffersPort { get; }
+        /// <summary>
+        /// Gets the flush device buffers port.
+        /// </summary>
+        /// <value>The flush device buffers port.</value>
+        private ITargetBlock<FlushFileGroupRequest> FlushPageBuffersPort { get; }
 
-	    /// <summary>
-		/// Gets the add file group table port.
-		/// </summary>
-		/// <value>The add file group table port.</value>
-		private ITargetBlock<AddFileGroupTableRequest> AddFileGroupTablePort { get; }
+        /// <summary>
+        /// Gets the add file group table port.
+        /// </summary>
+        /// <value>The add file group table port.</value>
+        private ITargetBlock<AddFileGroupTableRequest> AddFileGroupTablePort { get; }
 
-	    /// <summary>
-		/// Gets the issue check point port.
-		/// </summary>
-		/// <value>The issue check point port.</value>
-		private ITargetBlock<IssueCheckPointRequest> IssueCheckPointPort { get; }
+        /// <summary>
+        /// Gets the issue check point port.
+        /// </summary>
+        /// <value>The issue check point port.</value>
+        private ITargetBlock<IssueCheckPointRequest> IssueCheckPointPort { get; }
 
-	    private ITargetBlock<AddLogDeviceRequest> AddLogDevicePort { get; }
+        private ITargetBlock<AddLogDeviceRequest> AddLogDevicePort { get; }
 
-	    private ITargetBlock<RemoveLogDeviceRequest> RemoveLogDevicePort { get; }
+        private ITargetBlock<RemoveLogDeviceRequest> RemoveLogDevicePort { get; }
 
         #endregion
 
@@ -332,14 +332,14 @@ namespace Zen.Trunk.Storage.Data
         /// </returns>
         /// <exception cref="BufferDeviceShuttingDownException"></exception>
         public Task AddFileGroupDeviceAsync(AddFileGroupDeviceParameters deviceParams)
-		{
-			var request = new AddFileGroupDeviceRequest(deviceParams);
-			if (!AddFileGroupDevicePort.Post(request))
-			{
-				throw new BufferDeviceShuttingDownException();
-			}
-			return request.Task;
-		}
+        {
+            var request = new AddFileGroupDeviceRequest(deviceParams);
+            if (!AddFileGroupDevicePort.Post(request))
+            {
+                throw new BufferDeviceShuttingDownException();
+            }
+            return request.Task;
+        }
 
         /// <summary>
         /// Removes the file group device.
@@ -350,14 +350,14 @@ namespace Zen.Trunk.Storage.Data
         /// </returns>
         /// <exception cref="BufferDeviceShuttingDownException"></exception>
         public Task RemoveFileGroupDeviceAsync(RemoveFileGroupDeviceParameters deviceParams)
-		{
-			var request = new RemoveFileGroupDeviceRequest(deviceParams);
-			if (!RemoveFileGroupDevicePort.Post(request))
-			{
-				throw new BufferDeviceShuttingDownException();
-			}
-			return request.Task;
-		}
+        {
+            var request = new RemoveFileGroupDeviceRequest(deviceParams);
+            if (!RemoveFileGroupDevicePort.Post(request))
+            {
+                throw new BufferDeviceShuttingDownException();
+            }
+            return request.Task;
+        }
 
         /// <summary>
         /// Initializes the file group page.
@@ -366,16 +366,21 @@ namespace Zen.Trunk.Storage.Data
         /// <returns>
         /// A <see cref="Task"/> representing the asynchronous operation.
         /// </returns>
-        /// <exception cref="BufferDeviceShuttingDownException"></exception>
+        /// <exception cref="FileGroupInvalidException">
+        /// Thrown if the appropriate filegroup device cannot be resolved.
+        /// </exception>
+        /// <exception cref="BufferDeviceShuttingDownException">
+        /// Thrown if the buffer device is shutting down.
+        /// </exception>
         public Task InitFileGroupPageAsync(InitFileGroupPageParameters initParams)
-		{
-			var request = new InitFileGroupPageRequest(initParams);
-			if (!InitFileGroupPagePort.Post(request))
-			{
-				throw new BufferDeviceShuttingDownException();
-			}
-			return request.Task;
-		}
+        {
+            var request = new InitFileGroupPageRequest(initParams);
+            if (!InitFileGroupPagePort.Post(request))
+            {
+                throw new BufferDeviceShuttingDownException();
+            }
+            return request.Task;
+        }
 
         /// <summary>
         /// Loads the file group page.
@@ -384,16 +389,21 @@ namespace Zen.Trunk.Storage.Data
         /// <returns>
         /// A <see cref="Task"/> representing the asynchronous operation.
         /// </returns>
-        /// <exception cref="BufferDeviceShuttingDownException"></exception>
+        /// <exception cref="FileGroupInvalidException">
+        /// Thrown if the appropriate filegroup device cannot be resolved.
+        /// </exception>
+        /// <exception cref="BufferDeviceShuttingDownException">
+        /// Thrown if the buffer device is shutting down.
+        /// </exception>
         public Task LoadFileGroupPageAsync(LoadFileGroupPageParameters loadParams)
-		{
-			var request = new LoadFileGroupPageRequest(loadParams);
-			if (!LoadFileGroupPagePort.Post(request))
-			{
-				throw new BufferDeviceShuttingDownException();
-			}
-			return request.Task;
-		}
+        {
+            var request = new LoadFileGroupPageRequest(loadParams);
+            if (!LoadFileGroupPagePort.Post(request))
+            {
+                throw new BufferDeviceShuttingDownException();
+            }
+            return request.Task;
+        }
 
         /// <summary>
         /// Flushes the file group buffers.
@@ -404,14 +414,14 @@ namespace Zen.Trunk.Storage.Data
         /// </returns>
         /// <exception cref="BufferDeviceShuttingDownException"></exception>
         public Task FlushFileGroupBuffersAsync(FlushCachingDeviceParameters flushParams)
-		{
-			var request = new FlushFileGroupRequest(flushParams);
-			if (!FlushPageBuffersPort.Post(request))
-			{
-				throw new BufferDeviceShuttingDownException();
-			}
-			return request.Task;
-		}
+        {
+            var request = new FlushFileGroupRequest(flushParams);
+            if (!FlushPageBuffersPort.Post(request))
+            {
+                throw new BufferDeviceShuttingDownException();
+            }
+            return request.Task;
+        }
 
         /// <summary>
         /// Adds the file group table.
@@ -422,14 +432,14 @@ namespace Zen.Trunk.Storage.Data
         /// </returns>
         /// <exception cref="BufferDeviceShuttingDownException"></exception>
         public Task AddFileGroupTableAsync(AddFileGroupTableParameters tableParams)
-		{
-			var request = new AddFileGroupTableRequest(tableParams);
-			if (!AddFileGroupTablePort.Post(request))
-			{
-				throw new BufferDeviceShuttingDownException();
-			}
-			return request.Task;
-		}
+        {
+            var request = new AddFileGroupTableRequest(tableParams);
+            if (!AddFileGroupTablePort.Post(request))
+            {
+                throw new BufferDeviceShuttingDownException();
+            }
+            return request.Task;
+        }
 
         /// <summary>
         /// Issues the check point.
@@ -439,14 +449,14 @@ namespace Zen.Trunk.Storage.Data
         /// </returns>
         /// <exception cref="BufferDeviceShuttingDownException"></exception>
         public Task IssueCheckPointAsync()
-		{
-			var request = new IssueCheckPointRequest();
-			if (!IssueCheckPointPort.Post(request))
-			{
-				throw new BufferDeviceShuttingDownException();
-			}
-			return request.Task;
-		}
+        {
+            var request = new IssueCheckPointRequest();
+            if (!IssueCheckPointPort.Post(request))
+            {
+                throw new BufferDeviceShuttingDownException();
+            }
+            return request.Task;
+        }
 
         /// <summary>
         /// Adds the log device.
@@ -457,14 +467,14 @@ namespace Zen.Trunk.Storage.Data
         /// </returns>
         /// <exception cref="BufferDeviceShuttingDownException"></exception>
         public Task<DeviceId> AddLogDeviceAsync(AddLogDeviceParameters deviceParams)
-		{
-		    var request = new AddLogDeviceRequest(deviceParams);
-		    if (!AddLogDevicePort.Post(request))
-		    {
-		        throw new BufferDeviceShuttingDownException();
-		    }
-		    return request.Task;
-		}
+        {
+            var request = new AddLogDeviceRequest(deviceParams);
+            if (!AddLogDevicePort.Post(request))
+            {
+                throw new BufferDeviceShuttingDownException();
+            }
+            return request.Task;
+        }
 
         /// <summary>
         /// Removes the log device.
@@ -475,7 +485,7 @@ namespace Zen.Trunk.Storage.Data
         /// </returns>
         /// <exception cref="BufferDeviceShuttingDownException"></exception>
         public Task RemoveLogDeviceAsync(RemoveLogDeviceParameters deviceParams)
-		{
+        {
             var request = new RemoveLogDeviceRequest(deviceParams);
             if (!RemoveLogDevicePort.Post(request))
             {
@@ -491,35 +501,35 @@ namespace Zen.Trunk.Storage.Data
         /// </summary>
         /// <param name="builder">The builder.</param>
         protected override void BuildDeviceLifetimeScope(ContainerBuilder builder)
-	    {
-	        base.BuildDeviceLifetimeScope(builder);
+        {
+            base.BuildDeviceLifetimeScope(builder);
 
-	        builder
-	            .Register(
-	                context =>
-	                {
-	                    var deviceFactory = context.Resolve<IBufferDeviceFactory>();
-	                    return deviceFactory.CreateMultipleBufferDevice(true);
-	                })
-	            .As<IBufferDevice>()
-	            .As<IMultipleBufferDevice>()
+            builder
+                .Register(
+                    context =>
+                    {
+                        var deviceFactory = context.Resolve<IBufferDeviceFactory>();
+                        return deviceFactory.CreateMultipleBufferDevice(true);
+                    })
+                .As<IBufferDevice>()
+                .As<IMultipleBufferDevice>()
                 .SingleInstance();
-	        builder.RegisterType<CachingPageBufferDevice>()
+            builder.RegisterType<CachingPageBufferDevice>()
                 .AsSelf()
                 .SingleInstance();
 
-	        builder
-	            .RegisterType<DatabaseLockManager>()
+            builder
+                .RegisterType<DatabaseLockManager>()
                 .WithParameter("dbId", _dbId)
-	            .As<IDatabaseLockManager>()
-	            .SingleInstance();
+                .As<IDatabaseLockManager>()
+                .SingleInstance();
 
-	        builder
+            builder
                 .Register(context => _masterLogPageDevice)
-	            .As<LogPageDevice>()
-	            .As<MasterLogPageDevice>();
+                .As<LogPageDevice>()
+                .As<MasterLogPageDevice>();
 
-	        builder.RegisterType<MasterDatabasePrimaryFileGroupDevice>()
+            builder.RegisterType<MasterDatabasePrimaryFileGroupDevice>()
                 .OnActivated(e => e.Instance.InitialiseDeviceLifetimeScope(LifetimeScope));
             builder.RegisterType<PrimaryFileGroupDevice>()
                 .OnActivated(e => e.Instance.InitialiseDeviceLifetimeScope(LifetimeScope));
@@ -527,34 +537,34 @@ namespace Zen.Trunk.Storage.Data
                 .OnActivated(e => e.Instance.InitialiseDeviceLifetimeScope(LifetimeScope));
         }
 
-		/// <summary>
-		/// Performs a device-specific mount operation.
-		/// </summary>
-		/// <returns></returns>
-		protected override async Task OnOpen()
-		{
-		    if (Logger.IsInfoEnabled())
-		    {
-			    Logger.Info("DatabaseDevice.OnOpen -> Start");
-		    }
+        /// <summary>
+        /// Performs a device-specific mount operation.
+        /// </summary>
+        /// <returns></returns>
+        protected override async Task OnOpen()
+        {
+            if (Logger.IsInfoEnabled())
+            {
+                Logger.Info("DatabaseDevice.OnOpen -> Start");
+            }
 
-			// Sanity check
-			if (_fileGroupById.Count == 0)
-			{
-				throw new InvalidOperationException("No file-groups.");
-			}
-			var fgDevice = PrimaryFileGroupDevice;
-			if (fgDevice == null)
-			{
-				throw new InvalidOperationException("No primary file-group device.");
-			}
+            // Sanity check
+            if (_fileGroupById.Count == 0)
+            {
+                throw new InvalidOperationException("No file-groups.");
+            }
+            var fgDevice = PrimaryFileGroupDevice;
+            if (fgDevice == null)
+            {
+                throw new InvalidOperationException("No primary file-group device.");
+            }
 
             // Mount the underlying device
-		    if (Logger.IsDebugEnabled())
-		    {
-			    Logger.Debug("Opening underlying buffer device...");
-		    }
-			await RawBufferDevice.OpenAsync().ConfigureAwait(false);
+            if (Logger.IsDebugEnabled())
+            {
+                Logger.Debug("Opening underlying buffer device...");
+            }
+            await RawBufferDevice.OpenAsync().ConfigureAwait(false);
 
             // Mount the log device(s) first
             // This is so that transaction log is available when creating database
@@ -562,37 +572,37 @@ namespace Zen.Trunk.Storage.Data
             {
                 Logger.Debug("Opening log device...");
             }
-			await ResolveDeviceService<MasterLogPageDevice>().OpenAsync(IsCreate).ConfigureAwait(false);
+            await ResolveDeviceService<MasterLogPageDevice>().OpenAsync(IsCreate).ConfigureAwait(false);
 
             // If this is a create, then we want to create a transaction so
             //  that once the file-group devices are created we can commit
             //  their initial presentation and then issue a checkpoint.
-		    if (IsCreate)
-		    {
-		        BeginTransaction(IsolationLevel.Serializable, TimeSpan.FromSeconds(5));
-		    }
+            if (IsCreate)
+            {
+                BeginTransaction(IsolationLevel.Serializable, TimeSpan.FromSeconds(5));
+            }
 
             // Mount the primary file-group device
             if (Logger.IsDebugEnabled())
             {
                 Logger.Debug("Opening primary file-group device...");
             }
-			await fgDevice.OpenAsync(IsCreate).ConfigureAwait(false);
+            await fgDevice.OpenAsync(IsCreate).ConfigureAwait(false);
 
             // At this point the primary file-group is mounted and all
             //	secondary file-groups are mounted too (via AddFileGroupDevice)
 
-			// If this is not create then we need to perform recovery
-		    if (!IsCreate)
-		    {
-		        if (Logger.IsDebugEnabled())
-		        {
-		            Logger.Debug("Initiating recovery...");
-		        }
-		        await ResolveDeviceService<MasterLogPageDevice>().PerformRecovery().ConfigureAwait(false);
-		    }
-		    else
-		    {
+            // If this is not create then we need to perform recovery
+            if (!IsCreate)
+            {
+                if (Logger.IsDebugEnabled())
+                {
+                    Logger.Debug("Initiating recovery...");
+                }
+                await ResolveDeviceService<MasterLogPageDevice>().PerformRecovery().ConfigureAwait(false);
+            }
+            else
+            {
                 if (Logger.IsDebugEnabled())
                 {
                     Logger.Debug("Committing created pages on new database...");
@@ -608,350 +618,332 @@ namespace Zen.Trunk.Storage.Data
 
                 // Issue full checkpoint
                 await IssueCheckPointAsync().ConfigureAwait(false);
-		    }
-		}
+            }
+        }
 
-		/// <summary>
-		/// Called when closing the device.
-		/// </summary>
-		/// <returns></returns>
-		protected override async Task OnClose()
-		{
-			TrunkTransactionContext.BeginTransaction(LifetimeScope);
-			var committed = false;
-			try
-			{
-				// Issue a checkpoint so we close the database in a known state
-				var request = new IssueCheckPointRequest();
-				if (!IssueCheckPointPort.Post(request))
-				{
-					throw new BufferDeviceShuttingDownException();
-				}
-				await request.Task.ConfigureAwait(false);
+        /// <summary>
+        /// Called when closing the device.
+        /// </summary>
+        /// <returns></returns>
+        protected override async Task OnClose()
+        {
+            TrunkTransactionContext.BeginTransaction(LifetimeScope);
+            var committed = false;
+            try
+            {
+                // Issue a checkpoint so we close the database in a known state
+                var request = new IssueCheckPointRequest();
+                if (!IssueCheckPointPort.Post(request))
+                {
+                    throw new BufferDeviceShuttingDownException();
+                }
+                await request.Task.ConfigureAwait(false);
 
-				await TrunkTransactionContext.CommitAsync();
-				committed = true;
-			}
-			// ReSharper disable once EmptyGeneralCatchClause
-			catch
-			{
-			}
-			if (!committed)
-			{
-				await TrunkTransactionContext.RollbackAsync();
-			}
+                await TrunkTransactionContext.CommitAsync();
+                committed = true;
+            }
+            // ReSharper disable once EmptyGeneralCatchClause
+            catch
+            {
+            }
+            if (!committed)
+            {
+                await TrunkTransactionContext.RollbackAsync();
+            }
 
-			// Close all secondary file-groups in parallel
-			var secondaryDeviceTasks = _fileGroupByName.Values
-				.Where(item => !item.IsPrimaryFileGroup)
-				.Select(item => Task.Run(item.CloseAsync))
-				.ToArray();
-			await TaskExtra
-				.WhenAllOrEmpty(secondaryDeviceTasks)
-				.ConfigureAwait(false);
+            // Close all secondary file-groups in parallel
+            var secondaryDeviceTasks = _fileGroupByName.Values
+                .Where(item => !item.IsPrimaryFileGroup)
+                .Select(item => Task.Run(item.CloseAsync))
+                .ToArray();
+            await TaskExtra
+                .WhenAllOrEmpty(secondaryDeviceTasks)
+                .ConfigureAwait(false);
 
-			// Close the primary file-group last
-			var primaryDevice = _fileGroupByName.Values
-				.FirstOrDefault(item => item.IsPrimaryFileGroup);
-			if (primaryDevice != null)
-			{
-				await primaryDevice.CloseAsync().ConfigureAwait(false);
-			}
+            // Close the primary file-group last
+            var primaryDevice = _fileGroupByName.Values
+                .FirstOrDefault(item => item.IsPrimaryFileGroup);
+            if (primaryDevice != null)
+            {
+                await primaryDevice.CloseAsync().ConfigureAwait(false);
+            }
 
-			// Close the caching page device
-			await CachingBufferDevice.CloseAsync().ConfigureAwait(false);
+            // Close the caching page device
+            await CachingBufferDevice.CloseAsync().ConfigureAwait(false);
 
-			// Close the log device
-			await ResolveDeviceService<MasterLogPageDevice>().CloseAsync().ConfigureAwait(false);
+            // Close the log device
+            await ResolveDeviceService<MasterLogPageDevice>().CloseAsync().ConfigureAwait(false);
 
-			// Close underlying buffer device
-			await RawBufferDevice.CloseAsync().ConfigureAwait(false);
+            // Close underlying buffer device
+            await RawBufferDevice.CloseAsync().ConfigureAwait(false);
 
-			// Invalidate objects
-			_dataBufferDevice = null;
-			_bufferDevice = null;
-		}
-		#endregion
+            // Invalidate objects
+            _dataBufferDevice = null;
+            _bufferDevice = null;
+        }
+        #endregion
 
-		#region Private Methods
-		private async Task<DeviceId> AddFileGroupDataDeviceHandler(AddFileGroupDeviceRequest request)
-		{
-			// Create valid file group ID as needed
-			FileGroupDevice fileGroupDevice = null;
-			var isFileGroupCreate = false;
-			var isFileGroupOpenNeeded = false;
-			if ((request.Message.FileGroupIdValid && !_fileGroupById.TryGetValue(request.Message.FileGroupId, out fileGroupDevice)) ||
-				(!request.Message.FileGroupIdValid && !_fileGroupByName.TryGetValue(request.Message.FileGroupName, out fileGroupDevice)))
-			{
-				// Since we are going to create a file-group device we must
-				//	have a valid name...
-				var fileGroupName = request.Message.FileGroupName;
-				if (!string.IsNullOrEmpty(fileGroupName))
-				{
-					fileGroupName = fileGroupName.Trim().ToUpper();
-				}
-				if (string.IsNullOrEmpty(fileGroupName))
-				{
-					throw new ArgumentException("Request must have valid file-group name.");
-				}
+        #region Private Methods
+        private async Task<DeviceId> AddFileGroupDataDeviceHandler(AddFileGroupDeviceRequest request)
+        {
+            // Create valid file group ID as needed
+            FileGroupDevice fileGroupDevice = null;
+            var isFileGroupCreate = false;
+            var isFileGroupOpenNeeded = false;
+            if ((request.Message.FileGroupId.IsValid && !_fileGroupById.TryGetValue(request.Message.FileGroupId, out fileGroupDevice)) ||
+                (request.Message.FileGroupId.IsInvalid && !_fileGroupByName.TryGetValue(request.Message.FileGroupName, out fileGroupDevice)))
+            {
+                // Since we are going to create a file-group device we must
+                //	have a valid name...
+                var fileGroupName = request.Message.FileGroupName;
+                if (!string.IsNullOrEmpty(fileGroupName))
+                {
+                    fileGroupName = fileGroupName.Trim().ToUpper();
+                }
+                if (string.IsNullOrEmpty(fileGroupName))
+                {
+                    throw new ArgumentException("Request must have valid file-group name.");
+                }
 
-				// Determine new file-group id
-				var fileGroupId = request.Message.FileGroupId;
-
-				// We only use the supplied file-group id if it is
-				//	master or primary
-				// Everything else is recoded.
-				if (!request.Message.FileGroupIdValid ||
-					(fileGroupId != FileGroupId.Master &&
-					fileGroupId != FileGroupId.Primary))
-				{
-					fileGroupId = _nextFileGroupId = _nextFileGroupId.Next;
-				}
-
-				// Create new file group device and add to map
-				if (fileGroupId == FileGroupId.Master)
-				{
-				    fileGroupName = StorageFileConstants.PrimaryFileGroupName;
-				    fileGroupDevice = ResolveDeviceService<MasterDatabasePrimaryFileGroupDevice>(
-				        new NamedParameter("id", fileGroupId),
-				        new NamedParameter("name", fileGroupName));
-				}
-				else if (fileGroupId == FileGroupId.Primary)
-				{
+                // Create new file group device and add to map
+                var fileGroupId = request.Message.FileGroupId;
+                if (fileGroupId == FileGroupId.Master)
+                {
+                    fileGroupName = StorageFileConstants.PrimaryFileGroupName;
+                    fileGroupDevice = ResolveDeviceService<MasterDatabasePrimaryFileGroupDevice>(
+                        new NamedParameter("id", fileGroupId),
+                        new NamedParameter("name", fileGroupName));
+                }
+                else if (fileGroupId == FileGroupId.Primary)
+                {
                     fileGroupName = StorageFileConstants.PrimaryFileGroupName;
                     fileGroupDevice = ResolveDeviceService<PrimaryFileGroupDevice>(
                         new NamedParameter("id", fileGroupId),
                         new NamedParameter("name", fileGroupName));
-				}
-				else
-				{
+                }
+                else
+                {
+                    // Derive a new filegroup id if necessary
+                    if (fileGroupId.IsInvalid)
+                    {
+                        fileGroupId = _nextFileGroupId = _nextFileGroupId.Next;
+                    }
+
                     fileGroupDevice = ResolveDeviceService<SecondaryFileGroupDevice>(
                         new NamedParameter("id", fileGroupId),
                         new NamedParameter("name", fileGroupName));
-				}
+                }
 
-				_fileGroupById.Add(fileGroupId, fileGroupDevice);
-				_fileGroupByName.Add(fileGroupName, fileGroupDevice);
+                _fileGroupById.Add(fileGroupId, fileGroupDevice);
+                _fileGroupByName.Add(fileGroupName, fileGroupDevice);
 
-				isFileGroupCreate = (request.Message.CreatePageCount > 0);
-				isFileGroupOpenNeeded = true;
-			}
+                isFileGroupCreate = request.Message.CreatePageCount > 0;
+                isFileGroupOpenNeeded = true;
+            }
 
-			// Add child device to file-group
-		    // ReSharper disable once PossibleNullReferenceException
-			var deviceId = await fileGroupDevice.AddDataDeviceAsync(request.Message).ConfigureAwait(false);
+            // Add child device to file-group
+            // ReSharper disable once PossibleNullReferenceException
+            var deviceId = await fileGroupDevice
+                .AddDataDeviceAsync(request.Message)
+                .ConfigureAwait(false);
 
-			// If this is the first call for a file-group AND database is open or opening
-			//	then open the new file-group device too
-			if (isFileGroupOpenNeeded && (
-				DeviceState == MountableDeviceState.Opening ||
-				DeviceState == MountableDeviceState.Open))
-			{
-				await fileGroupDevice.OpenAsync(isFileGroupCreate).ConfigureAwait(false);
-			}
+            // If this is the first call for a file-group AND database is open or opening
+            //	then open the new file-group device too
+            if (isFileGroupOpenNeeded && (
+                DeviceState == MountableDeviceState.Opening ||
+                DeviceState == MountableDeviceState.Open))
+            {
+                await fileGroupDevice
+                    .OpenAsync(isFileGroupCreate)
+                    .ConfigureAwait(false);
+            }
 
-			// We're done
-			return deviceId;
-		}
+            // We're done
+            return deviceId;
+        }
 
-		private async Task<bool> RemoveFileGroupDeviceHandler(RemoveFileGroupDeviceRequest request)
-		{
-			var fileGroupDevice = GetFileGroupDevice(FileGroupId.Invalid, request.Message.FileGroupName);
-			await fileGroupDevice.RemoveDataDeviceAsync(request.Message).ConfigureAwait(false);
-			return true;
-		}
+        private async Task<bool> RemoveFileGroupDeviceHandler(RemoveFileGroupDeviceRequest request)
+        {
+            var fileGroupDevice = GetFileGroupDeviceCore(FileGroupId.Invalid, request.Message.FileGroupName);
+            await fileGroupDevice.RemoveDataDeviceAsync(request.Message).ConfigureAwait(false);
+            return true;
+        }
 
-	    private async Task<DeviceId> AddLogDeviceHandler(AddLogDeviceRequest request)
-	    {
-	        if (_masterLogPageDevice == null)
-	        {
-	            _masterLogPageDevice = new MasterLogPageDevice(string.Empty);
+        private async Task<DeviceId> AddLogDeviceHandler(AddLogDeviceRequest request)
+        {
+            if (_masterLogPageDevice == null)
+            {
+                _masterLogPageDevice = new MasterLogPageDevice(string.Empty);
                 _masterLogPageDevice.InitialiseDeviceLifetimeScope(LifetimeScope);
-	        }
+            }
 
             return await _masterLogPageDevice.AddDevice(request.Message).ConfigureAwait(false);
-	    }
+        }
 
-	    private async Task<bool> RemoveLogDeviceHandler(RemoveLogDeviceRequest request)
-	    {
-	        if (_masterLogPageDevice != null)
-	        {
-	            if (request.Message.DeviceIdValid && request.Message.DeviceId == DeviceId.Primary)
-	            {
-	                throw new InvalidOperationException();
-	            }
+        private async Task<bool> RemoveLogDeviceHandler(RemoveLogDeviceRequest request)
+        {
+            if (_masterLogPageDevice != null)
+            {
+                if (request.Message.DeviceIdValid && request.Message.DeviceId == DeviceId.Primary)
+                {
+                    throw new InvalidOperationException();
+                }
 
-	            await _masterLogPageDevice.RemoveDevice(request.Message).ConfigureAwait(false);
-	            return true;
-	        }
-	        return false;
-	    }
+                await _masterLogPageDevice.RemoveDevice(request.Message).ConfigureAwait(false);
+                return true;
+            }
+            return false;
+        }
 
-		private async Task<bool> InitFileGroupPageHandler(InitFileGroupPageRequest request)
-		{
-			var fileGroupDevice = GetFileGroupDevice(
-				request.Message.FileGroupId, request.Message.FileGroupName);
+        private async Task<bool> InitFileGroupPageHandler(InitFileGroupPageRequest request)
+        {
+            // Locate appropriate filegroup device
+            var fileGroupDevice = GetFileGroupDeviceCore(
+                request.Message.FileGroupId, request.Message.FileGroupName);
 
-			// Pass request onwards
-			await fileGroupDevice
-				.InitDataPageAsync(request.Message)
-				.ConfigureAwait(false);
+            // Pass request onwards
+            await fileGroupDevice
+                .InitDataPageAsync(request.Message)
+                .ConfigureAwait(false);
+            return true;
+        }
 
-			// Setup file-group id on page if necessary
-			if (!request.Message.FileGroupIdValid)
-			{
-				request.Message.Page.FileGroupId = fileGroupDevice.FileGroupId;
-			}
-			return true;
-		}
+        private async Task<bool> LoadFileGroupPageHandler(LoadFileGroupPageRequest request)
+        {
+            // Locate appropriate filegroup device
+            var fileGroupDevice = GetFileGroupDeviceCore(
+                request.Message.FileGroupId, request.Message.FileGroupName);
 
-		private async Task<bool> LoadFileGroupPageHandler(LoadFileGroupPageRequest request)
-		{
-		    if (!request.Message.FileGroupIdValid &&
-		        string.IsNullOrEmpty(request.Message.FileGroupName))
-		    {
-		        throw new InvalidOperationException("Cannot load file-group page without filegroup id or filegroup name.");
-		    }
+            // Pass request onwards
+            await fileGroupDevice
+                .LoadDataPageAsync(request.Message)
+                .ConfigureAwait(false);
+            return true;
+        }
 
+        private async Task<bool> FlushDeviceBuffersHandler(FlushFileGroupRequest request)
+        {
+            // Delegate request through to caching buffer device
+            await CachingBufferDevice.FlushPagesAsync(request.Message).ConfigureAwait(false);
+            return true;
+        }
+
+        private Task<ObjectId> AddFileGroupTableHandler(AddFileGroupTableRequest request)
+        {
+            // Locate appropriate filegroup device
+            var fileGroupDevice = GetFileGroupDeviceCore(
+                request.Message.FileGroupId, request.Message.FileGroupName);
+
+            // Delegate request to file-group device.
+            return fileGroupDevice.AddTable(request.Message);
+        }
+
+        // ReSharper disable once UnusedParameter.Local
+        private Task<bool> IssueCheckPointHandler(IssueCheckPointRequest request)
+        {
+            var tcs = new TaskCompletionSource<bool>();
+
+            var current = _currentCheckPointTask;
+            if (current == null)
+            {
+                // Setup the completion task object then start the operation
+                // NOTE: We do NOT await the child operation here
+                current = _currentCheckPointTask = ExecuteCheckPoint();
+            }
+
+            // Checkpoint is in progress so attach to current operation
+            current.ContinueWith(t => tcs.SetResult(true), TaskContinuationOptions.OnlyOnRanToCompletion | TaskContinuationOptions.ExecuteSynchronously);
+            current.ContinueWith(t => tcs.SetFromTask(t), TaskContinuationOptions.NotOnRanToCompletion | TaskContinuationOptions.ExecuteSynchronously);
+
+            return tcs.Task;
+        }
+
+        private async Task ExecuteCheckPoint()
+        {
             if (Logger.IsDebugEnabled())
             {
-                Logger.Debug($"LoadFileGroupPage - By File-Group [{request.Message.FileGroupId},{request.Message.FileGroupName}]");
+                Logger.Debug("CheckPoint - Begin");
             }
-			var fileGroupDevice = GetFileGroupDevice(
-				request.Message.FileGroupId, request.Message.FileGroupName);
 
-			// Pass request onwards
-			await fileGroupDevice
-				.LoadDataPageAsync(request.Message)
-				.ConfigureAwait(false);
-
-			// Setup file-group id on page if necessary
-            // TODO: This shouldn't be necessary as FGD fills this in
-			if (!request.Message.FileGroupIdValid)
-			{
-				request.Message.Page.FileGroupId = fileGroupDevice.FileGroupId;
-			}
-			return true;
-		}
-
-		private async Task<bool> FlushDeviceBuffersHandler(FlushFileGroupRequest request)
-		{
-			await CachingBufferDevice.FlushPagesAsync(request.Message).ConfigureAwait(false);
-			return true;
-		}
-
-		private Task<ObjectId> AddFileGroupTableHandler(AddFileGroupTableRequest request)
-		{
-			var fileGroupDevice = GetFileGroupDevice(
-				request.Message.FileGroupId, request.Message.FileGroupName);
-
-			// Delegate request to file-group device.
-			return fileGroupDevice.AddTable(request.Message);
-		}
-
-	    // ReSharper disable once UnusedParameter.Local
-		private Task<bool> IssueCheckPointHandler(IssueCheckPointRequest request)
-		{
-			var tcs = new TaskCompletionSource<bool>();
-
-			var current = _currentCheckPointTask;
-			if (current == null)
-			{
-				// Setup the completion task object then start the operation
-				// NOTE: We do NOT await the child operation here
-				current = _currentCheckPointTask = ExecuteCheckPoint();
-			}
-
-			// Checkpoint is in progress so attach to current operation
-			current.ContinueWith(t => tcs.SetResult(true), TaskContinuationOptions.OnlyOnRanToCompletion | TaskContinuationOptions.ExecuteSynchronously);
-			current.ContinueWith(t => tcs.SetFromTask(t), TaskContinuationOptions.NotOnRanToCompletion | TaskContinuationOptions.ExecuteSynchronously);
-
-			return tcs.Task;
-		}
-
-		private async Task ExecuteCheckPoint()
-		{
-		    if (Logger.IsDebugEnabled())
-		    {
-			    Logger.Debug("CheckPoint - Begin");
-		    }
-
-			// Issue begin checkpoint
-			await ResolveDeviceService<MasterLogPageDevice>()
+            // Issue begin checkpoint
+            await ResolveDeviceService<MasterLogPageDevice>()
                 .WriteEntry(new BeginCheckPointLogEntry())
                 .ConfigureAwait(false);
 
-			Exception exception = null;
-			try
-			{
-				// Ask data device to dump all unwritten/logged pages to disk
-				// Typically this shouldn't find many pages to write except under
-				//	heavy load.
-				await CachingBufferDevice
+            Exception exception = null;
+            try
+            {
+                // Ask data device to dump all unwritten/logged pages to disk
+                // Typically this shouldn't find many pages to write except under
+                //	heavy load.
+                await CachingBufferDevice
                     .FlushPagesAsync(new FlushCachingDeviceParameters(true))
                     .ConfigureAwait(false);
-			}
-			catch (Exception error)
-			{
-				exception = error;
-			}
+            }
+            catch (Exception error)
+            {
+                exception = error;
+            }
 
-			// Issue end checkpoint
-			await ResolveDeviceService<MasterLogPageDevice>()
+            // Issue end checkpoint
+            await ResolveDeviceService<MasterLogPageDevice>()
                 .WriteEntry(new EndCheckPointLogEntry())
                 .ConfigureAwait(false);
 
-			// Discard current check-point task
-			_currentCheckPointTask = null;
+            // Discard current check-point task
+            _currentCheckPointTask = null;
 
-			// Throw if we have failed
-			if (exception != null)
-			{
+            // Throw if we have failed
+            if (exception != null)
+            {
                 if (Logger.IsDebugEnabled())
                 {
                     Logger.Debug($"CheckPoint - Exit with exception [{exception.Message}]");
                 }
-				throw exception;
-			}
+                throw exception;
+            }
 
             if (Logger.IsDebugEnabled())
             {
                 Logger.Debug("CheckPoint - Exit");
             }
-		}
+        }
 
-		private FileGroupDevice GetPrimaryFileGroupDevice()
-		{
-			return _fileGroupById.Values.FirstOrDefault(item => item.IsPrimaryFileGroup);
-		}
+        private FileGroupDevice GetPrimaryFileGroupDevice()
+        {
+            return _fileGroupById.Values.FirstOrDefault(item => item.IsPrimaryFileGroup);
+        }
 
         private FileGroupDevice GetFileGroupDevice(string fileGroupName)
         {
-            return GetFileGroupDevice(FileGroupId.Invalid, fileGroupName);
+            return GetFileGroupDeviceCore(FileGroupId.Invalid, fileGroupName);
         }
 
         private FileGroupDevice GetFileGroupDevice(FileGroupId fileGroupId)
         {
-            return GetFileGroupDevice(fileGroupId, null);
+            // ReSharper disable once IntroduceOptionalParameters.Local
+            return GetFileGroupDeviceCore(fileGroupId, null);
         }
 
-        private FileGroupDevice GetFileGroupDevice(FileGroupId fileGroupId, string fileGroupName)
-		{
-			if (!string.IsNullOrEmpty(fileGroupName))
-			{
-				fileGroupName = fileGroupName.Trim().ToUpper();
-			}
+        private FileGroupDevice GetFileGroupDeviceCore(FileGroupId fileGroupId, string fileGroupName)
+        {
+            // Get sane filegroup name if specified
+            if (!string.IsNullOrEmpty(fileGroupName))
+            {
+                fileGroupName = fileGroupName.Trim().ToUpper();
+            }
 
-			var idValid = (fileGroupId != FileGroupId.Invalid);
-			FileGroupDevice fileGroupDevice;
-			if ((idValid && _fileGroupById.TryGetValue(fileGroupId, out fileGroupDevice)) ||
-				(!string.IsNullOrEmpty(fileGroupName) && _fileGroupByName.TryGetValue(fileGroupName, out fileGroupDevice)))
-			{
-				return fileGroupDevice;
-			}
+            // Perform lookup on filegroup id and/or filegroup name
+            FileGroupDevice fileGroupDevice;
+            if ((fileGroupId.IsValid && _fileGroupById.TryGetValue(fileGroupId, out fileGroupDevice)) ||
+                (!string.IsNullOrEmpty(fileGroupName) && _fileGroupByName.TryGetValue(fileGroupName, out fileGroupDevice)))
+            {
+                return fileGroupDevice;
+            }
 
-			throw new FileGroupInvalidException(DeviceId.Zero, fileGroupId, fileGroupName);
-		}
-		#endregion
-	}
+            // Throw when not found
+            throw new FileGroupInvalidException(DeviceId.Zero, fileGroupId, fileGroupName);
+        }
+        #endregion
+    }
 }
