@@ -152,6 +152,8 @@ namespace Zen.Trunk.Storage
                     DefaultDataFilePath = Path.Combine(testFolder, "Data"),
                     DefaultLogFilePath = Path.Combine(testFolder, "Log")
                 };
+            Directory.CreateDirectory(engineConfig.DefaultDataFilePath);
+            Directory.CreateDirectory(engineConfig.DefaultLogFilePath);
             builder.RegisterInstance(engineConfig).AsSelf();
         }
     }

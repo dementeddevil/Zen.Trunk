@@ -75,6 +75,7 @@ namespace Zen.Trunk.Storage.Locking
 		private readonly ItemLockDictionary _writeLocks = new ItemLockDictionary();
         private ObjectLock _ownerLock;
 	    private uint _ownerLockCount;
+	    private bool _isDisposed;
 		#endregion
 
 		#region Protected Constructors
@@ -310,7 +311,7 @@ namespace Zen.Trunk.Storage.Locking
 		/// <exception cref="System.ObjectDisposedException"></exception>
 		protected void ThrowIfDisposed()
 		{
-			if (_ownerLock == null)
+			if (_isDisposed)
 			{
 				throw new ObjectDisposedException(GetType().FullName);
 			}
@@ -321,11 +322,13 @@ namespace Zen.Trunk.Storage.Locking
 		/// </summary>
 		protected virtual void Dispose(bool disposing)
 		{
-			if (_ownerLock != null)
+			if (disposing)
 			{
-                _ownerLock.ReleaseRefLock();
-                _ownerLock = null;
+                _ownerLock?.ReleaseRefLock();
 			}
+
+            _ownerLock = null;
+		    _isDisposed = true;
 		}
 
 		/// <summary>
