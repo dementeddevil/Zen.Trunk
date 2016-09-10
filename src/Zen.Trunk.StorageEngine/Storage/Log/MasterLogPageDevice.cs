@@ -492,24 +492,23 @@ namespace Zen.Trunk.Storage.Log
 			var proposedDeviceIdValid = false;
 
 			var primaryLog = false;
-			var extn = ".slf";
+			var extn = StorageConstants.SlaveLogFileDeviceExtension;
 
 			if (DeviceState == MountableDeviceState.Closed &&
 				string.IsNullOrEmpty(PathName))
 			{
-				extn = ".mlf";
+				extn = StorageConstants.MasterLogFileDeviceExtension;
 				primaryLog = true;
 				proposedDeviceIdValid = true;
 			}
 
 			// Rewrite extension as required
 			var fullPathName = request.Message.PathName;
-			if (string.Compare(Path.GetExtension(request.Message.PathName), extn, true) != 0)
+			if (string.Equals(Path.GetExtension(request.Message.PathName), extn, StringComparison.OrdinalIgnoreCase))
 			{
 				var fileName = Path.GetFileNameWithoutExtension(request.Message.PathName) + extn;
-				fullPathName = Path.Combine(Path.Combine(
-					Path.GetPathRoot(request.Message.PathName),
-					Path.GetDirectoryName(request.Message.PathName)), fileName);
+				fullPathName = Path.Combine(
+					Path.GetDirectoryName(request.Message.PathName), fileName);
 			}
 
 			// Determine appropriate device id as necessary
@@ -554,6 +553,7 @@ namespace Zen.Trunk.Storage.Log
 			}
 			else
 			{
+				PathName = fullPathName;
 				device = this;
 			}
 
@@ -573,12 +573,6 @@ namespace Zen.Trunk.Storage.Log
 				await device
 					.OpenAsync(request.Message.IsCreate)
 					.ConfigureAwait(false);
-			}
-
-			if (primaryLog)
-			{
-				// Save full path for later open
-				PathName = fullPathName;
 			}
 
 			if (request.Message.IsCreate && DeviceState == MountableDeviceState.Open)

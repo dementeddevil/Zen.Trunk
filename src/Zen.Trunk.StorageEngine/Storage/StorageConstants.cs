@@ -50,9 +50,14 @@
         public const string LogFilenameSuffix = "_log";
         
         /// <summary>
-        /// The log file device extension
+        /// The master log file device extension
         /// </summary>
-        public const string LogFileDeviceExtension = ".ldf";
+        public const string MasterLogFileDeviceExtension = ".mlf";
+
+        /// <summary>
+        /// The master log file device extension
+        /// </summary>
+        public const string SlaveLogFileDeviceExtension = ".slf";
 
         /// <summary>
         /// The master database name

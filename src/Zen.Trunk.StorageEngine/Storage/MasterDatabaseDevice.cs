@@ -141,7 +141,7 @@ namespace Zen.Trunk.Storage
                             Name = request.Name,
                             FileName = Path.Combine(
                                 GetService<StorageEngineConfiguration>().DefaultLogFilePath,
-                                $"{request.Name}{StorageConstants.LogFilenameSuffix}{StorageConstants.LogFileDeviceExtension}"),
+                                $"{request.Name}{StorageConstants.LogFilenameSuffix}{StorageConstants.MasterLogFileDeviceExtension}"),
                             Size = new FileSize(1, FileSize.FileSizeUnit.MegaBytes),
                             FileGrowth = new FileSize(1, FileSize.FileSizeUnit.MegaBytes)
                         });
