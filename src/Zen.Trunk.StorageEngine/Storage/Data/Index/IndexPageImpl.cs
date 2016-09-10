@@ -29,7 +29,7 @@ namespace Zen.Trunk.Storage.Data.Index
 		protected IndexPage()
 		{
 			_indexEntryCount = new BufferFieldUInt16(base.LastHeaderField);
-			_indexEntries = new List<TIndexClass>(MaxIndexEntries);
+			_indexEntries = new List<TIndexClass>();
 		}
 		#endregion
 
