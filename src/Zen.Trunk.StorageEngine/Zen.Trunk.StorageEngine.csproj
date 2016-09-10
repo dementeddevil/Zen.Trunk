@@ -189,7 +189,7 @@
     <Compile Include="Storage\Data\TransactionContextTaskRequest.cs" />
     <Compile Include="Storage\StorageConstants.cs" />
     <Compile Include="Storage\TransactionId.cs" />
-    <Compile Include="Storage\TransactionSynchronizationContext.cs" />
+    <Compile Include="Storage\TransactionalSpinLock.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Zen.Trunk.Utilities\Zen.Trunk.Utilities.csproj">
