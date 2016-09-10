@@ -171,20 +171,7 @@ Then the allocation fails.")]
                 .Assembly
                 .GetTypes()
                 .Where(t => t.IsAssignableTo<Page>() && !t.IsAbstract && t.IsPublic)
-                .Select(
-                    pageType =>
-                    {
-                        Page page;
-                        try
-                        {
-                            page = (Page) Activator.CreateInstance(pageType);
-                        }
-                        catch
-                        {
-                            page = null;
-                        }
-                        return page;
-                    })
+                .Select(pageType => (Page)Activator.CreateInstance(pageType))
                 .Where(p => p != null)
                 .OrderBy(p => p.GetType().Namespace)
                 .ThenBy(p => p.MinHeaderSize);
