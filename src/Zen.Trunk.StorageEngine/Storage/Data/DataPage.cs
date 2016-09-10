@@ -261,13 +261,17 @@ namespace Zen.Trunk.Storage.Data
 		/// </summary>
 		/// <value>The last header field.</value>
 		protected override BufferField LastHeaderField => _timestamp;
-	    #endregion
+        #endregion
 
-		#region Protected Methods
-		/// <summary>
-		/// Releases managed resources
-		/// </summary>
-		protected override void DisposeManagedObjects()
+        #region Protected Methods
+        /// <summary>
+        /// Releases unmanaged and - optionally - managed resources.
+        /// </summary>
+        /// <param name="disposing">
+        /// <c>true</c> to release both managed and unmanaged resources; 
+        /// <c>false</c> to release only unmanaged resources.
+        /// </param>
+        protected override void Dispose(bool disposing)
 		{
 			if (IsDirty)
 			{
@@ -283,7 +287,7 @@ namespace Zen.Trunk.Storage.Data
 			}
 
 			// Do base class work
-			base.DisposeManagedObjects();
+		    base.Dispose(disposing);
 		}
 
         /// <summary>

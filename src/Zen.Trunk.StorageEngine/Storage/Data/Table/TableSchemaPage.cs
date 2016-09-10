@@ -210,7 +210,7 @@ namespace Zen.Trunk.Storage.Data.Table
 		/// <value></value>
 		public override PageType PageType
 		{
-			set
+		    protected set
 			{
 				if (value != PageType.New &&
 					value != PageType.Table)

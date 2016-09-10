@@ -61,7 +61,7 @@ namespace Zen.Trunk.Storage
 				return page;
 			}
 
-			public IVirtualBufferFactory BufferFactory => ResolveDeviceService<IVirtualBufferFactory>();
+			public IVirtualBufferFactory BufferFactory => GetService<IVirtualBufferFactory>();
 
 		    public Task OpenAsync()
 			{

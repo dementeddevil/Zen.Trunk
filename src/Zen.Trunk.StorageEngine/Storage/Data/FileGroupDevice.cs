@@ -293,7 +293,7 @@ namespace Zen.Trunk.Storage.Data
             {
                 if (_logicalVirtual == null)
                 {
-                    _logicalVirtual = ResolveDeviceService<ILogicalVirtualManager>();
+                    _logicalVirtual = GetService<ILogicalVirtualManager>();
                 }
                 return _logicalVirtual;
             }
@@ -377,7 +377,7 @@ namespace Zen.Trunk.Storage.Data
             {
                 if (_owner == null)
                 {
-                    _owner = ResolveDeviceService<DatabaseDevice>();
+                    _owner = GetService<DatabaseDevice>();
                 }
                 return _owner;
             }
@@ -649,7 +649,7 @@ namespace Zen.Trunk.Storage.Data
                 using (var rootPage = (PrimaryFileGroupRootPage)
                     await _primaryDevice.LoadOrCreateRootPageAsync().ConfigureAwait(false))
                 {
-                    var bufferDevice = ResolveDeviceService<IMultipleBufferDevice>();
+                    var bufferDevice = GetService<IMultipleBufferDevice>();
 
                     // TODO: We need to initialise the root page device list with
                     //	information from the current devices in our collection
@@ -754,7 +754,7 @@ namespace Zen.Trunk.Storage.Data
         /// <summary>
         /// Releases managed resources
         /// </summary>
-        protected override void DisposeManagedObjects()
+        protected override void Dispose(bool disposing)
         {
             _logicalVirtual?.Dispose();
             _logicalVirtual = null;
@@ -825,7 +825,7 @@ namespace Zen.Trunk.Storage.Data
                 allocationPages = Math.Max(request.Message.CreatePageCount, 128);
             }
 
-            var pageBufferDevice = ResolveDeviceService<CachingPageBufferDevice>();
+            var pageBufferDevice = GetService<CachingPageBufferDevice>();
 
             // Add buffer device
             DeviceId deviceId;
@@ -847,13 +847,13 @@ namespace Zen.Trunk.Storage.Data
             if (priFileGroupDevice)
             {
                 _primaryDeviceId = deviceId;
-                _primaryDevice = ResolveDeviceService<PrimaryDistributionPageDevice>(
+                _primaryDevice = GetService<PrimaryDistributionPageDevice>(
                     new NamedParameter("deviceId", deviceId));
                 newDevice = _primaryDevice;
             }
             else
             {
-                var device = ResolveDeviceService<SecondaryDistributionPageDevice>(
+                var device = GetService<SecondaryDistributionPageDevice>(
                     new NamedParameter("deviceId", deviceId));
                 _devices.Add(deviceId, device);
                 newDevice = device;
@@ -946,7 +946,7 @@ namespace Zen.Trunk.Storage.Data
             // Stage #3: Initialise page object passed in request
             HookupPageSite(request.Message.Page);
             var pageBufferDevice =
-                ResolveDeviceService<CachingPageBufferDevice>();
+                GetService<CachingPageBufferDevice>();
             request.Message.Page.PreInitInternal();
             using (var scope =
                 new StatefulBufferScope<PageBuffer>(
@@ -998,7 +998,7 @@ namespace Zen.Trunk.Storage.Data
             // Stage #2: Load the buffer from the underlying cache
             HookupPageSite(request.Message.Page);
             var pageBufferDevice =
-                ResolveDeviceService<CachingPageBufferDevice>();
+                GetService<CachingPageBufferDevice>();
             request.Message.Page.PreLoadInternal();
             using (var scope =
                 new StatefulBufferScope<PageBuffer>(
@@ -1256,7 +1256,7 @@ namespace Zen.Trunk.Storage.Data
                     async (objectId) =>
                     {
                         // Create database table helper and setup object
-                        var table = ResolveDeviceService<DatabaseTable>();
+                        var table = GetService<DatabaseTable>();
                         table.FileGroupId = FileGroupId;
                         table.ObjectId = objectId;
                         table.IsNewTable = true;
@@ -1282,7 +1282,7 @@ namespace Zen.Trunk.Storage.Data
         {
             var indexId = IndexId.Zero;
 
-            var table = ResolveDeviceService<DatabaseTable>();
+            var table = GetService<DatabaseTable>();
             table.FileGroupId = FileGroupId;
             table.ObjectId = request.Message.ObjectId;
             table.IsNewTable = false;
@@ -1347,7 +1347,7 @@ namespace Zen.Trunk.Storage.Data
                 await rootPage.SetRootLockAsync(RootLockType.Exclusive).ConfigureAwait(false);
 
                 // Delegate the request to the underlying device
-                var bufferDevice = ResolveDeviceService<IMultipleBufferDevice>();
+                var bufferDevice = GetService<IMultipleBufferDevice>();
                 oldPageCount = bufferDevice.GetDeviceInfo(deviceId).PageCount;
                 newPageCount = bufferDevice.ExpandDevice(deviceId, (int)growthPages);
             }

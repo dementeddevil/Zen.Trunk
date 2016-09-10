@@ -224,16 +224,32 @@ namespace Zen.Trunk.Storage.Locking
         #endregion
 
         #region Public Methods
+        /// <summary>
+        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
+        /// </summary>
         public void Dispose()
         {
-            DisposeManagedObjects();
+            Dispose(true);
+            GC.SuppressFinalize(this);
         }
 
+        /// <summary>
+        /// Begins the nested transaction.
+        /// </summary>
         public void BeginNestedTransaction()
         {
             Interlocked.Increment(ref _transactionCount);
         }
 
+        /// <summary>
+        /// Enlists the specified notify.
+        /// </summary>
+        /// <param name="notify">The notify.</param>
+        /// <exception cref="InvalidOperationException">
+        /// Cannot enlist after transaction has completed.
+        /// or
+        /// Cannot enlist during commit/rollback.
+        /// </exception>
         public void Enlist(IPageEnlistmentNotification notify)
         {
             if (_isCompleted)
@@ -250,7 +266,12 @@ namespace Zen.Trunk.Storage.Locking
             }
         }
 
-        public async Task WriteLogEntry(TransactionLogEntry entry)
+        /// <summary>
+        /// Writes the log entry.
+        /// </summary>
+        /// <param name="entry">The entry.</param>
+        /// <returns></returns>
+        public async Task WriteLogEntryAsync(TransactionLogEntry entry)
         {
             // Ensure begin log record has been written
             if (!_isBeginLogWritten)
@@ -275,7 +296,12 @@ namespace Zen.Trunk.Storage.Locking
             }
         }
 
-        public async Task<bool> Commit()
+        /// <summary>
+        /// Commits this instance.
+        /// </summary>
+        /// <returns></returns>
+        /// <exception cref="InvalidOperationException">Not in a transaction!</exception>
+        public async Task<bool> CommitAsync()
         {
             CheckNotCompleted();
 
@@ -504,7 +530,12 @@ namespace Zen.Trunk.Storage.Locking
             return true;
         }
 
-        public async Task<bool> Rollback()
+        /// <summary>
+        /// Rollbacks this instance.
+        /// </summary>
+        /// <returns></returns>
+        /// <exception cref="InvalidOperationException">Not in a transaction!</exception>
+        public async Task<bool> RollbackAsync()
         {
             CheckNotCompleted();
 
@@ -588,11 +619,15 @@ namespace Zen.Trunk.Storage.Locking
 
         #region Protected Methods
         /// <summary>
-        /// Releases managed resources
+        /// Releases unmanaged and - optionally - managed resources.
         /// </summary>
-        protected virtual void DisposeManagedObjects()
+        /// <param name="disposing">
+        /// <c>true</c> to release both managed and unmanaged resources; 
+        /// <c>false</c> to release only unmanaged resources.
+        /// </param>
+        protected virtual void Dispose(bool disposing)
         {
-            if (!_isCompleted && !_isCompleting)
+            if (disposing && !_isCompleted && !_isCompleting)
             {
                 if (Logger.IsWarnEnabled())
                 {
@@ -600,7 +635,7 @@ namespace Zen.Trunk.Storage.Locking
                 }
 
                 // Force rollback of the current transaction
-                Rollback().Wait(Timeout);
+                RollbackAsync().Wait(Timeout);
             }
         }
         #endregion

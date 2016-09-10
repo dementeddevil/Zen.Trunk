@@ -11,30 +11,30 @@ using Zen.Trunk.Storage.Locking;
 
 namespace Zen.Trunk.Storage
 {
-	/// <summary>
-	/// </summary>
-	[CLSCompliant(false)]
-	public abstract class MountableDevice : IMountableDevice, IDisposable
-	{
-		#region Private Fields
-	    private static readonly ILog Logger = LogProvider.For<MountableDevice>();
+    /// <summary>
+    /// </summary>
+    [CLSCompliant(false)]
+    public abstract class MountableDevice : IMountableDevice, IDisposable
+    {
+        #region Private Fields
+        private static readonly ILog Logger = LogProvider.For<MountableDevice>();
 
-		private int _deviceState = (int)MountableDeviceState.Closed;
-		private bool _disposed;
-	    #endregion
+        private int _deviceState = (int)MountableDeviceState.Closed;
+        private bool _disposed;
+        #endregion
 
-		#region Public Properties
-		/// <summary>
-		/// Gets or sets a value indicating whether this instance is being created.
-		/// </summary>
-		/// <value><c>true</c> if this instance is create; otherwise, <c>false</c>.</value>
-		public bool IsCreate { get; private set; }
+        #region Public Properties
+        /// <summary>
+        /// Gets or sets a value indicating whether this instance is being created.
+        /// </summary>
+        /// <value><c>true</c> if this instance is create; otherwise, <c>false</c>.</value>
+        public bool IsCreate { get; private set; }
 
-		/// <summary>
-		/// Gets the state of the device.
-		/// </summary>
-		/// <value>The state of the device.</value>
-		public MountableDeviceState DeviceState => (MountableDeviceState)_deviceState;
+        /// <summary>
+        /// Gets the state of the device.
+        /// </summary>
+        /// <value>The state of the device.</value>
+        public MountableDeviceState DeviceState => (MountableDeviceState)_deviceState;
 
         /// <summary>
         /// Gets the lifetime scope.
@@ -43,7 +43,7 @@ namespace Zen.Trunk.Storage
         /// The lifetime scope.
         /// </value>
         public ILifetimeScope LifetimeScope { get; private set; }
-	    #endregion
+        #endregion
 
         #region Public Methods
         /// <summary>
@@ -67,38 +67,38 @@ namespace Zen.Trunk.Storage
         /// </returns>
         /// <exception cref="InvalidOperationException"></exception>
         public async Task OpenAsync(bool isCreate)
-		{
-		    if (LifetimeScope == null)
-		    {
-		        throw new InvalidOperationException();    
-		    }
+        {
+            if (LifetimeScope == null)
+            {
+                throw new InvalidOperationException();
+            }
 
-		    if (Logger.IsDebugEnabled())
-		    {
-		        Logger.Debug("Open - Enter");
-		    }
-			CheckDisposed();
-			MutateStateOrThrow(MountableDeviceState.Closed, MountableDeviceState.Opening);
-			try
-			{
-				IsCreate = isCreate;
-				await Task.Run(OnOpenAsync).ConfigureAwait(false);
-			}
-			catch
-			{
-				MutateStateOrThrow(MountableDeviceState.Opening, MountableDeviceState.Closed);
-				throw;
-			}
-			finally
-			{
-				IsCreate = false;
+            if (Logger.IsDebugEnabled())
+            {
+                Logger.Debug("Open - Enter");
+            }
+            CheckDisposed();
+            MutateStateOrThrow(MountableDeviceState.Closed, MountableDeviceState.Opening);
+            try
+            {
+                IsCreate = isCreate;
+                await Task.Run(OnOpenAsync).ConfigureAwait(false);
+            }
+            catch
+            {
+                MutateStateOrThrow(MountableDeviceState.Opening, MountableDeviceState.Closed);
+                throw;
+            }
+            finally
+            {
+                IsCreate = false;
                 if (Logger.IsDebugEnabled())
                 {
                     Logger.Debug("Open - Exit");
                 }
             }
             MutateStateOrThrow(MountableDeviceState.Opening, MountableDeviceState.Open);
-		}
+        }
 
         /// <summary>
         /// Closes this instance.
@@ -107,20 +107,20 @@ namespace Zen.Trunk.Storage
         /// A <see cref="Task"/> representing the asynchronous operation.
         /// </returns>
         public async Task CloseAsync()
-		{
+        {
             if (Logger.IsDebugEnabled())
             {
                 Logger.Debug("Close - Enter");
             }
-			CheckDisposed();
-			MutateStateOrThrow(MountableDeviceState.Open, MountableDeviceState.Closing);
-			try
-			{
-				await Task.Run(OnCloseAsync).ConfigureAwait(false);
-			}
-			finally
-			{
-				MutateStateOrThrow(MountableDeviceState.Closing, MountableDeviceState.Closed);
+            CheckDisposed();
+            MutateStateOrThrow(MountableDeviceState.Open, MountableDeviceState.Closing);
+            try
+            {
+                await Task.Run(OnCloseAsync).ConfigureAwait(false);
+            }
+            finally
+            {
+                MutateStateOrThrow(MountableDeviceState.Closing, MountableDeviceState.Closed);
                 if (Logger.IsDebugEnabled())
                 {
                     Logger.Debug("Close - Exit");
@@ -128,21 +128,22 @@ namespace Zen.Trunk.Storage
             }
         }
 
-		/// <summary>
-		/// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
-		/// </summary>
-		public void Dispose()
-		{
-			DisposeManagedObjects();
-		}
+        /// <summary>
+        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
+        /// </summary>
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
 
         /// <summary>
         /// Begins the transaction.
         /// </summary>
         public void BeginTransaction()
-	    {
-	        TrunkTransactionContext.BeginTransaction(LifetimeScope);
-	    }
+        {
+            TrunkTransactionContext.BeginTransaction(LifetimeScope);
+        }
 
         /// <summary>
         /// Begins the transaction.
@@ -179,37 +180,45 @@ namespace Zen.Trunk.Storage
         /// </summary>
         /// <param name="page">The page.</param>
         protected void HookupPageSite(Page page)
-	    {
-	        page.SetLifetimeScope(LifetimeScope);
-	    }
-
-		/// <summary>
-		/// Releases managed resources
-		/// </summary>
-		protected virtual void DisposeManagedObjects()
-		{
-			Debug.Assert(
-				_deviceState == (int)MountableDeviceState.Closed,
-			    $"{GetType().FullName} should be closed prior to dispose.");
-			_disposed = true;
-
-            LifetimeScope?.Dispose();
-            LifetimeScope = null;
+        {
+            page.SetLifetimeScope(LifetimeScope);
         }
 
-		/// <summary>
-		/// Checks if this instance has been disposed.
-		/// </summary>
-		/// <exception cref="ObjectDisposedException">
-		/// Thrown if this instance has already been disposed.
-		/// </exception>
-		protected void CheckDisposed()
-		{
-			if (_disposed)
-			{
-				throw new ObjectDisposedException(GetType().FullName);
-			}
-		}
+        /// <summary>
+        /// Releases unmanaged and - optionally - managed resources.
+        /// </summary>
+        /// <param name="disposing">
+        /// <c>true</c> to release both managed and unmanaged resources; 
+        /// <c>false</c> to release only unmanaged resources.
+        /// </param>
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                Debug.Assert(
+                    _deviceState == (int)MountableDeviceState.Closed,
+                    $"{GetType().FullName} should be closed prior to dispose.");
+
+                LifetimeScope?.Dispose();
+            }
+
+            LifetimeScope = null;
+            _disposed = true;
+        }
+
+        /// <summary>
+        /// Checks if this instance has been disposed.
+        /// </summary>
+        /// <exception cref="ObjectDisposedException">
+        /// Thrown if this instance has already been disposed.
+        /// </exception>
+        protected void CheckDisposed()
+        {
+            if (_disposed)
+            {
+                throw new ObjectDisposedException(GetType().FullName);
+            }
+        }
 
         /// <summary>
         /// Called when opening the device.
@@ -218,9 +227,9 @@ namespace Zen.Trunk.Storage
         /// A <see cref="Task"/> representing the asynchronous operation.
         /// </returns>
         protected virtual Task OnOpenAsync()
-		{
-			return CompletedTask.Default;
-		}
+        {
+            return CompletedTask.Default;
+        }
 
         /// <summary>
         /// Called when closing the device.
@@ -229,9 +238,9 @@ namespace Zen.Trunk.Storage
         /// A <see cref="Task"/> representing the asynchronous operation.
         /// </returns>
         protected virtual Task OnCloseAsync()
-		{
-			return CompletedTask.Default;
-		}
+        {
+            return CompletedTask.Default;
+        }
 
         /// <summary>
         /// Builds the device lifetime scope.
@@ -251,24 +260,24 @@ namespace Zen.Trunk.Storage
         /// <typeparam name="T"></typeparam>
         /// <param name="parameters">The parameters.</param>
         /// <returns></returns>
-        protected T ResolveDeviceService<T>(params Parameter[] parameters)
+        protected T GetService<T>(params Parameter[] parameters)
         {
             CheckDisposed();
             return LifetimeScope.Resolve<T>(parameters);
         }
-		#endregion
+        #endregion
 
-		#region Private Methods
-		private void MutateStateOrThrow(MountableDeviceState currentState, MountableDeviceState newState)
-		{
-			if (Interlocked.CompareExchange(
-				ref _deviceState, (int)newState, (int)currentState) != (int)currentState)
-			{
-				throw new InvalidOperationException(
-					"Buffer device is in unexpected state.");
-			}
-		}
-		#endregion
-	}
+        #region Private Methods
+        private void MutateStateOrThrow(MountableDeviceState currentState, MountableDeviceState newState)
+        {
+            if (Interlocked.CompareExchange(
+                ref _deviceState, (int)newState, (int)currentState) != (int)currentState)
+            {
+                throw new InvalidOperationException(
+                    "Buffer device is in unexpected state.");
+            }
+        }
+        #endregion
+    }
 
 }

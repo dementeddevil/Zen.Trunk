@@ -71,10 +71,10 @@
 
 		void Enlist(IPageEnlistmentNotification notify);
 
-		Task WriteLogEntry(TransactionLogEntry entry);
+		Task WriteLogEntryAsync(TransactionLogEntry entry);
 
-		Task<bool> Commit();
+		Task<bool> CommitAsync();
 
-		Task<bool> Rollback();
+		Task<bool> RollbackAsync();
 	}
 }

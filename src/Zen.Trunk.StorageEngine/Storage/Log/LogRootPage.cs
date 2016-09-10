@@ -188,7 +188,7 @@ namespace Zen.Trunk.Storage.Log
 		/// <summary>
 		/// Overridden. Returns boolean true indicating this is a root page object.
 		/// </summary>
-		public override bool IsRootPage => true;
+		public virtual bool IsRootPage => true;
 
 	    /// <summary>
 		/// Overridden. Returns the minimum header size for this page object.

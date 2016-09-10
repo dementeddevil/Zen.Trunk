@@ -60,7 +60,7 @@
         /// <value></value>
         public sealed override PageType PageType
         {
-            set
+            protected set
             {
                 // Check 
                 if (value != PageType.New && value != PageType.Index)

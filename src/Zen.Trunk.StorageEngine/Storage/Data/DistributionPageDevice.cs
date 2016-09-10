@@ -61,7 +61,7 @@ namespace Zen.Trunk.Storage.Data
 	        {
 	            if (_fileGroupDevice == null)
 	            {
-	                _fileGroupDevice = ResolveDeviceService<FileGroupDevice>();
+	                _fileGroupDevice = GetService<FileGroupDevice>();
 	            }
 	            return _fileGroupDevice;
 	        }   
@@ -244,7 +244,7 @@ namespace Zen.Trunk.Storage.Data
 				if (IsCreate)
 				{
 					// Get the device size information from the device status msg
-					var bufferDevice = ResolveDeviceService<IMultipleBufferDevice>();
+					var bufferDevice = GetService<IMultipleBufferDevice>();
 					var deviceInfo = bufferDevice.GetDeviceInfo(_deviceId);
 					rootPage.AllocatedPages = deviceInfo.PageCount;
 				}

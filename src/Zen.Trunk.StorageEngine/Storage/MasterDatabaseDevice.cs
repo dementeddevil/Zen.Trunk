@@ -103,7 +103,7 @@ namespace Zen.Trunk.Storage
                 // Create new database device
                 var dbId = _nextDatabaseId;
                 _nextDatabaseId = _nextDatabaseId.Next;
-                device = ResolveDeviceService<DatabaseDevice>(
+                device = GetService<DatabaseDevice>(
                     new NamedParameter("dbId", dbId));
             }
 
@@ -127,7 +127,7 @@ namespace Zen.Trunk.Storage
                         {
                             Name = request.Name,
                             FileName = Path.Combine(
-                                ResolveDeviceService<StorageEngineConfiguration>().DefaultDataFilePath,
+                                GetService<StorageEngineConfiguration>().DefaultDataFilePath,
                                 $"{request.Name}{StorageConstants.DataFilenameSuffix}{StorageConstants.PrimaryDeviceFileExtension}"),
                             Size = new FileSize(1, FileSize.FileSizeUnit.MegaBytes),
                             FileGrowth = new FileSize(1, FileSize.FileSizeUnit.MegaBytes)
@@ -140,7 +140,7 @@ namespace Zen.Trunk.Storage
                         {
                             Name = request.Name,
                             FileName = Path.Combine(
-                                ResolveDeviceService<StorageEngineConfiguration>().DefaultLogFilePath,
+                                GetService<StorageEngineConfiguration>().DefaultLogFilePath,
                                 $"{request.Name}{StorageConstants.LogFilenameSuffix}{StorageConstants.LogFileDeviceExtension}"),
                             Size = new FileSize(1, FileSize.FileSizeUnit.MegaBytes),
                             FileGrowth = new FileSize(1, FileSize.FileSizeUnit.MegaBytes)

@@ -167,7 +167,7 @@ namespace Zen.Trunk.Storage.Locking
 			var txn = Current as ITrunkTransactionPrivate;
 			if (txn != null)
 			{
-				var result = await txn.Commit().WithTimeout(txn.Timeout).ConfigureAwait(false);
+				var result = await txn.CommitAsync().WithTimeout(txn.Timeout).ConfigureAwait(false);
 				if (result)
 				{
 					Current = null;
@@ -184,7 +184,7 @@ namespace Zen.Trunk.Storage.Locking
 			var txn = Current as ITrunkTransactionPrivate;
 			if (txn != null)
 			{
-				var result = await txn.Rollback().WithTimeout(txn.Timeout).ConfigureAwait(false);
+				var result = await txn.RollbackAsync().WithTimeout(txn.Timeout).ConfigureAwait(false);
 				if (result)
 				{
 					Current = null;

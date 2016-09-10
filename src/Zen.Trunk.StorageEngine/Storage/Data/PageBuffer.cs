@@ -395,7 +395,7 @@ namespace Zen.Trunk.Storage.Data
 				var privTxn = TrunkTransactionContext.Current as ITrunkTransactionPrivate;
 				if (privTxn != null)
 				{
-					await privTxn.WriteLogEntry(entry).ConfigureAwait(false);
+					await privTxn.WriteLogEntryAsync(entry).ConfigureAwait(false);
 				}
 
 				// Update new/delete status bits

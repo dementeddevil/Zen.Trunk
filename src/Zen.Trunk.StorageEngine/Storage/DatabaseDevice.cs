@@ -257,7 +257,7 @@ namespace Zen.Trunk.Storage
             {
                 if (_bufferDevice == null)
                 {
-                    _bufferDevice = ResolveDeviceService<IMultipleBufferDevice>();
+                    _bufferDevice = GetService<IMultipleBufferDevice>();
                 }
                 return _bufferDevice;
             }
@@ -269,7 +269,7 @@ namespace Zen.Trunk.Storage
             {
                 if (_dataBufferDevice == null)
                 {
-                    _dataBufferDevice = ResolveDeviceService<CachingPageBufferDevice>();
+                    _dataBufferDevice = GetService<CachingPageBufferDevice>();
                 }
                 return _dataBufferDevice;
             }
@@ -581,7 +581,7 @@ namespace Zen.Trunk.Storage
             {
                 Logger.Debug("Opening log device...");
             }
-            await ResolveDeviceService<MasterLogPageDevice>().OpenAsync(IsCreate).ConfigureAwait(false);
+            await GetService<MasterLogPageDevice>().OpenAsync(IsCreate).ConfigureAwait(false);
 
             // If this is a create, then we want to create a transaction so
             //  that once the file-group devices are created we can commit
@@ -608,7 +608,7 @@ namespace Zen.Trunk.Storage
                 {
                     Logger.Debug("Initiating recovery...");
                 }
-                await ResolveDeviceService<MasterLogPageDevice>().PerformRecoveryAsync().ConfigureAwait(false);
+                await GetService<MasterLogPageDevice>().PerformRecoveryAsync().ConfigureAwait(false);
             }
             else
             {
@@ -683,7 +683,7 @@ namespace Zen.Trunk.Storage
             await CachingBufferDevice.CloseAsync().ConfigureAwait(false);
 
             // Close the log device
-            await ResolveDeviceService<MasterLogPageDevice>().CloseAsync().ConfigureAwait(false);
+            await GetService<MasterLogPageDevice>().CloseAsync().ConfigureAwait(false);
 
             // Close underlying buffer device
             await RawBufferDevice.CloseAsync().ConfigureAwait(false);
@@ -721,14 +721,14 @@ namespace Zen.Trunk.Storage
                 if (fileGroupId == FileGroupId.Master)
                 {
                     fileGroupName = StorageConstants.PrimaryFileGroupName;
-                    fileGroupDevice = ResolveDeviceService<MasterDatabasePrimaryFileGroupDevice>(
+                    fileGroupDevice = GetService<MasterDatabasePrimaryFileGroupDevice>(
                         new NamedParameter("id", fileGroupId),
                         new NamedParameter("name", fileGroupName));
                 }
                 else if (fileGroupId == FileGroupId.Primary)
                 {
                     fileGroupName = StorageConstants.PrimaryFileGroupName;
-                    fileGroupDevice = ResolveDeviceService<PrimaryFileGroupDevice>(
+                    fileGroupDevice = GetService<PrimaryFileGroupDevice>(
                         new NamedParameter("id", fileGroupId),
                         new NamedParameter("name", fileGroupName));
                 }
@@ -740,7 +740,7 @@ namespace Zen.Trunk.Storage
                         fileGroupId = _nextFileGroupId = _nextFileGroupId.Next;
                     }
 
-                    fileGroupDevice = ResolveDeviceService<SecondaryFileGroupDevice>(
+                    fileGroupDevice = GetService<SecondaryFileGroupDevice>(
                         new NamedParameter("id", fileGroupId),
                         new NamedParameter("name", fileGroupName));
                 }
@@ -877,7 +877,7 @@ namespace Zen.Trunk.Storage
             }
 
             // Issue begin checkpoint
-            await ResolveDeviceService<MasterLogPageDevice>()
+            await GetService<MasterLogPageDevice>()
                 .WriteEntryAsync(new BeginCheckPointLogEntry())
                 .ConfigureAwait(false);
 
@@ -897,7 +897,7 @@ namespace Zen.Trunk.Storage
             }
 
             // Issue end checkpoint
-            await ResolveDeviceService<MasterLogPageDevice>()
+            await GetService<MasterLogPageDevice>()
                 .WriteEntryAsync(new EndCheckPointLogEntry())
                 .ConfigureAwait(false);
 

@@ -353,7 +353,7 @@ namespace Zen.Trunk.Storage.Log
 		internal async Task CommitTransactions(List<TransactionLogEntry> transactions)
 		{
 			// We need the database device
-			var pageDevice = ResolveDeviceService<DatabaseDevice>();
+			var pageDevice = GetService<DatabaseDevice>();
 
 			// Work through each transaction in the list
 			foreach (var entry in transactions)
@@ -374,7 +374,7 @@ namespace Zen.Trunk.Storage.Log
 		internal async Task RollbackTransactions(List<TransactionLogEntry> transactions)
 		{
             // We need the data page device
-            var pageDevice = ResolveDeviceService<DatabaseDevice>();
+            var pageDevice = GetService<DatabaseDevice>();
 
             // We need to rollback transactions in reverse order and we don't
             //	need to worry about locks as the owner transaction is still
@@ -440,7 +440,7 @@ namespace Zen.Trunk.Storage.Log
 				{
 					var info = rootPage.GetDeviceByIndex(index);
 
-					var secondaryDevice = ResolveDeviceService<LogPageDevice>(
+					var secondaryDevice = GetService<LogPageDevice>(
                         new NamedParameter("deviceId", info.Id),
                         new NamedParameter("pathName", info.PathName));
 					_secondaryDevices.Add(info.Id, secondaryDevice);
@@ -538,7 +538,7 @@ namespace Zen.Trunk.Storage.Log
 			LogPageDevice device;
 			if (!primaryLog)
 			{
-                var secondaryDevice = ResolveDeviceService<LogPageDevice>(
+                var secondaryDevice = GetService<LogPageDevice>(
                     new NamedParameter("deviceId", proposedDeviceId),
                     new NamedParameter("pathName", fullPathName));
 				_secondaryDevices.Add(proposedDeviceId, secondaryDevice);

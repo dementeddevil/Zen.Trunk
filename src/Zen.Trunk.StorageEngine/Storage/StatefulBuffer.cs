@@ -170,8 +170,8 @@ namespace Zen.Trunk.Storage
         /// </summary>
         public void Dispose()
         {
-            Debug.Assert(_refCount == 0, "Potentially invalid disposal of buffer with reference count > 0.");
-            DisposeManagedObjects();
+            Dispose(true);
+            GC.SuppressFinalize(this);
         }
 
         /// <summary>
@@ -234,10 +234,18 @@ namespace Zen.Trunk.Storage
 
         #region Protected Methods
         /// <summary>
-        /// Performs managed disposal of resources.
+        /// Releases unmanaged and - optionally - managed resources.
         /// </summary>
-        protected virtual void DisposeManagedObjects()
+        /// <param name="disposing">
+        /// <c>true</c> to release both managed and unmanaged resources; 
+        /// <c>false</c> to release only unmanaged resources.
+        /// </param>
+        protected virtual void Dispose(bool disposing)
         {
+            if (disposing)
+            {
+                Debug.Assert(_refCount == 0, "Potentially invalid disposal of buffer with reference count > 0.");
+            }
             _isDisposed = true;
         }
 

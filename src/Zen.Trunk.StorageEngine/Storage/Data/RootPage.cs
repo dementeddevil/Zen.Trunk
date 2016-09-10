@@ -72,7 +72,7 @@ namespace Zen.Trunk.Storage.Data
 	    /// <summary>
 		/// Overridden. Returns boolean true indicating this is a root page.
 		/// </summary>
-		public override bool IsRootPage => true;
+		public virtual bool IsRootPage => true;
 
         /// <summary>
         /// Gets the minimum number of bytes required for the header block.

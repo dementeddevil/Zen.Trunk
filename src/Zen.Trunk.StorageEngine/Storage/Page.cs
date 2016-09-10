@@ -202,7 +202,7 @@ namespace Zen.Trunk.Storage
 			{
 				return (PageType)_status.Value[_pageType];
 			}
-			set
+	        protected set
 			{
 				CheckReadOnly();
 				_status.SetValue(_pageType, (int)value);
@@ -223,18 +223,13 @@ namespace Zen.Trunk.Storage
 		/// <summary>
 		/// Gets/sets the readonly page state.
 		/// </summary>
-		public virtual bool ReadOnly { get; set; }
+		public bool ReadOnly { get; set; }
 
 	    /// <summary>
 		/// Gets a value indicating whether this page is dirty.
 		/// Note: This does not check the underlying _buffer.
 		/// </summary>
 		public bool IsDirty => _headerDirty | _dataDirty;
-
-	    /// <summary>
-		/// Gets a value indicating whether this is the root database page.
-		/// </summary>
-		public virtual bool IsRootPage => false;
 
 	    /// <summary>
 		/// Gets/sets a value indicating whether the data section of a page
@@ -303,7 +298,8 @@ namespace Zen.Trunk.Storage
 		/// </summary>
 		public void Dispose()
 		{
-			DisposeManagedObjects();
+			Dispose(true);
+            GC.SuppressFinalize(this);
 		}
 
 		/// <summary>
@@ -328,6 +324,13 @@ namespace Zen.Trunk.Storage
 				_dataDirty = false;
 			}
 		}
+
+        /// <summary>
+        /// Creates the data stream.
+        /// </summary>
+        /// <param name="readOnly">if set to <c>true</c> [read only].</param>
+        /// <returns></returns>
+        public abstract Stream CreateDataStream(bool readOnly);
 
         /// <summary>
         /// Sets the lifetime scope.
@@ -422,30 +425,26 @@ namespace Zen.Trunk.Storage
 		/// <summary>
 		/// Releases managed resources
 		/// </summary>
-		protected virtual void DisposeManagedObjects()
+		protected virtual void Dispose(bool disposing)
 		{
-			if (!_disposed)
+			if (!_disposed && disposing)
 			{
 				if (_events != null)
 				{
-					// Notify objects that we are disappearing...
-					var handler = (EventHandler)Events[DisposedEvent];
-					if (handler != null)
-					{
-						handler(this, EventArgs.Empty);
-					}
+                    // Notify objects that we are disappearing...
+                    ((EventHandler)Events[DisposedEvent])?.Invoke(this, EventArgs.Empty);
 
-					// Dispose of the event handler list
-					_events.Dispose();
-					_events = null;
+                    // Dispose of the event handler list
+                    _events.Dispose();
 				}
 
-				_disposed = true;
+			    _lifetimeScope?.Dispose();
 			}
 
 			// Disconnect from site
-			_lifetimeScope?.Dispose();
 		    _lifetimeScope = null;
+			_events = null;
+			_disposed = true;
 		}
 
 		/// <summary>
@@ -481,50 +480,11 @@ namespace Zen.Trunk.Storage
 		}
 
 		/// <summary>
-		/// Reads the page data block from the underlying buffer.
-		/// </summary>
-		protected void ReadData()
-		{
-			using (var stream = CreateDataStream(true))
-			{
-				using (var streamManager = new BufferReaderWriter(stream))
-				{
-					ReadData(streamManager);
-					streamManager.Close();
-				}
-				_dataDirty = false;
-			}
-		}
-
-		/// <summary>
-		/// Writes the page data block to the underlying storage.
-		/// </summary>
-		protected void WriteData()
-		{
-			using (var stream = CreateDataStream(false))
-			{
-				using (var streamManager = new BufferReaderWriter(stream))
-				{
-					WriteData(streamManager);
-					streamManager.Close();
-				}
-				_dataDirty = false;
-			}
-		}
-
-		/// <summary>
 		/// Creates the header stream.
 		/// </summary>
 		/// <param name="readOnly">if set to <c>true</c> [read only].</param>
 		/// <returns></returns>
 		protected abstract Stream CreateHeaderStream(bool readOnly);
-
-		/// <summary>
-		/// Creates the data stream.
-		/// </summary>
-		/// <param name="readOnly">if set to <c>true</c> [read only].</param>
-		/// <returns></returns>
-		public abstract Stream CreateDataStream(bool readOnly);
 
 		/// <summary>
 		/// Writes the page header block to the specified buffer writer.
@@ -591,11 +551,7 @@ namespace Zen.Trunk.Storage
         /// <param name="e">The <see cref="System.EventArgs"/> instance containing the event data.</param>
         protected virtual Task OnInitAsync(EventArgs e)
 		{
-			var handler = (EventHandler)Events[InitEvent];
-			if (handler != null)
-			{
-				handler(this, e);
-			}
+            ((EventHandler)Events[InitEvent])?.Invoke(this, e);
             return Task.FromResult(true);
         }
 
@@ -616,11 +572,7 @@ namespace Zen.Trunk.Storage
 		/// <param name="e">The <see cref="System.EventArgs"/> instance containing the event data.</param>
 		protected virtual Task OnPostLoadAsync(EventArgs e)
 		{
-			var handler = (EventHandler)Events[LoadEvent];
-			if (handler != null)
-			{
-				handler(this, e);
-			}
+            ((EventHandler)Events[LoadEvent])?.Invoke(this, e);
             return Task.FromResult(true);
         }
 
@@ -649,11 +601,7 @@ namespace Zen.Trunk.Storage
 		/// <param name="e">The <see cref="System.EventArgs"/> instance containing the event data.</param>
 		protected virtual void OnPostSave(EventArgs e)
 		{
-			var handler = (EventHandler)Events[SaveEvent];
-			if (handler != null)
-			{
-				handler(this, e);
-			}
+            ((EventHandler)Events[SaveEvent])?.Invoke(this, e);
 		}
 
 		/// <summary>
@@ -662,11 +610,7 @@ namespace Zen.Trunk.Storage
 		/// <param name="e">The <see cref="System.EventArgs"/> instance containing the event data.</param>
 		protected virtual void OnDirty(EventArgs e)
 		{
-			var handler = (EventHandler)Events[DirtyEvent];
-			if (handler != null)
-			{
-				handler(this, e);
-			}
+            ((EventHandler)Events[DirtyEvent])?.Invoke(this, e);
 		}
 
         /// <summary>
@@ -679,10 +623,36 @@ namespace Zen.Trunk.Storage
         {
             return previousSection;
         }
-		#endregion
+        #endregion
 
-		#region Private Methods
-		private void CreateStatus(int value)
+        #region Private Methods
+        private void ReadData()
+        {
+            using (var stream = CreateDataStream(true))
+            {
+                using (var streamManager = new BufferReaderWriter(stream))
+                {
+                    ReadData(streamManager);
+                    streamManager.Close();
+                }
+                _dataDirty = false;
+            }
+        }
+
+        private void WriteData()
+        {
+            using (var stream = CreateDataStream(false))
+            {
+                using (var streamManager = new BufferReaderWriter(stream))
+                {
+                    WriteData(streamManager);
+                    streamManager.Close();
+                }
+                _dataDirty = false;
+            }
+        }
+
+        private void CreateStatus(int value)
 		{
 			_status.Value = new BitVector32(value);
 			_pageType = BitVector32.CreateSection((short)PageType.Index);
