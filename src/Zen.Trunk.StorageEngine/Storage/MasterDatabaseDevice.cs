@@ -103,8 +103,7 @@ namespace Zen.Trunk.Storage
                 // Create new database device
                 var dbId = _nextDatabaseId;
                 _nextDatabaseId = _nextDatabaseId.Next;
-                device = GetService<DatabaseDevice>(
-                    new NamedParameter("dbId", dbId));
+                device = GetService<DatabaseDevice>(new NamedParameter("dbId", dbId));
             }
 
             // Create transaction context for the new database device

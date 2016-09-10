@@ -320,7 +320,6 @@ namespace Zen.Trunk.Storage
         private ITargetBlock<AddLogDeviceRequest> AddLogDevicePort { get; }
 
         private ITargetBlock<RemoveLogDeviceRequest> RemoveLogDevicePort { get; }
-
         #endregion
 
         #region Public Methods
@@ -745,6 +744,16 @@ namespace Zen.Trunk.Storage
                         new NamedParameter("name", fileGroupName));
                 }
 
+                // Setup container for filegroup device and hookup
+                var fileGroupScope = LifetimeScope.BeginLifetimeScope(
+                    builder =>
+                    {
+                        // Downstream requests for DatabaseDevice return this object.
+                        builder.RegisterInstance(this).As<DatabaseDevice>();
+                    });
+                fileGroupDevice.InitialiseDeviceLifetimeScope(fileGroupScope);
+
+                // Add device to our lookup tables
                 _fileGroupById.Add(fileGroupId, fileGroupDevice);
                 _fileGroupByName.Add(fileGroupName, fileGroupDevice);
 

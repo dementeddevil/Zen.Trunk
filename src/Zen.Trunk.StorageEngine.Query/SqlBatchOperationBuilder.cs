@@ -183,9 +183,9 @@ namespace Zen.Trunk.Storage.Query
         /// <return>The visitor result.</return>
         public override Expression<Func<ExecutionContext, Task>> VisitCreate_database(TrunkSqlParser.Create_databaseContext context)
         {
-            var attachDatabaseParameters = new AttachDatabaseParameters(context.database.ToString(), true);
+            var attachDatabaseParameters = new AttachDatabaseParameters(context.database.GetText(), true);
             var fileSpecCount = context.database_file_spec().Length;
-            var rawDatabaseFileSpec = context.database_file_spec(0);
+            var rawDatabaseFileSpec = fileSpecCount == 0 ? null : context.database_file_spec(0);
             var fileSpecIndex = 0;
             var isLogFileSpec = false;
             var fileGroupName = string.Empty;
@@ -200,7 +200,7 @@ namespace Zen.Trunk.Storage.Query
                 {
                     fileGroupName = StorageConstants.PrimaryFileGroupName;
                 }
-                if (token == rawDatabaseFileSpec)
+                if (rawDatabaseFileSpec != null && token == rawDatabaseFileSpec)
                 {
                     var rawFileGroupSpec = rawDatabaseFileSpec.file_group();
                     var rawFileSpec = rawDatabaseFileSpec.file_spec();

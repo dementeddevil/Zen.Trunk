@@ -4,6 +4,8 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+using System;
+using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using System.Transactions;
@@ -21,6 +23,31 @@ namespace Zen.Trunk.Storage
     [Trait("Subsystem", "Storage Engine Query")]
     public class StorageQueryTest : AutofacStorageEngineUnitTests
     {
+        [Fact(DisplayName = "Create master device using default values")]
+        public async Task CreateMasterDeviceWithDefaultsTest()
+        {
+            using (var tracker = new TempFileTracker())
+            {
+                using (var manager = Scope.Resolve<MasterDatabaseDevice>())
+                {
+                    manager.InitialiseDeviceLifetimeScope(Scope);
+
+                    var executive = new QueryExecutive(manager);
+
+                    var batch = new StringBuilder();
+
+                    manager.BeginTransaction(TimeSpan.FromMinutes(15));
+                    batch.AppendLine("create database master");
+                    batch.AppendLine("go");
+                    await executive.ExecuteAsync(batch.ToString()).ConfigureAwait(true);
+                    await manager.OpenAsync(true).ConfigureAwait(true);
+                    await TrunkTransactionContext.CommitAsync().ConfigureAwait(true);
+
+                    await manager.CloseAsync().ConfigureAwait(true);
+                }
+            }
+        }
+
         [Fact(DisplayName = "Create master device")]
         public async Task CreateMasterDeviceTest()
         {
@@ -115,6 +142,17 @@ namespace Zen.Trunk.Storage
             builder.RegisterType<MasterDatabaseDevice>()
                 .SingleInstance()
                 .AsSelf();
+
+            // Use the tracker to determine base configuration
+            var temp = GlobalTracker.Get("foo.bar");
+            var testFolder = Path.GetDirectoryName(temp);
+            var engineConfig =
+                new StorageEngineConfiguration
+                {
+                    DefaultDataFilePath = Path.Combine(testFolder, "Data"),
+                    DefaultLogFilePath = Path.Combine(testFolder, "Log")
+                };
+            builder.RegisterInstance(engineConfig).AsSelf();
         }
     }
 }
