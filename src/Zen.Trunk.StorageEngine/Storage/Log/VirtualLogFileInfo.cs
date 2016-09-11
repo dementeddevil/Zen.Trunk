@@ -1,7 +1,7 @@
 namespace Zen.Trunk.Storage.Log
 {
     /// <summary>
-    /// 
+    /// <c>VirtualLogFileInfo</c> defines information about a virtual log file.
     /// </summary>
     /// <seealso cref="Zen.Trunk.Storage.BufferFieldWrapper" />
     public class VirtualLogFileInfo : BufferFieldWrapper
@@ -11,9 +11,7 @@ namespace Zen.Trunk.Storage.Log
 		private readonly BufferFieldLogFileId _id;
 		private readonly BufferFieldInt64 _startOffset;
 		private readonly BufferFieldUInt32 _length;
-
-		private VirtualLogFileHeader _currentHeader;
-        #endregion
+	    #endregion
 
         #region Public Constructors
         /// <summary>
@@ -26,7 +24,7 @@ namespace Zen.Trunk.Storage.Log
 			_startOffset = new BufferFieldInt64(_id);
 			_length = new BufferFieldUInt32(_startOffset);
 
-			_currentHeader = new VirtualLogFileHeader();
+			CurrentHeader = new VirtualLogFileHeader();
 		}
 		#endregion
 
@@ -100,15 +98,9 @@ namespace Zen.Trunk.Storage.Log
 		/// <summary>
 		/// Gets the log file Id.
 		/// </summary>
-		public uint FileId
-		{
-			get
-			{
-				return _id.Value.FileId;
-			}
-		}
+		public LogFileId FileId => _id.Value;
 
-		/// <summary>
+	    /// <summary>
 		/// Gets/sets the header status
 		/// </summary>
 		public byte Status
@@ -165,18 +157,8 @@ namespace Zen.Trunk.Storage.Log
         /// <value>
         /// The current header.
         /// </value>
-        public VirtualLogFileHeader CurrentHeader
-		{
-			get
-			{
-				return _currentHeader;
-			}
-			set
-			{
-				_currentHeader = value;
-			}
-		}
-        #endregion
+        public VirtualLogFileHeader CurrentHeader { get; set; }
+	    #endregion
 
         #region Protected Properties
         /// <summary>
@@ -194,148 +176,6 @@ namespace Zen.Trunk.Storage.Log
         /// A <see cref="T:BufferField" /> object.
         /// </value>
         protected override BufferField LastField => _length;
-
-	    #endregion
-	}
-
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <seealso cref="BufferFieldWrapper" />
-    public class VirtualLogFileHeader : BufferFieldWrapper
-	{
-		#region Private Fields
-		private readonly BufferFieldInt64 _timestamp;
-		private readonly BufferFieldUInt32 _lastCursor;
-		private readonly BufferFieldUInt32 _cursor;
-		private readonly BufferFieldUInt32 _prevFileId;
-		private readonly BufferFieldUInt32 _nextFileId;
-		private readonly BufferFieldInt32 _hash;
-        #endregion
-
-        #region Public Constructors
-        /// <summary>
-        /// Initializes a new instance of the <see cref="VirtualLogFileHeader"/> class.
-        /// </summary>
-        public VirtualLogFileHeader()
-		{
-			_timestamp = new BufferFieldInt64();
-			_lastCursor = new BufferFieldUInt32(_timestamp);
-			_cursor = new BufferFieldUInt32(_lastCursor);
-			_prevFileId = new BufferFieldUInt32(_cursor);
-			_nextFileId = new BufferFieldUInt32(_prevFileId);
-			_hash = new BufferFieldInt32(_nextFileId);
-		}
-		#endregion
-
-		#region Public Properties
-		/// <summary>
-		/// Gets/sets the header timestamp.
-		/// </summary>
-		public long Timestamp
-		{
-			get
-			{
-				return _timestamp.Value;
-			}
-			set
-			{
-				_timestamp.Value = value;
-			}
-		}
-
-		/// <summary>
-		/// Gets/sets the previous file Id.
-		/// </summary>
-		public uint PrevFileId
-		{
-			get
-			{
-				return _prevFileId.Value;
-			}
-			set
-			{
-				_prevFileId.Value = value;
-			}
-		}
-
-		/// <summary>
-		/// Gets/sets the next file Id.
-		/// </summary>
-		public uint NextFileId
-		{
-			get
-			{
-				return _nextFileId.Value;
-			}
-			set
-			{
-				_nextFileId.Value = value;
-			}
-		}
-
-		/// <summary>
-		/// Gets/sets the last cursor position.
-		/// </summary>
-		public uint LastCursor
-		{
-			get
-			{
-				return _lastCursor.Value;
-			}
-			set
-			{
-				_lastCursor.Value = value;
-			}
-		}
-
-		/// <summary>
-		/// Gets/sets the cursor position.
-		/// </summary>
-		public uint Cursor
-		{
-			get
-			{
-				return _cursor.Value;
-			}
-			set
-			{
-				_cursor.Value = value;
-			}
-		}
-
-		/// <summary>
-		/// Gets/sets the header hash.
-		/// </summary>
-		public int Hash
-		{
-			get
-			{
-				return _hash.Value;
-			}
-			set
-			{
-				_hash.Value = value;
-			}
-		}
-        #endregion
-
-        #region Protected Properties
-        /// <summary>
-        /// Gets the first buffer field object.
-        /// </summary>
-        /// <value>
-        /// A <see cref="T:BufferField" /> object.
-        /// </value>
-        protected override BufferField FirstField => _timestamp;
-
-        /// <summary>
-        /// Gets the last buffer field object.
-        /// </summary>
-        /// <value>
-        /// A <see cref="T:BufferField" /> object.
-        /// </value>
-        protected override BufferField LastField => _hash;
 	    #endregion
 	}
 }

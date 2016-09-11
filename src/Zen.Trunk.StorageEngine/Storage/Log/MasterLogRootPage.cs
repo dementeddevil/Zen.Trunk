@@ -28,7 +28,7 @@ namespace Zen.Trunk.Storage.Log
 		/// This value is used to complete linked-list chaining during
 		/// the creation of new virtual log files.
 		/// </remarks>
-		private readonly BufferFieldUInt32 _logLastFileId;
+		private readonly BufferFieldLogFileId _logLastFileId;
 
 		/// <summary>
 		/// Tracks the start of the log file.
@@ -38,7 +38,7 @@ namespace Zen.Trunk.Storage.Log
 		/// recover the database. It is adjusted during recovery and checkpoint
 		/// operations.
 		/// </remarks>
-		private readonly BufferFieldUInt32 _logStartFileId;
+		private readonly BufferFieldLogFileId _logStartFileId;
 
 		/// <summary>
 		/// Tracks the offset within the start file where log records must be
@@ -49,7 +49,7 @@ namespace Zen.Trunk.Storage.Log
 		/// <summary>
 		/// Tracks the last written log file.
 		/// </summary>
-		private readonly BufferFieldUInt32 _logEndFileId;
+		private readonly BufferFieldLogFileId _logEndFileId;
 
 		/// <summary>
 		/// Tracks the next free insert location for writes to the log file.
@@ -73,10 +73,10 @@ namespace Zen.Trunk.Storage.Log
 			_devicesByIndex = new List<DeviceInfo>();
 
 			_deviceCount = new BufferFieldUInt16(base.LastHeaderField);
-			_logLastFileId = new BufferFieldUInt32(_deviceCount);
-			_logStartFileId = new BufferFieldUInt32(_logLastFileId);
+			_logLastFileId = new BufferFieldLogFileId(_deviceCount);
+			_logStartFileId = new BufferFieldLogFileId(_logLastFileId);
 			_logStartOffset = new BufferFieldUInt32(_logStartFileId);
-			_logEndFileId = new BufferFieldUInt32(_logStartOffset);
+			_logEndFileId = new BufferFieldLogFileId(_logStartOffset);
 			_logEndOffset = new BufferFieldUInt32(_logEndFileId);
 			_checkPointHistoryCount = new BufferFieldByte(_logEndOffset);
 		}
@@ -87,7 +87,7 @@ namespace Zen.Trunk.Storage.Log
 		/// Gets or sets the log last file id.
 		/// </summary>
 		/// <value>The log last file id.</value>
-		public uint LogLastFileId
+		public LogFileId LogLastFileId
 		{
 			get
 			{
@@ -108,7 +108,7 @@ namespace Zen.Trunk.Storage.Log
 		/// Gets or sets the log start file id.
 		/// </summary>
 		/// <value>The log start file id.</value>
-		public uint LogStartFileId
+		public LogFileId LogStartFileId
 		{
 			get
 			{
@@ -150,7 +150,7 @@ namespace Zen.Trunk.Storage.Log
 		/// Gets or sets the log end file id.
 		/// </summary>
 		/// <value>The log end file id.</value>
-		public uint LogEndFileId
+		public LogFileId LogEndFileId
 		{
 			get
 			{
@@ -244,12 +244,11 @@ namespace Zen.Trunk.Storage.Log
 			{
 				throw new ArgumentOutOfRangeException(nameof(index), index, "Index out of range");
 			}
-			if (_lastCheckPoint == null)
-				return null;
-			return _lastCheckPoint[index];
+
+		    return _lastCheckPoint?[index];
 		}
 
-		internal void AddCheckPoint(uint fileId, uint offset, bool start)
+		internal void AddCheckPoint(LogFileId fileId, uint offset, bool start)
 		{
 			if (_lastCheckPoint == null)
 			{

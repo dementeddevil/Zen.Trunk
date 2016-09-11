@@ -218,12 +218,12 @@ namespace Zen.Trunk.Storage.Log
         /// </summary>
         /// <param name="deviceId">The device identifier.</param>
         /// <param name="length">The length.</param>
-        /// <param name="lastLogFile">The last log file.</param>
+        /// <param name="lastLogFileId">The last log file identifier.</param>
         /// <returns></returns>
         /// <exception cref="Zen.Trunk.Storage.DeviceFullException"></exception>
         /// <exception cref="ArgumentException">LastFileId is invalid - already pointing to different FileId!</exception>
         public VirtualLogFileInfo AddLogFile(
-            DeviceId deviceId, uint length, uint lastLogFile)
+            DeviceId deviceId, uint length, LogFileId lastLogFileId)
 		{
 			// Check whether we can fit another log file on this device.
 			if (LogFileCount == ushort.MaxValue)
@@ -232,23 +232,24 @@ namespace Zen.Trunk.Storage.Log
 			}
 
 			// Create log file and assign Id
-			var info = new VirtualLogFileInfo();
-			info.DeviceId = deviceId;
-			info.Index = LogFileCount;
+		    var info = new VirtualLogFileInfo
+		    {
+		        DeviceId = deviceId,
+		        Index = LogFileCount
+		    };
 
-			// Chain the log file if we can
-			var lastLogFileId = new LogFileId(lastLogFile);
-			if (lastLogFile != 0)
+		    // Chain the log file if we can
+			if (lastLogFileId != LogFileId.Zero)
 			{
 				// If last log file is on a different device then the we can
 				//	only perform half of the linked-list fixup.
 				if (lastLogFileId.DeviceId != deviceId)
 				{
-					info.CurrentHeader.PrevFileId = lastLogFile;
+					info.CurrentHeader.PrevFileId = lastLogFileId;
 				}
 
 				// Otherwise check the last file hasn't already been chained
-				else if (_logFiles[lastLogFileId.Index].CurrentHeader.NextFileId != 0)
+				else if (_logFiles[lastLogFileId.Index].CurrentHeader.NextFileId != LogFileId.Zero)
 				{
 					throw new ArgumentException("LastFileId is invalid - already pointing to different FileId!");
 				}
@@ -257,7 +258,7 @@ namespace Zen.Trunk.Storage.Log
 				else
 				{
 					_logFiles[lastLogFileId.Index].CurrentHeader.NextFileId = info.FileId;
-					info.CurrentHeader.PrevFileId = lastLogFile;
+					info.CurrentHeader.PrevFileId = lastLogFileId;
 				}
 			}
 
@@ -265,7 +266,7 @@ namespace Zen.Trunk.Storage.Log
 			else if (LogFileCount > 0)
 			{
 				var lastIndexOnDevice = _logFiles.Count - 1;
-				if (_logFiles[lastIndexOnDevice].CurrentHeader.NextFileId == 0)
+				if (_logFiles[lastIndexOnDevice].CurrentHeader.NextFileId == LogFileId.Zero)
 				{
 					_logFiles[lastIndexOnDevice].CurrentHeader.NextFileId = info.FileId;
 					info.CurrentHeader.PrevFileId = _logFiles[lastIndexOnDevice].FileId;

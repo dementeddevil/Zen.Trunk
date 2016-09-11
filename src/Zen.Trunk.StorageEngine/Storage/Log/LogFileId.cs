@@ -1,12 +1,12 @@
+using System;
+
 namespace Zen.Trunk.Storage.Log
 {
-    using System;
-
     /// <summary>
     /// Simple class type which represents a Log File Indentifier.
     /// </summary>
     [Serializable]
-    public class LogFileId : IComparable, ICloneable
+    public struct LogFileId : IComparable, ICloneable
     {
         /// <summary>
         /// The zero
@@ -62,7 +62,7 @@ namespace Zen.Trunk.Storage.Log
         /// <returns></returns>
         public override string ToString()
         {
-            return $"LogFileId{{{DeviceId.Value:X}:{Index:X}}}";
+            return $"LogFileId{{{DeviceId.Value:X4}:{Index:X4}}}";
         }
 
         /// <summary>
@@ -105,7 +105,7 @@ namespace Zen.Trunk.Storage.Log
         /// <b>=0</b> this object sorts the same as obj.
         /// <b>&gt;0</b> this object sorts higher than obj.
         /// </returns>
-        public virtual int CompareTo(LogFileId obj)
+        public int CompareTo(LogFileId obj)
         {
             var order = DeviceId.CompareTo(obj.DeviceId);
             if (order == 0)
@@ -125,15 +125,6 @@ namespace Zen.Trunk.Storage.Log
         /// </returns>
         public static bool operator ==(LogFileId left, LogFileId right)
         {
-            if (left == null && right == null)
-            {
-                return true;
-            }
-            if (left == null || right == null)
-            {
-                return false;
-            }
-
             return left.DeviceId == right.DeviceId && left.Index == right.Index;
         }
 
@@ -147,15 +138,6 @@ namespace Zen.Trunk.Storage.Log
         /// </returns>
         public static bool operator !=(LogFileId left, LogFileId right)
         {
-            if (left == null && right == null)
-            {
-                return false;
-            }
-            if (left == null || right == null)
-            {
-                return true;
-            }
-
             return left.DeviceId != right.DeviceId || left.Index != right.Index;
         }
         #endregion
