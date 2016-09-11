@@ -2,17 +2,17 @@ namespace Zen.Trunk.Storage.Log
 {
 	internal class CheckPointInfo : BufferFieldWrapper
 	{
-		private readonly BufferFieldUInt32 _beginFileId;
+		private readonly BufferFieldLogFileId _beginFileId;
 		private readonly BufferFieldUInt32 _beginOffset;
-		private readonly BufferFieldUInt32 _endFileId;
+		private readonly BufferFieldLogFileId _endFileId;
 		private readonly BufferFieldUInt32 _endOffset;
 		private readonly BufferFieldBitVector8 _status;
 
 		public CheckPointInfo()
 		{
-			_beginFileId = new BufferFieldUInt32();
+			_beginFileId = new BufferFieldLogFileId();
 			_beginOffset = new BufferFieldUInt32(_beginFileId);
-			_endFileId = new BufferFieldUInt32(_beginOffset);
+			_endFileId = new BufferFieldLogFileId(_beginOffset);
 			_endOffset = new BufferFieldUInt32(_endFileId);
 			_status = new BufferFieldBitVector8(_endOffset);
 		}
@@ -21,7 +21,7 @@ namespace Zen.Trunk.Storage.Log
 
 	    protected override BufferField LastField => _status;
 
-	    internal uint BeginFileId
+	    internal LogFileId BeginFileId
 		{
 			get
 			{
@@ -45,7 +45,7 @@ namespace Zen.Trunk.Storage.Log
 			}
 		}
 
-		internal uint EndFileId
+		internal LogFileId EndFileId
 		{
 			get
 			{

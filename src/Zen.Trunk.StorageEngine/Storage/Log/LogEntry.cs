@@ -480,10 +480,7 @@ namespace Zen.Trunk.Storage.Log
 			streamManager.Write((ushort)TransactionCount);
 			for (var index = 0; index < TransactionCount; ++index)
 			{
-				streamManager.Write(_activeTransactions[index].FileId);
-				streamManager.Write(_activeTransactions[index].FileOffset);
-				streamManager.Write(_activeTransactions[index].FirstLogId);
-				streamManager.Write(_activeTransactions[index].TransactionId);
+                _activeTransactions[index].Write(streamManager);
 			}
 		}
 
@@ -501,13 +498,8 @@ namespace Zen.Trunk.Storage.Log
 				_activeTransactions = new List<ActiveTransaction>();
 				for (var index = 0; index < count; ++index)
 				{
-					var fileId = streamManager.ReadUInt16();
-					var fileOffset = streamManager.ReadUInt32();
-					var firstLogId = streamManager.ReadUInt32();
-					var transactionId = streamManager.ReadUInt32();
-
-					var tran = new ActiveTransaction(
-						transactionId, fileId, fileOffset, firstLogId);
+				    var tran = new ActiveTransaction();
+                    tran.Read(streamManager);
 					_activeTransactions.Add(tran);
 				}
 			}

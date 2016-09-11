@@ -44,12 +44,12 @@ namespace Zen.Trunk.Storage.Log
 		/// <summary>
 		/// Gets the log file Id.
 		/// </summary>
-		public uint FileId => _logFileInfo.FileId;
+		public LogFileId FileId => _logFileInfo.FileId;
 
 	    /// <summary>
 		/// Gets/sets the previous log file Id.
 		/// </summary>
-		public uint PrevFileId
+		public LogFileId PrevFileId
 		{
 			get
 			{
@@ -68,7 +68,7 @@ namespace Zen.Trunk.Storage.Log
 		/// <summary>
 		/// Gets/sets the next log file Id.
 		/// </summary>
-		public uint NextFileId
+		public LogFileId NextFileId
 		{
 			get
 			{

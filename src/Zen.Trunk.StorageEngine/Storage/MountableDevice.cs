@@ -12,6 +12,8 @@ using Zen.Trunk.Storage.Locking;
 namespace Zen.Trunk.Storage
 {
     /// <summary>
+    /// <c>MountableDevice</c> defines a device that can support being
+    /// mounted and dismounted.
     /// </summary>
     [CLSCompliant(false)]
     public abstract class MountableDevice : IMountableDevice, IDisposable
@@ -257,13 +259,18 @@ namespace Zen.Trunk.Storage
         /// <summary>
         /// Resolves the device service.
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="parameters">The parameters.</param>
-        /// <returns></returns>
-        protected T GetService<T>(params Parameter[] parameters)
+        /// <typeparam name="TService">Desired service type.</typeparam>
+        /// <param name="parameters">Any necessary constructor parameters.</param>
+        /// <returns>
+        /// An instance of <typeparamref name="TService"/>.
+        /// </returns>
+        /// <exception cref="DependencyResolutionException">
+        /// Thrown if the service cannot be resolved.
+        /// </exception>
+        protected TService GetService<TService>(params Parameter[] parameters)
         {
             CheckDisposed();
-            return LifetimeScope.Resolve<T>(parameters);
+            return LifetimeScope.Resolve<TService>(parameters);
         }
         #endregion
 

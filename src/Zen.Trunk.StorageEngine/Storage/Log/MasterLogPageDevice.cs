@@ -108,7 +108,7 @@ namespace Zen.Trunk.Storage.Log
         /// <value>
         /// The current log file identifier.
         /// </value>
-        public uint CurrentLogFileId => _currentStream.FileId;
+        public LogFileId CurrentLogFileId => _currentStream.FileId;
 
         /// <summary>
         /// Gets the current log file offset.
@@ -763,21 +763,20 @@ namespace Zen.Trunk.Storage.Log
 				var current = GetVirtualFileById(_currentStream.FileId);
 
 				// If the next file is zero then attempt to expand the log device
-				if (current.CurrentHeader.NextFileId == 0)
+				if (current.CurrentHeader.NextFileId == LogFileId.Zero)
 				{
 					ExpandDevice();
 				}
 
 				// If next file Id is still zero then die
 				// TODO If we are on minimal log setting then attempt to loop back to start
-				if (current.CurrentHeader.NextFileId == 0)
+				if (current.CurrentHeader.NextFileId == LogFileId.Zero)
 				{
 					// TODO: Throw correct exception type
 					throw new StorageEngineException("Log device is full");
 				}
 
-				var newStream = GetVirtualFileStream(
-					current.CurrentHeader.NextFileId);
+				var newStream = GetVirtualFileStream(current.CurrentHeader.NextFileId);
 
 				// Chain new file to old
 				_currentStream.IsFull = true;
@@ -921,21 +920,20 @@ namespace Zen.Trunk.Storage.Log
 			}
 		}
 
-		internal override VirtualLogFileInfo GetVirtualFileById(uint fileId)
+		internal override VirtualLogFileInfo GetVirtualFileById(LogFileId fileId)
 		{
-			var file = new LogFileId(fileId);
-			if (file.DeviceId == DeviceId)
+			if (fileId.DeviceId == DeviceId)
 			{
 				return base.GetVirtualFileById(fileId);
 			}
 			else
 			{
-				var secondaryDevice = _secondaryDevices[file.DeviceId];
+				var secondaryDevice = _secondaryDevices[fileId.DeviceId];
 				return secondaryDevice.GetVirtualFileById(fileId);
 			}
 		}
 
-		private VirtualLogFileStream GetVirtualFileStream(uint fileId)
+		private VirtualLogFileStream GetVirtualFileStream(LogFileId fileId)
 		{
 			var info = GetVirtualFileById(fileId);
 			if (info.DeviceId == DeviceId)
