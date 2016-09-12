@@ -419,14 +419,14 @@ namespace Zen.Trunk.Storage.Log
 				rootPage.ReadOnly = false;
 
 				// Initialise root page information
-				rootPage.LogStartOffset = 0;
-				rootPage.LogEndOffset = 0;
+				rootPage.StartLogOffset = 0;
+				rootPage.EndLogOffset = 0;
 
 				// Initialise virtual file streams
 				InitVirtualFiles();
 
 				// Setup current log stream
-				_currentStream = GetVirtualFileStream(rootPage.LogStartFileId);
+				_currentStream = GetVirtualFileStream(rootPage.StartLogFileId);
 				_currentStream.InitNew();
 
 				// Save root page
@@ -452,7 +452,7 @@ namespace Zen.Trunk.Storage.Log
 					.ConfigureAwait(false);
 
 				// Open the current log file stream
-				_currentStream = GetVirtualFileStream(rootPage.LogStartFileId);
+				_currentStream = GetVirtualFileStream(rootPage.StartLogFileId);
 			}
 		}
 
@@ -595,7 +595,7 @@ namespace Zen.Trunk.Storage.Log
 			var cpi = GetBestCheckpoint();
 
 			// Determine first virtual file for check-point start.
-			_currentStream = GetVirtualFileStream(cpi.BeginFileId);
+			_currentStream = GetVirtualFileStream(cpi.BeginLogFileId);
 			_currentStream.Position = cpi.BeginOffset;
 
 			// Create log reader
@@ -689,8 +689,8 @@ namespace Zen.Trunk.Storage.Log
 				var tran = new ActiveTransaction(
 				    // ReSharper disable once PossibleNullReferenceException
 					tle.TransactionId.Value,
-					rootPage.LogEndFileId,
-					rootPage.LogEndOffset,
+					rootPage.EndLogFileId,
+					rootPage.EndLogOffset,
 					tle.LogId);
 				if (_activeTransactions == null)
 				{
@@ -705,8 +705,8 @@ namespace Zen.Trunk.Storage.Log
 				entry.LogType == LogEntryType.EndCheckpoint)
 			{
 				rootPage.AddCheckPoint(
-					rootPage.LogEndFileId,
-					rootPage.LogEndOffset,
+					rootPage.EndLogFileId,
+					rootPage.EndLogOffset,
 					entry.LogType == LogEntryType.BeginCheckpoint);
 			}
 
@@ -744,8 +744,8 @@ namespace Zen.Trunk.Storage.Log
 			}
 
 			// Update root page with new information
-			rootPage.LogEndFileId = _currentStream.FileId;
-			rootPage.LogEndOffset = (uint)_currentStream.Position;
+			rootPage.EndLogFileId = _currentStream.FileId;
+			rootPage.EndLogOffset = (uint)_currentStream.Position;
 			SaveRootPage();
 
 			return true;
@@ -763,20 +763,20 @@ namespace Zen.Trunk.Storage.Log
 				var current = GetVirtualFileById(_currentStream.FileId);
 
 				// If the next file is zero then attempt to expand the log device
-				if (current.CurrentHeader.NextFileId == LogFileId.Zero)
+				if (current.CurrentHeader.NextLogFileId == LogFileId.Zero)
 				{
 					ExpandDevice();
 				}
 
 				// If next file Id is still zero then die
 				// TODO If we are on minimal log setting then attempt to loop back to start
-				if (current.CurrentHeader.NextFileId == LogFileId.Zero)
+				if (current.CurrentHeader.NextLogFileId == LogFileId.Zero)
 				{
 					// TODO: Throw correct exception type
 					throw new StorageEngineException("Log device is full");
 				}
 
-				var newStream = GetVirtualFileStream(current.CurrentHeader.NextFileId);
+				var newStream = GetVirtualFileStream(current.CurrentHeader.NextLogFileId);
 
 				// Chain new file to old
 				_currentStream.IsFull = true;
@@ -791,8 +791,8 @@ namespace Zen.Trunk.Storage.Log
 			}
 
 			// Update last log position
-			rootPage.LogEndFileId = _currentStream.FileId;
-			rootPage.LogEndOffset = (uint)_currentStream.Position;
+			rootPage.EndLogFileId = _currentStream.FileId;
+			rootPage.EndLogOffset = (uint)_currentStream.Position;
 
 			_currentStream.WriteEntry(entry);
 		}
@@ -896,7 +896,7 @@ namespace Zen.Trunk.Storage.Log
 			for (var index = 0; index < rootPage.CheckPointHistoryCount; ++index)
 			{
 				var proposed = rootPage.GetCheckPointHistory(index);
-				if (proposed.Valid)
+				if (proposed.IsValid)
 				{
 					check = proposed;
 				}

@@ -10,56 +10,24 @@ using Zen.Trunk.Storage.IO;
 
 namespace Zen.Trunk.Storage.Log
 {
-	/// <summary>
-	/// TODO: Update summary.
-	/// </summary>
-	public class MasterLogRootPage : LogRootPage
+    /// <summary>
+    /// <c>MasterLogRootPage</c> tracks essential information about the logging
+    /// infrastructure.
+    /// </summary>
+    public class MasterLogRootPage : LogRootPage
 	{
 		#region Private Fields
 		private readonly Dictionary<DeviceId, DeviceInfo> _deviceById;
 		private readonly List<DeviceInfo> _devicesByIndex;
 
 		private readonly BufferFieldUInt16 _deviceCount;
-
-		/// <summary>
-		/// Last virtual log file Id created.
-		/// </summary>
-		/// <remarks>
-		/// This value is used to complete linked-list chaining during
-		/// the creation of new virtual log files.
-		/// </remarks>
-		private readonly BufferFieldLogFileId _logLastFileId;
-
-		/// <summary>
-		/// Tracks the start of the log file.
-		/// </summary>
-		/// <remarks>
-		/// This is the first file which must be kept in order to successfully
-		/// recover the database. It is adjusted during recovery and checkpoint
-		/// operations.
-		/// </remarks>
-		private readonly BufferFieldLogFileId _logStartFileId;
-
-		/// <summary>
-		/// Tracks the offset within the start file where log records must be
-		/// preserved.
-		/// </summary>
-		private readonly BufferFieldUInt32 _logStartOffset;
-
-		/// <summary>
-		/// Tracks the last written log file.
-		/// </summary>
-		private readonly BufferFieldLogFileId _logEndFileId;
-
-		/// <summary>
-		/// Tracks the next free insert location for writes to the log file.
-		/// </summary>
-		private readonly BufferFieldUInt32 _logEndOffset;
-
-		/// <summary>
-		/// Tracks the number of checkpoint history records
-		/// </summary>
+		private readonly BufferFieldLogFileId _lastLogFileId;
+		private readonly BufferFieldLogFileId _startLogFileId;
+		private readonly BufferFieldUInt32 _startLogOffset;
+		private readonly BufferFieldLogFileId _endLogFileId;
+		private readonly BufferFieldUInt32 _endLogOffset;
 		private readonly BufferFieldByte _checkPointHistoryCount;
+
 		private CheckPointInfo[] _lastCheckPoint;
 		#endregion
 
@@ -73,95 +41,119 @@ namespace Zen.Trunk.Storage.Log
 			_devicesByIndex = new List<DeviceInfo>();
 
 			_deviceCount = new BufferFieldUInt16(base.LastHeaderField);
-			_logLastFileId = new BufferFieldLogFileId(_deviceCount);
-			_logStartFileId = new BufferFieldLogFileId(_logLastFileId);
-			_logStartOffset = new BufferFieldUInt32(_logStartFileId);
-			_logEndFileId = new BufferFieldLogFileId(_logStartOffset);
-			_logEndOffset = new BufferFieldUInt32(_logEndFileId);
-			_checkPointHistoryCount = new BufferFieldByte(_logEndOffset);
+			_lastLogFileId = new BufferFieldLogFileId(_deviceCount);
+			_startLogFileId = new BufferFieldLogFileId(_lastLogFileId);
+			_startLogOffset = new BufferFieldUInt32(_startLogFileId);
+			_endLogFileId = new BufferFieldLogFileId(_startLogOffset);
+			_endLogOffset = new BufferFieldUInt32(_endLogFileId);
+			_checkPointHistoryCount = new BufferFieldByte(_endLogOffset);
 		}
-		#endregion
+        #endregion
 
-		#region Public Properties
-		/// <summary>
-		/// Gets or sets the log last file id.
-		/// </summary>
-		/// <value>The log last file id.</value>
-		public LogFileId LogLastFileId
+        #region Public Properties
+        /// <summary>
+        /// Gets or sets the last log file identifier created.
+        /// </summary>
+        /// <value>
+        /// The last log file identifier.
+        /// </value>
+		/// <remarks>
+		/// This value is used to complete linked-list chaining during
+		/// the creation of new virtual log files.
+		/// </remarks>
+        public LogFileId LastLogFileId
 		{
 			get
 			{
-				return _logLastFileId.Value;
+				return _lastLogFileId.Value;
 			}
 			set
 			{
 				CheckReadOnly();
-				if (_logLastFileId.Value != value)
+				if (_lastLogFileId.Value != value)
 				{
-					_logLastFileId.Value = value;
+					_lastLogFileId.Value = value;
 					SetHeaderDirty();
 				}
 			}
 		}
 
-		/// <summary>
-		/// Gets or sets the log start file id.
-		/// </summary>
-		/// <value>The log start file id.</value>
-		public LogFileId LogStartFileId
+        /// <summary>
+        /// Gets or sets the start log file identifier.
+        /// </summary>
+        /// <value>
+        /// The start log file identifier.
+        /// </value>
+		/// <remarks>
+		/// This is the first file which must be kept in order to successfully
+		/// recover the database. It is adjusted during recovery and checkpoint
+		/// operations.
+		/// </remarks>
+        public LogFileId StartLogFileId
 		{
 			get
 			{
-				return _logStartFileId.Value;
+				return _startLogFileId.Value;
 			}
 			set
 			{
 				CheckReadOnly();
-				if (_logStartFileId.Value != value)
+				if (_startLogFileId.Value != value)
 				{
-					_logStartFileId.Value = value;
+					_startLogFileId.Value = value;
 					SetHeaderDirty();
 				}
 			}
 		}
 
-		/// <summary>
-		/// Gets or sets the log start offset.
-		/// </summary>
-		/// <value>The log start offset.</value>
-		public uint LogStartOffset
+        /// <summary>
+        /// Gets or sets the start log offset.
+        /// </summary>
+        /// <value>
+        /// The start log offset.
+        /// </value>
+        /// <remarks>
+		/// Tracks the offset within the start file where log records must be
+		/// preserved.
+        /// </remarks>
+        public uint StartLogOffset
 		{
 			get
 			{
-				return _logStartOffset.Value;
+				return _startLogOffset.Value;
 			}
 			set
 			{
 				CheckReadOnly();
-				if (_logStartOffset.Value != value)
+				if (_startLogOffset.Value != value)
 				{
-					_logStartOffset.Value = value;
+					_startLogOffset.Value = value;
 					SetHeaderDirty();
 				}
 			}
 		}
 
-		/// <summary>
-		/// Gets or sets the log end file id.
-		/// </summary>
-		/// <value>The log end file id.</value>
-		public LogFileId LogEndFileId
+        /// <summary>
+        /// Gets or sets the end log file identifier.
+        /// </summary>
+        /// <value>
+        /// The end log file identifier.
+        /// </value>
+        /// <remarks>
+        /// Tracks the last written log file.
+        /// </remarks>
+        public LogFileId EndLogFileId
 		{
 			get
 			{
-				return _logEndFileId.Value;
+				return _endLogFileId.Value;
 			}
 			set
 			{
 				CheckReadOnly();
-				if (_logEndFileId.Value != value)
+				if (_endLogFileId.Value != value)
 				{
-					_logEndFileId.Value = value;
+					_endLogFileId.Value = value;
 					SetHeaderDirty();
 				}
 			}
@@ -171,18 +163,21 @@ namespace Zen.Trunk.Storage.Log
 		/// Gets or sets the log end offset.
 		/// </summary>
 		/// <value>The log end offset.</value>
-		public uint LogEndOffset
+		/// <remarks>
+		/// Tracks the next free insert location for writes to the log file.
+		/// </remarks>
+		public uint EndLogOffset
 		{
 			get
 			{
-				return _logEndOffset.Value;
+				return _endLogOffset.Value;
 			}
 			set
 			{
 				CheckReadOnly();
-				if (_logEndOffset.Value != value)
+				if (_endLogOffset.Value != value)
 				{
-					_logEndOffset.Value = value;
+					_endLogOffset.Value = value;
 					SetHeaderDirty();
 				}
 			}
@@ -218,7 +213,7 @@ namespace Zen.Trunk.Storage.Log
 		/// Adds the device to the root page record.
 		/// </summary>
 		/// <param name="deviceInfo"></param>
-		internal void AddDevice(DeviceInfo deviceInfo)
+		public void AddDevice(DeviceInfo deviceInfo)
 		{
 			_deviceById.Add(deviceInfo.Id, deviceInfo);
 			_devicesByIndex.Add(deviceInfo);
@@ -228,17 +223,35 @@ namespace Zen.Trunk.Storage.Log
 			SetDataDirty();
 		}
 
-		internal DeviceInfo GetDeviceById(DeviceId deviceId)
+        /// <summary>
+        /// Gets the device by identifier.
+        /// </summary>
+        /// <param name="deviceId">The device identifier.</param>
+        /// <returns></returns>
+        public DeviceInfo GetDeviceById(DeviceId deviceId)
 		{
 			return _deviceById[deviceId];
 		}
 
-		internal DeviceInfo GetDeviceByIndex(int index)
+        /// <summary>
+        /// Gets the device information associated with the given index.
+        /// </summary>
+        /// <param name="index">The index.</param>
+        /// <returns>
+        /// A <see cref="DeviceInfo"/> object containing device information.
+        /// </returns>
+        public DeviceInfo GetDeviceByIndex(int index)
 		{
 			return _devicesByIndex[index];
 		}
 
-		internal CheckPointInfo GetCheckPointHistory(int index)
+        /// <summary>
+        /// Gets the check point history.
+        /// </summary>
+        /// <param name="index">The index.</param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentOutOfRangeException">Index out of range</exception>
+        public CheckPointInfo GetCheckPointHistory(int index)
 		{
 			if (index < 0 || index >= _checkPointHistoryCount.Value)
 			{
@@ -248,7 +261,13 @@ namespace Zen.Trunk.Storage.Log
 		    return _lastCheckPoint?[index];
 		}
 
-		internal void AddCheckPoint(LogFileId fileId, uint offset, bool start)
+        /// <summary>
+        /// Adds the check point.
+        /// </summary>
+        /// <param name="fileId">The file identifier.</param>
+        /// <param name="offset">The offset.</param>
+        /// <param name="start">if set to <c>true</c> [start].</param>
+        public void AddCheckPoint(LogFileId fileId, uint offset, bool start)
 		{
 			if (_lastCheckPoint == null)
 			{
@@ -261,15 +280,15 @@ namespace Zen.Trunk.Storage.Log
 				{
 					cpi = new CheckPointInfo();
 					_lastCheckPoint[_checkPointHistoryCount.Value] = cpi;
-					cpi.BeginFileId = fileId;
+					cpi.BeginLogFileId = fileId;
 					cpi.BeginOffset = offset;
 				}
 				else
 				{
 					cpi = _lastCheckPoint[_checkPointHistoryCount.Value++];
-					cpi.EndFileId = fileId;
+					cpi.EndLogFileId = fileId;
 					cpi.EndOffset = offset;
-					cpi.Valid = true;
+					cpi.IsValid = true;
 				}
 			}
 			else
@@ -281,15 +300,15 @@ namespace Zen.Trunk.Storage.Log
 				{
 					cpi = new CheckPointInfo();
 					_lastCheckPoint[2] = cpi;
-					cpi.BeginFileId = fileId;
+					cpi.BeginLogFileId = fileId;
 					cpi.BeginOffset = offset;
 				}
 				else
 				{
 					cpi = _lastCheckPoint[2];
-					cpi.EndFileId = fileId;
+					cpi.EndLogFileId = fileId;
 					cpi.EndOffset = offset;
-					cpi.Valid = true;
+					cpi.IsValid = true;
 				}
 			}
 
@@ -308,7 +327,6 @@ namespace Zen.Trunk.Storage.Log
 		/// </summary>
 		/// <value>The last header field.</value>
 		protected override BufferField LastHeaderField => _checkPointHistoryCount;
-
         #endregion
 
         #region Protected Methods

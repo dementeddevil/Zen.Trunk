@@ -1,39 +1,70 @@
 namespace Zen.Trunk.Storage.Log
 {
-	internal class CheckPointInfo : BufferFieldWrapper
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <seealso cref="Zen.Trunk.Storage.BufferFieldWrapper" />
+    public class CheckPointInfo : BufferFieldWrapper
 	{
-		private readonly BufferFieldLogFileId _beginFileId;
+		private readonly BufferFieldLogFileId _beginLogFileId;
 		private readonly BufferFieldUInt32 _beginOffset;
-		private readonly BufferFieldLogFileId _endFileId;
+		private readonly BufferFieldLogFileId _endLogFileId;
 		private readonly BufferFieldUInt32 _endOffset;
 		private readonly BufferFieldBitVector8 _status;
 
-		public CheckPointInfo()
+        /// <summary>
+        /// Initializes a new instance of the <see cref="CheckPointInfo"/> class.
+        /// </summary>
+        public CheckPointInfo()
 		{
-			_beginFileId = new BufferFieldLogFileId();
-			_beginOffset = new BufferFieldUInt32(_beginFileId);
-			_endFileId = new BufferFieldLogFileId(_beginOffset);
-			_endOffset = new BufferFieldUInt32(_endFileId);
+			_beginLogFileId = new BufferFieldLogFileId();
+			_beginOffset = new BufferFieldUInt32(_beginLogFileId);
+			_endLogFileId = new BufferFieldLogFileId(_beginOffset);
+			_endOffset = new BufferFieldUInt32(_endLogFileId);
 			_status = new BufferFieldBitVector8(_endOffset);
 		}
 
-		protected override BufferField FirstField => _beginFileId;
+        /// <summary>
+        /// Gets the first buffer field object.
+        /// </summary>
+        /// <value>
+        /// A <see cref="T:BufferField" /> object.
+        /// </value>
+        protected override BufferField FirstField => _beginLogFileId;
 
-	    protected override BufferField LastField => _status;
+        /// <summary>
+        /// Gets the last buffer field object.
+        /// </summary>
+        /// <value>
+        /// A <see cref="T:BufferField" /> object.
+        /// </value>
+        protected override BufferField LastField => _status;
 
-	    internal LogFileId BeginFileId
-		{
-			get
-			{
-				return _beginFileId.Value;
-			}
-			set
-			{
-				_beginFileId.Value = value;
-			}
-		}
+        /// <summary>
+        /// Gets or sets the begin log file identifier.
+        /// </summary>
+        /// <value>
+        /// The begin log file identifier.
+        /// </value>
+        public LogFileId BeginLogFileId
+        {
+            get
+            {
+                return _beginLogFileId.Value;
+            }
+            set
+            {
+                _beginLogFileId.Value = value;
+            }
+        }
 
-		internal uint BeginOffset
+        /// <summary>
+        /// Gets or sets the begin offset.
+        /// </summary>
+        /// <value>
+        /// The begin offset.
+        /// </value>
+        public uint BeginOffset
 		{
 			get
 			{
@@ -45,19 +76,31 @@ namespace Zen.Trunk.Storage.Log
 			}
 		}
 
-		internal LogFileId EndFileId
+        /// <summary>
+        /// Gets or sets the end log file identifier.
+        /// </summary>
+        /// <value>
+        /// The end log file identifier.
+        /// </value>
+        public LogFileId EndLogFileId
 		{
 			get
 			{
-				return _endFileId.Value;
+				return _endLogFileId.Value;
 			}
 			set
 			{
-				_endFileId.Value = value;
+				_endLogFileId.Value = value;
 			}
 		}
 
-		internal uint EndOffset
+        /// <summary>
+        /// Gets or sets the end offset.
+        /// </summary>
+        /// <value>
+        /// The end offset.
+        /// </value>
+        public uint EndOffset
 		{
 			get
 			{
@@ -69,7 +112,13 @@ namespace Zen.Trunk.Storage.Log
 			}
 		}
 
-		internal bool Valid
+        /// <summary>
+        /// Gets or sets a value indicating whether this <see cref="CheckPointInfo"/> is valid.
+        /// </summary>
+        /// <value>
+        /// <c>true</c> if valid; otherwise, <c>false</c>.
+        /// </value>
+        public bool IsValid
 		{
 			get
 			{

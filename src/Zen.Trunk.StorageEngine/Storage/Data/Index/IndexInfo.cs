@@ -1,8 +1,7 @@
-﻿namespace Zen.Trunk.Storage.Data.Index
+﻿using System;
+
+namespace Zen.Trunk.Storage.Data.Index
 {
-	using System;
-
-
     /// <summary>
     /// 
     /// </summary>

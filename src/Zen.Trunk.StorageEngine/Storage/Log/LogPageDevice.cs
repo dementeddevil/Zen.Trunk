@@ -111,7 +111,7 @@ namespace Zen.Trunk.Storage.Log
             MasterLogRootPage masterRootPage)
         {
             // Retrieve last known log file info
-            var fileInfo = GetVirtualFileById(masterRootPage.LogLastFileId);
+            var fileInfo = GetVirtualFileById(masterRootPage.LastLogFileId);
 
             // Chain file table for new device onto last file
             return InitVirtualFileForDevice(masterRootPage, fileInfo);
@@ -163,21 +163,21 @@ namespace Zen.Trunk.Storage.Log
                     // Fixup forward connection when switching devices
                     if (lastFileInfo.DeviceId != info.DeviceId)
                     {
-                        lastFileInfo.CurrentHeader.NextFileId = info.FileId;
+                        lastFileInfo.CurrentHeader.NextLogFileId = info.FileId;
                     }
                 }
                 else
                 {
                     // Check whether the root information is valid
-                    if (masterRootPage.LogStartFileId == LogFileId.Zero)
+                    if (masterRootPage.StartLogFileId == LogFileId.Zero)
                     {
                         // Setup log start file Id and offset
-                        masterRootPage.LogStartFileId = info.FileId;
-                        masterRootPage.LogStartOffset = 0;
+                        masterRootPage.StartLogFileId = info.FileId;
+                        masterRootPage.StartLogOffset = 0;
 
                         // Setup log end file Id and offset
-                        masterRootPage.LogEndFileId = info.FileId;
-                        masterRootPage.LogEndOffset = 0;
+                        masterRootPage.EndLogFileId = info.FileId;
+                        masterRootPage.EndLogOffset = 0;
 
                         masterRootPage.SetDirty();
                     }
@@ -185,7 +185,7 @@ namespace Zen.Trunk.Storage.Log
 
                 // Update cache of last known Id and object
                 lastFileInfo = info;
-                masterRootPage.LogLastFileId = info.FileId;
+                masterRootPage.LastLogFileId = info.FileId;
             }
 
             rootPage.SetDirty();

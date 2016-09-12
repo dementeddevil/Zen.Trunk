@@ -245,11 +245,11 @@ namespace Zen.Trunk.Storage.Log
 				//	only perform half of the linked-list fixup.
 				if (lastLogFileId.DeviceId != deviceId)
 				{
-					info.CurrentHeader.PrevFileId = lastLogFileId;
+					info.CurrentHeader.PreviousLogFileId = lastLogFileId;
 				}
 
 				// Otherwise check the last file hasn't already been chained
-				else if (_logFiles[lastLogFileId.Index].CurrentHeader.NextFileId != LogFileId.Zero)
+				else if (_logFiles[lastLogFileId.Index].CurrentHeader.NextLogFileId != LogFileId.Zero)
 				{
 					throw new ArgumentException("LastFileId is invalid - already pointing to different FileId!");
 				}
@@ -257,8 +257,8 @@ namespace Zen.Trunk.Storage.Log
 				// Last file can be chained.
 				else
 				{
-					_logFiles[lastLogFileId.Index].CurrentHeader.NextFileId = info.FileId;
-					info.CurrentHeader.PrevFileId = lastLogFileId;
+					_logFiles[lastLogFileId.Index].CurrentHeader.NextLogFileId = info.FileId;
+					info.CurrentHeader.PreviousLogFileId = lastLogFileId;
 				}
 			}
 
@@ -266,10 +266,10 @@ namespace Zen.Trunk.Storage.Log
 			else if (LogFileCount > 0)
 			{
 				var lastIndexOnDevice = _logFiles.Count - 1;
-				if (_logFiles[lastIndexOnDevice].CurrentHeader.NextFileId == LogFileId.Zero)
+				if (_logFiles[lastIndexOnDevice].CurrentHeader.NextLogFileId == LogFileId.Zero)
 				{
-					_logFiles[lastIndexOnDevice].CurrentHeader.NextFileId = info.FileId;
-					info.CurrentHeader.PrevFileId = _logFiles[lastIndexOnDevice].FileId;
+					_logFiles[lastIndexOnDevice].CurrentHeader.NextLogFileId = info.FileId;
+					info.CurrentHeader.PreviousLogFileId = _logFiles[lastIndexOnDevice].FileId;
 				}
 			}
 
