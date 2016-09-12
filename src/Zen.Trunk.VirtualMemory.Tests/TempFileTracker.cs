@@ -41,6 +41,7 @@ namespace Zen.Trunk
             {
                 Directory.Delete(_testFolder, true);
             }
+            Directory.CreateDirectory(_testFolder);
         }
 
         /// <summary>
@@ -50,12 +51,14 @@ namespace Zen.Trunk
         /// <returns></returns>
         public string Get(string filename)
         {
-            if (!Directory.Exists(_testFolder))
+            var trackedPathname = Path.Combine(_testFolder, filename);
+
+            var trackedDirectory = Path.GetDirectoryName(trackedPathname);
+            if (!Directory.Exists(trackedDirectory))
             {
-                Directory.CreateDirectory(_testFolder);
+                Directory.CreateDirectory(trackedDirectory);
             }
 
-            var trackedPathname = Path.Combine(_testFolder, filename);
             if (!_trackedFiles.Contains(trackedPathname))
             {
                 _trackedFiles.Add(trackedPathname);
