@@ -19,8 +19,8 @@ namespace Zen.Trunk.Storage.Log
 	/// <summary>
 	/// TODO: Update summary.
 	/// </summary>
-	public class MasterLogPageDevice : LogPageDevice
-	{
+	public class MasterLogPageDevice : LogPageDevice, IMasterLogPageDevice
+    {
 		#region Private Types
 		private class AddLogDeviceRequest : TaskRequest<AddLogDeviceParameters, DeviceId>
 		{
@@ -135,34 +135,6 @@ namespace Zen.Trunk.Storage.Log
 				_currentStream.Position = value;
 			}
 		}
-        /*public uint LogStartFileId
-		{
-			get
-			{
-				return _rootPage.LogStartFileId;
-			}
-		}
-		public uint LogStartOffset
-		{
-			get
-			{
-				return _rootPage.LogStartOffset;
-			}
-		}
-		public uint LogEndFileId
-		{
-			get
-			{
-				return _rootPage.LogEndFileId;
-			}
-		}
-		public uint LogEndOffset
-		{
-			get
-			{
-				return _rootPage.LogEndOffset;
-			}
-		}*/
 
         /// <summary>
         /// Gets a value indicating whether this instance is in recovery.
@@ -213,7 +185,9 @@ namespace Zen.Trunk.Storage.Log
         /// Removes the device.
         /// </summary>
         /// <param name="deviceParams">The device parameters.</param>
-        /// <returns></returns>
+        /// <returns>
+        /// A <see cref="Task"/> representing the asynchronous operation.
+        /// </returns>
         /// <exception cref="BufferDeviceShuttingDownException"></exception>
         public Task RemoveDeviceAsync(RemoveLogDeviceParameters deviceParams)
 		{
@@ -229,7 +203,9 @@ namespace Zen.Trunk.Storage.Log
         /// Writes the entry.
         /// </summary>
         /// <param name="entry">The entry.</param>
-        /// <returns></returns>
+        /// <returns>
+        /// A <see cref="Task"/> representing the asynchronous operation.
+        /// </returns>
         /// <exception cref="BufferDeviceShuttingDownException"></exception>
         public Task WriteEntryAsync(LogEntry entry)
 		{
@@ -242,9 +218,11 @@ namespace Zen.Trunk.Storage.Log
 		}
 
         /// <summary>
-        /// Performs the recovery.
+        /// Performs database recovery.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>
+        /// A <see cref="Task"/> representing the asynchronous operation.
+        /// </returns>
         /// <exception cref="BufferDeviceShuttingDownException"></exception>
         public Task PerformRecoveryAsync()
 		{
@@ -699,67 +677,65 @@ namespace Zen.Trunk.Storage.Log
 			WriteEntryCore(entry);
 
 			var rootPage = GetRootPage<MasterLogRootPage>();
-
-			// Update active transactions for begin/end transaction
-			if (entry.LogType == LogEntryType.BeginXact)
-			{
-				var tle = entry as TransactionLogEntry;
-				var tran = new ActiveTransaction(
-				    // ReSharper disable once PossibleNullReferenceException
-					tle.TransactionId.Value,
-					rootPage.EndLogFileId,
-					rootPage.EndLogOffset,
-					tle.LogId);
-				if (_activeTransactions == null)
-				{
-					_activeTransactions = new Dictionary<ActiveTransaction, List<TransactionLogEntry>>();
-				}
-				var tranEntries = new List<TransactionLogEntry>();
-				_activeTransactions.Add(tran, tranEntries);
-			}
-
-			// Update root-page checkpoint info as needed
-			else if (entry.LogType == LogEntryType.BeginCheckpoint ||
-				entry.LogType == LogEntryType.EndCheckpoint)
-			{
-				rootPage.AddCheckPoint(
-					rootPage.EndLogFileId,
-					rootPage.EndLogOffset,
-					entry.LogType == LogEntryType.BeginCheckpoint);
-			}
-
-			// Remove active transaction on commit or rollback
-			else if (entry.LogType == LogEntryType.RollbackXact ||
-				entry.LogType == LogEntryType.CommitXact)
-			{
-				var tle = entry as TransactionLogEntry;
-			    // ReSharper disable once PossibleNullReferenceException
-				foreach (var tran in _activeTransactions.Keys.ToArray())
-				{
-					// Is this the matching transaction?
-				    // ReSharper disable once PossibleNullReferenceException
-					if (tran.TransactionId == tle.TransactionId.Value)
-					{
-						// Remove the active transaction from the list
-						_activeTransactions.Remove(tran);
-						break;
-					}
-				}
-			}
-
-			// Add transaction records to correct list
-			else if (entry is TransactionLogEntry)
-			{
-				var tle = entry as TransactionLogEntry;
-			    // ReSharper disable once PossibleNullReferenceException
-			    var tran = _activeTransactions.Keys
-			        .FirstOrDefault(item => item.TransactionId == tle.TransactionId.Value);
-				if (tran != null)
-				{
-					// Add transaction entry to list
-					_activeTransactions[tran].Add(tle);
-				}
-			}
+		    switch (entry.LogType)
+		    {
+                case LogEntryType.BeginXact:
+			        // Update active transactions for begin/end transaction
+				    var beginXactEntry = entry as TransactionLogEntry;
+				    if (_activeTransactions == null)
+				    {
+					    _activeTransactions = new Dictionary<ActiveTransaction, List<TransactionLogEntry>>();
+				    }
+				    _activeTransactions.Add(
+                        new ActiveTransaction(
+                            // ReSharper disable once PossibleNullReferenceException
+                            beginXactEntry.TransactionId.Value,
+					        rootPage.EndLogFileId,
+					        rootPage.EndLogOffset,
+                            beginXactEntry.LogId),
+                        new List<TransactionLogEntry>());
+                    break;
+                case LogEntryType.BeginCheckpoint:
+                case LogEntryType.EndCheckpoint:
+        			// Update root-page checkpoint info as needed
+				    rootPage.AddCheckPoint(
+					    rootPage.EndLogFileId,
+					    rootPage.EndLogOffset,
+					    entry.LogType == LogEntryType.BeginCheckpoint);
+		            break;
+                case LogEntryType.RollbackXact:
+                case LogEntryType.CommitXact:
+        			// Remove active transaction on commit or rollback
+				    var finalXactEntry = entry as TransactionLogEntry;
+			        // ReSharper disable once PossibleNullReferenceException
+				    foreach (var tran in _activeTransactions.Keys.ToArray())
+				    {
+					    // Is this the matching transaction?
+				        // ReSharper disable once PossibleNullReferenceException
+					    if (tran.TransactionId == finalXactEntry.TransactionId.Value)
+					    {
+						    // Remove the active transaction from the list
+						    _activeTransactions.Remove(tran);
+						    break;
+					    }
+				    }
+		            break;
+                default:
+        			// Add transaction records to correct list
+			        if (entry is TransactionLogEntry)
+			        {
+				        var transactionEntry = entry as TransactionLogEntry;
+			            // ReSharper disable once PossibleNullReferenceException
+			            var tran = _activeTransactions.Keys
+			                .FirstOrDefault(item => item.TransactionId == transactionEntry.TransactionId.Value);
+				        if (tran != null)
+				        {
+					        // Add transaction entry to list
+					        _activeTransactions[tran].Add(transactionEntry);
+				        }
+			        }
+		            break;
+		    }
 
 			// Update root page with new information
 			rootPage.EndLogFileId = _currentStream.FileId;
@@ -798,9 +774,9 @@ namespace Zen.Trunk.Storage.Log
 
 				// Chain new file to old
 				_currentStream.IsFull = true;
-				_currentStream.NextFileId = newStream.FileId;
+				_currentStream.NextLogFileId = newStream.FileId;
 				_currentStream.Flush();
-				newStream.PrevFileId = _currentStream.FileId;
+				newStream.PreviousLogFileId = _currentStream.FileId;
 
 				// Update current stream
 				_currentStream = newStream;
@@ -931,7 +907,11 @@ namespace Zen.Trunk.Storage.Log
 		private void InitVirtualFiles()
 		{
 			var rootPage = GetRootPage<MasterLogRootPage>();
+
+            // Init file info for primary device
 			var lastFileInfo = InitVirtualFileForDevice(rootPage, null);
+
+            // Init file info for secondary devices chaining previous file info objects
 			foreach (var device in _secondaryDevices.Values)
 			{
 				lastFileInfo = device.InitVirtualFileForDevice(rootPage, lastFileInfo);
@@ -940,16 +920,15 @@ namespace Zen.Trunk.Storage.Log
 
 		private VirtualLogFileStream GetVirtualFileStream(LogFileId fileId)
 		{
+            // Get file info
 			var info = GetVirtualFileById(fileId);
-			if (info.DeviceId == DeviceId)
-			{
-				return GetVirtualFileStream(info);
-			}
-			else
-			{
-				var secondaryDevice = _secondaryDevices[info.DeviceId];
-				return secondaryDevice.GetVirtualFileStream(info);
-			}
+
+            // Determine log device based on device in virtual file information
+		    var logDevice = info.DeviceId == DeviceId
+                ? this : _secondaryDevices[info.DeviceId];
+
+            // Return stream via associated device.
+            return logDevice.GetVirtualFileStream(info);
 		}
 		#endregion
 	}

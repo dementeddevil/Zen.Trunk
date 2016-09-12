@@ -65,7 +65,7 @@ namespace Zen.Trunk.Storage.Log
         /// <summary>
         /// Gets/sets the previous log file Id.
         /// </summary>
-        public LogFileId PrevFileId
+        public LogFileId PreviousLogFileId
         {
             get
             {
@@ -84,7 +84,7 @@ namespace Zen.Trunk.Storage.Log
         /// <summary>
         /// Gets/sets the next log file Id.
         /// </summary>
-        public LogFileId NextFileId
+        public LogFileId NextLogFileId
         {
             get
             {
