@@ -80,8 +80,8 @@ namespace Zen.Trunk.Storage
                     batch.AppendLine("size=1024KB");
                     batch.AppendLine(")");
                     batch.AppendLine("go");
-                    await executive.ExecuteAsync(batch.ToString());
-                    await manager.OpenAsync(true).ConfigureAwait(true);
+                    await executive.ExecuteAsync(batch.ToString()).ConfigureAwait(true);
+                    //await manager.OpenAsync(true).ConfigureAwait(true);
                     await TrunkTransactionContext.CommitAsync().ConfigureAwait(true);
 
                     //batch.Clear();

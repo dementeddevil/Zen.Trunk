@@ -258,10 +258,7 @@ namespace Zen.Trunk.Storage.IO
             }
             finally
             {
-                if (pinningHandle != null)
-                {
-                    ((GCHandle)pinningHandle).Free();
-                }
+                ((GCHandle?) pinningHandle)?.Free();
             }
         }
         #endregion

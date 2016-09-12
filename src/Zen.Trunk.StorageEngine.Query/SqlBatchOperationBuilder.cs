@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
+using System.Text;
 using System.Threading.Tasks;
 using System.Transactions;
 using Antlr4.Runtime.Misc;
@@ -208,7 +209,7 @@ namespace Zen.Trunk.Storage.Query
                     {
                         if (rawFileGroupSpec != null)
                         {
-                            fileGroupName = rawFileGroupSpec.id().ToString();
+                            fileGroupName = rawFileGroupSpec.id().GetText();
                             foreach (var rfs in rawFileGroupSpec.file_spec())
                             {
                                 var nativeFileSpec = GetNativeFileSpecFromFileSpec(rfs);
@@ -293,8 +294,8 @@ namespace Zen.Trunk.Storage.Query
             var nativeFileSpec =
                 new FileSpec
                 {
-                    Name = fileSpecContext.id().ToString(),
-                    FileName = fileSpecContext.file.Text,
+                    Name = GetNativeString(fileSpecContext.id().GetText()),
+                    FileName = GetNativeString(fileSpecContext.file.Text),
                 };
 
             for (int index = 0; index < fileSpecContext.ChildCount; ++index)
@@ -375,6 +376,32 @@ namespace Zen.Trunk.Storage.Query
             }
             context.ActiveDatabase = dbDevice;
             return Task.FromResult(true);
+        }
+
+        private string GetNativeString(string text)
+        {
+            bool isUnicode = false;
+            if (text.StartsWith("N'", StringComparison.OrdinalIgnoreCase))
+            {
+                isUnicode = true;
+                text = text.Substring(1);
+            }
+            if (text.StartsWith("'"))
+            {
+                text = text.Substring(1);
+            }
+            if (text.EndsWith("'"))
+            {
+                text = text.Substring(0, text.Length - 1);
+            }
+
+            // Now we need to convert text into unicode
+            if (!isUnicode)
+            {
+                // TODO: Use code page to determine how to treat string
+            }
+
+            return text;
         }
     }
 }
