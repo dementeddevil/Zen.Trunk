@@ -16,11 +16,20 @@ namespace Zen.Trunk.Storage.Log
     /// </remarks>
     public class VirtualLogFileStream : Stream
     {
-        #region Private Fields
-        private const int HeaderSize = 24;
-        private const int TotalHeaderSize = HeaderSize * 2;
+        #region Public Fields
+        /// <summary>
+        /// The header size
+        /// </summary>
+        public const int HeaderSize = 28;
 
-        private readonly LogPageDevice _device;
+        /// <summary>
+        /// The total header size
+        /// </summary>
+        public const int TotalHeaderSize = HeaderSize * 2;
+        #endregion
+        
+        #region Private Fields
+        private readonly ILogPageDevice _device;
         private readonly VirtualLogFileInfo _logFileInfo;
         private readonly BufferReaderWriter _streamManager;
         private bool _writeFirstHeader = true;
@@ -39,7 +48,7 @@ namespace Zen.Trunk.Storage.Log
         /// <param name="backingStore">The stream backing store for this object.</param>
         /// <param name="logFileInfo"></param>
         public VirtualLogFileStream(
-            LogPageDevice device, Stream backingStore, VirtualLogFileInfo logFileInfo)
+            ILogPageDevice device, Stream backingStore, VirtualLogFileInfo logFileInfo)
         {
             _device = device;
             _logFileInfo = logFileInfo;
@@ -525,7 +534,7 @@ namespace Zen.Trunk.Storage.Log
             var currentPosition = _streamManager.BaseStream.Position;
             try
             {
-                // Header size is 24 bytes
+                // Header size is 28 bytes
                 _streamManager.Flush();
                 _streamManager.BaseStream.Seek(_logFileInfo.StartOffset +
                     (_writeFirstHeader ? 0 : HeaderSize), SeekOrigin.Begin);
@@ -535,7 +544,7 @@ namespace Zen.Trunk.Storage.Log
                 ++_logFileInfo.CurrentHeader.Timestamp;
                 _logFileInfo.CurrentHeader.Hash = _logFileInfo.CurrentHeader.Timestamp.GetHashCode();
 
-                // Write the header block (24 bytes)
+                // Write the header block (28 bytes)
                 _logFileInfo.CurrentHeader.Write(_streamManager);
                 _headerDirty = false;
             }

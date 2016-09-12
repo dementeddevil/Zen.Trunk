@@ -526,7 +526,7 @@ namespace Zen.Trunk.Storage
 
             builder
                 .Register(context => _masterLogPageDevice)
-                .As<LogPageDevice>()
+                .As<ILogPageDevice>()
                 .As<MasterLogPageDevice>();
 
             builder.RegisterType<MasterDatabasePrimaryFileGroupDevice>()

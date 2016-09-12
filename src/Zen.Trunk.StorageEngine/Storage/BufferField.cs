@@ -1290,7 +1290,6 @@ namespace Zen.Trunk.Storage
 
         #region Public Properties
         public override int DataSize => 4;
-
         #endregion
 
         protected override void OnRead(BufferReaderWriter streamManager)

@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+using System.Transactions;
+using Autofac;
 using Zen.Trunk.Extensions;
 using Zen.Trunk.Storage.IO;
 
@@ -24,7 +26,7 @@ namespace Zen.Trunk.Storage.Log
     /// performed via asynchronous I/O.
     /// </para>
     /// </remarks>
-    public class LogPageDevice : MountableDevice
+    public class LogPageDevice : MountableDevice, ILogPageDevice
     {
         #region Private Fields
         private FileStream _deviceStream;
@@ -96,7 +98,7 @@ namespace Zen.Trunk.Storage.Log
         }
         #endregion
 
-        #region Internal Methods
+        #region Public Methods
         /// <summary>
         /// Initialises the virtual file table for a newly added log device.
         /// </summary>
@@ -107,7 +109,7 @@ namespace Zen.Trunk.Storage.Log
         /// by examining the logLastFileId and passing the related file to
         /// the Init routine.
         /// </remarks>
-        internal VirtualLogFileInfo InitVirtualFileForDevice(
+        public VirtualLogFileInfo InitVirtualFileForDevice(
             MasterLogRootPage masterRootPage)
         {
             // Retrieve last known log file info
@@ -123,7 +125,7 @@ namespace Zen.Trunk.Storage.Log
         /// <param name="masterRootPage"></param>
         /// <param name="lastFileInfo"></param>
         /// <returns></returns>
-        internal VirtualLogFileInfo InitVirtualFileForDevice(
+        public VirtualLogFileInfo InitVirtualFileForDevice(
             MasterLogRootPage masterRootPage,
             VirtualLogFileInfo lastFileInfo)
         {
@@ -194,7 +196,13 @@ namespace Zen.Trunk.Storage.Log
             return lastFileInfo;
         }
 
-        internal virtual VirtualLogFileInfo GetVirtualFileById(LogFileId fileId)
+        /// <summary>
+        /// Gets the virtual file by identifier.
+        /// </summary>
+        /// <param name="fileId">The file identifier.</param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentException"></exception>
+        public virtual VirtualLogFileInfo GetVirtualFileById(LogFileId fileId)
         {
             if (fileId.DeviceId != DeviceId)
             {
@@ -205,7 +213,12 @@ namespace Zen.Trunk.Storage.Log
             return rootPage.GetLogFile(fileId.Index);
         }
 
-        internal VirtualLogFileStream GetVirtualFileStream(VirtualLogFileInfo info)
+        /// <summary>
+        /// Gets the virtual file stream.
+        /// </summary>
+        /// <param name="info">The information.</param>
+        /// <returns></returns>
+        public VirtualLogFileStream GetVirtualFileStream(VirtualLogFileInfo info)
         {
             VirtualLogFileStream stream;
             if (!_fileStreams.TryGetValue(info.FileId, out stream))
@@ -220,7 +233,12 @@ namespace Zen.Trunk.Storage.Log
             return stream;
         }
 
-        internal T GetRootPage<T>()
+        /// <summary>
+        /// Gets the root page.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public T GetRootPage<T>()
             where T : LogRootPage
         {
             if (_rootPage == null)

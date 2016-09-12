@@ -52,8 +52,8 @@ namespace Zen.Trunk.Storage.Log
 		#endregion
 
 		#region Private Fields
-	    private readonly Dictionary<DeviceId, LogPageDevice> _secondaryDevices =
-			new Dictionary<DeviceId, LogPageDevice>();
+	    private readonly Dictionary<DeviceId, ILogPageDevice> _secondaryDevices =
+			new Dictionary<DeviceId, ILogPageDevice>();
 
 		private VirtualLogFileStream _currentStream;
 		private object _syncWriters = new object();
@@ -257,6 +257,24 @@ namespace Zen.Trunk.Storage.Log
 		}
 
         /// <summary>
+        /// Gets the virtual file by identifier.
+        /// </summary>
+        /// <param name="fileId">The file identifier.</param>
+        /// <returns></returns>
+        public override VirtualLogFileInfo GetVirtualFileById(LogFileId fileId)
+        {
+            if (fileId.DeviceId == DeviceId)
+            {
+                return base.GetVirtualFileById(fileId);
+            }
+            else
+            {
+                var secondaryDevice = _secondaryDevices[fileId.DeviceId];
+                return secondaryDevice.GetVirtualFileById(fileId);
+            }
+        }
+
+        /// <summary>
         /// Gets the next transaction identifier.
         /// </summary>
         /// <returns></returns>
@@ -440,7 +458,7 @@ namespace Zen.Trunk.Storage.Log
 				{
 					var info = rootPage.GetDeviceByIndex(index);
 
-					var secondaryDevice = GetService<LogPageDevice>(
+					var secondaryDevice = GetService<ILogPageDevice>(
                         new NamedParameter("deviceId", info.Id),
                         new NamedParameter("pathName", info.PathName));
 					_secondaryDevices.Add(info.Id, secondaryDevice);
@@ -534,10 +552,10 @@ namespace Zen.Trunk.Storage.Log
 
 			// If this is a secondary device then create log device and
 			//	update root page and collections
-			LogPageDevice device;
+			ILogPageDevice device;
 			if (!primaryLog)
 			{
-                var secondaryDevice = GetService<LogPageDevice>(
+                var secondaryDevice = GetService<ILogPageDevice>(
                     new NamedParameter("deviceId", proposedDeviceId),
                     new NamedParameter("pathName", fullPathName));
 				_secondaryDevices.Add(proposedDeviceId, secondaryDevice);
@@ -910,26 +928,13 @@ namespace Zen.Trunk.Storage.Log
 		/// <remarks>
 		/// This method will rewrite the virtual file table.
 		/// </remarks>
-		internal void InitVirtualFiles()
+		private void InitVirtualFiles()
 		{
 			var rootPage = GetRootPage<MasterLogRootPage>();
 			var lastFileInfo = InitVirtualFileForDevice(rootPage, null);
 			foreach (var device in _secondaryDevices.Values)
 			{
 				lastFileInfo = device.InitVirtualFileForDevice(rootPage, lastFileInfo);
-			}
-		}
-
-		internal override VirtualLogFileInfo GetVirtualFileById(LogFileId fileId)
-		{
-			if (fileId.DeviceId == DeviceId)
-			{
-				return base.GetVirtualFileById(fileId);
-			}
-			else
-			{
-				var secondaryDevice = _secondaryDevices[fileId.DeviceId];
-				return secondaryDevice.GetVirtualFileById(fileId);
 			}
 		}
 

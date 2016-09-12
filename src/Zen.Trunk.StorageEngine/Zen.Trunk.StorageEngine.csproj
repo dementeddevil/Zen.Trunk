@@ -90,6 +90,7 @@
     <Compile Include="Storage\Data\LogicalVirtualManager.cs" />
     <Compile Include="Storage\Data\Table\TableIndexManagerMessages.cs" />
     <Compile Include="Storage\FileSpec.cs" />
+    <Compile Include="Storage\Log\ILogPageDevice.cs" />
     <Compile Include="Storage\Log\VirtualLogFileHeader.cs" />
     <Compile Include="Storage\MasterDatabaseDevice.cs" />
     <Compile Include="Storage\Data\MasterDatabasePrimaryFileGroupDevice.cs" />
