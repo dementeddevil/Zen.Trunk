@@ -495,6 +495,7 @@ namespace Zen.Trunk.Storage.Log
 			{
 				extn = StorageConstants.MasterLogFileDeviceExtension;
 				primaryLog = true;
+                proposedDeviceId = DeviceId.Primary;
 				proposedDeviceIdValid = true;
 			}
 
@@ -503,8 +504,7 @@ namespace Zen.Trunk.Storage.Log
 			if (string.Equals(Path.GetExtension(request.Message.PathName), extn, StringComparison.OrdinalIgnoreCase))
 			{
 				var fileName = Path.GetFileNameWithoutExtension(request.Message.PathName) + extn;
-				fullPathName = Path.Combine(
-					Path.GetDirectoryName(request.Message.PathName), fileName);
+				fullPathName = Path.Combine(Path.GetDirectoryName(request.Message.PathName), fileName);
 			}
 
 			// Determine appropriate device id as necessary

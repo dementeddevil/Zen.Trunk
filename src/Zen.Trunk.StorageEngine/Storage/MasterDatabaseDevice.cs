@@ -210,7 +210,7 @@ namespace Zen.Trunk.Storage
             }
 
             // Now mount the device
-            await device.OpenAsync(true).ConfigureAwait(false);
+            await device.OpenAsync(request.IsCreate).ConfigureAwait(false);
 
             // If we get this far then commit transaction used to create
             //	the database device
