@@ -122,7 +122,7 @@ namespace Zen.Trunk.Storage.Query
         /// <param name="context">The parse tree.</param>
         /// <returns></returns>
         /// <return>The visitor result.</return>
-        public override Expression<Func<ExecutionContext, Task>> VisitBegin_transaction_statement([NotNull] TrunkSqlParser.Begin_transaction_statementContext context)
+        public override Expression VisitBegin_transaction_statement([NotNull] TrunkSqlParser.Begin_transaction_statementContext context)
         {
             return base.VisitBegin_transaction_statement(context);
         }
@@ -138,7 +138,7 @@ namespace Zen.Trunk.Storage.Query
         /// <param name="context">The parse tree.</param>
         /// <returns></returns>
         /// <return>The visitor result.</return>
-        public override Expression<Func<ExecutionContext, Task>> VisitCommit_transaction_statement([NotNull] TrunkSqlParser.Commit_transaction_statementContext context)
+        public override Expression VisitCommit_transaction_statement([NotNull] TrunkSqlParser.Commit_transaction_statementContext context)
         {
             return base.VisitCommit_transaction_statement(context);
         }
@@ -154,14 +154,8 @@ namespace Zen.Trunk.Storage.Query
         /// <param name="context">The parse tree.</param>
         /// <returns></returns>
         /// <return>The visitor result.</return>
-        public override Expression<Func<ExecutionContext, Task>> VisitSet_transaction_isolation_level_statement([NotNull] TrunkSqlParser.Set_transaction_isolation_level_statementContext context)
+        public override Expression VisitSet_transaction_isolation_level_statement([NotNull] TrunkSqlParser.Set_transaction_isolation_level_statementContext context)
         {
-            /*if (context.ChildCount > 4 &&
-                context.GetChild(0) == context.SET() &&
-                context.GetChild(1) == context.TRANSACTION() &&
-                context.GetChild(2) == context.ISOLATION() &&
-                context.GetChild(3) == context.LEVEL())*/
-
             IsolationLevel level = IsolationLevel.ReadCommitted;
             if (context.GetChild(4) == context.SNAPSHOT())
             {
@@ -204,7 +198,7 @@ namespace Zen.Trunk.Storage.Query
         /// <param name="context">The parse tree.</param>
         /// <returns></returns>
         /// <return>The visitor result.</return>
-        public override Expression<Func<ExecutionContext, Task>> VisitCreate_database(TrunkSqlParser.Create_databaseContext context)
+        public override Expression VisitCreate_database(TrunkSqlParser.Create_databaseContext context)
         {
             var attachDatabaseParameters = new AttachDatabaseParameters(context.database.GetText(), true);
             var fileSpecCount = context.database_file_spec().Length;
@@ -273,9 +267,32 @@ namespace Zen.Trunk.Storage.Query
                 }
             }
 
-            return (ec) => ec.MasterDatabase.AttachDatabaseAsync(attachDatabaseParameters);
+            // TODO: Statements need to return Expression that evaluates to
+            //  Task FooBar(ExecutionContext ec) and our expression aggregator
+            //  needs to chain each child using appropriate semantics for
+            //  task chaining - or needs to add statements into task chain
+            //  that we can do async/await processing via helper...
+            return Expression.Block(
+                new[] {_executionContextParameterExpression},
+                Expression.Call(
+                    Expression.Property(
+                        _executionContextParameterExpression,
+                        "MasterDatabase"),
+                    "AttachDatabaseAsync",
+                    new[] {typeof(AttachDatabaseParameters)},
+                    Expression.Constant(attachDatabaseParameters)));
         }
 
+        /// <summary>
+        /// Visit a parse tree produced by <see cref="M:Zen.Trunk.Storage.Query.TrunkSqlParser.create_table" />.
+        /// <para>
+        /// The default implementation returns the result of calling <see cref="M:Antlr4.Runtime.Tree.AbstractParseTreeVisitor`1.VisitChildren(Antlr4.Runtime.Tree.IRuleNode)" />
+        /// on <paramref name="context" />.
+        /// </para>
+        /// </summary>
+        /// <param name="context">The parse tree.</param>
+        /// <returns></returns>
+        /// <return>The visitor result.</return>
         public override Expression VisitCreate_table(TrunkSqlParser.Create_tableContext context)
         {
             //context.table_name().
