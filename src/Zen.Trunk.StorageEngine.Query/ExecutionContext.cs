@@ -1,4 +1,6 @@
-﻿namespace Zen.Trunk.Storage.Query
+﻿using System.Transactions;
+
+namespace Zen.Trunk.Storage.Query
 {
     /// <summary>
     /// 
@@ -31,5 +33,13 @@
         /// The active database.
         /// </value>
         public DatabaseDevice ActiveDatabase { get; set; }
+
+        /// <summary>
+        /// Gets or sets the current transaction isolation level.
+        /// </summary>
+        /// <value>
+        /// The current transaction isolation level.
+        /// </value>
+        public IsolationLevel CurrentTransactionIsolationLevel { get; set; } = IsolationLevel.ReadCommitted;
     }
 }

@@ -153,7 +153,7 @@ Then the attempt to gain an exclusive lock fails.")]
             var pathName = GlobalTracker.Get("LogDevice.mlb");
             builder.RegisterType<MasterLogPageDevice>()
                 .WithParameter("pathName", pathName)
-                .AsSelf()
+                .As<IMasterLogPageDevice>()
                 .SingleInstance();
         }
     }
