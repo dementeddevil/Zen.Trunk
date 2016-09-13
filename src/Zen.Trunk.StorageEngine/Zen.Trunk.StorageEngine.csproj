@@ -124,6 +124,7 @@
     <Compile Include="Storage\Data\Table\TableIndexManager.cs" />
     <Compile Include="Storage\Data\Table\TableIndexPage.cs" />
     <Compile Include="Storage\Data\Table\TableSchemaPage.cs" />
+    <Compile Include="Storage\TableIdentifier.cs" />
     <Compile Include="Storage\TemporaryDatabaseDevice.cs" />
     <Compile Include="Storage\FileGroupId.cs" />
     <Compile Include="Storage\IMountableDevice.cs" />

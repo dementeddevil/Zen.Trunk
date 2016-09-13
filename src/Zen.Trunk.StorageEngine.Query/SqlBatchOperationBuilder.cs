@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Transactions;
@@ -10,7 +12,8 @@ using Zen.Trunk.Storage.Data;
 namespace Zen.Trunk.Storage.Query
 {
     /// <summary>
-    /// 
+    /// <c>SqlBatchOperationBuilder</c> builds an <see cref="Expression"/> that
+    /// represents the TSQL passed to it.
     /// </summary>
     /// <remarks>
     /// The purpose of this class is to build a list of batches based on
@@ -19,7 +22,7 @@ namespace Zen.Trunk.Storage.Query
     /// and execute a series of asynchronous blocks.
     /// Each block is an asynchronous operation or composite (where BEGIN/END is used).
     /// </remarks>
-    public class SqlBatchOperationBuilder : TrunkSqlBaseVisitor<Expression<Func<ExecutionContext, Task>>>
+    public class SqlBatchOperationBuilder : TrunkSqlBaseVisitor<Expression>
     {
         private readonly MasterDatabaseDevice _masterDatabase;
         private DatabaseDevice _activeDatabase;
@@ -28,6 +31,9 @@ namespace Zen.Trunk.Storage.Query
         private int _transactionDepth;
         private readonly List<Expression<Func<ExecutionContext, Task>>> _operations =
             new List<Expression<Func<ExecutionContext, Task>>>();
+
+        private readonly ParameterExpression _executionContextParameterExpression =
+            Expression.Parameter(typeof(ExecutionContext), "executionContext");
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SqlBatchOperationBuilder"/> class.
@@ -56,7 +62,7 @@ namespace Zen.Trunk.Storage.Query
         /// <see langword="null" />
         /// .</p>
         /// </remarks>
-        protected override Expression<Func<ExecutionContext, Task>> DefaultResult => null;
+        protected override Expression DefaultResult => null;
 
         /// <summary>
         /// Visit a parse tree produced by <see cref="M:Zen.Trunk.Storage.Query.TrunkSqlParser.tsql_file" />.
@@ -68,7 +74,7 @@ namespace Zen.Trunk.Storage.Query
         /// <param name="context">The parse tree.</param>
         /// <returns></returns>
         /// <return>The visitor result.</return>
-        public override Expression<Func<ExecutionContext, Task>> VisitTsql_file([NotNull] TrunkSqlParser.Tsql_fileContext context)
+        public override Expression VisitTsql_file([NotNull] TrunkSqlParser.Tsql_fileContext context)
         {
             return base.VisitTsql_file(context);
         }
@@ -83,10 +89,26 @@ namespace Zen.Trunk.Storage.Query
         /// <param name="context">The parse tree.</param>
         /// <returns></returns>
         /// <return>The visitor result.</return>
-        public override Expression<Func<ExecutionContext, Task>> VisitUse_statement(TrunkSqlParser.Use_statementContext context)
+        public override Expression VisitUse_statement(TrunkSqlParser.Use_statementContext context)
         {
-            var dbName = context.database.ToString();
-            return ec => ExecuteUseDatabase(ec, dbName);
+            var dbNameExpr = VisitId(context.database);
+            var dbDeviceExpr = Expression.Variable(typeof(DatabaseDevice), "dbDevice");
+            return Expression.Block(
+                dbDeviceExpr,
+                Expression.Assign(
+                    dbDeviceExpr,
+                    Expression.Call(
+                        Expression.Property(_executionContextParameterExpression, typeof(MasterDatabaseDevice),
+                            "MasterDatabase"),
+                        "GetDatabaseDevice",
+                        new[] { typeof(string) },
+                        dbNameExpr)),
+                Expression.IfThen(
+                    Expression.Equal(dbDeviceExpr, Expression.Constant(null)),
+                    Expression.Throw(Expression.Constant(new Exception("Unknown database.")))),
+                Expression.Assign(
+                    Expression.Property(_executionContextParameterExpression, "ActiveDatabase"),
+                    dbDeviceExpr));
         }
 
         /// <summary>
@@ -254,19 +276,57 @@ namespace Zen.Trunk.Storage.Query
             return (ec) => ec.MasterDatabase.AttachDatabaseAsync(attachDatabaseParameters);
         }
 
+        public override Expression VisitCreate_table(TrunkSqlParser.Create_tableContext context)
+        {
+            //context.table_name().
+            return base.VisitCreate_table(context);
+        }
+
+        /// <summary>
+        /// Visit a parse tree produced by <see cref="M:Zen.Trunk.Storage.Query.TrunkSqlParser.table_name" />.
+        /// </summary>
+        /// <param name="context">The parse tree.</param>
+        /// <returns>
+        /// An <see cref="Expression"/> that creates a <see cref="TableIdentifier"/> based on supplied arguments.
+        /// </returns>
+        /// <return>The visitor result.</return>
+        public override Expression VisitTable_name(TrunkSqlParser.Table_nameContext context)
+        {
+            return Expression.New(
+                // ReSharper disable once AssignNullToNotNullAttribute
+                typeof(TableIdentifier).GetConstructor(new[] { typeof(string), typeof(string), typeof(string) }),
+                VisitId(context.database),
+                VisitId(context.schema),
+                VisitId(context.table));
+        }
+
+        /// <summary>
+        /// Visit a parse tree produced by <see cref="M:Zen.Trunk.Storage.Query.TrunkSqlParser.id" />.
+        /// </summary>
+        /// <param name="context">The parse tree.</param>
+        /// <returns>
+        /// A <see cref="Expression"/> representing the constant for the identifier with delimiters removed.
+        /// </returns>
+        /// <return>The visitor result.</return>
+        public override Expression VisitId(TrunkSqlParser.IdContext context)
+        {
+            var nativeId = GetNativeId(context.GetText());
+            return Expression.Constant(nativeId);
+        }
+
         /// <summary>
         /// Aggregates the result.
         /// </summary>
         /// <param name="aggregate">The aggregate.</param>
         /// <param name="childToAdd">The child to add.</param>
         /// <returns></returns>
-        protected override Expression<Func<ExecutionContext, Task>> AggregateResult(
-            Expression<Func<ExecutionContext, Task>> aggregate,
-            Expression<Func<ExecutionContext, Task>> childToAdd)
+        protected override Expression AggregateResult(
+            Expression aggregate,
+            Expression childToAdd)
         {
             if (aggregate == null)
             {
-                return childToAdd;
+                aggregate = Expression.Block();
             }
 
             if (childToAdd == null)
@@ -274,8 +334,11 @@ namespace Zen.Trunk.Storage.Query
                 return aggregate;
             }
 
-            // TODO: Replace this with better expression reduction logic
-            return ec => ExecuteCompositeExpressionAsync(ec, aggregate, childToAdd);
+            var blockAggregate = (BlockExpression)aggregate;
+            return blockAggregate.Update(
+                blockAggregate.Variables,
+                blockAggregate.Expressions.Concat(
+                    new[] { childToAdd }));
         }
 
         private async Task ExecuteCompositeExpressionAsync(
@@ -294,7 +357,7 @@ namespace Zen.Trunk.Storage.Query
             var nativeFileSpec =
                 new FileSpec
                 {
-                    Name = GetNativeString(fileSpecContext.id().GetText()),
+                    Name = GetNativeId(fileSpecContext.id().GetText()),
                     FileName = GetNativeString(fileSpecContext.file.Text),
                 };
 
@@ -367,17 +430,6 @@ namespace Zen.Trunk.Storage.Query
             return new FileSize(0.0, unit);
         }
 
-        private Task ExecuteUseDatabase(ExecutionContext context, string dbName)
-        {
-            var dbDevice = context.MasterDatabase.GetDatabaseDevice(dbName);
-            if (dbDevice == null)
-            {
-                throw new Exception($"Unknown database ({dbName})");
-            }
-            context.ActiveDatabase = dbDevice;
-            return Task.FromResult(true);
-        }
-
         private string GetNativeString(string text)
         {
             bool isUnicode = false;
@@ -399,6 +451,17 @@ namespace Zen.Trunk.Storage.Query
             if (!isUnicode)
             {
                 // TODO: Use code page to determine how to treat string
+            }
+
+            return text;
+        }
+
+        private string GetNativeId(string text)
+        {
+            if ((text.StartsWith("\"") && text.EndsWith("\"")) ||
+                (text.StartsWith("[") && text.EndsWith("]")))
+            {
+                return text.Substring(1, text.Length - 2);
             }
 
             return text;
