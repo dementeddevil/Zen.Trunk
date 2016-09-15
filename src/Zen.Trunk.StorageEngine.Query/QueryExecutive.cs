@@ -1,4 +1,6 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Linq.Expressions;
+using System.Threading.Tasks;
 using Antlr4.Runtime;
 
 namespace Zen.Trunk.Storage.Query
@@ -32,11 +34,20 @@ namespace Zen.Trunk.Storage.Query
             var lexer = new TrunkSqlLexer(charStream);
 
             // Build AST from the token stream
+            // TODO: Process and return parser errors
             var tokenStream = new CommonTokenStream(lexer);
             var parser = new TrunkSqlParser(tokenStream);
             var compileUnit = parser.tsql_file();
 
+            // Validate symbol table
+            var validator = new SymbolTableValidator();
+            if (!compileUnit.Accept(validator))
+            {
+                // TODO: Return collection of violations
+            }
+
             // Build query batch pipeline from the AST
+            // TODO: Determine how to detect and return semantic errors
             var visitor = new SqlBatchOperationBuilder(_masterDevice);
             var expression = compileUnit.Accept(visitor);
 
@@ -46,8 +57,12 @@ namespace Zen.Trunk.Storage.Query
             }
 
             // Walk the batches and execute each one
+            var runner = Expression.Lambda<Func<ExecutionContext, Task>>(
+                expression,
+                Expression.Parameter(typeof(ExecutionContext), "executionContext"));
+
             var executionContext = new ExecutionContext(_masterDevice);
-            await expression.Compile()(executionContext).ConfigureAwait(false);
+            await runner.Compile()(executionContext).ConfigureAwait(false);
         }
     }
 }

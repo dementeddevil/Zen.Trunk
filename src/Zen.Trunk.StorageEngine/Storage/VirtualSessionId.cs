@@ -3,24 +3,24 @@
 namespace Zen.Trunk.Storage
 {
     /// <summary>
-    /// Simple value type which represents a Process Identifier.
+    /// Simple value type which represents a Virtual Session Identifier.
     /// </summary>
     [Serializable]
-    public struct ProcessId : IComparable, ICloneable
+    public struct VirtualSessionId : IComparable, ICloneable
     {
         #region Public Fields
         /// <summary>
         /// The zero
         /// </summary>
-        public static readonly ProcessId Zero = new ProcessId(0);
+        public static readonly VirtualSessionId Zero = new VirtualSessionId(0);
         #endregion
 
         #region Public Constructors
         /// <summary>
-        /// Initializes a new instance of the <see cref="ProcessId"/> struct.
+        /// Initializes a new instance of the <see cref="VirtualSessionId"/> struct.
         /// </summary>
         /// <param name="transactionId">The transaction id.</param>
-        public ProcessId(uint transactionId)
+        public VirtualSessionId(uint transactionId)
         {
             Value = transactionId;
         }
@@ -40,7 +40,7 @@ namespace Zen.Trunk.Storage
         /// <returns></returns>
         public override string ToString()
         {
-            return $"ProcessId[{Value:X8}]";
+            return $"ConnectionId[{Value:X8}]";
         }
 
         /// <summary>
@@ -51,9 +51,9 @@ namespace Zen.Trunk.Storage
         public override bool Equals(object obj)
         {
             var equal = false;
-            if (obj is ProcessId)
+            if (obj is VirtualSessionId)
             {
-                var rhs = (ProcessId)obj;
+                var rhs = (VirtualSessionId)obj;
                 if (Value == rhs.Value)
                 {
                     equal = true;
@@ -82,7 +82,7 @@ namespace Zen.Trunk.Storage
         /// <b>=0</b> this object sorts the same as obj.
         /// <b>&gt;0</b> this object sorts higher than obj.
         /// </returns>
-        public int CompareTo(ProcessId obj)
+        public int CompareTo(VirtualSessionId obj)
         {
             var order = Value.CompareTo(obj.Value);
             return order;
@@ -96,7 +96,7 @@ namespace Zen.Trunk.Storage
         /// <returns>
         /// The result of the operator.
         /// </returns>
-        public static bool operator <(ProcessId left, ProcessId right)
+        public static bool operator <(VirtualSessionId left, VirtualSessionId right)
         {
             return (left.Value < right.Value);
         }
@@ -109,7 +109,7 @@ namespace Zen.Trunk.Storage
         /// <returns>
         /// The result of the operator.
         /// </returns>
-        public static bool operator >(ProcessId left, ProcessId right)
+        public static bool operator >(VirtualSessionId left, VirtualSessionId right)
         {
             return (left.Value > right.Value);
         }
@@ -122,7 +122,7 @@ namespace Zen.Trunk.Storage
         /// <returns>
         /// The result of the operator.
         /// </returns>
-        public static bool operator ==(ProcessId left, ProcessId right)
+        public static bool operator ==(VirtualSessionId left, VirtualSessionId right)
         {
             return (left.Value == right.Value);
         }
@@ -134,7 +134,7 @@ namespace Zen.Trunk.Storage
         /// <returns>
         /// The result of the operator.
         /// </returns>
-        public static bool operator !=(ProcessId left, ProcessId right)
+        public static bool operator !=(VirtualSessionId left, VirtualSessionId right)
         {
             return (left.Value != right.Value);
         }
@@ -144,9 +144,9 @@ namespace Zen.Trunk.Storage
         int IComparable.CompareTo(object obj)
         {
             var order = -1;
-            if (obj is ProcessId)
+            if (obj is VirtualSessionId)
             {
-                order = CompareTo((ProcessId)obj);
+                order = CompareTo((VirtualSessionId)obj);
             }
             return order;
         }
@@ -157,9 +157,9 @@ namespace Zen.Trunk.Storage
         /// Clones this instance.
         /// </summary>
         /// <returns></returns>
-        public ProcessId Clone()
+        public VirtualSessionId Clone()
         {
-            return (ProcessId)MemberwiseClone();
+            return (VirtualSessionId)MemberwiseClone();
         }
         object ICloneable.Clone()
         {
