@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace Zen.Trunk.Storage
 {
     /// <summary>
-    /// <c>Session</c> is used to present commands to and retrieve results from
+    /// <c>ISession</c> is used to present commands to and retrieve results from
     /// the storage engine.
     /// </summary>
     /// <remarks>
@@ -18,7 +18,7 @@ namespace Zen.Trunk.Storage
     /// all associated sessions are closed. Active transactions associated with
     /// a closing session are rolled back.
     /// </remarks>
-    public class Session
+    public interface ISession
     {
         /// <summary>
         /// Gets the session identifier.
@@ -26,7 +26,7 @@ namespace Zen.Trunk.Storage
         /// <value>
         /// The session identifier.
         /// </value>
-        public SessionId SessionId { get; }
+        SessionId SessionId { get; }
 
         /// <summary>
         /// Gets the bound session identifier.
@@ -34,7 +34,7 @@ namespace Zen.Trunk.Storage
         /// <value>
         /// The bound session identifier.
         /// </value>
-        public VirtualSessionId VirtualSessionId { get; }
+        VirtualSessionId VirtualSessionId { get; }
 
         /// <summary>
         /// Gets the process identifier that owns this instance.
@@ -42,24 +42,62 @@ namespace Zen.Trunk.Storage
         /// <value>
         /// The process identifier.
         /// </value>
+        ProcessId ProcessId { get; }
+    }
+
+    public class Session : ISession
+    {
+        public Session(SessionId sessionId, ProcessId processId)
+        {
+            SessionId = sessionId;
+            ProcessId = processId;
+            VirtualSessionId = VirtualSessionId.Zero;
+        }
+
+        public SessionId SessionId { get; }
+
         public ProcessId ProcessId { get; }
+
+        public VirtualSessionId VirtualSessionId { get; internal set; }
     }
 
     public class SessionManager
     {
-        public Session CreateSession()
+        private readonly IDictionary<SessionId, Session> _activeSessions =
+            new Dictionary<SessionId, Session>();
+        private SessionId _nextSessionId = new SessionId(1);
+        private VirtualSessionId _nextVirtualSessionId = new VirtualSessionId(1);
+
+        public ISession CreateSession()
         {
-            
+            var sessionId = _nextSessionId;
+            _nextSessionId = new SessionId(sessionId.Value + 1);
+
+            var session = new Session(sessionId, ProcessId.Zero);
+            _activeSessions.Add(sessionId, session);
+            return session;
         }
 
         public VirtualSessionId GetVirtualSessionId(SessionId sessionId)
         {
-            
+            var session = _activeSessions[sessionId];
+            if (session.VirtualSessionId == VirtualSessionId.Zero)
+            {
+                session.VirtualSessionId = _nextVirtualSessionId;
+                _nextVirtualSessionId = new VirtualSessionId(_nextVirtualSessionId.Value + 1);
+            }
+            return _nextVirtualSessionId;
         }
 
         public void JoinSession(SessionId sessionId, VirtualSessionId virtualSessionId)
         {
-            
+            var session = _activeSessions[sessionId];
+            if (session.VirtualSessionId != VirtualSessionId.Zero)
+            {
+                throw new ArgumentException("Session is already bound.");
+            }
+
+            session.VirtualSessionId = virtualSessionId;
         }
     }
 }

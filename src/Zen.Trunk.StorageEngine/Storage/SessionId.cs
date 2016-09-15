@@ -19,16 +19,16 @@ namespace Zen.Trunk.Storage
         /// <summary>
         /// Initializes a new instance of the <see cref="SessionId"/> struct.
         /// </summary>
-        /// <param name="transactionId">The transaction id.</param>
-        public SessionId(uint transactionId)
+        /// <param name="sessionId">The session id.</param>
+        public SessionId(uint sessionId)
         {
-            Value = transactionId;
+            Value = sessionId;
         }
         #endregion
 
         #region Public Properties
         /// <summary>
-        /// Gets/sets the transaction identifier.
+        /// Gets/sets the session identifier.
         /// </summary>
         public uint Value { get; }
         #endregion
