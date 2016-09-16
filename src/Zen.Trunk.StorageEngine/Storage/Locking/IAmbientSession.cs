@@ -1,0 +1,28 @@
+﻿using System;
+
+namespace Zen.Trunk.Storage.Locking
+{
+    /// <summary>
+    /// <c>IAmbientSession</c> defines core information used by session
+    /// manager and available on every thread.
+    /// </summary>
+    /// <seealso cref="System.IDisposable" />
+    public interface IAmbientSession : IDisposable
+    {
+        /// <summary>
+        /// Gets the session identifier.
+        /// </summary>
+        /// <value>
+        /// The session identifier.
+        /// </value>
+        SessionId SessionId { get; }
+
+        /// <summary>
+        /// Gets the timeout.
+        /// </summary>
+        /// <value>
+        /// The timeout.
+        /// </value>
+        TimeSpan DefaultTransactionTimeout { get; }
+    }
+}

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -18,7 +19,7 @@ namespace Zen.Trunk.Storage
     /// all associated sessions are closed. Active transactions associated with
     /// a closing session are rolled back.
     /// </remarks>
-    public interface ISession
+    public interface ISession : IDisposable
     {
         /// <summary>
         /// Gets the session identifier.
@@ -27,77 +28,64 @@ namespace Zen.Trunk.Storage
         /// The session identifier.
         /// </value>
         SessionId SessionId { get; }
-
-        /// <summary>
-        /// Gets the bound session identifier.
-        /// </summary>
-        /// <value>
-        /// The bound session identifier.
-        /// </value>
-        VirtualSessionId VirtualSessionId { get; }
-
-        /// <summary>
-        /// Gets the process identifier that owns this instance.
-        /// </summary>
-        /// <value>
-        /// The process identifier.
-        /// </value>
-        ProcessId ProcessId { get; }
-    }
-
-    public class Session : ISession
-    {
-        public Session(SessionId sessionId, ProcessId processId)
-        {
-            SessionId = sessionId;
-            ProcessId = processId;
-            VirtualSessionId = VirtualSessionId.Zero;
-        }
-
-        public SessionId SessionId { get; }
-
-        public ProcessId ProcessId { get; }
-
-        public VirtualSessionId VirtualSessionId { get; internal set; }
     }
 
     public class SessionManager
     {
-        private readonly IDictionary<SessionId, Session> _activeSessions =
-            new Dictionary<SessionId, Session>();
-        private SessionId _nextSessionId = new SessionId(1);
-        private VirtualSessionId _nextVirtualSessionId = new VirtualSessionId(1);
+        private class Session : ISession
+        {
+            private readonly SessionManager _owner;
+            private bool _isDisposed;
 
+            public Session(SessionManager owner, SessionId sessionId)
+            {
+                _owner = owner;
+                SessionId = sessionId;
+            }
+
+            public SessionId SessionId { get; }
+
+            public void Dispose()
+            {
+                if (!_isDisposed)
+                {
+                    _isDisposed = true;
+                    _owner.OnSessionDisposed(this);
+                }
+            }
+        }
+
+        private readonly ConcurrentDictionary<SessionId, Session> _activeSessions =
+            new ConcurrentDictionary<SessionId, Session>();
+        private readonly object _syncLock = new object();
+        private SessionId _nextSessionId = new SessionId(1);
+
+        /// <summary>
+        /// Creates a new session.
+        /// </summary>
+        /// <returns></returns>
         public ISession CreateSession()
         {
-            var sessionId = _nextSessionId;
-            _nextSessionId = new SessionId(sessionId.Value + 1);
-
-            var session = new Session(sessionId, ProcessId.Zero);
-            _activeSessions.Add(sessionId, session);
+            var sessionId = GetNextSessionId();
+            var session = new Session(this, sessionId);
+            _activeSessions.TryAdd(sessionId, session);
             return session;
         }
 
-        public VirtualSessionId GetVirtualSessionId(SessionId sessionId)
+        private SessionId GetNextSessionId()
         {
-            var session = _activeSessions[sessionId];
-            if (session.VirtualSessionId == VirtualSessionId.Zero)
+            lock (_syncLock)
             {
-                session.VirtualSessionId = _nextVirtualSessionId;
-                _nextVirtualSessionId = new VirtualSessionId(_nextVirtualSessionId.Value + 1);
-            }
-            return _nextVirtualSessionId;
+                var sessionId = _nextSessionId;
+                _nextSessionId = new SessionId(sessionId.Value + 1);
+                return sessionId;
+            }            
         }
 
-        public void JoinSession(SessionId sessionId, VirtualSessionId virtualSessionId)
+        private void OnSessionDisposed(Session session)
         {
-            var session = _activeSessions[sessionId];
-            if (session.VirtualSessionId != VirtualSessionId.Zero)
-            {
-                throw new ArgumentException("Session is already bound.");
-            }
-
-            session.VirtualSessionId = virtualSessionId;
+            Session temp;
+            _activeSessions.TryRemove(session.SessionId, out temp);
         }
     }
 }

@@ -89,11 +89,12 @@
     <Compile Include="Storage\Data\ITransactionContextTaskRequest.cs" />
     <Compile Include="Storage\Data\LogicalVirtualManager.cs" />
     <Compile Include="Storage\Data\Table\TableIndexManagerMessages.cs" />
+    <Compile Include="Storage\Data\TransactionContextTaskRequestExtensions.cs" />
     <Compile Include="Storage\FileSpec.cs" />
-    <Compile Include="Storage\Locking\AmbientProperties.cs" />
-    <Compile Include="Storage\Locking\AmbientPropertiesContext.cs" />
-    <Compile Include="Storage\Locking\IAmbientProperties.cs" />
-    <Compile Include="Storage\Locking\IAmbientPropertiesPrivate.cs" />
+    <Compile Include="Storage\Locking\AmbientSession.cs" />
+    <Compile Include="Storage\Locking\AmbientSessionContext.cs" />
+    <Compile Include="Storage\Locking\IAmbientSession.cs" />
+    <Compile Include="Storage\Locking\IAmbientSessionPrivate.cs" />
     <Compile Include="Storage\Locking\ITrunkTransactionPrivate.cs" />
     <Compile Include="Storage\Log\ILogPageDevice.cs" />
     <Compile Include="Storage\Log\IMasterLogPageDevice.cs" />
@@ -130,7 +131,6 @@
     <Compile Include="Storage\Data\Table\TableIndexPage.cs" />
     <Compile Include="Storage\Data\Table\TableSchemaPage.cs" />
     <Compile Include="Storage\Session.cs" />
-    <Compile Include="Storage\VirtualSessionId.cs" />
     <Compile Include="Storage\SessionId.cs" />
     <Compile Include="Storage\TableIdentifier.cs" />
     <Compile Include="Storage\TemporaryDatabaseDevice.cs" />
@@ -165,7 +165,6 @@
     <Compile Include="Storage\ObjectId.cs" />
     <Compile Include="Storage\ObjectType.cs" />
     <Compile Include="Storage\PageDevice.cs" />
-    <Compile Include="Storage\ProcessId.cs" />
     <Compile Include="Storage\Range.cs" />
     <Compile Include="Storage\StatefulBufferScope.cs" />
     <Compile Include="Storage\StorageEngineConfiguration.cs" />

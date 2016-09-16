@@ -3,9 +3,9 @@ using System.Threading.Tasks;
 
 namespace Zen.Trunk.Storage.Locking
 {
-    internal interface IAmbientPropertiesPrivate : IAmbientProperties
+    internal interface IAmbientSessionPrivate : IAmbientSession
     {
-        void BeginNestedSession(SessionId sessionId, TimeSpan defaultTransactionTimeout);
+        TransactionLockOwnerBlock GetTransactionLockOwnerBlock(IDatabaseLockManager lockManager);
 
         Task<bool> CommitAsync();
 
