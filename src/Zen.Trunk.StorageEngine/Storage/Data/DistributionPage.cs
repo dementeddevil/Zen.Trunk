@@ -304,10 +304,8 @@ namespace Zen.Trunk.Storage.Data
                     throw new InvalidOperationException("No current transaction.");
                 }
 
-                // If we have no transaction locks then we should be in dispose
-                var txnLocks = TrunkTransactionContext.TransactionLocks;
-
                 // Return the lock-owner block for this object instance
+                var txnLocks = TrunkTransactionContext.GetTransactionLockOwnerBlock(LockManager);
                 return txnLocks?.GetOrCreateDistributionLockOwnerBlock(VirtualPageId);
             }
         }

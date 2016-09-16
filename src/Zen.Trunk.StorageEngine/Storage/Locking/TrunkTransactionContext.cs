@@ -109,13 +109,10 @@ namespace Zen.Trunk.Storage.Locking
 			}
 		}
 
-        internal static TransactionLockOwnerBlock TransactionLocks
+        internal static TransactionLockOwnerBlock GetTransactionLockOwnerBlock(IDatabaseLockManager lockManager)
         {
-            get
-            {
-                var privTxn = Current as ITrunkTransactionPrivate;
-                return privTxn?.TransactionLocks;
-            }
+            var privTxn = Current as ITrunkTransactionPrivate;
+            return privTxn?.GetTransactionLockOwnerBlock(lockManager);
         }
 
         /// <summary>

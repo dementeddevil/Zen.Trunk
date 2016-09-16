@@ -35,13 +35,14 @@ namespace Zen.Trunk.Storage.Data
 		private readonly BufferFieldUInt32 _maximumPages;
 		private readonly BufferFieldUInt32 _growthPages;
 		private readonly BufferFieldDouble _growthPercent;
-	    #endregion
+        private IDatabaseLockManager _lockManager;
+        #endregion
 
-		#region Protected Constructors
-		/// <summary>
-		/// Initialises an instance of <see cref="T:RootPage"/>.
-		/// </summary>
-		protected RootPage()
+        #region Protected Constructors
+        /// <summary>
+        /// Initialises an instance of <see cref="T:RootPage"/>.
+        /// </summary>
+        protected RootPage()
 		{
 		    // ReSharper disable once VirtualMemberCallInConstructor
 			_signature = new BufferFieldUInt64(base.LastHeaderField, RootPageSignature);
@@ -258,6 +259,8 @@ namespace Zen.Trunk.Storage.Data
         #endregion
 
         #region Private Properties
+        private IDatabaseLockManager LockManager => _lockManager ?? (_lockManager = GetService<IDatabaseLockManager>());
+
         private RootLock TrackedLock
         {
             get
@@ -267,10 +270,8 @@ namespace Zen.Trunk.Storage.Data
                     throw new InvalidOperationException("No current transaction.");
                 }
 
-                // If we have no transaction locks then we should be in dispose
-                var txnLocks = TrunkTransactionContext.TransactionLocks;
-
                 // Return the lock-owner block for this object instance
+                var txnLocks = TrunkTransactionContext.GetTransactionLockOwnerBlock(LockManager);
                 return txnLocks?.GetOrCreateRootLock(FileGroupId);
             }
         }

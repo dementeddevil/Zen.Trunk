@@ -9,6 +9,14 @@ namespace Zen.Trunk.Storage.Locking
 	/// </summary>
 	public interface IDatabaseLockManager
 	{
+        /// <summary>
+        /// Gets the database identifier.
+        /// </summary>
+        /// <value>
+        /// The database identifier.
+        /// </value>
+        DatabaseId DatabaseId { get; }
+
         #region Database Lock/Unlock
         /// <summary>
         /// Locks the database.

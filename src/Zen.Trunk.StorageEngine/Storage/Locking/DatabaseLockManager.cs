@@ -11,8 +11,7 @@ namespace Zen.Trunk.Storage.Locking
 	{
 		#region Private Fields
 		private readonly IGlobalLockManager _globalLockManager;
-		private readonly DatabaseId _dbId;
-        #endregion
+	    #endregion
 
         #region Public Constructors
         /// <summary>
@@ -35,9 +34,19 @@ namespace Zen.Trunk.Storage.Locking
 		    }
 
 			_globalLockManager = globalLockManager;
-			_dbId = dbId;
+			DatabaseId = dbId;
 		}
         #endregion
+
+        #region Public Properties
+        /// <summary>
+        /// Gets the database identifier.
+        /// </summary>
+        /// <value>
+        /// The database identifier.
+        /// </value>
+        public DatabaseId DatabaseId { get; }
+	    #endregion
 
         #region Public Methods
         #region Database Lock/Unlock
@@ -49,7 +58,7 @@ namespace Zen.Trunk.Storage.Locking
         /// <returns></returns>
         public Task LockDatabaseAsync(DatabaseLockType lockType, TimeSpan timeout)
 		{
-			return _globalLockManager.LockDatabaseAsync(_dbId, lockType, timeout);
+			return _globalLockManager.LockDatabaseAsync(DatabaseId, lockType, timeout);
 		}
 
         /// <summary>
@@ -58,7 +67,7 @@ namespace Zen.Trunk.Storage.Locking
         /// <returns></returns>
         public Task UnlockDatabaseAsync()
 		{
-			return _globalLockManager.UnlockDatabaseAsync(_dbId);
+			return _globalLockManager.UnlockDatabaseAsync(DatabaseId);
 		}
         #endregion
 
@@ -72,7 +81,7 @@ namespace Zen.Trunk.Storage.Locking
         /// <returns></returns>
         public Task LockRootAsync(FileGroupId fileGroupId, RootLockType lockType, TimeSpan timeout)
 		{
-			return _globalLockManager.LockRootAsync(_dbId, fileGroupId, lockType, timeout);
+			return _globalLockManager.LockRootAsync(DatabaseId, fileGroupId, lockType, timeout);
 		}
 
         /// <summary>
@@ -82,7 +91,7 @@ namespace Zen.Trunk.Storage.Locking
         /// <returns></returns>
         public Task UnlockRootAsync(FileGroupId fileGroupId)
 		{
-			return _globalLockManager.UnlockRootAsync(_dbId, fileGroupId);
+			return _globalLockManager.UnlockRootAsync(DatabaseId, fileGroupId);
 		}
 
         /// <summary>
@@ -92,7 +101,7 @@ namespace Zen.Trunk.Storage.Locking
         /// <returns></returns>
         public RootLock GetRootLock(FileGroupId fileGroupId)
 		{
-			return _globalLockManager.GetRootLock(_dbId, fileGroupId);
+			return _globalLockManager.GetRootLock(DatabaseId, fileGroupId);
 		}
         #endregion
 
@@ -106,7 +115,7 @@ namespace Zen.Trunk.Storage.Locking
         /// <returns></returns>
         public Task LockDistributionPageAsync(VirtualPageId virtualPageId, ObjectLockType lockType, TimeSpan timeout)
 		{
-			return _globalLockManager.LockDistributionPageAsync(_dbId, virtualPageId, lockType, timeout);
+			return _globalLockManager.LockDistributionPageAsync(DatabaseId, virtualPageId, lockType, timeout);
 		}
 
         /// <summary>
@@ -116,7 +125,7 @@ namespace Zen.Trunk.Storage.Locking
         /// <returns></returns>
         public Task UnlockDistributionPageAsync(VirtualPageId virtualPageId)
 		{
-			return _globalLockManager.UnlockDistributionPageAsync(_dbId, virtualPageId);
+			return _globalLockManager.UnlockDistributionPageAsync(DatabaseId, virtualPageId);
 		}
 
         /// <summary>
@@ -131,7 +140,7 @@ namespace Zen.Trunk.Storage.Locking
         public Task LockDistributionExtentAsync(VirtualPageId virtualPageId, uint extentIndex,
 			ObjectLockType distLockType, DataLockType extentLockType, TimeSpan timeout)
 		{
-			return _globalLockManager.LockDistributionExtentAsync(_dbId, virtualPageId, extentIndex, distLockType, extentLockType, timeout);
+			return _globalLockManager.LockDistributionExtentAsync(DatabaseId, virtualPageId, extentIndex, distLockType, extentLockType, timeout);
 		}
 
         /// <summary>
@@ -142,7 +151,7 @@ namespace Zen.Trunk.Storage.Locking
         /// <returns></returns>
         public Task UnlockDistributionExtentAsync(VirtualPageId virtualPageId, uint extentIndex)
 		{
-			return _globalLockManager.UnlockDistributionExtentAsync(_dbId, virtualPageId, extentIndex);
+			return _globalLockManager.UnlockDistributionExtentAsync(DatabaseId, virtualPageId, extentIndex);
 		}
 
         /// <summary>
@@ -152,7 +161,7 @@ namespace Zen.Trunk.Storage.Locking
         /// <param name="timeout">The timeout.</param>
         public void LockDistributionHeader(VirtualPageId virtualPageId, TimeSpan timeout)
 		{
-			_globalLockManager.LockDistributionHeader(_dbId, virtualPageId, timeout);
+			_globalLockManager.LockDistributionHeader(DatabaseId, virtualPageId, timeout);
 		}
 
         /// <summary>
@@ -161,7 +170,7 @@ namespace Zen.Trunk.Storage.Locking
         /// <param name="virtualPageId">The virtual page identifier.</param>
         public void UnlockDistributionHeader(VirtualPageId virtualPageId)
 		{
-			_globalLockManager.UnlockDistributionHeader(_dbId, virtualPageId);
+			_globalLockManager.UnlockDistributionHeader(DatabaseId, virtualPageId);
 		}
 
         /// <summary>
@@ -171,7 +180,7 @@ namespace Zen.Trunk.Storage.Locking
         /// <returns></returns>
         public ObjectLock GetDistributionLock(VirtualPageId virtualPageId)
 		{
-			return _globalLockManager.GetDistributionLock(_dbId, virtualPageId);
+			return _globalLockManager.GetDistributionLock(DatabaseId, virtualPageId);
 		}
 
         /// <summary>
@@ -182,7 +191,7 @@ namespace Zen.Trunk.Storage.Locking
         /// <returns></returns>
         public DataLock GetExtentLock(VirtualPageId virtualPageId, uint extentIndex)
 		{
-			return _globalLockManager.GetExtentLock(_dbId, virtualPageId, extentIndex);
+			return _globalLockManager.GetExtentLock(DatabaseId, virtualPageId, extentIndex);
 		}
         #endregion
 
@@ -196,7 +205,7 @@ namespace Zen.Trunk.Storage.Locking
         /// <returns></returns>
         public Task LockObjectAsync(ObjectId objectId, ObjectLockType lockType, TimeSpan timeout)
 		{
-			return _globalLockManager.LockObjectAsync(_dbId, objectId, lockType, timeout);
+			return _globalLockManager.LockObjectAsync(DatabaseId, objectId, lockType, timeout);
 		}
 
         /// <summary>
@@ -206,7 +215,7 @@ namespace Zen.Trunk.Storage.Locking
         /// <returns></returns>
         public Task UnlockObjectAsync(ObjectId objectId)
 		{
-			return _globalLockManager.UnlockObjectAsync(_dbId, objectId);
+			return _globalLockManager.UnlockObjectAsync(DatabaseId, objectId);
 		}
 
         /// <summary>
@@ -216,7 +225,7 @@ namespace Zen.Trunk.Storage.Locking
         /// <returns></returns>
         public ObjectLock GetObjectLock(ObjectId objectId)
 		{
-			return _globalLockManager.GetObjectLock(_dbId, objectId);
+			return _globalLockManager.GetObjectLock(DatabaseId, objectId);
 		}
         #endregion
 
@@ -230,7 +239,7 @@ namespace Zen.Trunk.Storage.Locking
         /// <returns></returns>
         public Task LockSchemaAsync(ObjectId objectId, SchemaLockType lockType, TimeSpan timeout)
 		{
-			return _globalLockManager.LockSchemaAsync(_dbId, objectId, lockType, timeout);
+			return _globalLockManager.LockSchemaAsync(DatabaseId, objectId, lockType, timeout);
 		}
 
         /// <summary>
@@ -240,7 +249,7 @@ namespace Zen.Trunk.Storage.Locking
         /// <returns></returns>
         public Task UnlockSchemaAsync(ObjectId objectId)
 		{
-			return _globalLockManager.UnlockSchemaAsync(_dbId, objectId);
+			return _globalLockManager.UnlockSchemaAsync(DatabaseId, objectId);
 		}
 
         /// <summary>
@@ -250,7 +259,7 @@ namespace Zen.Trunk.Storage.Locking
         /// <returns></returns>
         public SchemaLock GetSchemaLock(ObjectId objectId)
 		{
-			return _globalLockManager.GetSchemaLock(_dbId, objectId);
+			return _globalLockManager.GetSchemaLock(DatabaseId, objectId);
 		}
         #endregion
 
@@ -264,7 +273,7 @@ namespace Zen.Trunk.Storage.Locking
         /// <param name="timeout">The timeout.</param>
         public void LockRootIndex(ObjectId objectId, IndexId indexId, bool writable, TimeSpan timeout)
 		{
-			_globalLockManager.LockRootIndex(_dbId, objectId, indexId, writable, timeout);
+			_globalLockManager.LockRootIndex(DatabaseId, objectId, indexId, writable, timeout);
 		}
 
         /// <summary>
@@ -275,7 +284,7 @@ namespace Zen.Trunk.Storage.Locking
         /// <param name="writable">if set to <c>true</c> [writable].</param>
         public void UnlockRootIndex(ObjectId objectId, IndexId indexId, bool writable)
 		{
-			_globalLockManager.UnlockRootIndex(_dbId, objectId, indexId, writable);
+			_globalLockManager.UnlockRootIndex(DatabaseId, objectId, indexId, writable);
 		}
 
         /// <summary>
@@ -288,7 +297,7 @@ namespace Zen.Trunk.Storage.Locking
         /// <param name="timeout">The timeout.</param>
         public void LockInternalIndex(ObjectId objectId, IndexId indexId, LogicalPageId logicalId, bool writable, TimeSpan timeout)
 		{
-			_globalLockManager.LockInternalIndex(_dbId, objectId, indexId, logicalId, writable, timeout);
+			_globalLockManager.LockInternalIndex(DatabaseId, objectId, indexId, logicalId, writable, timeout);
 		}
 
         /// <summary>
@@ -300,7 +309,7 @@ namespace Zen.Trunk.Storage.Locking
         /// <param name="writable">if set to <c>true</c> [writable].</param>
         public void UnlockInternalIndex(ObjectId objectId, IndexId indexId, LogicalPageId logicalId, bool writable)
 		{
-			_globalLockManager.UnlockInternalIndex(_dbId, objectId, indexId, logicalId, writable);
+			_globalLockManager.UnlockInternalIndex(DatabaseId, objectId, indexId, logicalId, writable);
 		}
 
         /// <summary>
@@ -313,7 +322,7 @@ namespace Zen.Trunk.Storage.Locking
         /// <param name="timeout">The timeout.</param>
         public void LockLeafIndex(ObjectId objectId, IndexId indexId, LogicalPageId logicalId, bool writable, TimeSpan timeout)
         {
-            _globalLockManager.LockLeafIndex(_dbId, objectId, indexId, logicalId, writable, timeout);
+            _globalLockManager.LockLeafIndex(DatabaseId, objectId, indexId, logicalId, writable, timeout);
         }
 
         /// <summary>
@@ -325,7 +334,7 @@ namespace Zen.Trunk.Storage.Locking
         /// <param name="writable">if set to <c>true</c> [writable].</param>
         public void UnlockLeafIndex(ObjectId objectId, IndexId indexId, LogicalPageId logicalId, bool writable)
         {
-            _globalLockManager.UnlockLeafIndex(_dbId, objectId, indexId, logicalId, writable);
+            _globalLockManager.UnlockLeafIndex(DatabaseId, objectId, indexId, logicalId, writable);
         }
         #endregion
 
@@ -340,7 +349,7 @@ namespace Zen.Trunk.Storage.Locking
         /// <returns></returns>
         public Task LockDataAsync(ObjectId objectId, LogicalPageId logicalId, DataLockType lockType, TimeSpan timeout)
 		{
-			return _globalLockManager.LockDataAsync(_dbId, objectId, logicalId, lockType, timeout);
+			return _globalLockManager.LockDataAsync(DatabaseId, objectId, logicalId, lockType, timeout);
 		}
 
         /// <summary>
@@ -351,7 +360,7 @@ namespace Zen.Trunk.Storage.Locking
         /// <returns></returns>
         public Task UnlockDataAsync(ObjectId objectId, LogicalPageId logicalId)
 		{
-			return _globalLockManager.UnlockDataAsync(_dbId, objectId, logicalId);
+			return _globalLockManager.UnlockDataAsync(DatabaseId, objectId, logicalId);
 		}
 
         /// <summary>
@@ -362,7 +371,7 @@ namespace Zen.Trunk.Storage.Locking
         /// <returns></returns>
         public DataLock GetDataLock(ObjectId objectId, LogicalPageId logicalId)
 		{
-			return _globalLockManager.GetDataLock(_dbId, objectId, logicalId);
+			return _globalLockManager.GetDataLock(DatabaseId, objectId, logicalId);
 		}
 		#endregion
 		#endregion

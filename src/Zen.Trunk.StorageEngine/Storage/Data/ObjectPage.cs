@@ -24,13 +24,14 @@ namespace Zen.Trunk.Storage.Data
 		#region Private Fields
 		private readonly BufferFieldObjectId _objectId;
 		private ObjectLockType _objectLock;
-		#endregion
+        private IDatabaseLockManager _lockManager;
+        #endregion
 
-		#region Public Constructors
-		/// <summary>
-		/// Initializes a new instance of the <see cref="ObjectPage"/> class.
-		/// </summary>
-		public ObjectPage()
+        #region Public Constructors
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ObjectPage"/> class.
+        /// </summary>
+        public ObjectPage()
 		{
 			_objectId = new BufferFieldObjectId(base.LastHeaderField);
 		}
@@ -69,10 +70,10 @@ namespace Zen.Trunk.Storage.Data
 	    /// </summary>
 	    /// <value>The object lock.</value>
 	    public ObjectLockType ObjectLock => _objectLock;
-	    #endregion
+        #endregion
 
-		#region Internal Properties
-		internal DataLockOwnerBlock LockBlock
+        #region Internal Properties
+        internal DataLockOwnerBlock LockBlock
 		{
 			get
 			{
@@ -81,16 +82,22 @@ namespace Zen.Trunk.Storage.Data
 					throw new InvalidOperationException("No current transaction.");
 				}
 
-				// If we have no transaction locks then we should be in dispose
-				var txnLocks = TrunkTransactionContext.TransactionLocks;
-
 			    // Return the lock-owner block for this object instance
+				var txnLocks = TrunkTransactionContext.GetTransactionLockOwnerBlock(LockManager);
 				return txnLocks?.GetOrCreateDataLockOwnerBlock(ObjectId);
 			}
 		}
-		#endregion
+        #endregion
 
-		#region Protected Properties
+        #region Protected Properties
+        /// <summary>
+        /// Gets the lock manager.
+        /// </summary>
+        /// <value>
+        /// The lock manager.
+        /// </value>
+        protected IDatabaseLockManager LockManager => _lockManager ?? (_lockManager = GetService<IDatabaseLockManager>());
+
 		/// <summary>
 		/// Gets the last header field.
 		/// </summary>

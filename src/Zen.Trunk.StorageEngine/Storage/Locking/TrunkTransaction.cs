@@ -110,6 +110,7 @@ namespace Zen.Trunk.Storage.Locking
         private readonly ILifetimeScope _lifetimeScope;
         private readonly List<IPageEnlistmentNotification> _subEnlistments = new List<IPageEnlistmentNotification>();
         private readonly List<TransactionLogEntry> _transactionLogs = new List<TransactionLogEntry>();
+        private readonly Dictionary<DatabaseId, TransactionLockOwnerBlock> _transactionLockOwnerBlocks = new Dictionary<DatabaseId, TransactionLockOwnerBlock>();
         private TransactionOptions _options;
         private bool _isBeginLogWritten;
         private TransactionId _transactionId = TransactionId.Zero;
@@ -177,8 +178,6 @@ namespace Zen.Trunk.Storage.Locking
                 Timeout = timeout
             };
 
-            LockManager = _lifetimeScope.Resolve<IDatabaseLockManager>();
-            TransactionLocks = new TransactionLockOwnerBlock(LockManager);
             TryEnlistInTransaction();
         }
         #endregion
@@ -201,10 +200,11 @@ namespace Zen.Trunk.Storage.Locking
         /// <value>The timeout.</value>
         public TimeSpan Timeout => _options.Timeout;
 
-        /// <summary>
-        /// Gets the logging device from the database device.
-        /// </summary>
-        public MasterLogPageDevice LoggingDevice
+        public bool IsCompleted => _isCompleted;
+        #endregion
+
+        #region Private Properties
+        private MasterLogPageDevice LoggingDevice
         {
             get
             {
@@ -215,12 +215,6 @@ namespace Zen.Trunk.Storage.Locking
                 return _logDevice;
             }
         }
-
-        public TransactionLockOwnerBlock TransactionLocks { get; }
-
-        public IDatabaseLockManager LockManager { get; }
-
-        public bool IsCompleted => _isCompleted;
         #endregion
 
         #region Public Methods
@@ -231,6 +225,22 @@ namespace Zen.Trunk.Storage.Locking
         {
             Dispose(true);
             GC.SuppressFinalize(this);
+        }
+
+        /// <summary>
+        /// Gets the transaction lock owner block associated with the given lock manager.
+        /// </summary>
+        /// <param name="lockManager">The lock manager.</param>
+        /// <returns></returns>
+        public TransactionLockOwnerBlock GetTransactionLockOwnerBlock(IDatabaseLockManager lockManager)
+        {
+            TransactionLockOwnerBlock block;
+            if (!_transactionLockOwnerBlocks.TryGetValue(lockManager.DatabaseId, out block))
+            {
+                block = new TransactionLockOwnerBlock(lockManager);
+                _transactionLockOwnerBlocks.Add(lockManager.DatabaseId, block);
+            }
+            return block;
         }
 
         /// <summary>
@@ -658,10 +668,11 @@ namespace Zen.Trunk.Storage.Locking
             _transactionLogs.Clear();
 
             // Release all locks
-            if (TransactionLocks != null)
+            foreach (var transactionLock in _transactionLockOwnerBlocks.Values)
             {
-                await TransactionLocks.ReleaseAllAsync().ConfigureAwait(false);
+                await transactionLock.ReleaseAllAsync().ConfigureAwait(false);
             }
+            _transactionLockOwnerBlocks.Clear();
 
             // Cleanup enlistments that implement IDisposable
             foreach (var enlistment in _subEnlistments)
@@ -676,7 +687,6 @@ namespace Zen.Trunk.Storage.Locking
 
             // Throw away transaction context
             _transactionId = TransactionId.Zero;
-            //LockManager = null;
             _logDevice = null;
 
             // Perform final state update
