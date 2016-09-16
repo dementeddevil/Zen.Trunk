@@ -37,11 +37,11 @@ namespace Zen.Trunk.Storage.Query
             // TODO: Process and return parser errors
             var tokenStream = new CommonTokenStream(lexer);
             var parser = new TrunkSqlParser(tokenStream);
-            var compileUnit = parser.tsql_file();
+            var batchContext = parser.batch();
 
             // Validate symbol table
             var validator = new SymbolTableValidator();
-            if (!compileUnit.Accept(validator))
+            if (!batchContext.Accept(validator))
             {
                 // TODO: Return collection of violations
             }
@@ -49,7 +49,7 @@ namespace Zen.Trunk.Storage.Query
             // Build query batch pipeline from the AST
             // TODO: Determine how to detect and return semantic errors
             var visitor = new SqlBatchOperationBuilder(_masterDevice);
-            var expression = compileUnit.Accept(visitor);
+            var expression = batchContext.Accept(visitor);
 
             if (onlyPrepare)
             {

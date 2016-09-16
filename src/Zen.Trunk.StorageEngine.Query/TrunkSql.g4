@@ -24,12 +24,8 @@ THE SOFTWARE.
 
 grammar TrunkSql;
 
-tsql_file
-    : batch* EOF
-    ;
-
 batch
-    : sql_clauses go_statement?
+    : sql_clauses EOF
     ;
 
 sql_clauses
@@ -565,11 +561,6 @@ transaction_statement
     | ROLLBACK WORK? ';'?																						#rollback_work_statement
     // https://msdn.microsoft.com/en-us/library/ms188378.aspx
     | SAVE (TRAN | TRANSACTION) (id | LOCAL_ID)? ';'?															#save_transaction_statement
-    ;
-
-// https://msdn.microsoft.com/en-us/library/ms188037.aspx
-go_statement
-    : GO (count=DECIMAL_SEQUENCE)?
     ;
 
 // https://msdn.microsoft.com/en-us/library/ms188366.aspx

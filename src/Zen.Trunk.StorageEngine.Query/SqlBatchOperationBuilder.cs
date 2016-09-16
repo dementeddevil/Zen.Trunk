@@ -66,21 +66,6 @@ namespace Zen.Trunk.Storage.Query
         protected override Expression DefaultResult => null;
 
         /// <summary>
-        /// Visit a parse tree produced by <see cref="M:Zen.Trunk.Storage.Query.TrunkSqlParser.tsql_file" />.
-        /// <para>
-        /// The default implementation returns the result of calling <see cref="M:Antlr4.Runtime.Tree.AbstractParseTreeVisitor`1.VisitChildren(Antlr4.Runtime.Tree.IRuleNode)" />
-        /// on <paramref name="context" />.
-        /// </para>
-        /// </summary>
-        /// <param name="context">The parse tree.</param>
-        /// <returns></returns>
-        /// <return>The visitor result.</return>
-        public override Expression VisitTsql_file([NotNull] TrunkSqlParser.Tsql_fileContext context)
-        {
-            return base.VisitTsql_file(context);
-        }
-
-        /// <summary>
         /// Visit a parse tree produced by <see cref="M:Zen.Trunk.Storage.Query.TrunkSqlParser.use_statement" />.
         /// <para>
         /// The default implementation returns the result of calling <see cref="M:Antlr4.Runtime.Tree.AbstractParseTreeVisitor`1.VisitChildren(Antlr4.Runtime.Tree.IRuleNode)" />
