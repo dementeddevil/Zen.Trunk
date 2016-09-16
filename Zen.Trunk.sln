@@ -23,6 +23,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Zen.Trunk.StorageEngine.Que
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Zen.Trunk.StorageEngine.Query.Tests", "src\Zen.Trunk.StorageEngine.Query.Tests\Zen.Trunk.StorageEngine.Query.Tests.csproj", "{20A4DC8B-3068-416B-B581-94C243072740}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Zen.Trunk.StorageEngine.Network", "src\Zen.Trunk.StorageEngine.Network\Zen.Trunk.StorageEngine.Network.csproj", "{D7C5DED7-F8F4-4614-8636-E364DDEB12A1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -87,6 +89,14 @@ Global
 		{20A4DC8B-3068-416B-B581-94C243072740}.Release|x64.Build.0 = Release|x64
 		{20A4DC8B-3068-416B-B581-94C243072740}.Release|x86.ActiveCfg = Release|x86
 		{20A4DC8B-3068-416B-B581-94C243072740}.Release|x86.Build.0 = Release|x86
+		{D7C5DED7-F8F4-4614-8636-E364DDEB12A1}.Debug|x64.ActiveCfg = Debug|x64
+		{D7C5DED7-F8F4-4614-8636-E364DDEB12A1}.Debug|x64.Build.0 = Debug|x64
+		{D7C5DED7-F8F4-4614-8636-E364DDEB12A1}.Debug|x86.ActiveCfg = Debug|x86
+		{D7C5DED7-F8F4-4614-8636-E364DDEB12A1}.Debug|x86.Build.0 = Debug|x86
+		{D7C5DED7-F8F4-4614-8636-E364DDEB12A1}.Release|x64.ActiveCfg = Release|x64
+		{D7C5DED7-F8F4-4614-8636-E364DDEB12A1}.Release|x64.Build.0 = Release|x64
+		{D7C5DED7-F8F4-4614-8636-E364DDEB12A1}.Release|x86.ActiveCfg = Release|x86
+		{D7C5DED7-F8F4-4614-8636-E364DDEB12A1}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -99,5 +109,6 @@ Global
 		{07E7D6A1-141E-45DB-B557-30425540BE14} = {27A27BFC-3001-48FE-855F-CF8B27D889B9}
 		{97135039-F5B3-4BCA-9360-E14B1505680D} = {27A27BFC-3001-48FE-855F-CF8B27D889B9}
 		{20A4DC8B-3068-416B-B581-94C243072740} = {27A27BFC-3001-48FE-855F-CF8B27D889B9}
+		{D7C5DED7-F8F4-4614-8636-E364DDEB12A1} = {27A27BFC-3001-48FE-855F-CF8B27D889B9}
 	EndGlobalSection
 EndGlobal
