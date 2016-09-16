@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Zen.Trunk.Storage
@@ -57,8 +58,7 @@ namespace Zen.Trunk.Storage
 
         private readonly ConcurrentDictionary<SessionId, Session> _activeSessions =
             new ConcurrentDictionary<SessionId, Session>();
-        private readonly object _syncLock = new object();
-        private SessionId _nextSessionId = new SessionId(1);
+        private int _nextSessionIdValue;
 
         /// <summary>
         /// Creates a new session.
@@ -74,12 +74,7 @@ namespace Zen.Trunk.Storage
 
         private SessionId GetNextSessionId()
         {
-            lock (_syncLock)
-            {
-                var sessionId = _nextSessionId;
-                _nextSessionId = new SessionId(sessionId.Value + 1);
-                return sessionId;
-            }            
+            return new SessionId((uint)Interlocked.Increment(ref _nextSessionIdValue));
         }
 
         private void OnSessionDisposed(Session session)
