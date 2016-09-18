@@ -77,7 +77,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ChildSymbolScope.cs" />
-    <Compile Include="ExecutionContext.cs" />
+    <Compile Include="QueryExecutionContext.cs" />
     <Compile Include="FunctionSymbol.cs" />
     <Compile Include="FunctionSymbolScope.cs" />
     <Compile Include="GlobalSymbolScope.cs" />

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Autofac;
 using Zen.Trunk.Logging;
 
 namespace Zen.Trunk.Storage.Locking
@@ -43,6 +44,36 @@ namespace Zen.Trunk.Storage.Locking
             }
             return block;
         }
+
+        /// <summary>
+        /// Switches the shared database lock.
+        /// </summary>
+        /// <param name="from">From.</param>
+        /// <param name="to">To.</param>
+        /// <param name="lockTimeout">The lock timeout.</param>
+        /// <returns></returns>
+        public async Task SwitchSharedDatabaseLockAsync(DatabaseDevice from, DatabaseDevice to, TimeSpan lockTimeout)
+        {
+            if (from == to)
+            {
+                return;
+            }
+
+            if (to != null)
+            {
+                await to.LifetimeScope.Resolve<IDatabaseLockManager>()
+                    .LockDatabaseAsync(DatabaseLockType.Shared, lockTimeout)
+                    .ConfigureAwait(false);
+            }
+
+            if (from != null)
+            {
+                await from.LifetimeScope.Resolve<IDatabaseLockManager>()
+                    .UnlockDatabaseAsync()
+                    .ConfigureAwait(false);
+            }
+        }
+
 
         public async Task<bool> CommitAsync()
         {

@@ -30,11 +30,11 @@ namespace Zen.Trunk.Storage.Query
 
         private IsolationLevel _currentIsolationLevel;
         private int _transactionDepth;
-        private readonly List<Expression<Func<ExecutionContext, Task>>> _operations =
-            new List<Expression<Func<ExecutionContext, Task>>>();
+        private readonly List<Expression<Func<QueryExecutionContext, Task>>> _operations =
+            new List<Expression<Func<QueryExecutionContext, Task>>>();
 
         private readonly ParameterExpression _executionContextParameterExpression =
-            Expression.Parameter(typeof(ExecutionContext), "executionContext");
+            Expression.Parameter(typeof(QueryExecutionContext), "executionContext");
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SqlBatchOperationBuilder"/> class.
@@ -345,14 +345,14 @@ namespace Zen.Trunk.Storage.Query
         }
 
         private async Task ExecuteCompositeExpressionAsync(
-            ExecutionContext executionContext,
-            Expression<Func<ExecutionContext, Task>> lhs,
-            Expression<Func<ExecutionContext, Task>> rhs)
+            QueryExecutionContext queryExecutionContext,
+            Expression<Func<QueryExecutionContext, Task>> lhs,
+            Expression<Func<QueryExecutionContext, Task>> rhs)
         {
             var compiledLeft = lhs.Compile();
             var compiledRight = rhs.Compile();
-            await compiledLeft(executionContext).ConfigureAwait(false);
-            await compiledRight(executionContext).ConfigureAwait(false);
+            await compiledLeft(queryExecutionContext).ConfigureAwait(false);
+            await compiledRight(queryExecutionContext).ConfigureAwait(false);
         }
 
         private FileSpec GetNativeFileSpecFromFileSpec(TrunkSqlParser.File_specContext fileSpecContext)

@@ -57,11 +57,11 @@ namespace Zen.Trunk.Storage.Query
             }
 
             // Walk the batches and execute each one
-            var runner = Expression.Lambda<Func<ExecutionContext, Task>>(
+            var runner = Expression.Lambda<Func<QueryExecutionContext, Task>>(
                 expression,
-                Expression.Parameter(typeof(ExecutionContext), "executionContext"));
+                Expression.Parameter(typeof(QueryExecutionContext), "executionContext"));
 
-            var executionContext = new ExecutionContext(_masterDevice);
+            var executionContext = new QueryExecutionContext(_masterDevice);
             await runner.Compile()(executionContext).ConfigureAwait(false);
         }
     }

@@ -70,10 +70,9 @@
   <ItemGroup>
     <Compile Include="Class1.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Storage\Network\Connection.cs" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Storage\Network\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <ProjectReference Include="..\Zen.Trunk.StorageEngine.Query\Zen.Trunk.StorageEngine.Query.csproj">
       <Project>{97135039-f5b3-4bca-9360-e14b1505680d}</Project>

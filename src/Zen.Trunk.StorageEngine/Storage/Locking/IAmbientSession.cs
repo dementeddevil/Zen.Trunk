@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 
 namespace Zen.Trunk.Storage.Locking
 {
@@ -24,5 +25,14 @@ namespace Zen.Trunk.Storage.Locking
         /// The timeout.
         /// </value>
         TimeSpan DefaultTransactionTimeout { get; }
+
+        /// <summary>
+        /// Switches the shared database lock.
+        /// </summary>
+        /// <param name="from">From.</param>
+        /// <param name="to">To.</param>
+        /// <param name="lockTimeout">The lock timeout.</param>
+        /// <returns></returns>
+        Task SwitchSharedDatabaseLockAsync(DatabaseDevice from, DatabaseDevice to, TimeSpan lockTimeout);
     }
 }
