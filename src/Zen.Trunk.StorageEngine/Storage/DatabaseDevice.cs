@@ -580,7 +580,7 @@ namespace Zen.Trunk.Storage
             {
                 Logger.Debug("Opening log device...");
             }
-            await GetService<MasterLogPageDevice>().OpenAsync(IsCreate).ConfigureAwait(false);
+            await GetService<IMasterLogPageDevice>().OpenAsync(IsCreate).ConfigureAwait(false);
 
             // If this is a create, then we want to create a transaction so
             //  that once the file-group devices are created we can commit
@@ -607,7 +607,7 @@ namespace Zen.Trunk.Storage
                 {
                     Logger.Debug("Initiating recovery...");
                 }
-                await GetService<MasterLogPageDevice>().PerformRecoveryAsync().ConfigureAwait(false);
+                await GetService<IMasterLogPageDevice>().PerformRecoveryAsync().ConfigureAwait(false);
             }
             else
             {
@@ -682,7 +682,7 @@ namespace Zen.Trunk.Storage
             await CachingBufferDevice.CloseAsync().ConfigureAwait(false);
 
             // Close the log device
-            await GetService<MasterLogPageDevice>().CloseAsync().ConfigureAwait(false);
+            await GetService<IMasterLogPageDevice>().CloseAsync().ConfigureAwait(false);
 
             // Close underlying buffer device
             await RawBufferDevice.CloseAsync().ConfigureAwait(false);
@@ -886,7 +886,7 @@ namespace Zen.Trunk.Storage
             }
 
             // Issue begin checkpoint
-            await GetService<MasterLogPageDevice>()
+            await GetService<IMasterLogPageDevice>()
                 .WriteEntryAsync(new BeginCheckPointLogEntry())
                 .ConfigureAwait(false);
 
@@ -906,7 +906,7 @@ namespace Zen.Trunk.Storage
             }
 
             // Issue end checkpoint
-            await GetService<MasterLogPageDevice>()
+            await GetService<IMasterLogPageDevice>()
                 .WriteEntryAsync(new EndCheckPointLogEntry())
                 .ConfigureAwait(false);
 

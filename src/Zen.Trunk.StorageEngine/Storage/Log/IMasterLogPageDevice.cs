@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Zen.Trunk.Storage.Log
 {
@@ -75,5 +76,23 @@ namespace Zen.Trunk.Storage.Log
         /// </summary>
         /// <returns></returns>
         TransactionId GetNextTransactionId();
+
+        /// <summary>
+        /// Performs rollforward operations on a list of transaction log entries.
+        /// </summary>
+        /// <remarks>
+        /// The transactions are rolled back in reverse order.
+        /// </remarks>
+        /// <param name="transactions"></param>
+        Task CommitTransactionsAsync(List<TransactionLogEntry> transactions);
+
+        /// <summary>
+        /// Performs rollback operations on a list of transaction log entries.
+        /// </summary>
+        /// <remarks>
+        /// The transactions are rolled back in reverse order.
+        /// </remarks>
+        /// <param name="transactions"></param>
+        Task RollbackTransactionsAsync(List<TransactionLogEntry> transactions);
     }
 }

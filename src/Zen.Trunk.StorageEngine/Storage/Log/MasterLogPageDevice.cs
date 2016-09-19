@@ -336,9 +336,7 @@ namespace Zen.Trunk.Storage.Log
 			// Save root page
 			SaveRootPage();*/
 		}
-		#endregion
 
-		#region Internal Methods
 		/// <summary>
 		/// Performs rollforward operations on a list of transaction log entries.
 		/// </summary>
@@ -346,7 +344,7 @@ namespace Zen.Trunk.Storage.Log
 		/// The transactions are rolled back in reverse order.
 		/// </remarks>
 		/// <param name="transactions"></param>
-		internal async Task CommitTransactions(List<TransactionLogEntry> transactions)
+		public async Task CommitTransactionsAsync(List<TransactionLogEntry> transactions)
 		{
 			// We need the database device
 			var pageDevice = GetService<DatabaseDevice>();
@@ -367,7 +365,7 @@ namespace Zen.Trunk.Storage.Log
 		/// The transactions are rolled back in reverse order.
 		/// </remarks>
 		/// <param name="transactions"></param>
-		internal async Task RollbackTransactions(List<TransactionLogEntry> transactions)
+		public async Task RollbackTransactionsAsync(List<TransactionLogEntry> transactions)
 		{
             // We need the data page device
             var pageDevice = GetService<DatabaseDevice>();
@@ -385,7 +383,7 @@ namespace Zen.Trunk.Storage.Log
 					.ConfigureAwait(false);
 			}
 		}
-        #endregion
+		#endregion
 
         #region Protected Methods
         /// <summary>
@@ -816,14 +814,14 @@ namespace Zen.Trunk.Storage.Log
 						//	can be committed.
 						if (tranList[tranList.Count - 1].LogType == LogEntryType.CommitXact)
 						{
-							await CommitTransactions(tranList).ConfigureAwait(false);
+							await CommitTransactionsAsync(tranList).ConfigureAwait(false);
 							workDone = true;
 						}
 
 						// Everything else must be rolled back
 						else
 						{
-							await RollbackTransactions(tranList).ConfigureAwait(false);
+							await RollbackTransactionsAsync(tranList).ConfigureAwait(false);
 
 							// For implicit rollbacks we need to ensure we write an explicit
 							//	rollback record to the log at the end of recovery

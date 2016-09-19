@@ -92,7 +92,7 @@ namespace Zen.Trunk.Storage.Log
         {
             get
             {
-                var master = GetService<MasterLogPageDevice>();
+                var master = GetService<IMasterLogPageDevice>();
                 return master.IsInRecovery;
             }
         }

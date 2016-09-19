@@ -115,7 +115,7 @@ namespace Zen.Trunk.Storage.Locking
         private bool _isBeginLogWritten;
         private TransactionId _transactionId = TransactionId.Zero;
         private int _transactionCount = 1;
-        private MasterLogPageDevice _logDevice;
+        private IMasterLogPageDevice _logDevice;
         private bool _nestedRollbackTriggered;
         private bool _isCompleting;
         private bool _isCompleted;
@@ -204,7 +204,7 @@ namespace Zen.Trunk.Storage.Locking
         #endregion
 
         #region Private Properties
-        private MasterLogPageDevice LoggingDevice
+        private IMasterLogPageDevice LoggingDevice
         {
             get
             {
@@ -610,7 +610,7 @@ namespace Zen.Trunk.Storage.Locking
                 {
                     // Rollback our transaction log entries
                     await LoggingDevice
-                        .RollbackTransactions(_transactionLogs)
+                        .RollbackTransactionsAsync(_transactionLogs)
                         .ConfigureAwait(false);
                 }
             }
