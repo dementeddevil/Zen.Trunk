@@ -68,9 +68,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Class1.cs" />
+    <Compile Include="AutofacNetworkModule.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Storage\Network\Connection.cs" />
+    <Compile Include="Storage\Network\IConnection.cs" />
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>

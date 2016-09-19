@@ -5,7 +5,7 @@ using Zen.Trunk.Storage.Query;
 
 namespace Zen.Trunk.Storage.Network
 {
-    public class Connection
+    public class Connection : IConnection
     {
         private QueryExecutionContext _executionContext;
         private ISession _session;

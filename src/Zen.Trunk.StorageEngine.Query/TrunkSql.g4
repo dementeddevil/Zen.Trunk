@@ -34,11 +34,8 @@ sql_clauses
 
 sql_clause
     : dml_clause
-
     | ddl_clause
-
     | cfl_statement
-
     | another_statement
     ;
 
@@ -52,10 +49,11 @@ dml_clause
 
 // Data Definition Language: https://msdn.microsoft.com/en-us/library/ff848799.aspx)
 ddl_clause
-    : //create_function
-    create_database
+    : create_database
+    
     | create_index
     | create_procedure
+	//| create_function
     | create_statistics
     | create_table
     | create_type
@@ -296,12 +294,12 @@ database_optionspec
       | termination
     ;
 
-auto_option:
-     AUTO_CLOSE on_off
-      | AUTO_CREATE_STATISTICS  OFF | ON ( INCREMENTAL EQUAL  ON | OFF  )
-      | AUTO_SHRINK  on_off
-      | AUTO_UPDATE_STATISTICS on_off
-      | AUTO_UPDATE_STATISTICS_ASYNC  (ON | OFF )
+auto_option
+	: AUTO_CLOSE on_off
+	| AUTO_CREATE_STATISTICS  OFF | ON ( INCREMENTAL EQUAL  ON | OFF  )
+	| AUTO_SHRINK on_off
+	| AUTO_UPDATE_STATISTICS on_off
+	| AUTO_UPDATE_STATISTICS_ASYNC on_off
     ;
 
 change_tracking_option:
@@ -350,18 +348,18 @@ delayed_durability_option:
      DELAYED_DURABILITY EQUAL ( DISABLED | ALLOWED | FORCED )
     ;
 
-external_access_option:
-   DB_CHAINING on_off  
-  | TRUSTWORTHY on_off  
-  | DEFAULT_LANGUAGE EQUAL ( id | STRING )  
-  | DEFAULT_FULLTEXT_LANGUAGE EQUAL ( id | STRING )  
-  | NESTED_TRIGGERS EQUAL ( OFF | ON )  
-  | TRANSFORM_NOISE_WORDS EQUAL ( OFF | ON )  
-  | TWO_DIGIT_YEAR_CUTOFF EQUAL DECIMAL_SEQUENCE
-  ;
+external_access_option
+	: DB_CHAINING on_off  
+	| TRUSTWORTHY on_off
+	| DEFAULT_LANGUAGE EQUAL ( id | STRING )  
+	| DEFAULT_FULLTEXT_LANGUAGE EQUAL ( id | STRING )  
+	| NESTED_TRIGGERS EQUAL on_off
+	| TRANSFORM_NOISE_WORDS EQUAL on_off
+	| TWO_DIGIT_YEAR_CUTOFF EQUAL DECIMAL_SEQUENCE
+	;
 
-HADR_options:
-    ALTER DATABASE SET HADR
+HADR_options
+	: ALTER DATABASE SET HADR
     ;
 
 mixed_page_allocation_option:
@@ -377,10 +375,10 @@ query_store_options:
     ;
 */
 
-recovery_option:
-     RECOVERY ( FULL | BULK_LOGGED | SIMPLE )
-     | TORN_PAGE_DETECTION on_off
-     | PAGE_VERIFY ( CHECKSUM | TORN_PAGE_DETECTION | NONE )
+recovery_option
+	: RECOVERY ( FULL | BULK_LOGGED | SIMPLE )
+	| TORN_PAGE_DETECTION on_off
+	| PAGE_VERIFY ( CHECKSUM | TORN_PAGE_DETECTION | NONE )
     ;
 
 /*Will visit later
@@ -388,38 +386,39 @@ remote_data_archive_option:
     ;
 */
 
-service_broker_option:
-    ENABLE_BROKER  
+service_broker_option
+	: ENABLE_BROKER  
     | DISABLE_BROKER  
     | NEW_BROKER  
     | ERROR_BROKER_CONVERSATIONS  
     | HONOR_BROKER_PRIORITY on_off
-  ;
-snapshot_option:
-   ALLOW_SNAPSHOT_ISOLATION on_off  
-  | READ_COMMITTED_SNAPSHOT (ON | OFF )  
-  | MEMORY_OPTIMIZED_ELEVATE_TO_SNAPSHOT = (ON | OFF )
-  ;
+	;
 
-sql_option:
-  ANSI_NULL_DEFAULT on_off   
-  | ANSI_NULLS on_off   
-  | ANSI_PADDING on_off   
-  | ANSI_WARNINGS on_off   
-  | ARITHABORT on_off   
-  | COMPATIBILITY_LEVEL EQUAL DECIMAL_SEQUENCE
-  | CONCAT_NULL_YIELDS_NULL on_off   
-  | NUMERIC_ROUNDABORT on_off   
-  | QUOTED_IDENTIFIER on_off   
-  | RECURSIVE_TRIGGERS on_off   
-  ;
+snapshot_option
+	: ALLOW_SNAPSHOT_ISOLATION on_off
+	| READ_COMMITTED_SNAPSHOT on_off
+	| MEMORY_OPTIMIZED_ELEVATE_TO_SNAPSHOT = on_off
+	;
 
-target_recovery_time_option:
-     TARGET_RECOVERY_TIME EQUAL DECIMAL_SEQUENCE ( SECONDS | MINUTES )
+sql_option
+	: ANSI_NULL_DEFAULT on_off   
+	| ANSI_NULLS on_off   
+	| ANSI_PADDING on_off   
+	| ANSI_WARNINGS on_off   
+	| ARITHABORT on_off   
+	| COMPATIBILITY_LEVEL EQUAL DECIMAL_SEQUENCE
+	| CONCAT_NULL_YIELDS_NULL on_off   
+	| NUMERIC_ROUNDABORT on_off   
+	| QUOTED_IDENTIFIER on_off   
+	| RECURSIVE_TRIGGERS on_off   
+	;
+
+target_recovery_time_option
+	: TARGET_RECOVERY_TIME EQUAL DECIMAL_SEQUENCE ( SECONDS | MINUTES )
     ;
 
-termination:
-    ROLLBACK AFTER seconds = DECIMAL_SEQUENCE
+termination
+	: ROLLBACK AFTER seconds = DECIMAL_SEQUENCE
     | ROLLBACK IMMEDIATE   
     | NO_WAIT  
     ;
@@ -449,12 +448,12 @@ drop_view
     : DROP VIEW (IF EXISTS)? simple_name (',' simple_name)* ';'?
     ;
 
-create_type:
-    CREATE TYPE name = simple_name FROM data_type default_value
+create_type
+	: CREATE TYPE name = simple_name FROM data_type default_value
     ;
 
-drop_type:
-    DROP TYPE ( IF EXISTS )? name = simple_name
+drop_type
+	: DROP TYPE ( IF EXISTS )? name = simple_name
     ;
 
 rowset_function_limited

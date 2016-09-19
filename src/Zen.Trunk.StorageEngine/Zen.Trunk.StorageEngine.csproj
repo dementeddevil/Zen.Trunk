@@ -91,6 +91,8 @@
     <Compile Include="Storage\Data\Table\TableIndexManagerMessages.cs" />
     <Compile Include="Storage\Data\TransactionContextTaskRequestExtensions.cs" />
     <Compile Include="Storage\FileSpec.cs" />
+    <Compile Include="Storage\ISession.cs" />
+    <Compile Include="Storage\ISessionManager.cs" />
     <Compile Include="Storage\Locking\AmbientSession.cs" />
     <Compile Include="Storage\Locking\AmbientSessionContext.cs" />
     <Compile Include="Storage\Locking\IAmbientSession.cs" />
@@ -130,7 +132,7 @@
     <Compile Include="Storage\Data\Table\TableIndexManager.cs" />
     <Compile Include="Storage\Data\Table\TableIndexPage.cs" />
     <Compile Include="Storage\Data\Table\TableSchemaPage.cs" />
-    <Compile Include="Storage\Session.cs" />
+    <Compile Include="Storage\SessionManager.cs" />
     <Compile Include="Storage\SessionId.cs" />
     <Compile Include="Storage\TableIdentifier.cs" />
     <Compile Include="Storage\TemporaryDatabaseDevice.cs" />
