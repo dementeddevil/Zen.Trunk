@@ -32,8 +32,12 @@ namespace Zen.Trunk.Storage
 			dataLock.Initialise();
 
 			// Now we spoof transactions so we can test this madness
-		    var firstTransactionId = new TransactionId(5);
-            var secondTransactionId = new TransactionId(6);
+		    var firstTransactionId = new LockOwnerIdent(
+                SessionId.Zero, 
+                new TransactionId(5));
+            var secondTransactionId = new LockOwnerIdent(
+                SessionId.Zero, 
+                new TransactionId(6));
 
 			await dataLock.LockAsync(firstTransactionId, DataLockType.Shared, TimeSpan.FromSeconds(30)).ConfigureAwait(true);
 			Assert.True(await dataLock.HasLockAsync(firstTransactionId, DataLockType.Shared));
@@ -107,8 +111,12 @@ namespace Zen.Trunk.Storage
 			dataLock.Initialise();
 
             // Now we spoof transactions so we can test this madness
-            var firstTransactionId = new TransactionId(5);
-            var secondTransactionId = new TransactionId(6);
+            var firstTransactionId = new LockOwnerIdent(
+                SessionId.Zero,
+                new TransactionId(5));
+            var secondTransactionId = new LockOwnerIdent(
+                SessionId.Zero,
+                new TransactionId(6));
 
             // Acquire shared database locks for both transactions
             await databaseLock.LockAsync(firstTransactionId, DatabaseLockType.Shared, TimeSpan.FromSeconds(30)).ConfigureAwait(true);

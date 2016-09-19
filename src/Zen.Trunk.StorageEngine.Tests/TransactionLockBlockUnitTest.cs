@@ -31,8 +31,8 @@ Then the attempt to gain an exclusive lock fails.")]
             Assert.NotEqual(firstTransaction.TransactionId, secondTransaction.TransactionId);
 
             // We need access to the Lock Owner Block (LOB) for each transaction
-            var firstTransactionLob = ((ITrunkTransactionPrivate)firstTransaction).TransactionLocks;
-            var secondTransactionLob = ((ITrunkTransactionPrivate)secondTransaction).TransactionLocks;
+            var firstTransactionLob = ((ITrunkTransactionPrivate)firstTransaction).GetTransactionLockOwnerBlock(dlm);
+            var secondTransactionLob = ((ITrunkTransactionPrivate)secondTransaction).GetTransactionLockOwnerBlock(dlm);
 
             // Locking semantics use transaction id held on current thread each lock/unlock needs scope
 
@@ -80,8 +80,8 @@ Then the attempt to gain an exclusive lock fails.")]
             Assert.NotEqual(firstTransaction.TransactionId, secondTransaction.TransactionId);
 
             // We need access to the Lock Owner Block (LOB) for each transaction
-            var firstTransactionLob = ((ITrunkTransactionPrivate)firstTransaction).TransactionLocks;
-            var secondTransactionLob = ((ITrunkTransactionPrivate)secondTransaction).TransactionLocks;
+            var firstTransactionLob = ((ITrunkTransactionPrivate)firstTransaction).GetTransactionLockOwnerBlock(dlm);
+            var secondTransactionLob = ((ITrunkTransactionPrivate)secondTransaction).GetTransactionLockOwnerBlock(dlm);
 
             // Locking semantics use transaction id held on current thread each lock/unlock needs scope
 
