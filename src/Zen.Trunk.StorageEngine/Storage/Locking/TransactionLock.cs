@@ -210,14 +210,14 @@ namespace Zen.Trunk.Storage.Locking
         #endregion
 
         #region Private Fields
-        private ActionBlock<AcquireLock> _acquireLockAction;
-		private ActionBlock<ReleaseLock> _releaseLockAction;
-		private ActionBlock<QueryLock> _queryLockAction;
+        private readonly ActionBlock<AcquireLock> _acquireLockAction;
+		private readonly ActionBlock<ReleaseLock> _releaseLockAction;
+		private readonly ActionBlock<QueryLock> _queryLockAction;
+		private readonly Dictionary<LockOwnerIdent, AcquireLock> _activeRequests = new Dictionary<LockOwnerIdent, AcquireLock>();
+		private readonly Queue<AcquireLock> _pendingRequests = new Queue<AcquireLock>();
 	    private int _referenceCount;
 		private bool _initialised;
-		private readonly Dictionary<LockOwnerIdent, AcquireLock> _activeRequests = new Dictionary<LockOwnerIdent, AcquireLock>();
 		private AcquireLock _pendingExclusiveRequest;
-		private readonly Queue<AcquireLock> _pendingRequests = new Queue<AcquireLock>();
 		private State _currentState;
 		#endregion
 
@@ -226,13 +226,51 @@ namespace Zen.Trunk.Storage.Locking
 		/// Fired prior to the final disposal of the transaction lock.
 		/// </summary>
 		public event EventHandler FinalRelease;
-		#endregion
+        #endregion
 
-		#region Public Properties
-		/// <summary>
-		/// Gets/sets the lock Id.
-		/// </summary>
-		public string Id { get; set; }
+        #region Protected Constructors
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TransactionLock{TLockTypeEnum}"/> class.
+        /// </summary>
+        protected TransactionLock()
+	    {
+            // Initialise receiver arbiters
+            var taskInterleave = new ConcurrentExclusiveSchedulerPair(TaskScheduler.Default);
+            _acquireLockAction = new ActionBlock<AcquireLock>(
+                request =>
+                {
+                    AcquireLockRequestHandler(request);
+                },
+                new ExecutionDataflowBlockOptions
+                {
+                    TaskScheduler = taskInterleave.ExclusiveScheduler
+                });
+            _releaseLockAction = new ActionBlock<ReleaseLock>(
+                request =>
+                {
+                    ReleaseLockRequestHandler(request);
+                },
+                new ExecutionDataflowBlockOptions
+                {
+                    TaskScheduler = taskInterleave.ExclusiveScheduler
+                });
+            _queryLockAction = new ActionBlock<QueryLock>(
+                request =>
+                {
+                    QueryLockRequestHandler(request);
+                },
+                new ExecutionDataflowBlockOptions
+                {
+                    TaskScheduler = taskInterleave.ConcurrentScheduler
+                });
+        }
+        #endregion
+
+        #region Public Properties
+        /// <summary>
+        /// Gets/sets the lock Id.
+        /// </summary>
+        public string Id { get; set; }
         #endregion
 
 		#region Protected Properties
@@ -257,56 +295,8 @@ namespace Zen.Trunk.Storage.Locking
 			// Setup initial state object
 			_currentState = GetStateFromType(NoneLockType);
 			_currentState.OnEnterState(this, null);
-
-			// Initialise receiver arbiters
-			var taskInterleave = new ConcurrentExclusiveSchedulerPair(TaskScheduler.Default);
-			_acquireLockAction = new ActionBlock<AcquireLock>(
-				request =>
-				{
-					OnAcquireLock(request);
-				},
-				new ExecutionDataflowBlockOptions
-				{
-					TaskScheduler = taskInterleave.ExclusiveScheduler
-				});
-			_releaseLockAction = new ActionBlock<ReleaseLock>(
-				request =>
-				{
-					OnReleaseLock(request);
-				},
-				new ExecutionDataflowBlockOptions
-				{
-					TaskScheduler = taskInterleave.ExclusiveScheduler
-				});
-			_queryLockAction = new ActionBlock<QueryLock>(
-				request =>
-				{
-					OnQueryLock(request);
-				},
-				new ExecutionDataflowBlockOptions
-				{
-					TaskScheduler = taskInterleave.ConcurrentScheduler
-				});
-
 			_initialised = true;
 			TraceVerbose("Initialized");
-		}
-
-		/// <summary>
-		/// Traces the state of the lock.
-		/// </summary>
-		/// <param name="message">The message.</param>
-		public void TraceLockState(string message)
-		{
-#if TRACE
-			TraceVerbose("{0} {1:X8} {2}",
-				new object[]
-				{
-					message,
-					Thread.CurrentThread.GetHashCode (),
-					Thread.CurrentThread.Name 
-				});
-#endif
 		}
 
 		/// <summary>
@@ -321,16 +311,11 @@ namespace Zen.Trunk.Storage.Locking
 		/// Decreases the reference count on this lock object.
 		/// </summary>
 		/// <returns>Returns true if this is the final release.</returns>
-		public bool ReleaseRefLock()
+		public void ReleaseRefLock()
 		{
 			if (Interlocked.Decrement(ref _referenceCount) == 0)
 			{
 				OnFinalRelease();
-				return true;
-			}
-			else
-			{
-				return false;
 			}
 		}
 
@@ -481,98 +466,7 @@ namespace Zen.Trunk.Storage.Locking
 		/// </summary>
 		protected virtual void OnFinalRelease()
 		{
-			if (FinalRelease != null)
-			{
-				FinalRelease(this, new EventArgs());
-			}
-		}
-
-        /// <summary>
-        /// Called when [acquire lock].
-        /// </summary>
-        /// <param name="request">The request.</param>
-        protected void OnAcquireLock(AcquireLock request)
-		{
-   		    var lockOwner = GetActiveLockOwner(request.LockOwner);
-			if (!OnQueryAcquireLock(request))
-			{
-				if (_currentState.IsExclusiveLock(request.Lock))
-				{
-                    // If we cannot enter exclusive loclockOwner.ValuelockOwner.Valuek from this state
-                    //	or
-                    // If the active request list does not contain this transaction
-                    //	or
-                    // If the active request for this transaction does not match the
-                    //	current state lock
-                    // then we cannot enter exclusive state from this transaction
-                    if (!_currentState.CanEnterExclusiveLock ||
-                        lockOwner == null ||
-						!IsEquivalentLock(_activeRequests[lockOwner.Value].Lock, _currentState.Lock))
-					{
-						request.TrySetException(new LockException(
-							"Cannot enter exclusive lock from current lock state."));
-						return;
-					}
-
-					// Save the request (we will try to enter exclusive mode
-					//	all other requests have been released)
-					System.Diagnostics.Debug.Assert(_pendingExclusiveRequest == null);
-					_pendingExclusiveRequest = request;
-				}
-				else
-				{
-					// Ignore requests for downgraded lock here
-					if (_activeRequests.ContainsKey(lockOwner.Value) &&
-						IsDowngradedLock(_activeRequests[lockOwner.Value].Lock, request.Lock))
-					{
-						// Simply mark the request as satisfied but to not
-						//	add to the list of active requests
-						request.TrySetResult(false);
-						return;
-					}
-
-					// We can upgrade the lock only if there are no pending
-					//	requests
-					if (_activeRequests.Count == 1 &&
-                        lockOwner != null &&
-						_pendingRequests.Count == 0 &&
-						_pendingExclusiveRequest == null)
-					{
-						// Replace the active request and return
-						_activeRequests[lockOwner.Value] = request;
-						request.TrySetResult(false);
-						return;
-					}
-
-					// Any lock acquisition request not satisfied by
-					//	the current state object must be queued.
-					_pendingRequests.Enqueue(request);
-				}
-			}
-			else
-			{
-				try
-				{
-					// Acquire the lock
-					var result = false;
-					if (lockOwner != null)
-					{
-						_activeRequests[lockOwner.Value] = request;
-					}
-					else
-					{
-						_activeRequests.Add(request.LockOwner, request);
-						result = true;
-					}
-
-					// Lock acquired.
-					request.TrySetResult(result);
-				}
-				finally
-				{
-					UpdateActiveLockState();
-				}
-			}
+		    FinalRelease?.Invoke(this, new EventArgs());
 		}
 
 		/// <summary>
@@ -581,115 +475,9 @@ namespace Zen.Trunk.Storage.Locking
 		/// </summary>
 		/// <param name="request">The request.</param>
 		/// <returns></returns>
-		protected virtual bool OnQueryAcquireLock(AcquireLock request)
+		protected bool CanAcquireLock(AcquireLock request)
 		{
 			return _currentState.CanAcquireLock(this, request);
-		}
-
-		/// <summary>
-		/// Called to remove or downgrade the lock state for the transaction
-		/// associated with the specified <see cref="T:ReleaseLock"/> request.
-		/// </summary>
-		/// <param name="request">The request.</param>
-		/// <returns></returns>
-		protected virtual void OnReleaseLock(ReleaseLock request)
-		{
-			try
-			{
-			    var lockOwner = GetActiveLockOwner(request.LockOwner);
-				if (lockOwner == null)
-				{
-					//throw new InvalidOperationException("Lock not held by transaction.");
-					TraceVerbose("Release lock called when lock not held.");
-				}
-				else
-				{
-					if (IsEquivalentLock(request.Lock, NoneLockType))
-					{
-						_activeRequests.Remove(lockOwner.Value);
-						if (_activeRequests.Count == 0)
-						{
-							UpdateActiveLockState();
-						}
-					}
-					else if (!IsDowngradedLock(_activeRequests[lockOwner.Value].Lock, request.Lock))
-					{
-						throw new InvalidOperationException(
-							"New lock type is not downgrade of current lock.");
-					}
-					else
-					{
-						_activeRequests[lockOwner.Value].Lock = request.Lock;
-					}
-				}
-				request.TrySetResult(true);
-			}
-			catch (Exception e)
-			{
-				request.TrySetException(e);
-			}
-			finally
-			{
-				ReleaseWaitingRequests();
-			}
-		}
-
-		/// <summary>
-		/// Called to determine whether the transaction associated with the
-		/// specified <see cref="T:QueryLock"/> has the specified locking
-		/// mode.
-		/// </summary>
-		/// <param name="request">The request.</param>
-		/// <returns></returns>
-		protected virtual void OnQueryLock(QueryLock request)
-		{
-			if (GetActiveLockOwner(request.LockOwner) == null)
-			{
-				// Current transaction is not in active list therefore
-				//	lock is not held
-				request.TrySetResult(false);
-			}
-			else if (IsEquivalentLock(request.Lock, NoneLockType))
-			{
-				// Using the NoneLockType means check if we have any kind
-				//	of lock; since transaction id is in the active list
-				//	this must be the case...
-				request.TrySetResult(true);
-			}
-			else if (IsEquivalentLock(_currentState.Lock, request.Lock) ||
-				IsDowngradedLock(_currentState.Lock, request.Lock))
-			{
-				// Current lock state is the same as or superior to the 
-				//	request lock so lock must be held
-				request.TrySetResult(true);
-			}
-			else
-			{
-				// If we get to this point then we don't have the lock
-				request.TrySetResult(false);
-			}
-		}
-
-		/// <summary>
-		/// Gets the current <typeparamref name="TLockTypeEnum"/> that
-		/// represents the current state of the lock.
-		/// </summary>
-		/// <returns></returns>
-		/// <remarks>
-		/// The current lock state is determined by the <see cref="T:AcquireLock"/>
-		/// objects in the active request list.
-		/// </remarks>
-		protected TLockTypeEnum GetActiveLockType()
-		{
-			var lockType = NoneLockType;
-			foreach (var request in _activeRequests.Values)
-			{
-				if (Convert.ToInt32(request.Lock) > Convert.ToInt32(lockType))
-				{
-					lockType = request.Lock;
-				}
-			}
-			return lockType;
 		}
 
         /// <summary>
@@ -704,28 +492,184 @@ namespace Zen.Trunk.Storage.Locking
 				_activeRequests.Remove(request.LockOwner);
 			}
 		}
-		#endregion
+        #endregion
 
-		#region Private Methods
-		/// <summary>
-		/// Gets the lock owner identification from the thread context.
-		/// </summary>
-		/// <remarks>
-		/// If throwIfMissing is set to true then this method will throw
-		/// a <see cref="LockException"/> if the
-		/// caller does not have transaction info.
-		/// If throwIfMissing is set to false then this method will return
-		/// zero if the caller does not have transaction info.
-		/// </remarks>
-		/// <param name="throwIfMissing">
-		/// Raises a <see cref="LockException"/> if no context information
-		/// can be found.
-		/// </param>
-		/// <returns>Lock owner identification.</returns>
-		/// <exception cref="LockException">
-		/// Thrown if no lock owner can be determined for the calling thread.
-		/// </exception>
-		private LockOwnerIdent GetThreadLockOwnerIdent(bool throwIfMissing)
+        #region Private Methods
+        private void AcquireLockRequestHandler(AcquireLock request)
+        {
+            var activeLockOwner = GetActiveLockOwner(request.LockOwner);
+            if (!CanAcquireLock(request))
+            {
+                if (_currentState.IsExclusiveLock(request.Lock))
+                {
+                    // If we cannot enter exclusive lock from this state
+                    //	or
+                    // If the active request list does not contain this transaction
+                    //	or
+                    // If the active request for this transaction does not match the
+                    //	current state lock
+                    // then we cannot enter exclusive state from this transaction
+                    if (!_currentState.CanEnterExclusiveLock ||
+                        activeLockOwner == null ||
+                        !IsEquivalentLock(_activeRequests[activeLockOwner.Value].Lock, _currentState.Lock))
+                    {
+                        request.TrySetException(new LockException(
+                            "Cannot enter exclusive lock from current lock state."));
+                        return;
+                    }
+
+                    // Save the request (we will try to enter exclusive mode
+                    //	all other requests have been released)
+                    System.Diagnostics.Debug.Assert(_pendingExclusiveRequest == null);
+                    _pendingExclusiveRequest = request;
+                }
+                else
+                {
+                    // Ignore requests for downgraded lock here
+                    if (activeLockOwner != null &&
+                        _activeRequests.ContainsKey(activeLockOwner.Value) &&
+                        IsDowngradedLock(_activeRequests[activeLockOwner.Value].Lock, request.Lock))
+                    {
+                        // Simply mark the request as satisfied but to not
+                        //	add to the list of active requests
+                        request.TrySetResult(false);
+                        return;
+                    }
+
+                    // We can upgrade the lock only if there are no pending
+                    //	requests
+                    if (_activeRequests.Count == 1 &&
+                        activeLockOwner != null &&
+                        _pendingRequests.Count == 0 &&
+                        _pendingExclusiveRequest == null)
+                    {
+                        // Replace the active request and return
+                        _activeRequests[activeLockOwner.Value] = request;
+                        request.TrySetResult(false);
+                        return;
+                    }
+
+                    // Any lock acquisition request not satisfied by
+                    //	the current state object must be queued.
+                    _pendingRequests.Enqueue(request);
+                }
+            }
+            else
+            {
+                try
+                {
+                    // Acquire the lock
+                    var result = false;
+                    if (activeLockOwner != null)
+                    {
+                        _activeRequests[activeLockOwner.Value] = request;
+                    }
+                    else
+                    {
+                        _activeRequests.Add(request.LockOwner, request);
+                        result = true;
+                    }
+
+                    // Lock acquired.
+                    request.TrySetResult(result);
+                }
+                finally
+                {
+                    UpdateActiveLockState();
+                }
+            }
+        }
+
+        private void ReleaseLockRequestHandler(ReleaseLock request)
+        {
+            try
+            {
+                var activeLockOwner = GetActiveLockOwner(request.LockOwner);
+                if (activeLockOwner == null)
+                {
+                    //throw new InvalidOperationException("Lock not held by transaction.");
+                    TraceVerbose("Release lock called when lock not held.");
+                }
+                else
+                {
+                    if (IsEquivalentLock(request.Lock, NoneLockType))
+                    {
+                        _activeRequests.Remove(activeLockOwner.Value);
+                        if (_activeRequests.Count == 0)
+                        {
+                            UpdateActiveLockState();
+                        }
+                    }
+                    else if (!IsDowngradedLock(_activeRequests[activeLockOwner.Value].Lock, request.Lock))
+                    {
+                        throw new InvalidOperationException(
+                            "New lock type is not downgrade of current lock.");
+                    }
+                    else
+                    {
+                        _activeRequests[activeLockOwner.Value].Lock = request.Lock;
+                    }
+                }
+                request.TrySetResult(true);
+            }
+            catch (Exception e)
+            {
+                request.TrySetException(e);
+            }
+            finally
+            {
+                ReleaseWaitingRequests();
+            }
+        }
+
+        private void QueryLockRequestHandler(QueryLock request)
+        {
+            if (GetActiveLockOwner(request.LockOwner) == null)
+            {
+                // Current transaction is not in active list therefore
+                //	lock is not held
+                request.TrySetResult(false);
+            }
+            else if (IsEquivalentLock(request.Lock, NoneLockType))
+            {
+                // Using the NoneLockType means check if we have any kind
+                //	of lock; since transaction id is in the active list
+                //	this must be the case...
+                request.TrySetResult(true);
+            }
+            else if (IsEquivalentLock(_currentState.Lock, request.Lock) ||
+                IsDowngradedLock(_currentState.Lock, request.Lock))
+            {
+                // Current lock state is the same as or superior to the 
+                //	request lock so lock must be held
+                request.TrySetResult(true);
+            }
+            else
+            {
+                // If we get to this point then we don't have the lock
+                request.TrySetResult(false);
+            }
+        }
+
+        /// <summary>
+        /// Gets the lock owner identification from the thread context.
+        /// </summary>
+        /// <remarks>
+        /// If throwIfMissing is set to true then this method will throw
+        /// a <see cref="LockException"/> if the
+        /// caller does not have transaction info.
+        /// If throwIfMissing is set to false then this method will return
+        /// zero if the caller does not have transaction info.
+        /// </remarks>
+        /// <param name="throwIfMissing">
+        /// Raises a <see cref="LockException"/> if no context information
+        /// can be found.
+        /// </param>
+        /// <returns>Lock owner identification.</returns>
+        /// <exception cref="LockException">
+        /// Thrown if no lock owner can be determined for the calling thread.
+        /// </exception>
+        private LockOwnerIdent GetThreadLockOwnerIdent(bool throwIfMissing)
 		{
 		    var sessionId = SessionId.Zero;
 			var transactionId = TransactionId.Zero;
@@ -760,6 +704,29 @@ namespace Zen.Trunk.Storage.Locking
 
 	        return null;
 	    }
+
+        /// <summary>
+        /// Gets the current <typeparamref name="TLockTypeEnum"/> that
+        /// represents the current state of the lock.
+        /// </summary>
+        /// <returns></returns>
+        /// <remarks>
+        /// The current lock state is determined by the <see cref="T:AcquireLock"/>
+        /// objects in the active request list.
+        /// </remarks>
+        private TLockTypeEnum GetActiveLockType()
+        {
+            var lockType = NoneLockType;
+            foreach (var request in _activeRequests.Values)
+            {
+                if (Convert.ToInt32(request.Lock) > Convert.ToInt32(lockType))
+                {
+                    lockType = request.Lock;
+                }
+            }
+            return lockType;
+        }
+
         private void UpdateActiveLockState()
 		{
 			var lockType = GetActiveLockType();

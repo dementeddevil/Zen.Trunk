@@ -103,10 +103,9 @@ namespace Zen.Trunk.Storage
             }
         }
 
-        public async Task UseDatabaseTest()
-        {
-
-        }
+        //public async Task UseDatabaseTest()
+        //{
+        //}
 
         [Theory(DisplayName = "Set transaction isolation level propagates to executed batch")]
         [InlineData("READ UNCOMMITTED", IsolationLevel.ReadUncommitted)]
