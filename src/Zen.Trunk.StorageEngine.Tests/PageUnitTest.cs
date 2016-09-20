@@ -146,7 +146,7 @@ Then the allocation fails.")]
                             false,
                             false))
                     .ConfigureAwait(true);
-                Assert.True(virtualId != VirtualPageId.Zero, "Expected allocation to succeed.");
+                Assert.True(virtualId != VirtualPageId.Zero, $"Expected allocation {index} to succeed.");
             }
 
             // This allocation must fail

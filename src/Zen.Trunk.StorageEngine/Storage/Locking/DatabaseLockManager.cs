@@ -69,6 +69,15 @@ namespace Zen.Trunk.Storage.Locking
 		{
 			return _globalLockManager.UnlockDatabaseAsync(DatabaseId);
 		}
+
+        /// <summary>
+        /// Gets the database lock.
+        /// </summary>
+        /// <returns></returns>
+        public DatabaseLock GetDatabaseLock()
+	    {
+	        return _globalLockManager.GetDatabaseLock(DatabaseId);
+	    }
         #endregion
 
         #region Root Lock/Unlock

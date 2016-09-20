@@ -31,6 +31,12 @@ namespace Zen.Trunk.Storage.Locking
         /// </summary>
         /// <returns></returns>
         Task UnlockDatabaseAsync();
+
+        /// <summary>
+        /// Gets the database lock.
+        /// </summary>
+        /// <returns></returns>
+        DatabaseLock GetDatabaseLock();
         #endregion
 
         #region Root Lock/Unlock

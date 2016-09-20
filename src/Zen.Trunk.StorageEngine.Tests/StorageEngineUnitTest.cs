@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
+using Autofac;
 using Xunit;
 using Zen.Trunk.Storage.Data;
 using Zen.Trunk.Storage.Data.Table;
@@ -284,5 +285,64 @@ namespace Zen.Trunk.Storage
                 }
             }
         }
+
+        public async Task UseDatabaseLockTest()
+        {
+            using (AmbientSessionContext.SwitchSessionContext(
+                new AmbientSession(new SessionId(1), TimeSpan.FromSeconds(60))))
+            {
+                using (var tracker = new TempFileTracker())
+                {
+                    var masterDataPathName = tracker.Get("master.mddf");
+                    var masterLogPathName = tracker.Get("master.mlf");
+
+                    using (var dbDevice = new MasterDatabaseDevice())
+                    {
+                        dbDevice.InitialiseDeviceLifetimeScope(Scope);
+                        dbDevice.BeginTransaction();
+
+                        var addFgDevice =
+                            new AddFileGroupDeviceParameters(
+                                FileGroupId.Primary,
+                                "PRIMARY",
+                                "master",
+                                masterDataPathName,
+                                DeviceId.Zero,
+                                128,
+                                true);
+                        await dbDevice.AddFileGroupDeviceAsync(addFgDevice).ConfigureAwait(true);
+
+                        var addLogDevice =
+                            new AddLogDeviceParameters(
+                                "MASTER_LOG",
+                                masterLogPathName,
+                                DeviceId.Zero,
+                                2);
+                        await dbDevice.AddLogDeviceAsync(addLogDevice).ConfigureAwait(true);
+
+                        await dbDevice.OpenAsync(true).ConfigureAwait(true);
+                        Trace.WriteLine("DatabaseDevice.Open succeeded");
+
+                        await TrunkTransactionContext.CommitAsync().ConfigureAwait(true);
+                        Trace.WriteLine("Transaction commit succeeded");
+
+                        // This will acquire a session based lock
+                        await dbDevice.UseDatabaseAsync(TimeSpan.FromSeconds(10));
+
+                        dbDevice.BeginTransaction();
+
+                        var lockObject = dbDevice.LifetimeScope.Resolve<IDatabaseLockManager>().GetDatabaseLock();
+                        Assert.True(await lockObject.HasLockAsync(DatabaseLockType.Shared));
+
+                        
+                        await dbDevice.CloseAsync().ConfigureAwait(true);
+                        Trace.WriteLine("DatabaseDevice.Close succeeded");
+                    }
+                }
+
+                
+            }
+        }
+
     }
 }
