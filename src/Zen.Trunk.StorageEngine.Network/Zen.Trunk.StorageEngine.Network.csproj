@@ -75,6 +75,10 @@
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
+    <ProjectReference Include="..\Zen.Streaming\Zen.Streaming.csproj">
+      <Project>{624d44ff-86f8-46d3-b682-61f7ef691d7c}</Project>
+      <Name>Zen.Streaming</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Zen.Trunk.StorageEngine.Query\Zen.Trunk.StorageEngine.Query.csproj">
       <Project>{97135039-f5b3-4bca-9360-e14b1505680d}</Project>
       <Name>Zen.Trunk.StorageEngine.Query</Name>

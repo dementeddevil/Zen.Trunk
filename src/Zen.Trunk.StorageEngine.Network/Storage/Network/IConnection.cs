@@ -10,6 +10,15 @@ namespace Zen.Trunk.Storage.Network
     //               this will function like Katana with send and receive lines
     //               and will need the stream support lurking in Aero Online
 
+    public class ConnectionPipeline
+    {
+        //private 
+    }
+
+    public class ConnectionPipelineStage
+    {
+        
+    }
 
     /// <summary>
     /// <c>IConnection</c>
