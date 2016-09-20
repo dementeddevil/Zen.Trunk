@@ -5,6 +5,10 @@ using Zen.Trunk.Storage.Query;
 
 namespace Zen.Trunk.Storage.Network
 {
+    /// <summary>
+    /// <c>Connection</c> defines an connection with the database system.
+    /// </summary>
+    /// <seealso cref="Zen.Trunk.Storage.Network.IConnection" />
     public class Connection : IConnection
     {
         private QueryExecutionContext _executionContext;
@@ -12,6 +16,11 @@ namespace Zen.Trunk.Storage.Network
         private IAmbientSession _ambientSession;
         private bool _isDisposed;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Connection"/> class.
+        /// </summary>
+        /// <param name="session">The session.</param>
+        /// <param name="masterDatabase">The master database.</param>
         public Connection(ISession session, MasterDatabaseDevice masterDatabase)
         {
             _executionContext = new QueryExecutionContext(masterDatabase);
