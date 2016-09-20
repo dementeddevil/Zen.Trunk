@@ -493,6 +493,70 @@ namespace Zen.Trunk.Storage
             }
             return request.Task;
         }
+
+        /// <summary>
+        /// Locks the database.
+        /// </summary>
+        /// <param name="lockType">Type of the lock.</param>
+        /// <param name="lockTimeout">The lock timeout.</param>
+        /// <returns></returns>
+        public Task LockDatabaseAsync(DatabaseLockType lockType, TimeSpan lockTimeout)
+        {
+            var dlm = GetService<IDatabaseLockManager>();
+            return dlm.LockDatabaseAsync(lockType, lockTimeout);
+        }
+
+        /// <summary>
+        /// Unlocks the database.
+        /// </summary>
+        /// <returns></returns>
+        public Task UnlockDatabaseAsync()
+        {
+            var dlm = GetService<IDatabaseLockManager>();
+            return dlm.UnlockDatabaseAsync();
+        }
+
+        /// <summary>
+        /// Uses the database.
+        /// </summary>
+        /// <param name="databaseName">Name of the database.</param>
+        /// <param name="lockTimeout">The lock timeout.</param>
+        /// <returns>
+        /// A <see cref="Task"/> representing the asynchronous operation.
+        /// </returns>
+        /// <remarks>
+        /// The difference between this and <see cref="LockDatabaseAsync"/>
+        /// is that this method executes without a current transaction context
+        /// and therefore relies upon the session context for locking.
+        /// </remarks>
+        public Task UseDatabaseAsync(TimeSpan lockTimeout)
+        {
+            // Obtain lock on database via session lock - not transaction lock
+            using (TrunkTransactionContext.SwitchTransactionContext(null))
+            {
+                return LockDatabaseAsync(DatabaseLockType.Shared, lockTimeout);
+            }
+        }
+
+        /// <summary>
+        /// Unuses the database.
+        /// </summary>
+        /// <returns>
+        /// A <see cref="Task"/> representing the asynchronous operation.
+        /// </returns>
+        /// <remarks>
+        /// The difference between this and <see cref="UnlockDatabaseAsync"/>
+        /// is that this method executes without a current transaction context
+        /// and therefore relies upon the session context for locking.
+        /// </remarks>
+        public Task UnuseDatabaseAsync()
+        {
+            // Obtain lock on database via session lock - not transaction lock
+            using (TrunkTransactionContext.SwitchTransactionContext(null))
+            {
+                return UnlockDatabaseAsync();
+            }
+        }
         #endregion
 
         #region Protected Methods

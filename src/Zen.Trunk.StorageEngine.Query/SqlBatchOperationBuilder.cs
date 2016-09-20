@@ -77,6 +77,10 @@ namespace Zen.Trunk.Storage.Query
         /// <return>The visitor result.</return>
         public override Expression VisitUse_statement(TrunkSqlParser.Use_statementContext context)
         {
+            // TODO: We cannot be inside an active transaction and we must obtain a shared lock
+            //  on the desired database - looks like setting the active database needs a method
+            //  on the MasterDatabaseDevice object.
+
             var dbNameExpr = VisitId(context.database);
             var dbDeviceExpr = Expression.Variable(typeof(DatabaseDevice), "dbDevice");
             return Expression.Block(

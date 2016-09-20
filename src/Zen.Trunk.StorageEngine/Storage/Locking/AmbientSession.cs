@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Autofac;
 using Zen.Trunk.Logging;
 
 namespace Zen.Trunk.Storage.Locking
 {
+    // ReSharper disable once ClassWithVirtualMembersNeverInherited.Global
     internal class AmbientSession : MarshalByRefObject, IAmbientSessionPrivate
     {
         private static readonly ILog Logger = LogProvider.For<TrunkTransaction>();
@@ -61,15 +61,15 @@ namespace Zen.Trunk.Storage.Locking
 
             if (to != null)
             {
-                await to.LifetimeScope.Resolve<IDatabaseLockManager>()
-                    .LockDatabaseAsync(DatabaseLockType.Shared, lockTimeout)
+                await to
+                    .UseDatabaseAsync(lockTimeout)
                     .ConfigureAwait(false);
             }
 
             if (from != null)
             {
-                await from.LifetimeScope.Resolve<IDatabaseLockManager>()
-                    .UnlockDatabaseAsync()
+                await from
+                    .UnuseDatabaseAsync()
                     .ConfigureAwait(false);
             }
         }
