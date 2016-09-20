@@ -11,7 +11,6 @@ using System.Threading.Tasks;
 using System.Transactions;
 using Autofac;
 using Xunit;
-using Zen.Trunk.Storage.Data;
 using Zen.Trunk.Storage.Locking;
 using Zen.Trunk.Storage.Query;
 
@@ -35,10 +34,9 @@ namespace Zen.Trunk.Storage
                     var executive = new QueryExecutive(manager);
 
                     var batch = new StringBuilder();
+                    batch.AppendLine("create database master");
 
                     manager.BeginTransaction(TimeSpan.FromMinutes(15));
-                    batch.AppendLine("create database master");
-                    batch.AppendLine("go");
                     await executive.ExecuteAsync(batch.ToString()).ConfigureAwait(true);
                     //await manager.OpenAsync(true).ConfigureAwait(true);
                     await TrunkTransactionContext.CommitAsync().ConfigureAwait(true);

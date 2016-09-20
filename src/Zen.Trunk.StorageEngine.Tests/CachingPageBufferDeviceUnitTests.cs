@@ -88,7 +88,7 @@ namespace Zen.Trunk.Storage
         }
 
         [Theory(DisplayName = "Given a valid load request, when flush is called, then the load method on MBD is called.")]
-        [MemberData("GetValidDevicePages", MemberType = typeof(TestCases))]
+        [MemberData(nameof(TestCases.GetValidDevicePages), MemberType = typeof(TestCases))]
         public async Task GivenAValidLoadRequest_WhenFlushIsCalled_ThenTheLoadMethodOnMBDIsCalled(DeviceId deviceId, uint physicalPage)
         {
             // Arrange
@@ -107,7 +107,7 @@ namespace Zen.Trunk.Storage
         }
 
         [Theory(DisplayName = "Given a valid loaded and dirty buffer, when the current transaction is committed and flush is called, then the save method on MBD is called.")]
-        [MemberData("GetValidDevicePages", MemberType = typeof(TestCases))]
+        [MemberData(nameof(TestCases.GetValidDevicePages), MemberType = typeof(TestCases))]
         public async Task GivenAValidSaveRequest_WhenFlushIsCalled_ThenTheLoadMethodOnMBDIsCalled(DeviceId deviceId, uint physicalPage)
         {
             TrunkTransactionContext.BeginTransaction(Scope);

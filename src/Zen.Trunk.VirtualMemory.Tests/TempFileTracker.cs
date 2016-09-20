@@ -56,6 +56,7 @@ namespace Zen.Trunk
             var trackedDirectory = Path.GetDirectoryName(trackedPathname);
             if (!Directory.Exists(trackedDirectory))
             {
+                // ReSharper disable once AssignNullToNotNullAttribute
                 Directory.CreateDirectory(trackedDirectory);
             }
 
