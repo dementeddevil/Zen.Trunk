@@ -27,6 +27,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Zen.Trunk.StorageEngine.Net
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Zen.Streaming", "src\Zen.Streaming\Zen.Streaming.csproj", "{624D44FF-86F8-46D3-B682-61F7EF691D7C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Zen.Trunk.StorageEngine.Service", "src\Zen.Trunk.StorageEngine.Service\Zen.Trunk.StorageEngine.Service.csproj", "{A4DD21B9-92C3-4B94-AA90-0298E10D3C54}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -129,6 +131,16 @@ Global
 		{624D44FF-86F8-46D3-B682-61F7EF691D7C}.Release|x64.Build.0 = Release|Any CPU
 		{624D44FF-86F8-46D3-B682-61F7EF691D7C}.Release|x86.ActiveCfg = Release|Any CPU
 		{624D44FF-86F8-46D3-B682-61F7EF691D7C}.Release|x86.Build.0 = Release|Any CPU
+		{A4DD21B9-92C3-4B94-AA90-0298E10D3C54}.Debug|Any CPU.ActiveCfg = Debug|x86
+		{A4DD21B9-92C3-4B94-AA90-0298E10D3C54}.Debug|x64.ActiveCfg = Debug|x64
+		{A4DD21B9-92C3-4B94-AA90-0298E10D3C54}.Debug|x64.Build.0 = Debug|x64
+		{A4DD21B9-92C3-4B94-AA90-0298E10D3C54}.Debug|x86.ActiveCfg = Debug|x86
+		{A4DD21B9-92C3-4B94-AA90-0298E10D3C54}.Debug|x86.Build.0 = Debug|x86
+		{A4DD21B9-92C3-4B94-AA90-0298E10D3C54}.Release|Any CPU.ActiveCfg = Release|x86
+		{A4DD21B9-92C3-4B94-AA90-0298E10D3C54}.Release|x64.ActiveCfg = Release|x64
+		{A4DD21B9-92C3-4B94-AA90-0298E10D3C54}.Release|x64.Build.0 = Release|x64
+		{A4DD21B9-92C3-4B94-AA90-0298E10D3C54}.Release|x86.ActiveCfg = Release|x86
+		{A4DD21B9-92C3-4B94-AA90-0298E10D3C54}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -143,5 +155,6 @@ Global
 		{20A4DC8B-3068-416B-B581-94C243072740} = {27A27BFC-3001-48FE-855F-CF8B27D889B9}
 		{D7C5DED7-F8F4-4614-8636-E364DDEB12A1} = {27A27BFC-3001-48FE-855F-CF8B27D889B9}
 		{624D44FF-86F8-46D3-B682-61F7EF691D7C} = {CF8AC350-A45E-4D72-A55D-9FFE355E9E66}
+		{A4DD21B9-92C3-4B94-AA90-0298E10D3C54} = {27A27BFC-3001-48FE-855F-CF8B27D889B9}
 	EndGlobalSection
 EndGlobal
