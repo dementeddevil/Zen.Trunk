@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.ServiceProcess;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.ServiceProcess;
 
 namespace Zen.Trunk.StorageEngine.Service
 {
@@ -12,14 +7,19 @@ namespace Zen.Trunk.StorageEngine.Service
         /// <summary>
         /// The main entry point for the application.
         /// </summary>
-        static void Main()
+        static void Main(string[] args)
         {
-            ServiceBase[] ServicesToRun;
-            ServicesToRun = new ServiceBase[]
-            {
-                new TrunkStorageEngineService(), 
-            };
-            ServiceBase.Run(ServicesToRun);
+            // Create service object and initialise from startup arguments
+            var service = new TrunkStorageEngineService();
+            service.Initialize(args);
+
+            // Now we can bootup our service process
+            var servicesToRun =
+                new ServiceBase[]
+                {
+                    service
+                };
+            ServiceBase.Run(servicesToRun);
         }
     }
 }

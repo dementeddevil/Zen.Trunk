@@ -1,6 +1,5 @@
 ﻿using System;
 using System.ComponentModel;
-using System.Globalization;
 using System.ServiceProcess;
 
 namespace Zen.Trunk.StorageEngine.Service
@@ -148,7 +147,7 @@ namespace Zen.Trunk.StorageEngine.Service
 		{
 			get
 			{
-				string serviceName = base.ServiceName;
+				var serviceName = base.ServiceName;
 				if (string.IsNullOrEmpty(serviceName))
 				{
 					serviceName = _defaultServiceName;
@@ -157,7 +156,7 @@ namespace Zen.Trunk.StorageEngine.Service
 			}
 			set
 			{
-				int instanceOffset = value.IndexOf('$');
+				var instanceOffset = value.IndexOf('$');
 				if (instanceOffset == -1)
 				{
 					if (value == DefaultServiceName)
@@ -178,8 +177,8 @@ namespace Zen.Trunk.StorageEngine.Service
 				}
 				else
 				{
-					string newServicePrefix = ServiceNamePrefix;
-					string newInstanceName = InstanceName;
+					var newServicePrefix = ServiceNamePrefix;
+					var newInstanceName = InstanceName;
 					if (instanceOffset != -1)
 					{
 						newServicePrefix = value.Substring(0, instanceOffset);
@@ -198,19 +197,8 @@ namespace Zen.Trunk.StorageEngine.Service
 		/// Gets the instance name for event logging.
 		/// </summary>
 		/// <value>The instance name for event log.</value>
-		protected string InstanceNameForEventLog
-		{
-			get
-			{
-				if (IsDefaultInstance)
-				{
-					return string.Empty;
-				}
-
-				return $" - [{InstanceName}]";
-			}
-		}
-		#endregion
+		protected string InstanceNameForEventLog => IsDefaultInstance ? string.Empty : $" - [{InstanceName}]";
+	    #endregion
 
 		#region Private Properties
 		/// <summary>
@@ -221,27 +209,13 @@ namespace Zen.Trunk.StorageEngine.Service
 		{
 			get
 			{
-				// Start out with default service name...
-				string serviceName = DefaultServiceName;
+				// If we don't have an instance name...
+			    if (string.IsNullOrEmpty(_instanceName))
+			    {
+			        return DefaultServiceName;
+			    }
 
-				// If we have an instance name...
-				if (!string.IsNullOrEmpty(_instanceName))
-				{
-					if (string.IsNullOrEmpty(_serviceNamePrefix))
-					{
-						// No prefix, use instance name
-						serviceName = _instanceName;
-					}
-					else
-					{
-						// Have prefix, compose service name
-						serviceName = string.Format(
-							CultureInfo.InvariantCulture, "{0}${1}",
-							_serviceNamePrefix, _instanceName);
-					}
-				}
-
-				return serviceName;
+			    return string.IsNullOrEmpty(_serviceNamePrefix) ? _instanceName : $"{_serviceNamePrefix}${_instanceName}";
 			}
 		}
 		#endregion
@@ -254,11 +228,11 @@ namespace Zen.Trunk.StorageEngine.Service
 		/// <param name="args">The service startup arguments.</param>
 		public virtual void Initialize(string[] args)
 		{
-			bool updateServiceName = false;
-			foreach (string arg in args)
+			var updateServiceName = false;
+			foreach (var arg in args)
 			{
 				// Strip any quote markers
-				string processedArg = arg;
+				var processedArg = arg;
 				if (processedArg[0] == '\"' && processedArg[processedArg.Length - 1] == '\"')
 				{
 					processedArg = arg.Substring(1, processedArg.Length - 2).Trim();
@@ -315,7 +289,7 @@ namespace Zen.Trunk.StorageEngine.Service
 		/// </summary>
 		private void UpdateServiceName()
 		{
-			string newName = ServiceNameInternal;
+			var newName = ServiceNameInternal;
 			if (!string.IsNullOrEmpty(newName))
 			{
 				base.ServiceName = newName;
