@@ -1,11 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.Win32;
+using Serilog;
+using Serilog.Core;
+using Serilog.Events;
+using Zen.Trunk.Storage;
+using Zen.Trunk.Storage.Data;
+using Zen.Trunk.Storage.Locking;
+using Zen.Trunk.Storage.Log;
 
 namespace Zen.Trunk.StorageEngine.Service
 {
     public partial class TrunkStorageEngineService : InstanceServiceBase
     {
+        private Logger _globalLogger;
+
         public TrunkStorageEngineService()
         {
             InitializeComponent();
@@ -16,7 +25,21 @@ namespace Zen.Trunk.StorageEngine.Service
             // TODO: Initialise our custom configuration system (registry based)
 
             // Initialise logging framework
+            // TODO: Determine sub-system logging settings from configuration system.
+            var globalLoggingSwitch = new LoggingLevelSwitch(LogEventLevel.Warning);
+            var virtualMemoryLoggingSwitch = new LoggingLevelSwitch(LogEventLevel.Information);
+            var dataMemoryLoggingSwitch = new LoggingLevelSwitch(LogEventLevel.Information);
+            var lockingLoggingSwitch = new LoggingLevelSwitch(LogEventLevel.Error);
+            var logWriterLoggingSwitch = new LoggingLevelSwitch(LogEventLevel.Warning);
 
+            var loggerConfig = new LoggerConfiguration()
+                .Enrich.WithProperty("ServiceName", ServiceName)
+                .MinimumLevel.ControlledBy(globalLoggingSwitch)
+                .MinimumLevel.Override(typeof(VirtualPageId).Namespace, virtualMemoryLoggingSwitch)
+                .MinimumLevel.Override(typeof(DataPage).Namespace, dataMemoryLoggingSwitch)
+                .MinimumLevel.Override(typeof(IGlobalLockManager).Namespace, lockingLoggingSwitch)
+                .MinimumLevel.Override(typeof(LogPage).Namespace, logWriterLoggingSwitch);
+            _globalLogger = loggerConfig.CreateLogger();
         }
 
         protected override void OnStop()
