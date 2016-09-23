@@ -28,6 +28,14 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Wix Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Wix Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
   <ItemGroup>
     <Compile Include="InstanceServiceCompiler.cs" />
     <Compile Include="InstanceServiceExtension.cs" />
@@ -58,9 +66,6 @@
     <Reference Include="WixUtilExtension">
       <HintPath>C:\Program Files (x86)\WiX Toolset v3.10\bin\WixUtilExtension.dll</HintPath>
     </Reference>
-    <Reference Include="wui">
-      <HintPath>C:\Program Files (x86)\WiX Toolset v3.10\bin\wui.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Data\InstanceService.wixlib" />
@@ -70,6 +75,6 @@
     <PostBuildEvent>copy /y "$(TargetPath)" "$(WixToolPath)\$(TargetFileName)"</PostBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
-    <PostBuildEvent>xcopy $(TargetPath) $(ProjectDir)bin /Y</PostBuildEvent>
+    <PostBuildEvent>xcopy "$(TargetPath)" "$(ProjectDir)bin" /Y</PostBuildEvent>
   </PropertyGroup>
 </Project>

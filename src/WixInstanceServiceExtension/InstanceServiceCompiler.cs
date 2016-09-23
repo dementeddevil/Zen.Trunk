@@ -43,8 +43,6 @@ namespace Zen.WindowsInstallerXml.Extensions
 		private static readonly Regex FindProperty = new Regex(
 			@"(\[.*?\])",
 			RegexOptions.ExplicitCapture | RegexOptions.Compiled);
-
-		private XmlSchema _schema;
 		#endregion
 
 		#region Public Constructors
@@ -153,7 +151,7 @@ namespace Zen.WindowsInstallerXml.Extensions
 			foreach (XmlAttribute attrib in node.Attributes)
 			{
 				if (0 == attrib.NamespaceURI.Length ||
-					attrib.NamespaceURI == _schema.TargetNamespace)
+					attrib.NamespaceURI == Schema.TargetNamespace)
 				{
 					switch (attrib.LocalName)
 					{
@@ -234,7 +232,7 @@ namespace Zen.WindowsInstallerXml.Extensions
 			{
 				if (XmlNodeType.Element == child.NodeType)
 				{
-					if (child.NamespaceURI == _schema.TargetNamespace)
+					if (child.NamespaceURI == Schema.TargetNamespace)
 					{
 						Core.UnexpectedElement(node, child);
 					}
@@ -283,7 +281,7 @@ namespace Zen.WindowsInstallerXml.Extensions
 			// get specifics of our node
 			foreach (XmlAttribute attrib in node.Attributes)
 			{
-				if (0 == attrib.NamespaceURI.Length || attrib.NamespaceURI == _schema.TargetNamespace)
+				if (0 == attrib.NamespaceURI.Length || attrib.NamespaceURI == Schema.TargetNamespace)
 				{
 					switch (attrib.LocalName)
 					{
@@ -435,7 +433,7 @@ namespace Zen.WindowsInstallerXml.Extensions
 			{
 				if (XmlNodeType.Element == child.NodeType)
 				{
-					if (child.NamespaceURI == _schema.TargetNamespace)
+					if (child.NamespaceURI == Schema.TargetNamespace)
 					{
 						var childSourceLineNumbers = Preprocessor.GetSourceLineNumbers(child);
 
@@ -499,7 +497,7 @@ namespace Zen.WindowsInstallerXml.Extensions
 
 			foreach (XmlAttribute attrib in node.Attributes)
 			{
-				if (0 == attrib.NamespaceURI.Length || attrib.NamespaceURI == _schema.TargetNamespace)
+				if (0 == attrib.NamespaceURI.Length || attrib.NamespaceURI == Schema.TargetNamespace)
 				{
 					switch (attrib.LocalName)
 					{
@@ -523,7 +521,7 @@ namespace Zen.WindowsInstallerXml.Extensions
 			{
 				if (XmlNodeType.Element == child.NodeType)
 				{
-					if (child.NamespaceURI == _schema.TargetNamespace)
+					if (child.NamespaceURI == Schema.TargetNamespace)
 					{
 						Core.UnexpectedElement(node, child);
 					}
@@ -622,7 +620,7 @@ namespace Zen.WindowsInstallerXml.Extensions
 			foreach (XmlAttribute attrib in node.Attributes)
 			{
 				if (0 == attrib.NamespaceURI.Length ||
-					attrib.NamespaceURI == _schema.TargetNamespace)
+					attrib.NamespaceURI == Schema.TargetNamespace)
 				{
 					switch (attrib.LocalName)
 					{
@@ -692,7 +690,7 @@ namespace Zen.WindowsInstallerXml.Extensions
 			{
 				if (XmlNodeType.Element == child.NodeType)
 				{
-					if (child.NamespaceURI == _schema.TargetNamespace)
+					if (child.NamespaceURI == Schema.TargetNamespace)
 					{
 						var childSourceLineNumbers = Preprocessor.GetSourceLineNumbers(child);
 
@@ -757,7 +755,7 @@ namespace Zen.WindowsInstallerXml.Extensions
 
 			foreach (XmlAttribute attrib in node.Attributes)
 			{
-				if (0 == attrib.NamespaceURI.Length || attrib.NamespaceURI == _schema.TargetNamespace)
+				if (0 == attrib.NamespaceURI.Length || attrib.NamespaceURI == Schema.TargetNamespace)
 				{
 					switch (attrib.LocalName)
 					{
@@ -808,7 +806,7 @@ namespace Zen.WindowsInstallerXml.Extensions
 			{
 				if (XmlNodeType.Element == child.NodeType)
 				{
-					if (child.NamespaceURI == _schema.TargetNamespace)
+					if (child.NamespaceURI == Schema.TargetNamespace)
 					{
 						Core.UnexpectedElement(node, child);
 					}
