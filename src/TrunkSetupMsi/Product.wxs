@@ -1,12 +1,112 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
-	<Product Id="*" Name="TrunkSetupMsi" Language="1033" Version="1.0.0.0" Manufacturer="" UpgradeCode="38b4e115-ea42-4911-b3f2-1e5bd216debe">
-		<Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" />
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi"
+     xmlns:fire="http://schemas.microsoft.com/wix/FirewallExtension"
+     xmlns:util="http://schemas.microsoft.com/wix/UtilExtension"
+     RequiredVersion="3.10.3.0">
+	<Product Id="{08942D8D-98E5-488E-8272-58BF211246DA}"
+           Name="Zen Trunk Database Server"
+           Language="1033"
+           Version="1.0.0.0" 
+           Manufacturer="Zen Design Software"
+           UpgradeCode="{38B4E115-EA42-4911-B3F2-1E5BD216DEBE}">
+		<Package InstallerVersion="405" 
+             Compressed="yes" 
+             InstallScope="perMachine" />
 
 		<MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
-		<MediaTemplate />
+		<MediaTemplate EmbedCab="yes"
+                   CabinetTemplate="Trunk{0}.cab" />
 
-		<Feature Id="ProductFeature" Title="TrunkSetupMsi" Level="1">
+    <Property Id="ARPHELPTELEPHONE"
+							Value="(44) 757 212 8867" />
+    <Property Id="ARPHELPLINK"
+							Value="http://www.zendesignsoftware.com" />
+    <Property Id="ARPCONTACT"
+							Value="Zen Design Software" />
+    <Property Id="ARPCOMMENTS"
+							Value="Zen Trunk Database" />
+    <Property Id="ARPURLINFOABOUT"
+							Value="http://www.zendesignsoftware.com/products/trunk" />
+
+    <Property Id="WIXUI_INSTALLDIR"
+							Value="INSTALLFOLDER" />
+
+    <Property Id="SUI_CUSTOMINSTANCENAME"
+							Value="INSTANCENAME" />
+    <Property Id="InstancePrefix"
+							Value="TRUNK" />
+    <Property Id="InstanceIndex"
+							Value="$(var.InstanceIndex)" />
+    <?if $(var.InstanceIndex) = 0 ?>
+    <Property Id="DefaultInstance"
+							Value="1" />
+    <Property Id="SERVICENAME"
+							Value="TRUNKSERVER"
+							Admin="yes"
+							Secure="yes" />
+    <?else?>
+    <Property Id="DefaultInstance"
+							Value="0" />
+    <Property Id="SERVICENAME"
+							Value="TRUNK$[INSTANCENAME]"
+							Admin="yes"
+							Secure="yes" />
+    <?endif?>
+    <Property Id="INSTANCETYPE"
+							Value="0"
+							Admin="yes"
+							Secure="yes"
+							Hidden="no" />
+    <Property Id="FREEINSTANCEINDEX"
+							Value="0"
+							Secure="yes" />
+    <Property Id="INSTANCENAME"
+							Admin="yes"
+							Secure="yes" />
+    <Property Id="INSTANCENAME_VALID"
+							Value="0"
+							Admin="yes"
+							Secure="yes" />
+    <Property Id="SERVICEACCOUNTTYPE"
+							Value="1"
+							Admin="yes"
+							Secure="yes" />
+    <Property Id="SERVICEFQACCOUNT"
+							Admin="yes"
+							Secure="yes" />
+    <Property Id="SERVICEACCOUNT"
+							Hidden="no"
+							Admin="yes"
+							Secure="yes">
+      <RegistrySearch Id="CachedAccount"
+											Root="HKLM"
+											Key="Software\Zen Design Software\Trunk\TRUNK.$(var.InstanceIndex)\Setup"
+											Name="ServiceAccount"
+											Type="raw" />
+    </Property>
+    <Property Id="SERVICEDOMAIN"
+							Hidden="no"
+							Admin="yes"
+							Secure="yes">
+      <RegistrySearch Id="CachedDomain"
+											Root="HKLM"
+											Key="Software\Zen Design Software\Trunk\TRUNK.$(var.InstanceIndex)\Setup"
+											Name="ServiceDomain"
+											Type="raw" />
+    </Property>
+    <Property Id="SERVICEPASSWORD"
+							Hidden="yes"
+							Admin="yes"
+							Secure="yes" />
+    <Property Id="SERVICEACCOUNT_VALID"
+							Value="0"
+							Admin="yes"
+							Secure="yes" />
+
+    <!-- Sanity check... -->
+    <Condition Message="You need to be an administrator to install this product."><![CDATA[(Privileged)]]></Condition>
+
+    <Feature Id="ProductFeature" Title="TrunkSetupMsi" Level="1">
 			<ComponentGroupRef Id="ProductComponents" />
 		</Feature>
 	</Product>
@@ -14,7 +114,13 @@
 	<Fragment>
 		<Directory Id="TARGETDIR" Name="SourceDir">
 			<Directory Id="ProgramFilesFolder">
-				<Directory Id="INSTALLFOLDER" Name="TrunkSetupMsi" />
+        <Directory Id="ManufacturerFolder" Name="Zen Design Software">
+          <Directory Id="INSTALLFOLDER" Name="Trunk Database">
+            <Directory Id="InstanceFolder" Name="TRUNK.$(var.InstanceIndex)">
+              <Directory Id="BinFolder" Name="Bin" />
+            </Directory>
+          </Directory>
+        </Directory>
 			</Directory>
 		</Directory>
 	</Fragment>
