@@ -1,0 +1,185 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <ProductVersion>3.0</ProductVersion>
+    <ProjectGuid>{2d4ff07b-26f8-4bef-b41c-e4383f86dc32}</ProjectGuid>
+    <SchemaVersion>2.0</SchemaVersion>
+    <OutputName>InstanceService</OutputName>
+    <OutputType>Library</OutputType>
+    <SccProjectName>SAK</SccProjectName>
+    <SccProvider>SAK</SccProvider>
+    <SccAuxPath>SAK</SccAuxPath>
+    <SccLocalPath>SAK</SccLocalPath>
+    <RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent>
+    <BindFiles>True</BindFiles>
+    <DefineConstants>
+			$(DefineConstants);
+			bannerBmp=$(MSBuildProjectDirectory)\Bitmaps\bannrbmp.bmp;
+			dialogBmp=$(MSBuildProjectDirectory)\Bitmaps\dlgbmp.bmp;
+			exclamationIco=$(MSBuildProjectDirectory)\Bitmaps\exclamic.ico;
+			infoIco=$(MSBuildProjectDirectory)\Bitmaps\info.ico;
+			licenseRtf=$(MSBuildProjectDirectory)\license.rtf;
+			newIco=$(MSBuildProjectDirectory)\Bitmaps\new.ico;
+			upIco=$(MSBuildProjectDirectory)\Bitmaps\up.ico;
+			suiActionsDll=$(OutputPath)\SUIActions.dll;
+		</DefineConstants>
+    <IncludeSearchPaths>
+    </IncludeSearchPaths>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+    <OutputPath>bin\$(Configuration)\</OutputPath>
+    <IntermediateOutputPath>obj\$(Configuration)\</IntermediateOutputPath>
+    <DefineConstants>Debug;bannerBmp=$(MSBuildProjectDirectory)\Bitmaps\bannrbmp.bmp;dialogBmp=$(MSBuildProjectDirectory)\Bitmaps\dlgbmp.bmp;exclamationIco=$(MSBuildProjectDirectory)\Bitmaps\exclamic.ico;infoIco=$(MSBuildProjectDirectory)\Bitmaps\info.ico;licenseRtf=$(MSBuildProjectDirectory)\license.rtf;newIco=$(MSBuildProjectDirectory)\Bitmaps\new.ico;upIco=$(MSBuildProjectDirectory)\Bitmaps\up.ico;suiActionsDll=C:\Projects\Noble\Wix\SUIActions\bin\Debug\SUIActions.dll</DefineConstants>
+    <Cultures>
+    </Cultures>
+    <LeaveTemporaryFiles>False</LeaveTemporaryFiles>
+    <LibBindFiles>False</LibBindFiles>
+    <SuppressPdbOutput>False</SuppressPdbOutput>
+    <SuppressSpecificWarnings>
+    </SuppressSpecificWarnings>
+    <TreatWarningsAsErrors>False</TreatWarningsAsErrors>
+    <VerboseOutput>False</VerboseOutput>
+    <WixVariables>
+    </WixVariables>
+    <SuppressAllWarnings>False</SuppressAllWarnings>
+    <Pedantic>False</Pedantic>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+    <OutputPath>bin\$(Configuration)\</OutputPath>
+    <IntermediateOutputPath>obj\$(Configuration)\</IntermediateOutputPath>
+    <Cultures>
+    </Cultures>
+    <DefineConstants>bannerBmp=$(MSBuildProjectDirectory)\Bitmaps\bannrbmp.bmp;dialogBmp=$(MSBuildProjectDirectory)\Bitmaps\dlgbmp.bmp;exclamationIco=$(MSBuildProjectDirectory)\Bitmaps\exclamic.ico;infoIco=$(MSBuildProjectDirectory)\Bitmaps\info.ico;licenseRtf=$(MSBuildProjectDirectory)\license.rtf;newIco=$(MSBuildProjectDirectory)\Bitmaps\new.ico;upIco=$(MSBuildProjectDirectory)\Bitmaps\up.ico;suiActionsDll=C:\Projects\Noble\Wix\SUIActions\bin\Release\SUIActions.dll</DefineConstants>
+    <LeaveTemporaryFiles>False</LeaveTemporaryFiles>
+    <LibBindFiles>False</LibBindFiles>
+    <SuppressPdbOutput>False</SuppressPdbOutput>
+    <SuppressSpecificWarnings>
+    </SuppressSpecificWarnings>
+    <TreatWarningsAsErrors>False</TreatWarningsAsErrors>
+    <VerboseOutput>False</VerboseOutput>
+    <WixVariables>
+    </WixVariables>
+    <SuppressAllWarnings>False</SuppressAllWarnings>
+    <Pedantic>False</Pedantic>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|Any CPU' ">
+    <Cultures>
+    </Cultures>
+    <DefineConstants>suiActionsDll=C:\Projects\Noble\Wix\SUIActions\bin\Release\SUIActions.dll</DefineConstants>
+    <LeaveTemporaryFiles>False</LeaveTemporaryFiles>
+    <LibBindFiles>True</LibBindFiles>
+    <OutputPath>bin\$(Configuration)\</OutputPath>
+    <SuppressPdbOutput>False</SuppressPdbOutput>
+    <SuppressSpecificWarnings>
+    </SuppressSpecificWarnings>
+    <TreatWarningsAsErrors>False</TreatWarningsAsErrors>
+    <VerboseOutput>False</VerboseOutput>
+    <WixVariables>
+    </WixVariables>
+    <SuppressAllWarnings>False</SuppressAllWarnings>
+    <Pedantic>False</Pedantic>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|Any CPU' ">
+    <Cultures>
+    </Cultures>
+    <DefineConstants>Debug;suiActionsDll=C:\Projects\Noble\Wix\SUIActions\bin\Release\SUIActions.dll</DefineConstants>
+    <LeaveTemporaryFiles>False</LeaveTemporaryFiles>
+    <LibBindFiles>True</LibBindFiles>
+    <OutputPath>bin\$(Configuration)\</OutputPath>
+    <SuppressPdbOutput>False</SuppressPdbOutput>
+    <SuppressSpecificWarnings>
+    </SuppressSpecificWarnings>
+    <TreatWarningsAsErrors>False</TreatWarningsAsErrors>
+    <VerboseOutput>True</VerboseOutput>
+    <WixVariables>
+    </WixVariables>
+    <SuppressAllWarnings>False</SuppressAllWarnings>
+    <Pedantic>False</Pedantic>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
+    <LibAdditionalOptions>-bf</LibAdditionalOptions>
+    <LibBindFiles>True</LibBindFiles>
+    <DefineConstants>Debug;bannerBmp=$(MSBuildProjectDirectory)\Bitmaps\bannrbmp.bmp;dialogBmp=$(MSBuildProjectDirectory)\Bitmaps\dlgbmp.bmp;exclamationIco=$(MSBuildProjectDirectory)\Bitmaps\exclamic.ico;infoIco=$(MSBuildProjectDirectory)\Bitmaps\info.ico;licenseRtf=$(MSBuildProjectDirectory)\license.rtf;newIco=$(MSBuildProjectDirectory)\Bitmaps\new.ico;upIco=$(MSBuildProjectDirectory)\Bitmaps\up.ico;InstanceServiceActionsDll=$(SolutionDir)src\InstanceServiceActions\bin\$(Configuration)\InstanceServiceActions.dll</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
+    <LibAdditionalOptions>-bf</LibAdditionalOptions>
+    <LibBindFiles>True</LibBindFiles>
+    <DefineConstants>bannerBmp=$(MSBuildProjectDirectory)\Bitmaps\bannrbmp.bmp;dialogBmp=$(MSBuildProjectDirectory)\Bitmaps\dlgbmp.bmp;exclamationIco=$(MSBuildProjectDirectory)\Bitmaps\exclamic.ico;infoIco=$(MSBuildProjectDirectory)\Bitmaps\info.ico;licenseRtf=$(MSBuildProjectDirectory)\license.rtf;newIco=$(MSBuildProjectDirectory)\Bitmaps\new.ico;upIco=$(MSBuildProjectDirectory)\Bitmaps\up.ico;InstanceServiceActionsDll=$(SolutionDir)src\InstanceServiceActions\bin\$(Configuration)\InstanceServiceActions.dll</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Wix Release|Any CPU' ">
+    <Cultures>
+    </Cultures>
+    <DefineConstants>suiActionsDll=C:\Projects\Noble\Wix\SUIActions\bin\Release\SUIActions.dll</DefineConstants>
+    <LeaveTemporaryFiles>False</LeaveTemporaryFiles>
+    <LibBindFiles>True</LibBindFiles>
+    <SuppressPdbOutput>False</SuppressPdbOutput>
+    <SuppressSpecificWarnings>
+    </SuppressSpecificWarnings>
+    <TreatWarningsAsErrors>False</TreatWarningsAsErrors>
+    <VerboseOutput>False</VerboseOutput>
+    <WixVariables>
+    </WixVariables>
+    <SuppressAllWarnings>False</SuppressAllWarnings>
+    <Pedantic>False</Pedantic>
+    <OutputPath>bin\$(Platform)\$(Configuration)\</OutputPath>
+    <IntermediateOutputPath>obj\$(Platform)\$(Configuration)\</IntermediateOutputPath>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Wix Release|x86' ">
+    <LibAdditionalOptions>-bf</LibAdditionalOptions>
+    <OutputPath>bin\$(Configuration)\</OutputPath>
+    <IntermediateOutputPath>obj\$(Platform)\$(Configuration)\</IntermediateOutputPath>
+    <DefineConstants>bannerBmp=$(MSBuildProjectDirectory)\Bitmaps\bannrbmp.bmp;dialogBmp=$(MSBuildProjectDirectory)\Bitmaps\dlgbmp.bmp;exclamationIco=$(MSBuildProjectDirectory)\Bitmaps\exclamic.ico;infoIco=$(MSBuildProjectDirectory)\Bitmaps\info.ico;licenseRtf=$(MSBuildProjectDirectory)\license.rtf;newIco=$(MSBuildProjectDirectory)\Bitmaps\new.ico;upIco=$(MSBuildProjectDirectory)\Bitmaps\up.ico;InstanceServiceActionsDll=$(SolutionDir)src\InstanceServiceActions\bin\$(Configuration)\InstanceServiceActions.dll</DefineConstants>
+    <LibBindFiles>True</LibBindFiles>
+    <VerboseOutput>True</VerboseOutput>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Wix Release|AnyCPU' ">
+    <OutputPath>bin\$(Platform)\$(Configuration)\</OutputPath>
+    <IntermediateOutputPath>obj\$(Platform)\$(Configuration)\</IntermediateOutputPath>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Common.wxs" />
+    <Compile Include="InvalidInstanceNameDlg.wxs" />
+    <Compile Include="InvalidServiceAccountDlg.wxs" />
+    <Compile Include="ServiceAccountDlg.wxs" />
+    <Compile Include="ServiceDomainAccountDlg.wxs" />
+    <Compile Include="ServiceInstanceDlg.wxs" />
+    <Compile Include="WixUI_InstanceServiceDomainInstall.wxs" />
+    <Compile Include="WixUI_InstanceServiceInstall.wxs" />
+    <Compile Include="WixUI_ServiceDomainInstall.wxs" />
+    <Compile Include="WixUI_ServiceInstall.wxs" />
+    <EmbeddedResource Include="WixUI_en-us.wxl" />
+  </ItemGroup>
+  <ItemGroup>
+    <WixExtension Include="WixUIExtension">
+      <HintPath>$(WixExtDir)\WixUIExtension.dll</HintPath>
+      <Name>WixUIExtension</Name>
+    </WixExtension>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\InstanceServiceActions\InstanceServiceActions.vcxproj">
+      <Name>InstanceServiceActions</Name>
+      <Project>{ace935a0-933e-4586-8a8d-a26ffbb30ef7}</Project>
+      <Private>True</Private>
+      <DoNotHarvest>True</DoNotHarvest>
+      <RefProjectOutputGroups>Binaries;Content;Satellites</RefProjectOutputGroups>
+      <RefTargetDir>INSTALLFOLDER</RefTargetDir>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildExtensionsPath)\Microsoft\WiX\v3.x\Wix.targets" />
+  <!--
+	To modify your build process, add your task inside one of the targets below and uncomment it.
+	Other similar extension points exist, see Wix.targets.
+	<Target Name="BeforeBuild">
+	</Target>
+	<Target Name="AfterBuild">
+	</Target>
+	-->
+  <PropertyGroup>
+    <PreBuildEvent>
+    </PreBuildEvent>
+  </PropertyGroup>
+  <PropertyGroup>
+    <PostBuildEvent>copy /y "$(TargetPath)" "$(SolutionDir)src\WixInstanceServiceExtension\Data\$(TargetFileName)"</PostBuildEvent>
+  </PropertyGroup>
+</Project>

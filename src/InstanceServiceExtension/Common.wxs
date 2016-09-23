@@ -1,0 +1,237 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Copyright (c) Microsoft Corporation.  All rights reserved.
+    
+    The use and distribution terms for this software are covered by the
+    Common Public License 1.0 (http://opensource.org/licenses/cpl.php)
+    which can be found in the file CPL.TXT at the root of this distribution.
+    By using this software in any fashion, you are agreeing to be bound by
+    the terms of this license.
+    
+    You must not remove this notice, or any other, from this software.
+-->
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+	<Fragment>
+		<UI>
+			<Error Id="1">!(loc.msierrGRPFailedGroupCreate)</Error>
+			<Error Id="2">!(loc.msierrGRPFailedGroupCreateExists)</Error>
+			<Error Id="3">!(loc.msierrGRPFailedUserCreate)</Error>
+			<Error Id="4">!(loc.msierrGRPFailedUserCreateExists)</Error>
+			<Error Id="5">!(loc.msierrGRPFailedUrlReservationCreate)</Error>
+			<Error Id="6">!(loc.msierrGRPFailedUrlReservationCreateExists)</Error>
+
+			<ProgressText Action="SuiSchedGroupsInstall">!(loc.SuiSchedGroupsInstall)</ProgressText>
+			<ProgressText Action="SuiSchedGroupsUninstall">!(loc.SuiSchedGroupsUninstall)</ProgressText>
+			<ProgressText Action="SuiExecGroupsInstall">!(loc.SuiExecGroupsInstall)</ProgressText>
+			<ProgressText Action="SuiRollbackGroupsInstall">!(loc.SuiRollbackGroupsInstall)</ProgressText>
+			<ProgressText Action="SuiExecGroupsUninstall">!(loc.SuiExecGroupsUninstall)</ProgressText>
+			<ProgressText Action="SuiRollbackGroupsUninstall">!(loc.SuiRollbackGroupsUninstall)</ProgressText>
+
+			<ProgressText Action="SuiSchedUsersInstall">!(loc.SuiSchedUsersInstall)</ProgressText>
+			<ProgressText Action="SuiSchedUsersUninstall">!(loc.SuiSchedUsersUninstall)</ProgressText>
+			<ProgressText Action="SuiExecUsersInstall">!(loc.SuiExecUsersInstall)</ProgressText>
+			<ProgressText Action="SuiRollbackUsersInstall">!(loc.SuiRollbackUsersInstall)</ProgressText>
+			<ProgressText Action="SuiExecUsersUninstall">!(loc.SuiExecUsersUninstall)</ProgressText>
+			<ProgressText Action="SuiRollbackUsersUninstall">!(loc.SuiRollbackUsersUninstall)</ProgressText>
+
+			<ProgressText Action="SuiSchedUrlReservationsInstall">!(loc.SuiSchedUrlReservationsInstall)</ProgressText>
+			<ProgressText Action="SuiSchedUrlReservationsUninstall">!(loc.SuiSchedUrlReservationsUninstall)</ProgressText>
+			<ProgressText Action="SuiExecUrlReservationsInstall">!(loc.SuiExecUrlReservationsInstall)</ProgressText>
+			<ProgressText Action="SuiRollbackUrlReservationsInstall">!(loc.SuiRollbackUrlReservationsInstall)</ProgressText>
+			<ProgressText Action="SuiExecUrlReservationsUninstall">!(loc.SuiExecUrlReservationsUninstall)</ProgressText>
+			<ProgressText Action="SuiRollbackUrlReservationsUninstall">!(loc.SuiRollbackUrlReservationsUninstall)</ProgressText>
+		</UI>
+
+		<!-- Validate instance name -->
+		<CustomAction Id="ValidateInstanceName"
+									BinaryKey="ZenServiceCA"
+									DllEntry="ValidateInstanceName" />
+
+		<!-- Validate service credentials -->
+		<CustomAction Id="ValidateServiceCredentials"
+									BinaryKey="ZenServiceCA"
+									DllEntry="ValidateServiceCredentials"
+									Execute="immediate" />
+		<!-- Validate domain service credentials -->
+		<CustomAction Id="ValidateDomainServiceCredentials"
+									BinaryKey="ZenServiceCA"
+									DllEntry="ValidateDomainServiceCredentials"
+									Execute="immediate" />
+		<!-- Update next free service instance index -->
+		<CustomAction Id="UpdateFreeServiceInstance"
+									BinaryKey="ZenServiceCA"
+									DllEntry="UpdateFreeServiceInstance"
+									Execute="immediate" />
+
+		<!-- Group configuration and creation actions -->
+		<CustomAction Id="SuiSchedGroupsInstall"
+									BinaryKey="ZenServiceCA"
+									DllEntry="SchedGroupsInstall"
+									Execute="immediate"
+									Return="check"
+									SuppressModularization="yes" />
+		<CustomAction Id="SuiSchedGroupsUninstall"
+									BinaryKey="ZenServiceCA"
+									DllEntry="SchedGroupsUninstall"
+									Execute="immediate"
+									Return="check"
+									SuppressModularization="yes" />
+		<CustomAction Id="SuiExecGroupInstall"
+									BinaryKey="ZenServiceCA"
+									DllEntry="ExecGroup"
+									Impersonate="no"
+									Execute="deferred"
+									Return="check"
+									SuppressModularization="yes" />
+		<CustomAction Id="SuiRollbackGroupInstall"
+									BinaryKey="ZenServiceCA"
+									DllEntry="ExecGroup"
+									Impersonate="no"
+									Execute="rollback"
+									Return="check"
+									SuppressModularization="yes" />
+		<CustomAction Id="SuiExecGroupUninstall"
+									BinaryKey="ZenServiceCA"
+									DllEntry="ExecGroup"
+									Impersonate="no"
+									Execute="deferred"
+									Return="check"
+									SuppressModularization="yes" />
+		<CustomAction Id="SuiRollbackGroupUninstall"
+									BinaryKey="ZenServiceCA"
+									DllEntry="ExecGroup"
+									Impersonate="no"
+									Execute="rollback"
+									Return="check"
+									SuppressModularization="yes" />
+
+		<!-- User configuration and creation actions -->
+		<CustomAction Id="SuiSchedUsersInstall"
+									BinaryKey="ZenServiceCA"
+									DllEntry="SchedUsersInstall"
+									Execute="immediate"
+									Return="check"
+									SuppressModularization="yes" />
+		<CustomAction Id="SuiSchedUsersUninstall"
+									BinaryKey="ZenServiceCA"
+									DllEntry="SchedUsersUninstall"
+									Execute="immediate"
+									Return="check"
+									SuppressModularization="yes" />
+		<CustomAction Id="SuiExecUserInstall"
+									BinaryKey="ZenServiceCA"
+									DllEntry="ExecUser"
+									Impersonate="no"
+									Execute="deferred"
+									Return="check"
+									HideTarget="yes"
+									SuppressModularization="yes" />
+		<CustomAction Id="SuiRollbackUserInstall"
+									BinaryKey="ZenServiceCA"
+									DllEntry="ExecUser"
+									Impersonate="no"
+									Execute="rollback"
+									Return="check"
+									HideTarget="yes"
+									SuppressModularization="yes" />
+		<CustomAction Id="SuiExecUserUninstall"
+									BinaryKey="ZenServiceCA"
+									DllEntry="ExecUser"
+									Impersonate="no"
+									Execute="deferred"
+									Return="check"
+									HideTarget="yes"
+									SuppressModularization="yes" />
+		<CustomAction Id="SuiRollbackUserUninstall"
+									BinaryKey="ZenServiceCA"
+									DllEntry="ExecUser"
+									Impersonate="no"
+									Execute="rollback"
+									Return="check"
+									HideTarget="yes"
+									SuppressModularization="yes" />
+
+		<!-- Url Reservation configuration and creation actions -->
+		<CustomAction Id="SuiSchedUrlReservationsInstall"
+									BinaryKey="ZenServiceCA"
+									DllEntry="SchedUrlReservationsInstall"
+									Execute="immediate"
+									Return="check"
+									SuppressModularization="yes" />
+		<CustomAction Id="SuiSchedUrlReservationsUninstall"
+									BinaryKey="ZenServiceCA"
+									DllEntry="SchedUrlReservationsUninstall"
+									Execute="immediate"
+									Return="check"
+									SuppressModularization="yes" />
+		<CustomAction Id="SuiExecUrlReservationsInstall"
+									BinaryKey="ZenServiceCA"
+									DllEntry="ExecUrlReservation"
+									Execute="deferred"
+									Impersonate="no"
+									Return="check"
+									SuppressModularization="yes" />
+		<CustomAction Id="SuiRollbackUrlReservationsInstall"
+									BinaryKey="ZenServiceCA"
+									DllEntry="ExecUrlReservation"
+									Execute="rollback"
+									Impersonate="no"
+									Return="check"
+									SuppressModularization="yes" />
+		<CustomAction Id="SuiExecUrlReservationsUninstall"
+									BinaryKey="ZenServiceCA"
+									DllEntry="ExecUrlReservation"
+									Execute="deferred"
+									Impersonate="no"
+									Return="check"
+									SuppressModularization="yes" />
+		<CustomAction Id="SuiRollbackUrlReservationsUninstall"
+									BinaryKey="ZenServiceCA"
+									DllEntry="ExecUrlReservation"
+									Execute="rollback"
+									Impersonate="no"
+									Return="check"
+									SuppressModularization="yes" />
+
+		<!-- 
+			TODO: Schedule a type 35 custom action that is capable of 
+			updating the installation folder based on the transformed instance
+			index. We also need CAs that can revise the use of other formatted
+			properties - essentially this means the transform should not try to
+			update properties directly - we can leave that to bound CAs in the
+			main codebase
+		-->
+		<InstallExecuteSequence>
+			<Custom Action="SuiSchedGroupsInstall"
+							Before="ConfigureUsers"
+							Overridable="yes" />
+			<Custom Action="SuiSchedGroupsUninstall"
+							Before="ConfigureUsers"
+							Overridable="yes" />
+			<Custom Action="SuiSchedUsersInstall"
+							After="ConfigureUsers"
+							Overridable="yes" />
+			<Custom Action="SuiSchedUsersUninstall"
+							After="ConfigureUsers"
+							Overridable="yes" />
+
+			<!-- We need the HTTP.SYS driver on Windows XP or later. -->
+			<Custom Action="SuiSchedUrlReservationsUninstall"
+							Before="RemoveFiles"
+							Overridable="yes">
+				<![CDATA[ VersionNT >= 501 ]]>
+			</Custom>
+			<Custom Action="SuiSchedUrlReservationsInstall"
+							After="InstallFiles"
+							Overridable="yes">
+				<![CDATA[ VersionNT >= 501 ]]>
+			</Custom>
+		</InstallExecuteSequence>
+	</Fragment>
+
+	<!-- Service UI Custom Action DLL Definitions -->
+	<Fragment>
+		<Binary Id="ZenServiceCA"
+						SourceFile="$(var.InstanceServiceActionsDll)" />
+	</Fragment>
+</Wix>

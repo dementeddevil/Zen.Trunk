@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xs:schema xmlns:html="http://www.w3.org/1999/xhtml" xmlns:wix="http://schemas.microsoft.com/wix/2006/wi" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xse="http://schemas.microsoft.com/wix/2005/XmlSchemaExtension" targetNamespace="http://schemas.zendesign.com/wix/SUIExtension" xmlns="http://schemas.zendesign.com/wix/SUIExtension">
+	<xs:annotation>
+		<xs:documentation>
+			Copyright (c) Microsoft Corporation.  All rights reserved.
+
+			The use and distribution terms for this software are covered by the
+			Common Public License 1.0 (http://opensource.org/licenses/cpl.php)
+			which can be found in the file CPL.TXT at the root of this distribution.
+			By using this software in any fashion, you are agreeing to be bound by
+			the terms of this license.
+
+			You must not remove this notice, or any other, from this software.
+
+			The source code schema for the Windows Installer XML Toolset Client Extension.
+		</xs:documentation>
+	</xs:annotation>
+	<xs:import namespace="http://schemas.microsoft.com/wix/2006/wi" />
+	<xs:element name="GroupEx">
+		<xs:annotation>
+			<xs:appinfo>
+				<xse:parent namespace="http://schemas.microsoft.com/wix/2006/wi" ref="Fragment" />
+				<xse:parent namespace="http://schemas.microsoft.com/wix/2006/wi" ref="Module" />
+				<xse:parent namespace="http://schemas.microsoft.com/wix/2006/wi" ref="Product" />
+				<xse:parent namespace="http://schemas.microsoft.com/wix/2006/wi" ref="Component" />
+			</xs:appinfo>
+			<xs:documentation>Windows Group for all kinds of things</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:attribute name="Id" type="xs:string" use="required" />
+			<xs:attribute name="Name" type="xs:string" use="required" />
+			<xs:attribute name="Domain" type="xs:string" />
+			<xs:attribute name="Description" type="xs:string" />
+			<xs:attribute name="Help" type="xs:string" />
+			<xs:attribute name="CreateGroup" type="wix:YesNoType" />
+			<xs:attribute name="FailIfExists" type="wix:YesNoType" />
+			<xs:attribute name="UpdateIfExists" type="wix:YesNoType" />
+			<xs:attribute name="RemoveOnUninstall" type="wix:YesNoType" />
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="UserEx">
+		<xs:annotation>
+			<xs:appinfo>
+				<xse:parent namespace="http://schemas.microsoft.com/wix/2006/wi" ref="Fragment" />
+				<xse:parent namespace="http://schemas.microsoft.com/wix/2006/wi" ref="Module" />
+				<xse:parent namespace="http://schemas.microsoft.com/wix/2006/wi" ref="Product" />
+				<xse:parent namespace="http://schemas.microsoft.com/wix/2006/wi" ref="Component" />
+			</xs:appinfo>
+			<xs:documentation>Windows User for all kinds of things</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:attribute name="Id" type="xs:string" use="required" />
+			<xs:attribute name="Name" type="xs:string" use="required" />
+			<xs:attribute name="Domain" type="xs:string" />
+			<xs:attribute name="Password" type="xs:string" />
+			<xs:attribute name="Help" type="xs:string" />
+			<xs:attribute name="CanNotChangePassword" type="wix:YesNoType" />
+			<xs:attribute name="CreateUser" type="wix:YesNoType" />
+			<xs:attribute name="Disabled" type="wix:YesNoType" />
+			<xs:attribute name="PasswordExpired" type="wix:YesNoType" />
+			<xs:attribute name="PasswordNeverExpires" type="wix:YesNoType" />
+			<xs:attribute name="LogonAsService" type="wix:YesNoType" />
+			<xs:attribute name="IgnoreServiceAccounts" type="wix:YesNoType" />
+			<xs:attribute name="FailIfExists" type="wix:YesNoType" />
+			<xs:attribute name="UpdateIfExists" type="wix:YesNoType" />
+			<xs:attribute name="RemoveOnUninstall" type="wix:YesNoType" />
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="UrlReservation">
+		<xs:annotation>
+			<xs:appinfo>
+				<xse:parent namespace="http://schemas.microsoft.com/wix/2006/wi" ref="Component" />
+			</xs:appinfo>
+			<xs:documentation>HTTP URL Reservation</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:choice minOccurs="0" maxOccurs="unbounded">
+				<xs:annotation>
+					<xs:documentation>
+						Explicitly-listed user accounts with access-rights to 
+						the URL reservation.
+					</xs:documentation>
+				</xs:annotation>
+				<xs:element ref="UrlReservationAcl" />
+			</xs:choice>
+
+			<xs:attribute name="Id" type="xs:string" use="required" />
+			<xs:attribute name="Url" type="xs:string" use="required" />
+			<xs:attribute name="FailIfExists" type="wix:YesNoType" />
+			<xs:attribute name="UpdateIfExists" type="wix:YesNoType" />
+			<xs:attribute name="RemoveOnUninstall" type="wix:YesNoType" />
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="UrlReservationAcl">
+		<xs:annotation>
+			<xs:appinfo>
+				<xse:parent namespace="http://schemas.zendesign.com/wix/SUIExtension" ref="UrlReservation" />
+			</xs:appinfo>
+			<xs:documentation>HTTP URL Reservation ACL entry</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:attribute name="Id" type="xs:string" use="required" />
+			<xs:attribute name="Name" type="xs:string" use="required" />
+			<xs:attribute name="Domain" type="xs:string" />
+			<xs:attribute name="CanRegister" type="wix:YesNoType" />
+			<xs:attribute name="CanDelegate" type="wix:YesNoType" />
+		</xs:complexType>
+	</xs:element>
+</xs:schema>

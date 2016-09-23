@@ -1,0 +1,19 @@
+LIBRARY	"InstanceServiceActions"
+EXPORTS
+	ValidateInstanceName @1
+	ValidateServiceCredentials @2
+	ValidateDomainServiceCredentials @3
+	UpdateFreeServiceInstance @4
+	SchedGroupsInstall @5
+	SchedGroupsUninstall @6
+	
+	SchedUsersInstall @7
+	SchedUsersUninstall @8
+	
+	SchedUrlReservationsInstall @9
+	SchedUrlReservationsUninstall @10
+	
+	ExecGroup @11
+	ExecUser @12
+	ExecUrlReservation @13
+	

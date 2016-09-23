@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<WixLocalization Culture="en-us" xmlns="http://schemas.microsoft.com/wix/2006/localization">
+	<String Id="ServiceInstanceDlg_Title" Overridable="yes">[ProductName] Setup</String>
+	<String Id="ServiceInstanceDlgTitle" Overridable="yes">{\WixUI_Font_Title}Instance Name</String>
+	<String Id="ServiceInstanceDlgDescription" Overridable="yes">You can install a default instance or you can specify a named instance.</String>
+	<String Id="ServiceInstanceDlgAdditionalInfo" Overridable="yes">Provide a name for the instance. For a default installation, click Default instance and click Next. To upgrade an existing default instance, click Default instance. To upgrade an existing named instance, select Named instance and specify instance name.</String>
+	<String Id="ServiceInstanceDlgBannerBitmap" Overridable="yes">WixUI_Bmp_Banner</String>
+	<String Id="ServiceInstanceDlg_InstanceTypeDefault" Overridable="yes">&amp;Default instance</String>
+	<String Id="ServiceInstanceDlg_InstanceTypeNamed" Overridable="yes">&amp;Named instance</String>
+	<String Id="ServiceInstanceDlg_ViewInstalledInstances" Overridable="yes">To view a list of existing instances and components click on Installed instances.</String>
+	<String Id="ServiceInstanceDlg_InstalledInstances" Overridable="yes">Installed instances</String>
+
+	<String Id="ServiceAccountDlg_Title" Overridable="yes">[ProductName] Setup</String>
+	<String Id="ServiceAccountDlgTitle" Overridable="yes">{\WixUI_Font_Title}Service Account</String>
+	<String Id="ServiceAccountDlgDescription" Overridable="yes">Select the service account credentials.</String>
+	<String Id="ServiceAccountDlgAdditionalInfo" Overridable="yes">Choose between one of the built-in system accounts or a custom local/domain user account It is recommended that you use a specific user account for enhanced security in production environments.</String>
+	<String Id="ServiceAccountDlgBannerBitmap" Overridable="yes">WixUI_Bmp_Banner</String>
+	<String Id="ServiceAccountDlg_LocalSystem" Overridable="yes">Local System</String>
+	<String Id="ServiceAccountDlg_LocalService" Overridable="yes">Local Service</String>
+	<String Id="ServiceAccountDlg_NetworkService" Overridable="yes">Network Service</String>
+	<String Id="ServiceAccountDlg_UserAccount" Overridable="yes">User Account</String>
+	<String Id="ServiceAccountDlg_UserName" Overridable="yes">Username:</String>
+	<String Id="ServiceAccountDlg_Password" Overridable="yes">Password:</String>
+	<String Id="ServiceAccountDlg_Domain" Overridable="yes">Domain:</String>
+
+	<String Id="InvalidServiceAccountDlg_Title" Overridable="yes">[ProductName] Setup</String>
+	<String Id="InvalidServiceAccountDlgText" Overridable="yes">Custom service account credentials invalid.</String>
+	<String Id="InvalidServiceAccountDlgIcon" Overridable="yes">WixUI_Ico_Info</String>
+	<String Id="InvalidServiceAccountDlgIconTooltip" Overridable="yes">Information icon</String>
+
+	<String Id="InvalidInstanceNameDlg_Title" Overridable="yes">[ProductName] Setup</String>
+	<String Id="InvalidInstanceNameDlgText" Overridable="yes">Custom instance name must be single word less than 9 characters.</String>
+	<String Id="InvalidInstanceNameDlgIcon" Overridable="yes">WixUI_Ico_Info</String>
+	<String Id="InvalidInstanceNameDlgIconTooltip" Overridable="yes">Information icon</String>
+
+	<String Id="msierrGRPFailedGroupCreate" Overridable="yes">Failed to create group.  ([2]   [3]   [4]   [5])</String>
+	<String Id="msierrGRPFailedGroupCreateExists" Overridable="yes">Failed to create group because it already exists.  ([2]   [3]   [4]   [5])</String>
+	<String Id="msierrGRPFailedUserCreate" Overridable="yes">Failed to create user.  ([2]   [3]   [4]   [5])</String>
+	<String Id="msierrGRPFailedUserCreateExists" Overridable="yes">Failed to create user because it already exists.  ([2]   [3]   [4]   [5])</String>
+	<String Id="msierrGRPFailedUrlReservationCreate" Overridable="yes">Failed to create url reservation.  ([2]   [3]   [4]   [5])</String>
+	<String Id="msierrGRPFailedUrlReservationCreateExists" Overridable="yes">Failed to create url reservation because it already exists.  ([2]   [3]   [4]   [5])</String>
+
+	<String Id="SuiSchedGroupsInstall" Overridable="yes">Configuring security groups installation</String>
+	<String Id="SuiSchedGroupsUninstall" Overridable="yes">Configuring security groups uninstallation</String>
+	<String Id="SuiExecGroupsInstall" Overridable="yes">Installing security groups</String>
+	<String Id="SuiRollbackGroupsInstall" Overridable="yes">Rolling back install of security groups</String>
+	<String Id="SuiExecGroupsUninstall" Overridable="yes">Uninstalling security groups</String>
+	<String Id="SuiRollbackGroupsUninstall" Overridable="yes">Rolling back uninstall of security groups</String>
+
+	<String Id="SuiSchedUsersInstall" Overridable="yes">Configuring users installation.</String>
+	<String Id="SuiSchedUsersUninstall" Overridable="yes">Configuring users installation.</String>
+	<String Id="SuiExecUsersInstall" Overridable="yes">Installing users</String>
+	<String Id="SuiRollbackUsersInstall" Overridable="yes">Rolling back install of users</String>
+	<String Id="SuiExecUsersUninstall" Overridable="yes">Uninstalling users</String>
+	<String Id="SuiRollbackUsersUninstall" Overridable="yes">Rolling back uninstall of users</String>
+
+	<String Id="SuiSchedUrlReservationsInstall" Overridable="yes">Configuring HTTP URL reservation installation.</String>
+	<String Id="SuiSchedUrlReservationsUninstall" Overridable="yes">Configuring HTTP URL reservation uninstallation.</String>
+	<String Id="SuiExecUrlReservationsInstall" Overridable="yes">Installing HTTP URL reservations</String>
+	<String Id="SuiRollbackUrlReservationsInstall" Overridable="yes">Rolling back install of HTTP URL reservations</String>
+	<String Id="SuiExecUrlReservationsUninstall" Overridable="yes">Uninstalling HTTP URL reservations</String>
+	<String Id="SuiRollbackUrlReservationsUninstall" Overridable="yes">Rolling back uninstall of HTTP URL reservations</String>
+</WixLocalization>

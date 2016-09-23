@@ -1,0 +1,178 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<!--
+    Copyright (c) Microsoft Corporation.  All rights reserved.
+    
+    The use and distribution terms for this software are covered by the
+    Common Public License 1.0 (http://opensource.org/licenses/cpl.php)
+    which can be found in the file CPL.TXT at the root of this distribution.
+    By using this software in any fashion, you are agreeing to be bound by
+    the terms of this license.
+    
+    You must not remove this notice, or any other, from this software.
+
+    The table definitions for the Windows Installer XML Toolset Utility Extension.
+-->
+<tableDefinitions xmlns="http://schemas.microsoft.com/wix/2006/tables">
+	<tableDefinition name="GroupEx"
+					 createSymbols="yes">
+		<columnDefinition name="Group"
+						  type="string"
+						  length="72"
+						  primaryKey="yes"
+						  modularize="column"
+						  category="identifier"
+						  description="Primary key, non-localized token"/>
+		<columnDefinition name="Component_"
+						  type="string"
+						  length="72"
+						  nullable="yes"
+						  modularize="column"
+						  keyTable="Component"
+						  keyColumn="1"
+						  category="text"
+						  description="Foreign key, Component used to determine install state"/>
+		<columnDefinition name="Name"
+						  type="string"
+						  length="255"
+						  modularize="property"
+						  category="formatted"
+						  description="Group name"/>
+		<columnDefinition name="Domain"
+						  type="string"
+						  length="255"
+						  nullable="yes"
+						  modularize="property"
+						  category="formatted"
+						  description="Group domain"/>
+		<columnDefinition name="Description"
+						  type="string"
+						  length="255"
+						  modularize="property"
+						  category="formatted"
+						  description="Group description"/>
+		<columnDefinition name="Attributes"
+						  type="number"
+						  length="4"
+						  nullable="yes"
+						  minValue="0"
+						  maxValue="65535"
+						  description="Attributes describing how to create the group"/>
+	</tableDefinition>
+	<tableDefinition name="UserEx"
+					 createSymbols="yes">
+		<columnDefinition name="User"
+						  type="string"
+						  length="72"
+						  primaryKey="yes"
+						  modularize="column"
+						  category="identifier"
+						  description="Primary key, non-localized token"/>
+		<columnDefinition name="Component_"
+						  type="string"
+						  length="72"
+						  nullable="yes"
+						  modularize="column"
+						  keyTable="Component"
+						  keyColumn="1"
+						  category="text"
+						  description="Foreign key, Component used to determine install state"/>
+		<columnDefinition name="Name"
+						  type="string"
+						  length="255"
+						  modularize="property"
+						  category="formatted"
+						  description="User name"/>
+		<columnDefinition name="Domain"
+						  type="string"
+						  length="255"
+						  nullable="yes"
+						  modularize="property"
+						  category="formatted"
+						  description="User domain"/>
+		<columnDefinition name="Password"
+						  type="string"
+						  length="255"
+						  nullable="yes"
+						  modularize="property"
+						  category="formatted"
+						  description="User password"/>
+		<columnDefinition name="Attributes"
+						  type="number"
+						  length="4"
+						  nullable="yes"
+						  minValue="0"
+						  maxValue="65535"
+						  description="Attributes describing how to create the user"/>
+	</tableDefinition>
+	<tableDefinition name="UrlReservation"
+					 createSymbols="yes">
+		<columnDefinition name="Reservation"
+						  type="string"
+						  length="72"
+						  primaryKey="yes"
+						  modularize="column"
+						  category="identifier"
+						  description="Primary key, non-localized token"/>
+		<columnDefinition name="Component_"
+						  type="string"
+						  length="72"
+						  nullable="yes"
+						  modularize="column"
+						  keyTable="Component"
+						  keyColumn="1"
+						  category="text"
+						  description="Foreign key, Component used to determine install state"/>
+		<columnDefinition name="Url"
+						  type="string"
+						  length="255"
+						  modularize="property"
+						  category="formatted"
+						  description="Url to reserve"/>
+		<columnDefinition name="Attributes"
+						  type="number"
+						  length="4"
+						  nullable="yes"
+						  minValue="0"
+						  maxValue="65535"
+						  description="Attributes describing how to create the url reservation"/>
+	</tableDefinition>
+	<tableDefinition name="UrlReservationAcl"
+					 createSymbols="yes">
+		<columnDefinition name="Acl"
+						  type="string"
+						  length="72"
+						  primaryKey="yes"
+						  modularize="column"
+						  category="identifier"
+						  description="Primary key, non-localized token"/>
+		<columnDefinition name="Reservation_"
+						  type="string"
+						  length="72"
+						  nullable="yes"
+						  modularize="column"
+						  keyTable="UrlReservation"
+						  keyColumn="1"
+						  category="text"
+						  description="Foreign key, UrlReservation used to determine security"/>
+		<columnDefinition name="Name"
+						  type="string"
+						  length="255"
+						  modularize="property"
+						  category="formatted"
+						  description="User name"/>
+		<columnDefinition name="Domain"
+						  type="string"
+						  length="255"
+						  nullable="yes"
+						  modularize="property"
+						  category="formatted"
+						  description="User domain"/>
+		<columnDefinition name="Attributes"
+						  type="number"
+						  length="4"
+						  nullable="yes"
+						  minValue="0"
+						  maxValue="65535"
+						  description="Attributes describing permissions for the user"/>
+	</tableDefinition>
+</tableDefinitions>
