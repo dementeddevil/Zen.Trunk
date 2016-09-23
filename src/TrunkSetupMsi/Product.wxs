@@ -3,18 +3,18 @@
      xmlns:fire="http://schemas.microsoft.com/wix/FirewallExtension"
      xmlns:util="http://schemas.microsoft.com/wix/UtilExtension"
      RequiredVersion="3.10.3.0">
-	<Product Id="{08942D8D-98E5-488E-8272-58BF211246DA}"
+  <Product Id="{08942D8D-98E5-488E-8272-58BF211246DA}"
            Name="Zen Trunk Database Server"
            Language="1033"
-           Version="1.0.0.0" 
+           Version="1.0.0.0"
            Manufacturer="Zen Design Software"
            UpgradeCode="{38B4E115-EA42-4911-B3F2-1E5BD216DEBE}">
-		<Package InstallerVersion="405" 
-             Compressed="yes" 
+    <Package InstallerVersion="405"
+             Compressed="yes"
              InstallScope="perMachine" />
 
-		<MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
-		<MediaTemplate EmbedCab="yes"
+    <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
+    <MediaTemplate EmbedCab="yes"
                    CabinetTemplate="Trunk{0}.cab" />
 
     <Property Id="ARPHELPTELEPHONE"
@@ -34,21 +34,21 @@
     <Property Id="SUI_CUSTOMINSTANCENAME"
 							Value="INSTANCENAME" />
     <Property Id="InstancePrefix"
-							Value="TRUNK" />
+							Value="ZENTRUNK" />
     <Property Id="InstanceIndex"
 							Value="$(var.InstanceIndex)" />
     <?if $(var.InstanceIndex) = 0 ?>
     <Property Id="DefaultInstance"
 							Value="1" />
     <Property Id="SERVICENAME"
-							Value="TRUNKSERVER"
+							Value="ZENTRUNKSERVER"
 							Admin="yes"
 							Secure="yes" />
     <?else?>
     <Property Id="DefaultInstance"
 							Value="0" />
     <Property Id="SERVICENAME"
-							Value="TRUNK$[INSTANCENAME]"
+							Value="ZENTRUNK$[INSTANCENAME]"
 							Admin="yes"
 							Secure="yes" />
     <?endif?>
@@ -106,14 +106,41 @@
     <!-- Sanity check... -->
     <Condition Message="You need to be an administrator to install this product."><![CDATA[(Privileged)]]></Condition>
 
-    <Feature Id="ProductFeature" Title="TrunkSetupMsi" Level="1">
-			<ComponentGroupRef Id="ProductComponents" />
-		</Feature>
-	</Product>
+    <UIRef Id="WixUI_InstanceServiceInstall" />
 
-	<Fragment>
-		<Directory Id="TARGETDIR" Name="SourceDir">
-			<Directory Id="ProgramFilesFolder">
+    <!-- Sequence our UI custom actions -->
+    <CustomAction Id="AddInstanceTransform"
+									Property="TRANSFORMS"
+									Value="{:[FREEINSTANCETRANSFORM];}[TRANSFORMS]" />
+    <CustomAction Id="SetMsiNewInstance"
+									Property="MSINEWINSTANCE"
+									Value="1"/>
+    <InstallUISequence>
+      <Custom Action="UpdateFreeServiceInstance"
+							Before="AddInstanceTransform"><![CDATA[ACTION="INSTALL" AND INSTANCETYPE="1"]]></Custom>
+      <Custom Action="AddInstanceTransform"
+							Before="ExecuteAction"><![CDATA[ACTION="INSTALL" AND INSTANCETYPE="1"]]></Custom>
+      <Custom Action="SetMsiNewInstance"
+							Before="ExecuteAction"><![CDATA[ACTION="INSTALL" AND INSTANCETYPE="1"]]></Custom>
+    </InstallUISequence>
+
+    <!-- Sequence our install custom actions -->
+    <InstallExecuteSequence>
+      <Custom Action="ValidateInstanceName"
+							Before="ValidateServiceCredentials" />
+      <Custom Action="ValidateServiceCredentials"
+							Before="CostInitialize" />
+    </InstallExecuteSequence>
+
+    <Feature Id="ProductFeature" Title="TrunkSetupMsi" Level="1">
+      <ComponentGroupRef Id="ProductComponents" />
+    </Feature>
+  </Product>
+
+  <?if $(var.Zen.Trunk.StorageEngine.Service.Platform) = 'x86' ?>
+  <Fragment>
+    <Directory Id="TARGETDIR" Name="SourceDir">
+      <Directory Id="ProgramFilesFolder">
         <Directory Id="ManufacturerFolder" Name="Zen Design Software">
           <Directory Id="INSTALLFOLDER" Name="Trunk Database">
             <Directory Id="InstanceFolder" Name="TRUNK.$(var.InstanceIndex)">
@@ -121,12 +148,27 @@
             </Directory>
           </Directory>
         </Directory>
-			</Directory>
-		</Directory>
-	</Fragment>
+      </Directory>
+    </Directory>
+  </Fragment>
+  <?else?>
+  <Fragment>
+    <Directory Id="TARGETDIR" Name="SourceDir">
+      <Directory Id="ProgramFiles64Folder">
+        <Directory Id="ManufacturerFolder" Name="Zen Design Software">
+          <Directory Id="INSTALLFOLDER" Name="Trunk Database">
+            <Directory Id="InstanceFolder" Name="TRUNK.$(var.InstanceIndex)">
+              <Directory Id="BinFolder" Name="Bin" />
+            </Directory>
+          </Directory>
+        </Directory>
+      </Directory>
+    </Directory>
+  </Fragment>
+  <?endif?>
 
-	<Fragment>
-		<ComponentGroup Id="ProductComponents" 
+  <Fragment>
+    <ComponentGroup Id="ProductComponents"
                     Directory="BinFolder"
                     Source="$(var.Zen.Trunk.StorageEngine.Service.TargetDir)">
       <Component Id="TrunkServiceComponent"
@@ -153,7 +195,37 @@
 												Account="[SERVICEFQACCOUNT]"
 												Arguments="/S=[SERVICENAME]"
 												ErrorControl="ignore"/>
+        <RegistryKey Key="Software"
+										 Root="HKLM">
+          <RegistryKey Key="Zen Design Software">
+            <RegistryKey Key="Trunk">
+              <RegistryKey Key="Instance Names">
+                <RegistryValue Name="[SERVICENAME]"
+																Value="[INSTANCEDIR]"
+																Type="string" />
+              </RegistryKey>
+              <RegistryKey Key="Instances">
+                <RegistryKey Key="[SERVICENAME]">
+                  <RegistryKey Key="Setup">
+                    <RegistryValue Name="ServiceAccount"
+																   Value="[SERVICEACCOUNT]"
+																   Type="string" />
+                    <RegistryValue Name="ServiceDomain"
+																   Value="[SERVICEDOMAIN]"
+																   Type="string" />
+                    <RegistryValue Name="Version"
+																   Value="[ProductVersion]"
+																   Type="string" />
+                    <RegistryValue Name="ProductCode"
+																   Value="[ProductCode]"
+																   Type="string" />
+                  </RegistryKey>
+                </RegistryKey>
+              </RegistryKey>
+            </RegistryKey>
+          </RegistryKey>
+        </RegistryKey>
       </Component>
-		</ComponentGroup>
-	</Fragment>
+    </ComponentGroup>
+  </Fragment>
 </Wix>

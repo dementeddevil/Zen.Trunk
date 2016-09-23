@@ -35,9 +35,9 @@
             this.CanHandlePowerEvent = true;
             this.CanPauseAndContinue = true;
             this.CanShutdown = true;
-            this.DefaultServiceName = "ZenTrunkMaster";
+            this.DefaultServiceName = "ZENTRUNKSERVER";
             this.InstanceName = "Master";
-            this.ServiceNamePrefix = "ZenTrunk";
+            this.ServiceNamePrefix = "ZENTRUNK";
 
         }
 

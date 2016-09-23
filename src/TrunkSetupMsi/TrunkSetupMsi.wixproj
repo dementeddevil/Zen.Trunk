@@ -43,6 +43,10 @@
     <Compile Include="Product.wxs" />
   </ItemGroup>
   <ItemGroup>
+    <WixExtension Include="WixInstanceServiceExtension">
+      <HintPath>..\WixInstanceServiceExtension\bin\WixInstanceServiceExtension.dll</HintPath>
+      <Name>WixInstanceServiceExtension</Name>
+    </WixExtension>
     <WixExtension Include="WixUtilExtension">
       <HintPath>$(WixExtDir)\WixUtilExtension.dll</HintPath>
       <Name>WixUtilExtension</Name>
