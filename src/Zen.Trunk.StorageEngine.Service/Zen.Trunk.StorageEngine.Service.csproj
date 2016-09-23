@@ -92,6 +92,10 @@
     <Compile Include="InstanceServiceBase.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="ITrunkConfigurationManager.cs" />
+    <Compile Include="ITrunkConfigurationSection.cs" />
+    <Compile Include="TrunkConfigurationManager.cs" />
+    <Compile Include="TrunkConfigurationSection.cs" />
     <Compile Include="TrunkStorageEngineService.cs">
       <SubType>Component</SubType>
     </Compile>

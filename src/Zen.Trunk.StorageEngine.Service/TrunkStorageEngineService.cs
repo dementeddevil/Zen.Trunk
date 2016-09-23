@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using Microsoft.Win32;
+﻿using Autofac;
 using Serilog;
 using Serilog.Core;
 using Serilog.Events;
@@ -11,27 +9,43 @@ using Zen.Trunk.Storage.Log;
 
 namespace Zen.Trunk.StorageEngine.Service
 {
+    /// <summary>
+    /// <c>TrunkStorageEngineService</c> implements the interface between
+    /// our service and the Windows Service Control Manager (SCM)
+    /// </summary>
+    /// <seealso cref="Zen.Trunk.StorageEngine.Service.InstanceServiceBase" />
     public partial class TrunkStorageEngineService : InstanceServiceBase
     {
         private Logger _globalLogger;
-
+        private ILifetimeScope _globaLifetimeScope;
+        
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TrunkStorageEngineService"/> class.
+        /// </summary>
         public TrunkStorageEngineService()
         {
             InitializeComponent();
         }
 
+        /// <summary>
+        /// Executes when a Start command is sent to the service by the Service
+        /// Control Manager (SCM) or when the operating system starts (for a
+        /// service that starts automatically).
+        /// Specifies actions to take when the service starts.
+        /// </summary>
+        /// <param name="args">Data passed by the start command.</param>
         protected override void OnStart(string[] args)
         {
-            // TODO: Initialise our custom configuration system (registry based)
+            // Initialise our custom configuration system (registry based)
+            var config = new TrunkConfigurationManager(ServiceName);
+            var loggingSection = config.Root["Logging"];
 
             // Initialise logging framework
-            // TODO: Determine sub-system logging settings from configuration system.
-            var globalLoggingSwitch = new LoggingLevelSwitch(LogEventLevel.Warning);
-            var virtualMemoryLoggingSwitch = new LoggingLevelSwitch(LogEventLevel.Information);
-            var dataMemoryLoggingSwitch = new LoggingLevelSwitch(LogEventLevel.Information);
-            var lockingLoggingSwitch = new LoggingLevelSwitch(LogEventLevel.Error);
-            var logWriterLoggingSwitch = new LoggingLevelSwitch(LogEventLevel.Warning);
-
+            var globalLoggingSwitch = new LoggingLevelSwitch(loggingSection.GetValue("Global", LogEventLevel.Warning));
+            var virtualMemoryLoggingSwitch = new LoggingLevelSwitch(loggingSection.GetValue("VirtualMemory", LogEventLevel.Information));
+            var dataMemoryLoggingSwitch = new LoggingLevelSwitch(loggingSection.GetValue("Data", LogEventLevel.Information));
+            var lockingLoggingSwitch = new LoggingLevelSwitch(loggingSection.GetValue("Locking", LogEventLevel.Error));
+            var logWriterLoggingSwitch = new LoggingLevelSwitch(loggingSection.GetValue("LogWriter", LogEventLevel.Warning));
             var loggerConfig = new LoggerConfiguration()
                 .Enrich.WithProperty("ServiceName", ServiceName)
                 .MinimumLevel.ControlledBy(globalLoggingSwitch)
@@ -40,118 +54,51 @@ namespace Zen.Trunk.StorageEngine.Service
                 .MinimumLevel.Override(typeof(IGlobalLockManager).Namespace, lockingLoggingSwitch)
                 .MinimumLevel.Override(typeof(LogPage).Namespace, logWriterLoggingSwitch);
             _globalLogger = loggerConfig.CreateLogger();
+
+            // Initialise IoC container
+            InitializeAutofacContainer(config);
+
+            // TODO: Start up database recovery thread
         }
 
+        /// <summary>
+        /// Executes when a Stop command is sent to the service by the Service
+        /// Control Manager (SCM).
+        /// Specifies actions to take when a service stops running.
+        /// </summary>
         protected override void OnStop()
         {
+            // TODO: Shutdown all devices
+
+            // Teardown IoC
+            _globaLifetimeScope.Dispose();
+            _globaLifetimeScope = null;
         }
-    }
 
-    public class TrunkConfigurationSection
-    {
-        private readonly IDictionary<string, TrunkConfigurationSection> _subSections =
-            new Dictionary<string, TrunkConfigurationSection>(StringComparer.OrdinalIgnoreCase);
-        private RegistryKey _instanceKey;
-        private RegistryKey _globalKey;
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="TrunkConfigurationSection"/> class.
-        /// </summary>
-        /// <param name="instance">The instance.</param>
-        /// <param name="global">The global.</param>
-        public TrunkConfigurationSection(RegistryKey instance, RegistryKey global)
+        private void InitializeAutofacContainer(ITrunkConfigurationManager configurationManager)
         {
-            _instanceKey = instance;
-            _globalKey = global;
+            var builder = new ContainerBuilder();
+
+            // Register configuration manager instance
+            builder.RegisterInstance(configurationManager).As<ITrunkConfigurationManager>();
+
+            // Register virtual memory and buffer device support
+            builder
+                .WithVirtualBufferFactory(
+                    8192,
+                    configurationManager.Root["VirtualMemory"].GetValue("ReservationInMegaBytes", 1024))
+                .WithBufferDeviceFactory();
+
+            // Register master database device
+            builder.RegisterType<MasterDatabaseDevice>()
+                .SingleInstance()
+                .AsSelf();
+
+            // Register network support
+            builder.RegisterModule<AutofacNetworkModule>();
+
+            // Finally build the container
+            _globaLifetimeScope = builder.Build();
         }
-
-        /// <summary>
-        /// Gets the <see cref="TrunkConfigurationSection"/> with the specified sub section.
-        /// </summary>
-        /// <value>
-        /// The <see cref="TrunkConfigurationSection"/>.
-        /// </value>
-        /// <param name="subSection">The sub section.</param>
-        /// <returns></returns>
-        public TrunkConfigurationSection this[string subSection]
-        {
-            get
-            {
-                TrunkConfigurationSection section;
-                if (!_subSections.TryGetValue(subSection, out section))
-                {
-                    // ReSharper disable once JoinDeclarationAndInitializer
-                    RegistryKey subInstanceKey, subGlobalKey = null;
-                    subInstanceKey = _instanceKey.OpenSubKey(subSection);
-                    try
-                    {
-                        subGlobalKey = _globalKey?.OpenSubKey(subSection);
-                    }
-                    catch
-                    {
-                    }
-                    section = new TrunkConfigurationSection(subInstanceKey, subGlobalKey);
-                    _subSections.Add(subSection, section);
-                }
-                return section;
-            }
-        }
-
-        /// <summary>
-        /// Gets the value for the configuration entry.
-        /// </summary>
-        /// <typeparam name="TResult">The type of the result.</typeparam>
-        /// <param name="keyName">Name of the configuration element.</param>
-        /// <param name="defaultValue">The default value.</param>
-        /// <param name="allowFallback">
-        /// if set to <c>true</c> then fallback to reading from global settings
-        /// if instance value doesn't exist; otherwise <c>false</c>.
-        /// </param>
-        /// <returns></returns>
-        public TResult GetValue<TResult>(
-            string keyName,
-            TResult defaultValue = default(TResult),
-            bool allowFallback = true)
-        {
-            var value = _instanceKey.GetValue(keyName);
-            if (value == null && allowFallback && _globalKey != null)
-            {
-                value = _globalKey.GetValue(keyName);
-            }
-            if (value == null)
-            {
-                value = defaultValue;
-            }
-            return (TResult)value;
-        }
-    }
-
-    /// <summary>
-    /// 
-    /// </summary>
-    public class TrunkConfigurationManager
-    {
-        private const string GlobalRootRegistryKeyPathBase = "Software\\Zen Design Software\\Trunk";
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="TrunkConfigurationManager"/> class.
-        /// </summary>
-        /// <param name="serviceName">Name of the service.</param>
-        public TrunkConfigurationManager(string serviceName)
-        {
-            var globalMachineKeyRoot = Registry.LocalMachine.OpenSubKey(
-                GlobalRootRegistryKeyPathBase + "\\Global");
-            var instanceMachineKeyRoot = Registry.LocalMachine.OpenSubKey(
-                GlobalRootRegistryKeyPathBase + "\\Instances\\" + serviceName);
-            Root = new TrunkConfigurationSection(instanceMachineKeyRoot, globalMachineKeyRoot);
-        }
-
-        /// <summary>
-        /// Gets the root.
-        /// </summary>
-        /// <value>
-        /// The root.
-        /// </value>
-        public TrunkConfigurationSection Root { get; }
     }
 }
