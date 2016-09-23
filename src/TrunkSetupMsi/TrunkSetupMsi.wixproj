@@ -10,6 +10,8 @@
     <OutputType>Package</OutputType>
     <WixTargetsPath Condition=" '$(WixTargetsPath)' == '' AND '$(MSBuildExtensionsPath32)' != '' ">$(MSBuildExtensionsPath32)\Microsoft\WiX\v3.x\Wix.targets</WixTargetsPath>
     <WixTargetsPath Condition=" '$(WixTargetsPath)' == '' ">$(MSBuildExtensionsPath)\Microsoft\WiX\v3.x\Wix.targets</WixTargetsPath>
+    <ServiceInstanceToolPath Condition=" '$(ServiceInstanceToolPath)' == '' ">$(MSBuildProjectDirectory)\..\ZenInstanceServiceWixTasks\</ServiceInstanceToolPath>
+    <ServiceInstanceTargetsPath Condition=" '$(ServiceInstanceTargetsPath)' == '' ">$(ServiceInstanceToolPath)\ZenServiceInstance.targets</ServiceInstanceTargetsPath>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
     <OutputPath>bin\$(Configuration)\</OutputPath>
@@ -24,6 +26,18 @@
     <WixVariables>
     </WixVariables>
     <DefineConstants>InstanceIndex=0</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x64' ">
+    <DefineConstants>Debug;InstanceIndex=0</DefineConstants>
+    <WixVariables />
+    <OutputPath>bin\$(Platform)\$(Configuration)\</OutputPath>
+    <IntermediateOutputPath>obj\$(Platform)\$(Configuration)\</IntermediateOutputPath>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x64' ">
+    <WixVariables />
+    <DefineConstants>InstanceIndex=0</DefineConstants>
+    <OutputPath>bin\$(Platform)\$(Configuration)\</OutputPath>
+    <IntermediateOutputPath>obj\$(Platform)\$(Configuration)\</IntermediateOutputPath>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Product.wxs" />
@@ -42,13 +56,24 @@
       <Name>WixFirewallExtension</Name>
     </WixExtension>
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Zen.Trunk.StorageEngine.Service\Zen.Trunk.StorageEngine.Service.csproj">
+      <Name>Zen.Trunk.StorageEngine.Service</Name>
+      <Project>{a4dd21b9-92c3-4b94-aa90-0298e10d3c54}</Project>
+      <Private>True</Private>
+      <DoNotHarvest>True</DoNotHarvest>
+      <RefProjectOutputGroups>Binaries;Content;Satellites</RefProjectOutputGroups>
+      <RefTargetDir>INSTALLFOLDER</RefTargetDir>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(WixTargetsPath)" />
+  <Import Project="$(ServiceInstanceTargetsPath)" />
   <!--
 	To modify your build process, add your task inside one of the targets below and uncomment it.
 	Other similar extension points exist, see Wix.targets.
 	<Target Name="BeforeBuild">
 	</Target>
-	<Target Name="AfterBuild">
-	</Target>
 	-->
+  <Target Name="AfterBuild" DependsOnTargets="GenerateServiceInstallerTransforms">
+  </Target>
 </Project>

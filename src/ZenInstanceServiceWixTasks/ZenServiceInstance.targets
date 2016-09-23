@@ -1,0 +1,24 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <ServiceInstanceTargetsPath Condition=" '$(ServiceInstanceTargetsPath)' == '' ">$(ServiceInstanceToolPath)\ZenServiceInstance.targets</ServiceInstanceTargetsPath>
+    <ServiceInstanceTasksPath Condition=" '$(ServiceInstanceTasksPath)' == '' ">$(ServiceInstanceToolPath)\bin\debug\ZenInstanceServiceWixTasks.dll</ServiceInstanceTasksPath>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <MSBuildAllProjects Condition="Exists('$(ServiceInstanceTargetsPath)')">$(MSBuildAllProjects);$(ServiceInstanceTargetsPath)</MSBuildAllProjects>
+  </PropertyGroup>
+
+  <UsingTask TaskName="Zen.Tasks.Wix.InstanceService.GenerateServiceInstallerTransformsTask"
+             AssemblyFile="$(ServiceInstanceTasksPath)"/>
+
+  <Target Name="GenerateServiceInstallerTransforms">
+    <GenerateServiceInstallerTransformsTask 
+      InstanceCount="16"
+      BaseName="Trunk Database"
+      Description="Trunk Database service."
+      IncludeVersionInProductName="true"
+      KeepFiles="true"
+      InputDatabases="$(TargetPath)"
+      WorkingFolder="$(MSBuildProjectDirectory)\obj\transforms" />
+  </Target>
+</Project>

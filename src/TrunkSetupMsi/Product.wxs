@@ -126,11 +126,34 @@
 	</Fragment>
 
 	<Fragment>
-		<ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
-			<!-- TODO: Remove the comments around this Component element and the ComponentRef below in order to add resources to this installer. -->
-			<!-- <Component Id="ProductComponent"> -->
-				<!-- TODO: Insert files, registry keys, and other resources here. -->
-			<!-- </Component> -->
+		<ComponentGroup Id="ProductComponents" 
+                    Directory="BinFolder"
+                    Source="$(var.Zen.Trunk.StorageEngine.Service.TargetDir)">
+      <Component Id="TrunkServiceComponent"
+                 Guid="{A71B20FA-EB17-4AD4-A408-FB8F8D04D048}">
+        <File Id="ZenTrunkService.exe"
+							Assembly=".net"
+							AssemblyApplication="ZenTrunkService.exe"
+							Checksum="yes"
+							KeyPath="yes"
+							Vital="yes" />
+        <ServiceControl Id="ServiceControl"
+												Name="[SERVICENAME]"
+												Stop="both"
+												Remove="uninstall"
+												Wait="yes" />
+        <ServiceInstall Id="ServiceInstall"
+												Name="[SERVICENAME]"
+												DisplayName="Zen Trunk Database ([SERVICENAME])"
+												Description="Hosts the Trunk database server. If this service is stopped then trunk database will be unavailable. If this service is disabled then any applications that explicitly depend on this service will fail."
+												Interactive="no"
+												Start="auto"
+												Type="ownProcess"
+												Vital="yes"
+												Account="[SERVICEFQACCOUNT]"
+												Arguments="/S=[SERVICENAME]"
+												ErrorControl="ignore"/>
+      </Component>
 		</ComponentGroup>
 	</Fragment>
 </Wix>
