@@ -1,11 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
-	<Bundle Name="TrunkSetup" Version="1.0.0.0" Manufacturer="" UpgradeCode="3365855c-13ee-47e1-9ba9-80a9e6ad592b">
+	<Bundle Name="Zen Trunk Server"
+          Version="1.0.0.0" 
+          Manufacturer="Zen Design Software"
+          Copyright="© Zen Design Software 2009 - 2016"
+          UpgradeCode="{3365855C-13EE-47E1-9BA9-80A9E6AD592B}">
 		<BootstrapperApplicationRef Id="WixStandardBootstrapperApplication.RtfLicense" />
-
 		<Chain>
-			<!-- TODO: Define the list of chained packages. -->
-			<!-- <MsiPackage SourceFile="path\to\your.msi" /> -->
+			<MsiPackage SourceFile="$(var.TrunkSetupMsi.TargetPath)" Vital="yes" />
 		</Chain>
 	</Bundle>
 </Wix>
