@@ -1,7 +1,9 @@
-﻿using Autofac;
+﻿using System.Threading.Tasks;
+using Autofac;
 using Serilog;
 using Serilog.Core;
 using Serilog.Events;
+using Zen.Trunk.Network;
 using Zen.Trunk.Storage;
 using Zen.Trunk.Storage.Configuration;
 using Zen.Trunk.Storage.Data;
@@ -79,6 +81,29 @@ namespace Zen.Trunk.Service
             // Teardown IoC
             _globaLifetimeScope.Dispose();
             _globaLifetimeScope = null;
+        }
+
+        private async Task MountAndOpenSystemDatabasesAsync()
+        {
+            // TODO: Create temp DB
+
+            // TODO: Mount master DB
+        }
+
+        private async Task PerformDatabaseRecoveryAsync()
+        {
+            // TODO: Trigger recovery process on master DB
+
+            // TODO: Mount remaining databases that are recorded as being online
+
+            // TODO: Trigger recovery process in all other databases
+
+        }
+
+        private void StartNetworkProtocolServer()
+        {
+            var server = _globaLifetimeScope.Resolve<TrunkSocketAppServer>();
+
         }
 
         private void InitializeAutofacContainer(ITrunkConfigurationManager configurationManager)

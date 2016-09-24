@@ -1,8 +1,7 @@
 ﻿using Autofac;
-using Zen.Trunk.Network;
 using Zen.Trunk.Storage;
 
-namespace Zen.Trunk
+namespace Zen.Trunk.Network
 {
     /// <summary>
     /// <c>AutofacNetworkModule</c>
@@ -29,6 +28,10 @@ namespace Zen.Trunk
                         return new Connection(sessionManager.CreateSession(), masterDatabase);
                     })
                 .As<IConnection>();
+
+            // Register SuperSocket session so we gain Ioc injection
+            builder.RegisterType<TrunkSocketAppServer>().AsSelf().SingleInstance();
+            builder.RegisterType<TrunkSocketAppSession>().AsSelf();
         }
     }
 }
