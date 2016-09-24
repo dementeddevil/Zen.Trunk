@@ -2,7 +2,7 @@
 using System.ComponentModel;
 using System.ServiceProcess;
 
-namespace Zen.Trunk.StorageEngine.Service
+namespace Zen.Trunk.Service
 {
     /// <summary>
 	/// <c>InstanceServiceBase</c> extends <see cref="T:ServiceBase"/>

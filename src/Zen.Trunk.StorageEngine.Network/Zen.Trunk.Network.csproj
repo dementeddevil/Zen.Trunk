@@ -7,8 +7,8 @@
     <ProjectGuid>{D7C5DED7-F8F4-4614-8636-E364DDEB12A1}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Zen.Trunk</RootNamespace>
-    <AssemblyName>Zen.Trunk.StorageEngine.Network</AssemblyName>
+    <RootNamespace>Zen.Trunk.Network</RootNamespace>
+    <AssemblyName>Zen.Trunk.Network</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
@@ -70,8 +70,8 @@
   <ItemGroup>
     <Compile Include="AutofacNetworkModule.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Storage\Network\Connection.cs" />
-    <Compile Include="Storage\Network\IConnection.cs" />
+    <Compile Include="Connection.cs" />
+    <Compile Include="IConnection.cs" />
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
@@ -79,9 +79,9 @@
       <Project>{624d44ff-86f8-46d3-b682-61f7ef691d7c}</Project>
       <Name>Zen.Streaming</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Zen.Trunk.StorageEngine.Query\Zen.Trunk.StorageEngine.Query.csproj">
+    <ProjectReference Include="..\Zen.Trunk.StorageEngine.Query\Zen.Trunk.Query.csproj">
       <Project>{97135039-f5b3-4bca-9360-e14b1505680d}</Project>
-      <Name>Zen.Trunk.StorageEngine.Query</Name>
+      <Name>Zen.Trunk.Query</Name>
     </ProjectReference>
     <ProjectReference Include="..\Zen.Trunk.StorageEngine\Zen.Trunk.StorageEngine.csproj">
       <Project>{2f2a3e61-960a-4da0-a087-d45c89b33099}</Project>

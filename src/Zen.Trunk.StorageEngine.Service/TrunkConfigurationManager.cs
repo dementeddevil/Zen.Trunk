@@ -1,7 +1,8 @@
 ﻿using System;
 using Microsoft.Win32;
+using Zen.Trunk.Storage.Configuration;
 
-namespace Zen.Trunk.StorageEngine.Service
+namespace Zen.Trunk.Service
 {
     /// <summary>
     /// 
@@ -14,13 +15,14 @@ namespace Zen.Trunk.StorageEngine.Service
         /// Initializes a new instance of the <see cref="TrunkConfigurationManager"/> class.
         /// </summary>
         /// <param name="serviceName">Name of the service.</param>
-        public TrunkConfigurationManager(string serviceName)
+        public TrunkConfigurationManager(string serviceName, bool writable)
         {
             var globalMachineKeyRoot = Registry.LocalMachine.OpenSubKey(
-                GlobalRootRegistryKeyPathBase + "\\Global");
+                GlobalRootRegistryKeyPathBase + "\\Global", writable);
             var instanceMachineKeyRoot = Registry.LocalMachine.OpenSubKey(
-                GlobalRootRegistryKeyPathBase + "\\Instances\\" + serviceName);
-            Root = new TrunkConfigurationSection(instanceMachineKeyRoot, globalMachineKeyRoot);
+                GlobalRootRegistryKeyPathBase + "\\Instances\\" + serviceName, writable);
+            Root = new TrunkConfigurationSection(instanceMachineKeyRoot, globalMachineKeyRoot, writable);
+            IsReadOnly = !writable;
         }
 
         /// <summary>
@@ -29,7 +31,15 @@ namespace Zen.Trunk.StorageEngine.Service
         /// <value>
         /// The root.
         /// </value>
-        public TrunkConfigurationSection Root { get; private set; }
+        public ITrunkConfigurationSection Root { get; private set; }
+
+        /// <summary>
+        /// Gets a value indicating whether this instance is read only.
+        /// </summary>
+        /// <value>
+        /// <c>true</c> if this instance is read only; otherwise, <c>false</c>.
+        /// </value>
+        public bool IsReadOnly { get; }
 
         public void Dispose()
         {

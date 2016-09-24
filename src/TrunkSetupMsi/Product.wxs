@@ -170,7 +170,7 @@
   <Fragment>
     <ComponentGroup Id="ProductComponents"
                     Directory="BinFolder"
-                    Source="$(var.Zen.Trunk.StorageEngine.Service.TargetDir)">
+                    Source="$(var.Zen.Trunk.Service.TargetDir)">
       <Component Id="TrunkServiceComponent"
                  Guid="{A71B20FA-EB17-4AD4-A408-FB8F8D04D048}">
         <File Id="ZenTrunkService.exe"

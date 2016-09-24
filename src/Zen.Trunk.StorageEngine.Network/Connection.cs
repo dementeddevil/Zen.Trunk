@@ -1,14 +1,15 @@
 ﻿using System;
 using System.Threading.Tasks;
+using Zen.Trunk.Storage;
 using Zen.Trunk.Storage.Locking;
 using Zen.Trunk.Storage.Query;
 
-namespace Zen.Trunk.Storage.Network
+namespace Zen.Trunk.Network
 {
     /// <summary>
     /// <c>Connection</c> defines an connection with the database system.
     /// </summary>
-    /// <seealso cref="Zen.Trunk.Storage.Network.IConnection" />
+    /// <seealso cref="IConnection" />
     public class Connection : IConnection
     {
         private QueryExecutionContext _executionContext;

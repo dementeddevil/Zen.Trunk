@@ -1,6 +1,6 @@
 ﻿using Autofac;
+using Zen.Trunk.Network;
 using Zen.Trunk.Storage;
-using Zen.Trunk.Storage.Network;
 
 namespace Zen.Trunk
 {

@@ -27,5 +27,5 @@ using System.Runtime.InteropServices;
 // Version information
 [assembly: AssemblyVersion("1.0.0.0")]
 [assembly: AssemblyFileVersion("1.0.0.0")]
-[assembly: InternalsVisibleTo("Zen.Trunk.StorageEngine.Network")]
+[assembly: InternalsVisibleTo("Zen.Trunk.Network")]
 [assembly: InternalsVisibleTo("Zen.Trunk.StorageEngine.Tests")]

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Zen.Trunk.StorageEngine.Service
+namespace Zen.Trunk.Storage.Configuration
 {
     /// <summary>
     /// <c>ITrunkConfigurationManager</c> exposes the hierarchical configuration system.
@@ -13,6 +13,14 @@ namespace Zen.Trunk.StorageEngine.Service
         /// <value>
         /// The root.
         /// </value>
-        TrunkConfigurationSection Root { get; }
+        ITrunkConfigurationSection Root { get; }
+
+        /// <summary>
+        /// Gets a value indicating whether this instance is read only.
+        /// </summary>
+        /// <value>
+        /// <c>true</c> if this instance is read only; otherwise, <c>false</c>.
+        /// </value>
+        bool IsReadOnly { get; }
     }
 }

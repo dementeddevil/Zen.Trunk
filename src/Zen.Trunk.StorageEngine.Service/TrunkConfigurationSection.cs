@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using Microsoft.Win32;
+using Zen.Trunk.Storage.Configuration;
 
-namespace Zen.Trunk.StorageEngine.Service
+namespace Zen.Trunk.Service
 {
     /// <summary>
     /// 
@@ -15,14 +17,16 @@ namespace Zen.Trunk.StorageEngine.Service
         private RegistryKey _globalKey;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="TrunkConfigurationSection"/> class.
+        /// Initializes a new instance of the <see cref="TrunkConfigurationSection" /> class.
         /// </summary>
         /// <param name="instance">The instance.</param>
         /// <param name="global">The global.</param>
-        public TrunkConfigurationSection(RegistryKey instance, RegistryKey global)
+        /// <param name="writable">if set to <c>true</c> [writable].</param>
+        public TrunkConfigurationSection(RegistryKey instance, RegistryKey global, bool writable)
         {
             _instanceKey = instance;
             _globalKey = global;
+            IsReadOnly = !writable;
         }
 
         /// <summary>
@@ -42,20 +46,32 @@ namespace Zen.Trunk.StorageEngine.Service
                 {
                     // ReSharper disable once JoinDeclarationAndInitializer
                     RegistryKey subInstanceKey, subGlobalKey = null;
-                    subInstanceKey = _instanceKey.OpenSubKey(subSection);
+                    subInstanceKey = IsReadOnly
+                        ? _instanceKey.OpenSubKey(subSection, false)
+                        : _instanceKey.CreateSubKey(subSection, true);
                     try
                     {
-                        subGlobalKey = _globalKey?.OpenSubKey(subSection);
+                        subGlobalKey = IsReadOnly
+                            ? _globalKey?.OpenSubKey(subSection, !IsReadOnly)
+                            : _globalKey?.CreateSubKey(subSection, true);
                     }
                     catch
                     {
                     }
-                    section = new TrunkConfigurationSection(subInstanceKey, subGlobalKey);
+                    section = new TrunkConfigurationSection(subInstanceKey, subGlobalKey, !IsReadOnly);
                     _subSections.Add(subSection, section);
                 }
                 return section;
             }
         }
+
+        /// <summary>
+        /// Gets a value indicating whether this instance is read only.
+        /// </summary>
+        /// <value>
+        /// <c>true</c> if this instance is read only; otherwise, <c>false</c>.
+        /// </value>
+        public bool IsReadOnly { get; }
 
         /// <summary>
         /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
@@ -92,6 +108,69 @@ namespace Zen.Trunk.StorageEngine.Service
                 value = defaultValue;
             }
             return (TResult)value;
+        }
+
+        /// <summary>
+        /// Gets the instance value.
+        /// </summary>
+        /// <typeparam name="TResult">The type of the result.</typeparam>
+        /// <param name="keyName">Name of the key.</param>
+        /// <param name="defaultValue">The default value.</param>
+        /// <returns></returns>
+        public TResult GetInstanceValue<TResult>(string keyName, TResult defaultValue = default(TResult))
+        {
+            return (TResult)_instanceKey.GetValue(keyName, defaultValue);
+        }
+
+        /// <summary>
+        /// Gets the global value.
+        /// </summary>
+        /// <typeparam name="TResult">The type of the result.</typeparam>
+        /// <param name="keyName">Name of the key.</param>
+        /// <param name="defaultValue">The default value.</param>
+        /// <returns></returns>
+        public TResult GetGlobalValue<TResult>(string keyName, TResult defaultValue = default(TResult))
+        {
+            if (_globalKey == null)
+            {
+                return defaultValue;
+            }
+
+            return (TResult)_globalKey.GetValue(keyName, defaultValue);
+        }
+
+        /// <summary>
+        /// Sets the instance value.
+        /// </summary>
+        /// <typeparam name="TValue">The type of the value.</typeparam>
+        /// <param name="keyName">Name of the key.</param>
+        /// <param name="value">The value.</param>
+        /// <exception cref="System.NotImplementedException"></exception>
+        public void SetInstanceValue<TValue>(string keyName, TValue value)
+        {
+            if (IsReadOnly)
+            {
+                throw new ReadOnlyException();
+            }
+
+            _instanceKey.SetValue(keyName, value);
+        }
+
+        /// <summary>
+        /// Sets the global value.
+        /// </summary>
+        /// <typeparam name="TValue">The type of the value.</typeparam>
+        /// <param name="keyName">Name of the key.</param>
+        /// <param name="value">The value.</param>
+        /// <exception cref="System.NotImplementedException"></exception>
+        public void SetGlobalValue<TValue>(string keyName, TValue value)
+        {
+            if (IsReadOnly)
+            {
+                throw new ReadOnlyException();
+            }
+
+            _globalKey.SetValue(keyName, value);
         }
 
         /// <summary>

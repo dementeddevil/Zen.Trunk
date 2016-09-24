@@ -12,6 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 using Autofac;
+using Zen.Trunk.Storage.Configuration;
 using Zen.Trunk.Utils;
 
 namespace Zen.Trunk.Storage.Log
@@ -498,15 +499,33 @@ namespace Zen.Trunk.Storage.Log
 			}
 
 			// Rewrite extension as required
-			var fullPathName = request.Message.PathName;
-			if (string.Equals(Path.GetExtension(request.Message.PathName), extn, StringComparison.OrdinalIgnoreCase))
+			var fileName = Path.GetFileName(request.Message.PathName);
+			if (!string.Equals(Path.GetExtension(request.Message.PathName), extn, StringComparison.OrdinalIgnoreCase))
 			{
-				var fileName = Path.GetFileNameWithoutExtension(request.Message.PathName) + extn;
-				fullPathName = Path.Combine(Path.GetDirectoryName(request.Message.PathName), fileName);
+				fileName = Path.GetFileNameWithoutExtension(request.Message.PathName) + extn;
 			}
 
-			// Determine appropriate device id as necessary
-			if (!proposedDeviceIdValid)
+            // Determine the folder for the data file
+            var directoryName = Path.GetDirectoryName(request.Message.PathName);
+            if (string.IsNullOrEmpty(directoryName))
+            {
+                // If caller only specified filename then get folder from config
+                var config = GetService<ITrunkConfigurationManager>();
+                directoryName = config.Root.GetInstanceValue(
+                    ConfigurationNames.DefaultLogFolder, string.Empty);
+                if (string.IsNullOrEmpty(directoryName))
+                {
+                    throw new ArgumentException(
+                        "Unable to determine folder for log device.");
+                }
+            }
+
+            // Derive full pathname
+		    // ReSharper disable once AssignNullToNotNullAttribute
+            var fullPathName = Path.Combine(directoryName, fileName);
+
+            // Determine appropriate device id as necessary
+            if (!proposedDeviceIdValid)
 			{
 				if (!request.Message.IsDeviceIdValid)
 				{

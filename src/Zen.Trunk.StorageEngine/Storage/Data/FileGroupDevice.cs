@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 using Autofac;
 using Zen.Trunk.Logging;
+using Zen.Trunk.Storage.Configuration;
 using Zen.Trunk.Storage.Data.Table;
 using Zen.Trunk.Storage.Locking;
 using Zen.Trunk.Utils;
@@ -814,9 +815,23 @@ namespace Zen.Trunk.Storage.Data
                 fileName = Path.GetFileNameWithoutExtension(request.Message.PathName) + extn;
             }
 
+            // Determine the folder for the data file
+            var directoryName = Path.GetDirectoryName(request.Message.PathName);
+            if (string.IsNullOrEmpty(directoryName))
+            {
+                // If caller only specified filename then get folder from config
+                var config = GetService<ITrunkConfigurationManager>();
+                directoryName = config.Root.GetInstanceValue(
+                    ConfigurationNames.DefaultDataFolder, string.Empty);
+                if (string.IsNullOrEmpty(directoryName))
+                {
+                    throw new ArgumentException(
+                        "Unable to determine folder for file-group device.");
+                }
+            }
+
             // Derive full pathname
-            // ReSharper disable once AssignNullToNotNullAttribute
-            var fullPathName = Path.Combine(Path.GetDirectoryName(request.Message.PathName), fileName);
+            var fullPathName = Path.Combine(directoryName, fileName);
 
             // Enforce minimum size (1MB)
             uint allocationPages = 0;

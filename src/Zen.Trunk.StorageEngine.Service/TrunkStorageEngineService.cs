@@ -3,17 +3,18 @@ using Serilog;
 using Serilog.Core;
 using Serilog.Events;
 using Zen.Trunk.Storage;
+using Zen.Trunk.Storage.Configuration;
 using Zen.Trunk.Storage.Data;
 using Zen.Trunk.Storage.Locking;
 using Zen.Trunk.Storage.Log;
 
-namespace Zen.Trunk.StorageEngine.Service
+namespace Zen.Trunk.Service
 {
     /// <summary>
     /// <c>TrunkStorageEngineService</c> implements the interface between
     /// our service and the Windows Service Control Manager (SCM)
     /// </summary>
-    /// <seealso cref="Zen.Trunk.StorageEngine.Service.InstanceServiceBase" />
+    /// <seealso cref="InstanceServiceBase" />
     public partial class TrunkStorageEngineService : InstanceServiceBase
     {
         private Logger _globalLogger;
@@ -37,15 +38,20 @@ namespace Zen.Trunk.StorageEngine.Service
         protected override void OnStart(string[] args)
         {
             // Initialise our custom configuration system (registry based)
-            var config = new TrunkConfigurationManager(ServiceName);
-            var loggingSection = config.Root["Logging"];
+            var config = new TrunkConfigurationManager(ServiceName, false);
+            var loggingSection = config.Root[ConfigurationNames.Logging.Section];
 
             // Initialise logging framework
-            var globalLoggingSwitch = new LoggingLevelSwitch(loggingSection.GetValue("Global", LogEventLevel.Warning));
-            var virtualMemoryLoggingSwitch = new LoggingLevelSwitch(loggingSection.GetValue("VirtualMemory", LogEventLevel.Information));
-            var dataMemoryLoggingSwitch = new LoggingLevelSwitch(loggingSection.GetValue("Data", LogEventLevel.Information));
-            var lockingLoggingSwitch = new LoggingLevelSwitch(loggingSection.GetValue("Locking", LogEventLevel.Error));
-            var logWriterLoggingSwitch = new LoggingLevelSwitch(loggingSection.GetValue("LogWriter", LogEventLevel.Warning));
+            var globalLoggingSwitch = new LoggingLevelSwitch(loggingSection.GetValue(
+                ConfigurationNames.Logging.GlobalLoggingSwitch, LogEventLevel.Warning));
+            var virtualMemoryLoggingSwitch = new LoggingLevelSwitch(loggingSection.GetValue(
+                ConfigurationNames.Logging.VirtualMemoryLoggingSwitch, LogEventLevel.Information));
+            var dataMemoryLoggingSwitch = new LoggingLevelSwitch(loggingSection.GetValue(
+                ConfigurationNames.Logging.DataLoggingSwitch, LogEventLevel.Information));
+            var lockingLoggingSwitch = new LoggingLevelSwitch(loggingSection.GetValue(
+                ConfigurationNames.Logging.LockingLoggingSwitch, LogEventLevel.Error));
+            var logWriterLoggingSwitch = new LoggingLevelSwitch(loggingSection.GetValue(
+                ConfigurationNames.Logging.LogWriterLoggingSwitch, LogEventLevel.Warning));
             var loggerConfig = new LoggerConfiguration()
                 .Enrich.WithProperty("ServiceName", ServiceName)
                 .MinimumLevel.ControlledBy(globalLoggingSwitch)
@@ -86,7 +92,8 @@ namespace Zen.Trunk.StorageEngine.Service
             builder
                 .WithVirtualBufferFactory(
                     8192,
-                    configurationManager.Root["VirtualMemory"].GetValue("ReservationInMegaBytes", 1024))
+                    configurationManager.Root[ConfigurationNames.VirtualMemory.Section]
+                        .GetValue(ConfigurationNames.VirtualMemory.ReservationInMegaBytes, 1024))
                 .WithBufferDeviceFactory();
 
             // Register master database device

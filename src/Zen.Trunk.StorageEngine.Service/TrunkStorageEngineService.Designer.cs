@@ -1,4 +1,4 @@
-﻿namespace Zen.Trunk.StorageEngine.Service
+﻿namespace Zen.Trunk.Service
 {
     partial class TrunkStorageEngineService
     {

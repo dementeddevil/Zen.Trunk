@@ -7,7 +7,7 @@
     <ProjectGuid>{A4DD21B9-92C3-4B94-AA90-0298E10D3C54}</ProjectGuid>
     <OutputType>WinExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Zen.Trunk.StorageEngine.Service</RootNamespace>
+    <RootNamespace>Zen.Trunk.Service</RootNamespace>
     <AssemblyName>ZenTrunkService</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
@@ -92,8 +92,6 @@
     <Compile Include="InstanceServiceBase.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="ITrunkConfigurationManager.cs" />
-    <Compile Include="ITrunkConfigurationSection.cs" />
     <Compile Include="TrunkConfigurationManager.cs" />
     <Compile Include="TrunkConfigurationSection.cs" />
     <Compile Include="TrunkStorageEngineService.cs">
@@ -119,13 +117,13 @@
       <Project>{624d44ff-86f8-46d3-b682-61f7ef691d7c}</Project>
       <Name>Zen.Streaming</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Zen.Trunk.StorageEngine.Network\Zen.Trunk.StorageEngine.Network.csproj">
+    <ProjectReference Include="..\Zen.Trunk.StorageEngine.Network\Zen.Trunk.Network.csproj">
       <Project>{d7c5ded7-f8f4-4614-8636-e364ddeb12a1}</Project>
-      <Name>Zen.Trunk.StorageEngine.Network</Name>
+      <Name>Zen.Trunk.Network</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Zen.Trunk.StorageEngine.Query\Zen.Trunk.StorageEngine.Query.csproj">
+    <ProjectReference Include="..\Zen.Trunk.StorageEngine.Query\Zen.Trunk.Query.csproj">
       <Project>{97135039-f5b3-4bca-9360-e14b1505680d}</Project>
-      <Name>Zen.Trunk.StorageEngine.Query</Name>
+      <Name>Zen.Trunk.Query</Name>
     </ProjectReference>
     <ProjectReference Include="..\Zen.Trunk.StorageEngine\Zen.Trunk.StorageEngine.csproj">
       <Project>{2f2a3e61-960a-4da0-a087-d45c89b33099}</Project>

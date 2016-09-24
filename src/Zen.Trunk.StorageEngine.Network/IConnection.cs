@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using Zen.Trunk.Storage.Query;
 
-namespace Zen.Trunk.Storage.Network
+namespace Zen.Trunk.Network
 {
     // TODO: We need to do the following to support protocol stack
     // 1. PipelineManager - handles the creation and escalation of pipeline
