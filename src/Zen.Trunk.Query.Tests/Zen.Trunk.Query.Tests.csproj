@@ -102,7 +102,7 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Zen.Trunk.StorageEngine.Query\Zen.Trunk.Query.csproj">
+    <ProjectReference Include="..\Zen.Trunk.Query\Zen.Trunk.Query.csproj">
       <Project>{97135039-f5b3-4bca-9360-e14b1505680d}</Project>
       <Name>Zen.Trunk.Query</Name>
     </ProjectReference>

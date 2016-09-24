@@ -19,15 +19,15 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "2. Virtual Memory", "2. Vir
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "3. Storage Engine", "3. Storage Engine", "{27A27BFC-3001-48FE-855F-CF8B27D889B9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Zen.Trunk.Query", "src\Zen.Trunk.StorageEngine.Query\Zen.Trunk.Query.csproj", "{97135039-F5B3-4BCA-9360-E14B1505680D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Zen.Trunk.Query", "src\Zen.Trunk.Query\Zen.Trunk.Query.csproj", "{97135039-F5B3-4BCA-9360-E14B1505680D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Zen.Trunk.Query.Tests", "src\Zen.Trunk.StorageEngine.Query.Tests\Zen.Trunk.Query.Tests.csproj", "{20A4DC8B-3068-416B-B581-94C243072740}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Zen.Trunk.Query.Tests", "src\Zen.Trunk.Query.Tests\Zen.Trunk.Query.Tests.csproj", "{20A4DC8B-3068-416B-B581-94C243072740}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Zen.Trunk.Network", "src\Zen.Trunk.StorageEngine.Network\Zen.Trunk.Network.csproj", "{D7C5DED7-F8F4-4614-8636-E364DDEB12A1}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Zen.Trunk.Network", "src\Zen.Trunk.Network\Zen.Trunk.Network.csproj", "{D7C5DED7-F8F4-4614-8636-E364DDEB12A1}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Zen.Streaming", "src\Zen.Streaming\Zen.Streaming.csproj", "{624D44FF-86F8-46D3-B682-61F7EF691D7C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Zen.Trunk.Service", "src\Zen.Trunk.StorageEngine.Service\Zen.Trunk.Service.csproj", "{A4DD21B9-92C3-4B94-AA90-0298E10D3C54}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Zen.Trunk.Service", "src\Zen.Trunk.Service\Zen.Trunk.Service.csproj", "{A4DD21B9-92C3-4B94-AA90-0298E10D3C54}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "6. Installer", "6. Installer", "{CB17229A-232E-4153-B186-9210A938D96A}"
 EndProject
