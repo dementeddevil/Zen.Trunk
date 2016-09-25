@@ -55,9 +55,12 @@ namespace Zen.Trunk.Service
             var loggingSection = config.Root[ConfigurationNames.Logging.Section];
 
             // Determine locations for our base files
-            _masterDataPathname = config.Root.GetInstanceValue("MasterDataPathname", string.Empty);
-            _masterLogPathname = config.Root.GetInstanceValue("MasterLogPathname", string.Empty);
-            _errorLogPathname = config.Root.GetInstanceValue("ErrorLogPathname", string.Empty);
+            _masterDataPathname = config.Root.GetInstanceValue(
+                ConfigurationNames.MasterDataPathname, string.Empty);
+            _masterLogPathname = config.Root.GetInstanceValue(
+                ConfigurationNames.MasterLogPathname, string.Empty);
+            _errorLogPathname = config.Root.GetInstanceValue(
+                ConfigurationNames.ErrorLogPathname, string.Empty);
             foreach (var arg in args)
             {
                 if (arg.StartsWith("-d=", StringComparison.OrdinalIgnoreCase) ||
