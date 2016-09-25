@@ -1,4 +1,6 @@
-﻿namespace Zen.Trunk.Storage.Data
+﻿using System.Threading.Tasks;
+
+namespace Zen.Trunk.Storage.Data
 {
     /// <summary>
     /// <c>MasterDatabasePrimaryFileGroupDevice</c> represents the primary 
@@ -27,6 +29,25 @@
         public override RootPage CreateRootPage()
         {
             return new MasterDatabasePrimaryFileGroupRootPage { FileGroupId = FileGroupId };
+        }
+
+        /// <summary>
+        /// Processes the primary root page during open handling.
+        /// </summary>
+        /// <param name="rootPage">The root page.</param>
+        /// <returns></returns>
+        protected override async Task ProcessPrimaryRootPageAsync(PrimaryFileGroupRootPage rootPage)
+        {
+            await base.ProcessPrimaryRootPageAsync(rootPage);
+
+            var masterDatabase = GetService<MasterDatabaseDevice>();
+            var masterRootPage = rootPage as MasterDatabasePrimaryFileGroupRootPage;
+            foreach (var databaseInfo in masterRootPage.GetDatabaseEnumerator())
+            {
+                // TODO: Mount each database
+                var attachParameters = new AttachDatabaseParameters(databaseInfo.Name);
+                await masterDatabase.AttachDatabaseAsync(attachParameters).ConfigureAwait(false);
+            }
         }
     }
 }
