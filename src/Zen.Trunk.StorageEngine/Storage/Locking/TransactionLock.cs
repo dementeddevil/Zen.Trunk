@@ -669,6 +669,7 @@ namespace Zen.Trunk.Storage.Locking
         /// <exception cref="LockException">
         /// Thrown if no lock owner can be determined for the calling thread.
         /// </exception>
+        // ReSharper disable once UnusedParameter.Local
         private LockOwnerIdent GetThreadLockOwnerIdent(bool throwIfMissing)
 		{
 		    var sessionId = SessionId.Zero;

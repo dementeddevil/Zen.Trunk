@@ -125,9 +125,7 @@ namespace Zen.Trunk.Storage
                         new FileSpec
                         {
                             Name = request.Name,
-                            FileName = Path.Combine(
-                                GetService<StorageEngineConfiguration>().DefaultDataFilePath,
-                                $"{request.Name}{StorageConstants.DataFilenameSuffix}{StorageConstants.PrimaryDeviceFileExtension}"),
+                            FileName = $"{request.Name}{StorageConstants.DataFilenameSuffix}{StorageConstants.PrimaryDeviceFileExtension}",
                             Size = new FileSize(1, FileSize.FileSizeUnit.MegaBytes),
                             FileGrowth = new FileSize(1, FileSize.FileSizeUnit.MegaBytes)
                         });
@@ -138,9 +136,7 @@ namespace Zen.Trunk.Storage
                         new FileSpec
                         {
                             Name = request.Name,
-                            FileName = Path.Combine(
-                                GetService<StorageEngineConfiguration>().DefaultLogFilePath,
-                                $"{request.Name}{StorageConstants.LogFilenameSuffix}{StorageConstants.MasterLogFileDeviceExtension}"),
+                            FileName = $"{request.Name}{StorageConstants.LogFilenameSuffix}{StorageConstants.MasterLogFileDeviceExtension}",
                             Size = new FileSize(1, FileSize.FileSizeUnit.MegaBytes),
                             FileGrowth = new FileSize(1, FileSize.FileSizeUnit.MegaBytes)
                         });

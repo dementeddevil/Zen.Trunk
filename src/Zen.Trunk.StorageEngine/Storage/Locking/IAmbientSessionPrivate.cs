@@ -1,4 +1,3 @@
-using System;
 using System.Threading.Tasks;
 
 namespace Zen.Trunk.Storage.Locking

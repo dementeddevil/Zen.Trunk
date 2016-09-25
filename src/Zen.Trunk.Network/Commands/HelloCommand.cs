@@ -1,5 +1,4 @@
-﻿using SuperSocket.SocketBase;
-using SuperSocket.SocketBase.Command;
+﻿using SuperSocket.SocketBase.Command;
 using SuperSocket.SocketBase.Protocol;
 
 namespace Zen.Trunk.Network.Commands

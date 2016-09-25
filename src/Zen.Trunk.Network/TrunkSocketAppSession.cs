@@ -3,7 +3,6 @@ using Autofac;
 using SuperSocket.SocketBase;
 using SuperSocket.SocketBase.Protocol;
 using Zen.Trunk.Storage;
-using Zen.Trunk.Storage.IO;
 
 namespace Zen.Trunk.Network
 {
@@ -14,7 +13,7 @@ namespace Zen.Trunk.Network
     public class TrunkSocketAppSession : AppSession<TrunkSocketAppSession, BinaryRequestInfo>
     {
         private readonly ILifetimeScope _lifetimeScope;
-        private IConnection _connection;
+        private readonly IConnection _connection;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="TrunkSocketAppSession"/> class.

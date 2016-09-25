@@ -519,7 +519,6 @@ namespace Zen.Trunk.Storage
         /// <summary>
         /// Uses the database.
         /// </summary>
-        /// <param name="databaseName">Name of the database.</param>
         /// <param name="lockTimeout">The lock timeout.</param>
         /// <returns>
         /// A <see cref="Task"/> representing the asynchronous operation.

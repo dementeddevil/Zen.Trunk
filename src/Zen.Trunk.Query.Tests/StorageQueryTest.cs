@@ -143,15 +143,10 @@ namespace Zen.Trunk.Storage
             // Use the tracker to determine base configuration
             var temp = GlobalTracker.Get("foo.bar");
             var testFolder = Path.GetDirectoryName(temp);
-            var engineConfig =
-                new StorageEngineConfiguration
-                {
-                    DefaultDataFilePath = Path.Combine(testFolder, "Data"),
-                    DefaultLogFilePath = Path.Combine(testFolder, "Log")
-                };
-            Directory.CreateDirectory(engineConfig.DefaultDataFilePath);
-            Directory.CreateDirectory(engineConfig.DefaultLogFilePath);
-            builder.RegisterInstance(engineConfig).AsSelf();
+            var defaultDataFilePath = Path.Combine(testFolder, "Data");
+            var defaultLogFilePath = Path.Combine(testFolder, "Log");
+            Directory.CreateDirectory(defaultDataFilePath);
+            Directory.CreateDirectory(defaultLogFilePath);
         }
     }
 }

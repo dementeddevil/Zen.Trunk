@@ -18,25 +18,6 @@ namespace Zen.Streaming
     /// </summary>
     public abstract class ForwardOnlyEventingReadStream : EventingReadStream
     {
-        #region Protected Constructors
-        #endregion
-
-        #region Protected Methods
-        /// <summary>
-        /// Releases the unmanaged resources used by the
-        /// <see cref="T:System.IO.Stream" /> and optionally releases the managed
-        /// resources.
-        /// </summary>
-        /// <param name="disposing">
-        /// true to release both managed and unmanaged resources;
-        /// false to release only unmanaged resources.
-        /// </param>
-        protected override void Dispose(bool disposing)
-        {
-            base.Dispose(disposing);
-        }
-        #endregion
-
         #region Public Properties
         /// <summary>
         /// Gets a value indicating whether the current stream supports reading.
