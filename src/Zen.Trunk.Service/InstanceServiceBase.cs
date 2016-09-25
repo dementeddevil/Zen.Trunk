@@ -220,7 +220,7 @@ namespace Zen.Trunk.Service
 		}
 		#endregion
 
-		#region Protected Methods
+		#region Public Methods
 		/// <summary>
 		/// Initializes the service process class prior to being passed to
 		/// the Service Control Manager (SCM).
