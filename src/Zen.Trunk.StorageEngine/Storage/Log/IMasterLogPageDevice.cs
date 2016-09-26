@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Zen.Trunk.Storage.Log
@@ -41,7 +42,7 @@ namespace Zen.Trunk.Storage.Log
         /// <returns>
         /// A <see cref="Task"/> representing the asynchronous operation.
         /// </returns>
-        Task<DeviceId> AddDeviceAsync(AddLogDeviceParameters deviceParams);
+        Task<Tuple<DeviceId, string>> AddDeviceAsync(AddLogDeviceParameters deviceParams);
 
         /// <summary>
         /// Removes the device based on the supplied parameters.

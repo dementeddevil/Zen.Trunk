@@ -21,7 +21,8 @@ namespace Zen.Trunk.Storage.Data
 			private readonly BufferFieldUInt16 _databaseId;
 			private readonly BufferFieldStringFixed _name;
 			private readonly BufferFieldStringFixed _primaryName;
-			private readonly BufferFieldStringFixed _primaryFilePathName;
+			private readonly BufferFieldStringFixed _primaryDataPathName;
+		    private readonly BufferFieldStringFixed _primaryLogPathName;
 			private readonly BufferFieldBitVector8 _flags;
 
 			public DatabaseRefInfo()
@@ -29,8 +30,9 @@ namespace Zen.Trunk.Storage.Data
 				_databaseId = new BufferFieldUInt16();
 				_name = new BufferFieldStringFixed(_databaseId, 32);
 				_primaryName = new BufferFieldStringFixed(_name, 32);
-				_primaryFilePathName = new BufferFieldStringFixed(_primaryName, 128);
-				_flags = new BufferFieldBitVector8(_primaryFilePathName);
+				_primaryDataPathName = new BufferFieldStringFixed(_primaryName, 256);
+                _primaryLogPathName = new BufferFieldStringFixed(_primaryDataPathName, 256);
+				_flags = new BufferFieldBitVector8(_primaryDataPathName);
 			}
 
 			protected override BufferField FirstField => _databaseId;
@@ -73,28 +75,22 @@ namespace Zen.Trunk.Storage.Data
 				}
 			}
 
-			public string PrimaryFilePathName
+			public string PrimaryDataPathName
 			{
-				get
-				{
-					return _primaryFilePathName.Value;
-				}
-				set
-				{
-					_primaryFilePathName.Value = value;
-				}
+				get { return _primaryDataPathName.Value; }
+				set { _primaryDataPathName.Value = value; }
 			}
 
+		    public string PrimaryLogPathName
+		    {
+                get { return _primaryLogPathName.Value; }
+                set { _primaryLogPathName.Value = value; }
+		    }
+
 			public bool IsOnline
-			{
-				get
-				{
-					return _flags.GetBit(0);
-				}
-				set
-				{
-					_flags.SetBit(0, value);
-				}
+            {
+                get { return _flags.GetBit(0); }
+				set { _flags.SetBit(0, value); }
 			}
 		}
 		#endregion
@@ -158,7 +154,7 @@ namespace Zen.Trunk.Storage.Data
 			return _databases.Values;
 		}
 
-		internal DatabaseId AddDatabase(string databaseName, string primaryName, string primaryFilename)
+		internal DatabaseId AddDatabase(string databaseName, string primaryName, string primaryDataPathName, string primaryLogPathName)
 		{
 		    try
 		    {
@@ -173,7 +169,8 @@ namespace Zen.Trunk.Storage.Data
 							    DatabaseId = deviceId,
 							    Name = databaseName,
 							    PrimaryName = primaryName,
-							    PrimaryFilePathName = primaryFilename,
+							    PrimaryDataPathName = primaryDataPathName,
+                                PrimaryLogPathName = primaryLogPathName,
 							    IsOnline = true
 						    });
 					    SetDirty();

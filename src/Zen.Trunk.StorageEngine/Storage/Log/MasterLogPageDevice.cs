@@ -23,7 +23,7 @@ namespace Zen.Trunk.Storage.Log
 	public class MasterLogPageDevice : LogPageDevice, IMasterLogPageDevice
     {
 		#region Private Types
-		private class AddLogDeviceRequest : TaskRequest<AddLogDeviceParameters, DeviceId>
+		private class AddLogDeviceRequest : TaskRequest<AddLogDeviceParameters, Tuple<DeviceId, string>>
 		{
 			public AddLogDeviceRequest(AddLogDeviceParameters param)
 				: base(param)
@@ -75,7 +75,7 @@ namespace Zen.Trunk.Storage.Log
 			: base(DeviceId.Zero, pathName)
 		{
 	        var taskInterleave = new ConcurrentExclusiveSchedulerPair(TaskScheduler.Default);
-            AddLogDevicePort = new TaskRequestActionBlock<AddLogDeviceRequest, DeviceId>(
+            AddLogDevicePort = new TaskRequestActionBlock<AddLogDeviceRequest, Tuple<DeviceId, string>>(
                 request => AddLogDeviceHandler(request),
                 new ExecutionDataflowBlockOptions
                 {
@@ -172,7 +172,7 @@ namespace Zen.Trunk.Storage.Log
         /// <param name="deviceParams">The device parameters.</param>
         /// <returns></returns>
         /// <exception cref="BufferDeviceShuttingDownException"></exception>
-        public Task<DeviceId> AddDeviceAsync(AddLogDeviceParameters deviceParams)
+        public Task<Tuple<DeviceId, string>> AddDeviceAsync(AddLogDeviceParameters deviceParams)
 		{
 			var request = new AddLogDeviceRequest(deviceParams);
 			if (!AddLogDevicePort.Post(request))
@@ -478,7 +478,7 @@ namespace Zen.Trunk.Storage.Log
 		#endregion
 
 		#region Private Methods
-		private async Task<DeviceId> AddLogDeviceHandler(AddLogDeviceRequest request)
+		private async Task<Tuple<DeviceId, string>> AddLogDeviceHandler(AddLogDeviceRequest request)
 		{
 			var masterRootPage = GetRootPage<MasterLogRootPage>();
 
@@ -593,7 +593,7 @@ namespace Zen.Trunk.Storage.Log
 				SaveRootPage();
 			}
 
-			return proposedDeviceId;
+			return new Tuple<DeviceId, string>(proposedDeviceId, fullPathName);
 		}
 
 	    // ReSharper disable once UnusedParameter.Local

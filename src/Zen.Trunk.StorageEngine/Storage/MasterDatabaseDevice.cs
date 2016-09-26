@@ -153,14 +153,15 @@ namespace Zen.Trunk.Storage
 
             // Walk the list of file-groups
             var primaryName = string.Empty;
-            var primaryFileName = string.Empty;
+            var primaryDataPathName = string.Empty;
+            var primaryLogPathName = string.Empty;
 
             // Process the primary filegroup
             var primaryFileGroup = request.FileGroups[StorageConstants.PrimaryFileGroupName];
             var deviceId = DeviceId.Primary;
             foreach (var file in primaryFileGroup)
             {
-                await AttachDatabaseFileGroupDeviceAsync(
+                var deviceInfo = await AttachDatabaseFileGroupDeviceAsync(
                     request,
                     file,
                     pageSize,
@@ -169,6 +170,10 @@ namespace Zen.Trunk.Storage
                     device,
                     StorageConstants.PrimaryFileGroupName,
                     deviceId).ConfigureAwait(false);
+                if (string.IsNullOrEmpty(primaryDataPathName))
+                {
+                    primaryDataPathName = deviceInfo.Item2;
+                }
 
                 // Advance to next device
                 deviceId = deviceId.Next;
@@ -202,7 +207,11 @@ namespace Zen.Trunk.Storage
 
                 var deviceParams = new AddLogDeviceParameters(
                     file.Name, file.FileName, DeviceId.Zero, pageCount);
-                await device.AddLogDeviceAsync(deviceParams).ConfigureAwait(false);
+                var deviceInfo = await device.AddLogDeviceAsync(deviceParams).ConfigureAwait(false);
+                if (string.IsNullOrEmpty(primaryLogPathName))
+                {
+                    primaryLogPathName = deviceInfo.Item2;
+                }
             }
 
             // Now mount the device
@@ -231,7 +240,7 @@ namespace Zen.Trunk.Storage
                 masterRootPage.ReadOnly = false;
                 await masterRootPage.SetRootLockAsync(RootLockType.Update).ConfigureAwait(false);
                 await masterRootPage.SetRootLockAsync(RootLockType.Exclusive).ConfigureAwait(false);
-                masterRootPage.AddDatabase(request.Name, primaryName, primaryFileName);
+                masterRootPage.AddDatabase(request.Name, primaryName, primaryDataPathName, primaryLogPathName);
                 masterRootPage.Save();
 
                 //TrunkTransactionContext.Commit();
@@ -398,7 +407,7 @@ namespace Zen.Trunk.Storage
                         new FileSpec
                         {
                             Name = deviceInfo.PrimaryName,
-                            FileName = deviceInfo.PrimaryFilePathName
+                            FileName = deviceInfo.PrimaryDataPathName
                         });
                     await AttachDatabaseAsync(attach).ConfigureAwait(false);
                 }
@@ -426,7 +435,7 @@ namespace Zen.Trunk.Storage
         #endregion
 
         #region Private Methods
-        private static async Task AttachDatabaseFileGroupDeviceAsync(
+        private static async Task<Tuple<DeviceId, string>> AttachDatabaseFileGroupDeviceAsync(
             AttachDatabaseParameters request,
             FileSpec file,
             uint pageSize,
@@ -448,7 +457,7 @@ namespace Zen.Trunk.Storage
             {
                 if (needToCreateMasterFilegroup)
                 {
-                    await device
+                    return await device
                         .AddFileGroupDeviceAsync(
                             new AddFileGroupDeviceParameters(
                                 FileGroupId.Master,
@@ -459,26 +468,11 @@ namespace Zen.Trunk.Storage
                                 createPageCount))
                         .ConfigureAwait(false);
                 }
-                else
-                {
-                    await device
-                        .AddFileGroupDeviceAsync(
-                            new AddFileGroupDeviceParameters(
-                                FileGroupId.Primary,
-                                fileGroupName,
-                                file.Name,
-                                file.FileName,
-                                deviceId,
-                                createPageCount))
-                        .ConfigureAwait(false);
-                }
-            }
-            else
-            {
-                await device
+
+                return await device
                     .AddFileGroupDeviceAsync(
                         new AddFileGroupDeviceParameters(
-                            FileGroupId.Invalid,
+                            FileGroupId.Primary,
                             fileGroupName,
                             file.Name,
                             file.FileName,
@@ -486,6 +480,17 @@ namespace Zen.Trunk.Storage
                             createPageCount))
                     .ConfigureAwait(false);
             }
+
+            return await device
+                .AddFileGroupDeviceAsync(
+                    new AddFileGroupDeviceParameters(
+                        FileGroupId.Invalid,
+                        fileGroupName,
+                        file.Name,
+                        file.FileName,
+                        deviceId,
+                        createPageCount))
+                .ConfigureAwait(false);
         }
         #endregion
     }

@@ -23,7 +23,7 @@ namespace Zen.Trunk.Storage.Data
     public abstract class FileGroupDevice : PageDevice
     {
         #region Private Types
-        private class AddDataDeviceRequest : TransactionContextTaskRequest<AddDataDeviceParameters, DeviceId>
+        private class AddDataDeviceRequest : TransactionContextTaskRequest<AddDataDeviceParameters, Tuple<DeviceId, string>>
         {
             #region Public Constructors
             /// <summary>
@@ -174,7 +174,7 @@ namespace Zen.Trunk.Storage.Data
 
             // Setup ports
             var taskInterleave = new ConcurrentExclusiveSchedulerPair();
-            AddDataDevicePort = new TransactionContextActionBlock<AddDataDeviceRequest, DeviceId>(
+            AddDataDevicePort = new TransactionContextActionBlock<AddDataDeviceRequest, Tuple<DeviceId, string>>(
                 request => AddDataDeviceHandler(request),
                 new ExecutionDataflowBlockOptions
                 {
@@ -398,7 +398,7 @@ namespace Zen.Trunk.Storage.Data
         /// <param name="deviceParams">The device parameters.</param>
         /// <returns></returns>
         /// <exception cref="BufferDeviceShuttingDownException"></exception>
-        public Task<DeviceId> AddDataDeviceAsync(AddDataDeviceParameters deviceParams)
+        public Task<Tuple<DeviceId, string>> AddDataDeviceAsync(AddDataDeviceParameters deviceParams)
         {
             var request = new AddDataDeviceRequest(deviceParams);
             if (!AddDataDevicePort.Post(request))
@@ -804,7 +804,7 @@ namespace Zen.Trunk.Storage.Data
             return deviceIds;
         }
 
-        private async Task<DeviceId> AddDataDeviceHandler(AddDataDeviceRequest request)
+        private async Task<Tuple<DeviceId, string>> AddDataDeviceHandler(AddDataDeviceRequest request)
         {
             // Determine whether this is the first device in a file-group
             var priFileGroupDevice = _devices.Count == 0;
@@ -903,7 +903,7 @@ namespace Zen.Trunk.Storage.Data
             }
 
             // Notify caller that add request completed
-            return deviceId;
+            return new Tuple<DeviceId, string>(deviceId, fullPathName);
         }
 
         // ReSharper disable once UnusedParameter.Local

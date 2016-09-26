@@ -26,7 +26,7 @@ namespace Zen.Trunk.Storage
     public class DatabaseDevice : PageDevice
     {
         #region Private Types
-        private class AddFileGroupDeviceRequest : TransactionContextTaskRequest<AddFileGroupDeviceParameters, DeviceId>
+        private class AddFileGroupDeviceRequest : TransactionContextTaskRequest<AddFileGroupDeviceParameters, Tuple<DeviceId, string>>
         {
             public AddFileGroupDeviceRequest(AddFileGroupDeviceParameters deviceParams)
                 : base(deviceParams)
@@ -94,7 +94,7 @@ namespace Zen.Trunk.Storage
         {
         }
 
-        private class AddLogDeviceRequest : TransactionContextTaskRequest<AddLogDeviceParameters, DeviceId>
+        private class AddLogDeviceRequest : TransactionContextTaskRequest<AddLogDeviceParameters, Tuple<DeviceId, string>>
         {
             public AddLogDeviceRequest(AddLogDeviceParameters parameters) : base(parameters)
             {
@@ -156,7 +156,7 @@ namespace Zen.Trunk.Storage
                         TaskScheduler = taskInterleave.ConcurrentScheduler
                     });
             AddFileGroupDevicePort =
-                new TransactionContextActionBlock<AddFileGroupDeviceRequest, DeviceId>(
+                new TransactionContextActionBlock<AddFileGroupDeviceRequest, Tuple<DeviceId, string>>(
                     request => AddFileGroupDataDeviceHandler(request),
                     new ExecutionDataflowBlockOptions
                     {
@@ -196,7 +196,7 @@ namespace Zen.Trunk.Storage
                     });
 
             AddLogDevicePort =
-                new TransactionContextActionBlock<AddLogDeviceRequest, DeviceId>(
+                new TransactionContextActionBlock<AddLogDeviceRequest, Tuple<DeviceId, string>>(
                     request => AddLogDeviceHandler(request),
                     new ExecutionDataflowBlockOptions
                     {
@@ -331,7 +331,7 @@ namespace Zen.Trunk.Storage
         /// A <see cref="Task"/> representing the asynchronous operation.
         /// </returns>
         /// <exception cref="BufferDeviceShuttingDownException"></exception>
-        public Task AddFileGroupDeviceAsync(AddFileGroupDeviceParameters deviceParams)
+        public Task<Tuple<DeviceId, string>> AddFileGroupDeviceAsync(AddFileGroupDeviceParameters deviceParams)
         {
             var request = new AddFileGroupDeviceRequest(deviceParams);
             if (!AddFileGroupDevicePort.Post(request))
@@ -466,7 +466,7 @@ namespace Zen.Trunk.Storage
         /// A <see cref="Task"/> representing the asynchronous operation.
         /// </returns>
         /// <exception cref="BufferDeviceShuttingDownException"></exception>
-        public Task<DeviceId> AddLogDeviceAsync(AddLogDeviceParameters deviceParams)
+        public Task<Tuple<DeviceId, string>> AddLogDeviceAsync(AddLogDeviceParameters deviceParams)
         {
             var request = new AddLogDeviceRequest(deviceParams);
             if (!AddLogDevicePort.Post(request))
@@ -757,7 +757,7 @@ namespace Zen.Trunk.Storage
         #endregion
 
         #region Private Methods
-        private async Task<DeviceId> AddFileGroupDataDeviceHandler(AddFileGroupDeviceRequest request)
+        private async Task<Tuple<DeviceId, string>> AddFileGroupDataDeviceHandler(AddFileGroupDeviceRequest request)
         {
             // Create valid file group ID as needed
             FileGroupDevice fileGroupDevice = null;
@@ -826,7 +826,7 @@ namespace Zen.Trunk.Storage
 
             // Add child device to file-group
             // ReSharper disable once PossibleNullReferenceException
-            var deviceId = await fileGroupDevice
+            var deviceInfo = await fileGroupDevice
                 .AddDataDeviceAsync(request.Message)
                 .ConfigureAwait(false);
 
@@ -842,7 +842,7 @@ namespace Zen.Trunk.Storage
             }
 
             // We're done
-            return deviceId;
+            return deviceInfo;
         }
 
         private async Task<bool> RemoveFileGroupDeviceHandler(RemoveFileGroupDeviceRequest request)
@@ -852,7 +852,7 @@ namespace Zen.Trunk.Storage
             return true;
         }
 
-        private async Task<DeviceId> AddLogDeviceHandler(AddLogDeviceRequest request)
+        private async Task<Tuple<DeviceId, string>> AddLogDeviceHandler(AddLogDeviceRequest request)
         {
             if (_masterLogPageDevice == null)
             {
