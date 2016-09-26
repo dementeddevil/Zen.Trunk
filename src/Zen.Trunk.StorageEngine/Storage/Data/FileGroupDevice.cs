@@ -679,20 +679,8 @@ namespace Zen.Trunk.Storage.Data
                     .LoadOrCreateRootPageAsync().ConfigureAwait(false);
                 while (true)
                 {
-                    // We need to adjust our "next object identifier" so we skip over existing object ids
-                    foreach (var objRef in rootPage.Objects)
-                    {
-                        if (objRef.ObjectId > _nextObjectId)
-                        {
-                            _nextObjectId = new ObjectId(objRef.ObjectId.Value + 1);
-                        }
-                    }
-
-                    // Walk the list of devices recorded in the root page
-                    foreach (var deviceInfo in rootPage.Devices)
-                    {
-                        await AddDataDeviceAsync(new AddDataDeviceParameters(deviceInfo.Name, deviceInfo.PathName, deviceInfo.Id)).ConfigureAwait(false);
-                    }
+                    // Process the root page
+                    await ProcessPrimaryRootPageAsync(rootPage);
 
                     // If we have run out of root pages then exit loop
                     if (rootPage.NextLogicalPageId == LogicalPageId.Zero)
@@ -711,6 +699,37 @@ namespace Zen.Trunk.Storage.Data
             if (Logger.IsInfoEnabled())
             {
                 Logger.Info("OnOpen : Exit");
+            }
+        }
+
+        /// <summary>
+        /// Processes the primary root page during open handling.
+        /// </summary>
+        /// <param name="rootPage">The root page.</param>
+        /// <returns></returns>
+        protected virtual async Task ProcessPrimaryRootPageAsync(PrimaryFileGroupRootPage rootPage)
+        {
+            // TODO: Master database device on primary filegroup must enumerate
+            //  list of databases and handle mounting the primary data/log devices
+            // This means we need to refactor the contents of this while loop so
+            //  it is in a protected virtual function that can be overridden to
+            //  deal with this somewhat special case.
+
+            // We need to adjust our "next object identifier" so we skip over existing object ids
+            foreach (var objRef in rootPage.Objects)
+            {
+                if (objRef.ObjectId > _nextObjectId)
+                {
+                    _nextObjectId = new ObjectId(objRef.ObjectId.Value + 1);
+                }
+            }
+
+            // Walk the list of devices recorded in the root page
+            foreach (var deviceInfo in rootPage.Devices)
+            {
+                await
+                    AddDataDeviceAsync(new AddDataDeviceParameters(deviceInfo.Name, deviceInfo.PathName, deviceInfo.Id))
+                        .ConfigureAwait(false);
             }
         }
 

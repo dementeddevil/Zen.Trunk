@@ -6,6 +6,9 @@ namespace Zen.Trunk.Storage.Configuration
     {
         public const string DefaultDataFolder = "DefaultDataFolder";
         public const string DefaultLogFolder = "DefaultLogFolder";
+        public const string MasterDataPathname = "MasterDataPathname";
+        public const string MasterLogPathname = "MasterLogPathname";
+        public const string ErrorLogPathname = "ErrorLogPathname";
 
         public static class Logging
         {
