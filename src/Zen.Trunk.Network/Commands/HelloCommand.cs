@@ -1,5 +1,9 @@
-﻿using SuperSocket.SocketBase.Command;
+﻿using System.IO;
+using SuperSocket.SocketBase;
+using SuperSocket.SocketBase.Command;
 using SuperSocket.SocketBase.Protocol;
+using Zen.Trunk.Storage;
+using Zen.Trunk.Storage.IO;
 
 namespace Zen.Trunk.Network.Commands
 {
@@ -9,6 +13,26 @@ namespace Zen.Trunk.Network.Commands
     /// <seealso cref="SuperSocket.SocketBase.Command.CommandBase{TrunkSocketAppSession, BinaryRequestInfo}" />
     public class HelloCommand : CommandBase<TrunkSocketAppSession, BinaryRequestInfo>
     {
+        private class Payload : BufferFieldWrapper
+        {
+            private readonly BufferFieldUInt16 _protocolVersion;
+            private readonly BufferFieldStringFixed _clientName;
+
+            public Payload()
+            {
+                _protocolVersion = new BufferFieldUInt16();
+                _clientName = new BufferFieldStringFixed(_protocolVersion, 255);
+            }
+
+            public ushort ProtocolVersion => _protocolVersion.Value;
+
+            public string ClientName => _clientName.Value;
+
+            protected override BufferField FirstField => _protocolVersion;
+
+            protected override BufferField LastField => _clientName;
+        }
+
         /// <summary>
         /// Gets the name.
         /// </summary>
@@ -21,6 +45,37 @@ namespace Zen.Trunk.Network.Commands
         /// <param name="requestInfo">The request info.</param>
         public override void ExecuteCommand(TrunkSocketAppSession session, BinaryRequestInfo requestInfo)
         {
+            // Payload should include client protocol version and name
+            var payload = new Payload();
+            using (var stream = new MemoryStream(requestInfo.Body, false))
+            {
+                using (var bufferReaderWriter = new BufferReaderWriter(stream))
+                {
+                    payload.Read(bufferReaderWriter);
+                }
+            }
+
+            // Validate protocol version
+            if (payload.ProtocolVersion != 0x0100)
+            {
+                session.Send("FAIL Unknown protocol version.");
+                session.Close(CloseReason.ProtocolError);
+                return;
+            }
+
+            // TODO: Check with server whether we are in single connection mode
+            //  and if so whether we are only accepting connection with matching name
+
+            // Log inbound HELO command
+            if (session.Logger.IsInfoEnabled)
+            {
+                session.Logger.InfoFormat(
+                    "Inbound HELO received from {0} using client name {1}",
+                    session.RemoteEndPoint, payload.ClientName);
+            }
+
+            // Reply with OK and version number
+            session.Send("OK 1.0");
         }
     }
 }
