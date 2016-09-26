@@ -30,7 +30,6 @@ namespace Zen.Trunk.Network
             : base(new DefaultReceiveFilterFactory<TrunkReceiveFilter, BinaryRequestInfo>())
         {
             _lifetimeScope = lifetimeScope;
-            LogFactory = new SuperSocketLogFactory();
         }
 
         /// <summary>
