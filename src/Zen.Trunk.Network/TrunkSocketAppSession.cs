@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Threading.Tasks;
 using Autofac;
 using SuperSocket.SocketBase;
 using SuperSocket.SocketBase.Protocol;
 using Zen.Trunk.Storage;
+using Zen.Trunk.Storage.Query;
 
 namespace Zen.Trunk.Network
 {
@@ -14,6 +16,7 @@ namespace Zen.Trunk.Network
     {
         private readonly ILifetimeScope _lifetimeScope;
         private readonly IConnection _connection;
+        private readonly QueryExecutive _queryEngine;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="TrunkSocketAppSession"/> class.
@@ -32,6 +35,13 @@ namespace Zen.Trunk.Network
         {
             _lifetimeScope = lifetimeScope;
             _connection = _lifetimeScope.Resolve<IConnection>();
+            _queryEngine = new QueryExecutive(_lifetimeScope.Resolve<MasterDatabaseDevice>());
+        }
+
+        public async Task ExecuteBatchAsync(string batch)
+        {
+            var queryFunc = _queryEngine.CompileBatch(batch);
+            await _connection.ExecuteUnderSessionAsync(queryFunc).ConfigureAwait(false);
         }
 
         /// <summary>

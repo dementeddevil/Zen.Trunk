@@ -86,6 +86,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AutofacNetworkModule.cs" />
+    <Compile Include="Commands\BatchCommand.cs" />
     <Compile Include="Commands\HelloCommand.cs" />
     <Compile Include="Commands\QuitCommand.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

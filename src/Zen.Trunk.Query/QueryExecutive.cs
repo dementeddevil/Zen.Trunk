@@ -22,12 +22,12 @@ namespace Zen.Trunk.Storage.Query
         }
 
         /// <summary>
-        /// Executes the specified statement batch.
+        /// Compiles the specified SQL command batch and returns a function that when given
+        /// an execution context, will execute the batch.
         /// </summary>
         /// <param name="statementBatch">The statement batch.</param>
-        /// <param name="onlyPrepare">if set to <c>true</c> [only prepare].</param>
         /// <returns></returns>
-        public async Task ExecuteAsync(string statementBatch, bool onlyPrepare = false)
+        public Func<QueryExecutionContext, Task> CompileBatch(string statementBatch)
         {
             // Tokenise the input character stream
             var charStream = new AntlrInputStream(statementBatch);
@@ -51,18 +51,12 @@ namespace Zen.Trunk.Storage.Query
             var visitor = new SqlBatchOperationBuilder(_masterDevice);
             var expression = batchContext.Accept(visitor);
 
-            if (onlyPrepare)
-            {
-                return;
-            }
-
-            // Walk the batches and execute each one
+            // Create lambda expression capable of executing the expression tree
             var runner = Expression.Lambda<Func<QueryExecutionContext, Task>>(
                 expression,
                 Expression.Parameter(typeof(QueryExecutionContext), "executionContext"));
 
-            var executionContext = new QueryExecutionContext(_masterDevice);
-            await runner.Compile()(executionContext).ConfigureAwait(false);
+            return runner.Compile();
         }
     }
 }
