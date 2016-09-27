@@ -31,6 +31,26 @@ namespace Zen.Trunk.Network
         }
 
         /// <summary>
+        /// Cancels the current batch.
+        /// </summary>
+        public void CancelExecution()
+        {
+            _executionContext.CancelExecution();
+        }
+
+        /// <summary>
+        /// Resets this instance and optionally change the active database to
+        /// the master database.
+        /// </summary>
+        /// <returns>
+        /// A <see cref="Task"/> representing the asynchronous operation.
+        /// </returns>
+        public Task ResetAsync(bool switchToMasterDatabase = false)
+        {
+            return _executionContext.ResetAsync(switchToMasterDatabase);
+        }
+
+        /// <summary>
         /// Executes the specified action the under session context associated
         /// with this connection instance.
         /// </summary>

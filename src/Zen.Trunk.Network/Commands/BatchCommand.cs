@@ -14,9 +14,21 @@ namespace Zen.Trunk.Network.Commands
 
         public override async void ExecuteCommand(TrunkSocketAppSession session, BinaryRequestInfo requestInfo)
         {
-            // TODO: We need to support cancellation
-            // TODO: Unpack statement from request body
-            await session.ExecuteBatchAsync(string.Empty).ConfigureAwait(false);
+            try
+            {
+                // Unpack statement from request body (assume unicode)
+                var batch = Encoding.Unicode.GetString(requestInfo.Body);
+                await session.ExecuteBatchAsync(batch).ConfigureAwait(false);
+            }
+            catch (Exception exception)
+            {
+                // TODO: Categorise errors into critical, fatal, severe etc
+                //  so we can act accordingly with regard to the session
+                //  as well as returning sane error numbers and such like
+
+                // For now this ham-fisted method will have to do
+                session.Send($"ERROR {exception.Message}");
+            }
         }
     }
 }

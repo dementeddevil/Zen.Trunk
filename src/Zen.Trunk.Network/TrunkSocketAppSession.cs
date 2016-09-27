@@ -38,8 +38,16 @@ namespace Zen.Trunk.Network
             _queryEngine = new QueryExecutive(_lifetimeScope.Resolve<MasterDatabaseDevice>());
         }
 
+        /// <summary>
+        /// Executes the specified statement batch.
+        /// </summary>
+        /// <param name="batch">The batch.</param>
+        /// <returns>
+        /// A <see cref="Task"/> representing the asynchronous operation.
+        /// </returns>
         public async Task ExecuteBatchAsync(string batch)
         {
+            await _connection.ResetAsync().ConfigureAwait(false);
             var queryFunc = _queryEngine.CompileBatch(batch);
             await _connection.ExecuteUnderSessionAsync(queryFunc).ConfigureAwait(false);
         }
