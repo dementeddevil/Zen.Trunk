@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Transactions;
 using Zen.Trunk.Storage.Locking;
@@ -10,6 +11,9 @@ namespace Zen.Trunk.Storage.Query
     /// </summary>
     public class QueryExecutionContext
     {
+        private CancellationTokenSource _cancelSource =
+            new CancellationTokenSource();
+
         /// <summary>
         /// Initializes a new instance of the <see cref="QueryExecutionContext"/> class.
         /// </summary>
@@ -68,6 +72,36 @@ namespace Zen.Trunk.Storage.Query
             }
 
             ActiveDatabase = newActiveDatabase;
+        }
+
+        /// <summary>
+        /// Requests cancellation of the currently executing batch.
+        /// </summary>
+        public void CancelExecution()
+        {
+            _cancelSource.Cancel();
+        }
+
+        /// <summary>
+        /// Throws if cancellation requested.
+        /// </summary>
+        public void ThrowIfCancellationRequested()
+        {
+            _cancelSource.Token.ThrowIfCancellationRequested();
+        }
+
+        /// <summary>
+        /// Resets the execution context.
+        /// </summary>
+        /// <param name="switchToMasterDatabase">if set to <c>true</c> [switch to master database].</param>
+        /// <returns></returns>
+        public async Task ResetAsync(bool switchToMasterDatabase)
+        {
+            _cancelSource = new CancellationTokenSource();
+            if (switchToMasterDatabase && ActiveDatabase != MasterDatabase)
+            {
+                await SetActiveDatabaseAsync(MasterDatabase).ConfigureAwait(false);
+            }
         }
     }
 }

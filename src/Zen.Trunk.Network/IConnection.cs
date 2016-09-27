@@ -27,6 +27,20 @@ namespace Zen.Trunk.Network
     public interface IConnection : IDisposable
     {
         /// <summary>
+        /// Cancels the executon of the current batch.
+        /// </summary>
+        void CancelExecution();
+
+        /// <summary>
+        /// Resets this instance and optionally change the active database to
+        /// the master database.
+        /// </summary>
+        /// <returns>
+        /// A <see cref="Task"/> representing the asynchronous operation.
+        /// </returns>
+        Task ResetAsync(bool switchToMasterDatabase = false);
+
+        /// <summary>
         /// Executes the specified action the under session context associated
         /// with this connection instance.
         /// </summary>
