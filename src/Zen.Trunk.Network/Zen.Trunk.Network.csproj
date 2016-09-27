@@ -89,6 +89,7 @@
     <Compile Include="Commands\BatchCommand.cs" />
     <Compile Include="Commands\HelloCommand.cs" />
     <Compile Include="Commands\QuitCommand.cs" />
+    <Compile Include="Commands\ResetCommand.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Connection.cs" />
     <Compile Include="IConnection.cs" />
