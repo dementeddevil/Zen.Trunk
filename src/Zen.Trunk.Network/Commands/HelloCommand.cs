@@ -77,7 +77,6 @@ namespace Zen.Trunk.Network.Commands
 
             // Reply with OK and version number
             session.Send("OK 1.0");
-            throw new System.NotImplementedException();
         }
     }
 }

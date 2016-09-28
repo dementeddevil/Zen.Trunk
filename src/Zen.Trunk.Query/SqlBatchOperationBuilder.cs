@@ -338,13 +338,15 @@ namespace Zen.Trunk.Storage.Query
                 return aggregate;
             }
 
-            // TODO: Incorporate call to check whether operation has been cancelled
-
             var blockAggregate = (BlockExpression)aggregate;
             return blockAggregate.Update(
                 blockAggregate.Variables,
                 blockAggregate.Expressions.Concat(
-                    new[] { childToAdd }));
+                    new[]
+                    {
+                        GetQueryExecutionContextThrowIfCancelledExpression(),
+                        childToAdd
+                    }));
         }
 
         private MethodCallExpression GetQueryExecutionContextThrowIfCancelledExpression()
