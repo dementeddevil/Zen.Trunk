@@ -86,10 +86,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AutofacNetworkModule.cs" />
+    <Compile Include="Commands\AsyncTrunkCommand.cs" />
     <Compile Include="Commands\BatchCommand.cs" />
     <Compile Include="Commands\HelloCommand.cs" />
     <Compile Include="Commands\QuitCommand.cs" />
     <Compile Include="Commands\ResetCommand.cs" />
+    <Compile Include="Commands\SyncTrunkCommand.cs" />
+    <Compile Include="Commands\TrunkCommand.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Connection.cs" />
     <Compile Include="IConnection.cs" />

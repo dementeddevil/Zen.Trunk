@@ -1,15 +1,18 @@
-﻿using SuperSocket.SocketBase.Command;
+﻿using System;
+using System.Threading.Tasks;
+using SuperSocket.SocketBase.Command;
 using SuperSocket.SocketBase.Protocol;
 
 namespace Zen.Trunk.Network.Commands
 {
-    public class ResetCommand : CommandBase<TrunkSocketAppSession, BinaryRequestInfo>
+    public class ResetCommand : AsyncTrunkCommand
     {
         public override string Name => "RSET";
 
-        public override void ExecuteCommand(TrunkSocketAppSession session, BinaryRequestInfo requestInfo)
+        protected override async Task OnExecuteCommandAsync(TrunkSocketAppSession session, BinaryRequestInfo requestInfo)
         {
-            
+            await session.ResetAsync(true).ConfigureAwait(false);
+            session.Send("OK");
         }
     }
 }

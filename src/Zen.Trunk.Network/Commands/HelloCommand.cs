@@ -11,7 +11,7 @@ namespace Zen.Trunk.Network.Commands
     /// 
     /// </summary>
     /// <seealso cref="SuperSocket.SocketBase.Command.CommandBase{TrunkSocketAppSession, BinaryRequestInfo}" />
-    public class HelloCommand : CommandBase<TrunkSocketAppSession, BinaryRequestInfo>
+    public class HelloCommand : SyncTrunkCommand
     {
         private class Payload : BufferFieldWrapper
         {
@@ -39,11 +39,12 @@ namespace Zen.Trunk.Network.Commands
         public override string Name => "HELO";
 
         /// <summary>
-        /// Executes the command.
+        /// Called to synchronously execute the command.
         /// </summary>
         /// <param name="session">The session.</param>
-        /// <param name="requestInfo">The request info.</param>
-        public override void ExecuteCommand(TrunkSocketAppSession session, BinaryRequestInfo requestInfo)
+        /// <param name="requestInfo">The request information.</param>
+        /// <exception cref="System.NotImplementedException"></exception>
+        protected override void OnExecuteCommand(TrunkSocketAppSession session, BinaryRequestInfo requestInfo)
         {
             // Payload should include client protocol version and name
             var payload = new Payload();
@@ -76,6 +77,7 @@ namespace Zen.Trunk.Network.Commands
 
             // Reply with OK and version number
             session.Send("OK 1.0");
+            throw new System.NotImplementedException();
         }
     }
 }

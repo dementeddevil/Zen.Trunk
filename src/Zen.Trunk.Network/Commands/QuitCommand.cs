@@ -1,4 +1,5 @@
-﻿using SuperSocket.SocketBase.Command;
+﻿using System.Threading.Tasks;
+using SuperSocket.SocketBase.Command;
 using SuperSocket.SocketBase.Protocol;
 
 namespace Zen.Trunk.Network.Commands
@@ -7,7 +8,7 @@ namespace Zen.Trunk.Network.Commands
     /// 
     /// </summary>
     /// <seealso cref="SuperSocket.SocketBase.Command.CommandBase{TrunkSocketAppSession, BinaryRequestInfo}" />
-    public class QuitCommand : CommandBase<TrunkSocketAppSession, BinaryRequestInfo>
+    public class QuitCommand : AsyncTrunkCommand
     {
         /// <summary>
         /// Gets the name.
@@ -15,12 +16,16 @@ namespace Zen.Trunk.Network.Commands
         public override string Name => "QUIT";
 
         /// <summary>
-        /// Executes the command.
+        /// Called to asynchronously execute the command.
         /// </summary>
         /// <param name="session">The session.</param>
-        /// <param name="requestInfo">The request info.</param>
-        public override void ExecuteCommand(TrunkSocketAppSession session, BinaryRequestInfo requestInfo)
+        /// <param name="requestInfo">The request information.</param>
+        /// <returns>
+        /// A <see cref="Task" /> that represents the asynchronous operation.
+        /// </returns>
+        protected override async Task OnExecuteCommandAsync(TrunkSocketAppSession session, BinaryRequestInfo requestInfo)
         {
+            await session.ResetAsync(false);
             session.CloseAndReleaseLocks();
         }
     }

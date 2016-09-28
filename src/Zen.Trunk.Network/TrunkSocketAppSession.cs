@@ -53,6 +53,21 @@ namespace Zen.Trunk.Network
         }
 
         /// <summary>
+        /// Resets the underlying connection and optionally switches back to
+        /// the master database.
+        /// </summary>
+        /// <param name="switchToMasterDatabase">
+        /// if set to <c>true</c> then the active database is switched to
+        /// master database.</param>
+        /// <returns>
+        /// A <see cref="Task"/> representing the asynchronous operation.
+        /// </returns>
+        public Task ResetAsync(bool switchToMasterDatabase = false)
+        {
+            return _connection.ResetAsync(switchToMasterDatabase);
+        }
+
+        /// <summary>
         /// Closes the and release locks.
         /// </summary>
         public void CloseAndReleaseLocks()
