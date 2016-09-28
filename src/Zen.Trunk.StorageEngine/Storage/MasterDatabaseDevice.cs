@@ -409,6 +409,12 @@ namespace Zen.Trunk.Storage
                             Name = deviceInfo.PrimaryName,
                             FileName = deviceInfo.PrimaryDataPathName
                         });
+                    attach.AddLogFile(
+                        new FileSpec
+                        {
+                            Name = deviceInfo.PrimaryName,
+                            FileName = deviceInfo.PrimaryLogPathName
+                        });
                     await AttachDatabaseAsync(attach).ConfigureAwait(false);
                 }
             }

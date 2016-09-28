@@ -1,12 +1,10 @@
 ﻿using System;
 using System.IO;
-using System.Threading;
 using System.Threading.Tasks;
 using Autofac;
 using Serilog;
 using Serilog.Core;
 using Serilog.Events;
-using Serilog.Formatting.Display;
 using Serilog.Formatting.Json;
 using Serilog.Sinks.RollingFile;
 using SuperSocket.SocketBase;
@@ -133,7 +131,6 @@ namespace Zen.Trunk.Service
         private async Task DeferredServiceStartupAsync()
         {
             await MountAndOpenSystemDatabasesAsync().ConfigureAwait(false);
-            await PerformDatabaseRecoveryAsync().ConfigureAwait(false);
             StartNetworkProtocolServer();
         }
 
@@ -158,16 +155,6 @@ namespace Zen.Trunk.Service
                 });
             await masterDatabase.AttachDatabaseAsync(attachParams).ConfigureAwait(false);
             await masterDatabase.OpenAsync(false).ConfigureAwait(false);
-        }
-
-        private async Task PerformDatabaseRecoveryAsync()
-        {
-            // TODO: Trigger recovery process on master DB
-
-            // TODO: Mount remaining databases that are recorded as being online
-
-            // TODO: Trigger recovery process in all other databases
-
         }
 
         private void StartNetworkProtocolServer()
