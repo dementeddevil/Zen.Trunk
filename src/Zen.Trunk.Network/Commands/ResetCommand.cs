@@ -7,7 +7,7 @@ namespace Zen.Trunk.Network.Commands
     {
         public override string Name => "RSET";
 
-        public override async void ExecuteCommand(TrunkSocketAppSession session, BinaryRequestInfo requestInfo)
+        public override void ExecuteCommand(TrunkSocketAppSession session, BinaryRequestInfo requestInfo)
         {
             
         }
