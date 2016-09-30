@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Autofac;
 using Serilog;
@@ -40,6 +42,53 @@ namespace Zen.Trunk.Service
         }
 
         /// <summary>
+        /// Gets the command line arguments.
+        /// </summary>
+        /// <value>
+        /// The command line arguments.
+        /// </value>
+        protected override IEnumerable<CommandLineArgument> CommandLineArguments
+        {
+            get
+            {
+                // TODO: Add our special command line arguments to support
+                //  alternate startup options (so we can init DB from command line
+                //  without starting the service)
+                return base.CommandLineArguments.Concat(
+                    new[] 
+                    {
+                        new CommandLineArgument("D", additionalArgumentCount: 1),
+                        new CommandLineArgument("L", additionalArgumentCount: 1),
+                        new CommandLineArgument("E", additionalArgumentCount: 1)
+                    });
+            }
+        }
+
+        /// <summary>
+        /// Processes the command.
+        /// </summary>
+        /// <param name="command">The command.</param>
+        /// <param name="value">The value.</param>
+        /// <param name="additionalParameters">The additional parameters.</param>
+        protected override void ProcessCommand(CommandLineArgument command, string value, string[] additionalParameters)
+        {
+            base.ProcessCommand(command, value, additionalParameters);
+
+            if (command.ShortName == "D")
+            {
+                _masterDataPathname = additionalParameters[0];
+            }
+            else if (command.ShortName == "L")
+            {
+                _masterLogPathname = additionalParameters[0];
+            }
+            else if (command.ShortName == "E")
+            {
+                _errorLogPathname = additionalParameters[0];
+            }
+        }
+
+        /// <summary>
         /// Executes when a Start command is sent to the service by the Service
         /// Control Manager (SCM) or when the operating system starts (for a
         /// service that starts automatically).
@@ -53,29 +102,20 @@ namespace Zen.Trunk.Service
             var loggingSection = config.Root[ConfigurationNames.Logging.Section];
 
             // Determine locations for our base files
-            _masterDataPathname = config.Root.GetInstanceValue(
-                ConfigurationNames.MasterDataPathname, string.Empty);
-            _masterLogPathname = config.Root.GetInstanceValue(
-                ConfigurationNames.MasterLogPathname, string.Empty);
-            _errorLogPathname = config.Root.GetInstanceValue(
-                ConfigurationNames.ErrorLogPathname, string.Empty);
-            foreach (var arg in args)
+            if(string.IsNullOrEmpty(_masterDataPathname))
             {
-                if (arg.StartsWith("-d=", StringComparison.OrdinalIgnoreCase) ||
-                    arg.StartsWith("/d=", StringComparison.OrdinalIgnoreCase))
-                {
-                    _masterDataPathname = arg.Substring(3);
-                }
-                if (arg.StartsWith("-l=", StringComparison.OrdinalIgnoreCase) ||
-                    arg.StartsWith("/l=", StringComparison.OrdinalIgnoreCase))
-                {
-                    _masterLogPathname = arg.Substring(3);
-                }
-                if (arg.StartsWith("-e=", StringComparison.OrdinalIgnoreCase) ||
-                    arg.StartsWith("/e=", StringComparison.OrdinalIgnoreCase))
-                {
-                    _errorLogPathname = arg.Substring(3);
-                }
+                _masterDataPathname = config.Root.GetInstanceValue(
+                    ConfigurationNames.MasterDataPathname, string.Empty);
+            }
+            if (string.IsNullOrEmpty(_masterLogPathname))
+            {
+                _masterLogPathname = config.Root.GetInstanceValue(
+                    ConfigurationNames.MasterLogPathname, string.Empty);
+            }
+            if (string.IsNullOrEmpty(_errorLogPathname))
+            {
+                _errorLogPathname = config.Root.GetInstanceValue(
+                    ConfigurationNames.ErrorLogPathname, string.Empty);
             }
 
             // Initialise logging framework

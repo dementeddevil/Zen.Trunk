@@ -106,6 +106,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CommandLineArgument.cs" />
     <Compile Include="InstanceServiceBase.cs">
       <SubType>Component</SubType>
     </Compile>
