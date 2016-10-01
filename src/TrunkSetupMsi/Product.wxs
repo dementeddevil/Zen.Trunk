@@ -137,7 +137,7 @@
     </Feature>
   </Product>
 
-  <?if $(var.Zen.Trunk.StorageEngine.Service.Platform) = x86 ?>
+  <?if $(var.Zen.Trunk.Service.Platform) = x86 ?>
   <Fragment>
     <Directory Id="TARGETDIR" Name="SourceDir">
       <Directory Id="ProgramFilesFolder">

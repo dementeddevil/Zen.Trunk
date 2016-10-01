@@ -61,7 +61,7 @@
     </WixExtension>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Zen.Trunk.StorageEngine.Service\Zen.Trunk.Service.csproj">
+    <ProjectReference Include="..\Zen.Trunk.Service\Zen.Trunk.Service.csproj">
       <Name>Zen.Trunk.Service</Name>
       <Project>{a4dd21b9-92c3-4b94-aa90-0298e10d3c54}</Project>
       <Private>True</Private>
