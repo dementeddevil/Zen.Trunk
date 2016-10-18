@@ -704,6 +704,7 @@ namespace Zen.Trunk.Storage
             var committed = false;
             try
             {
+                // TODO: Skip checkpointing if device is read-only
                 // Issue a checkpoint so we close the database in a known state
                 var request = new IssueCheckPointRequest();
                 if (!IssueCheckPointPort.Post(request))

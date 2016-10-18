@@ -158,10 +158,20 @@ namespace Zen.Trunk.Service
         /// </summary>
         protected override void OnStop()
         {
-            // TODO: Shutdown network server
+            // TODO: Notify local "browser" service that this instance is offline
+
+            // Shutdown network server
             StopNetworkProtocolServer();
 
             // TODO: Shutdown all devices
+            // NOTE: Device shutdown must wait for log-writer to complete work
+            //  and if the checkpoint writer is in progress then wait for it to
+            //  finish (as this will result in faster startup if checkpoint is
+            //  viable.
+
+            // TODO: Based on amount of time taken thus far we may wish to wait for
+            //  cached pages to be written to disk however this isn't necessary if
+            //  the log writer/checkpoint writer processes have completed.
 
             // Teardown IoC
             _globaLifetimeScope.Dispose();
@@ -172,6 +182,8 @@ namespace Zen.Trunk.Service
         {
             await MountAndOpenSystemDatabasesAsync().ConfigureAwait(false);
             StartNetworkProtocolServer();
+
+            // TODO: Notify local "browser" service that this server is online
         }
 
         private async Task MountAndOpenSystemDatabasesAsync()
