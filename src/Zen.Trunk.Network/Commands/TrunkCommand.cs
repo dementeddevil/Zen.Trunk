@@ -13,7 +13,7 @@ namespace Zen.Trunk.Network.Commands
     /// <seealso cref="SuperSocket.SocketBase.Command.CommandBase{Zen.Trunk.Network.TrunkSocketAppSession, SuperSocket.SocketBase.Protocol.BinaryRequestInfo}" />
     public abstract class TrunkCommand : CommandBase<TrunkSocketAppSession, BinaryRequestInfo>
     {
-        protected void ProcessException(TrunkSocketAppSession session, Exception exception)
+        protected virtual void ProcessException(TrunkSocketAppSession session, Exception exception)
         {
             // TODO: Depending upon the exception we may need to reset
             //  the session or even forcibly disconnect the client
