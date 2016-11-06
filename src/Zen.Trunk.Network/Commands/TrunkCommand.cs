@@ -10,7 +10,7 @@ namespace Zen.Trunk.Network.Commands
     /// <remarks>
     /// This object knows how to return exception information to the client.
     /// </remarks>
-    /// <seealso cref="SuperSocket.SocketBase.Command.CommandBase{Zen.Trunk.Network.TrunkSocketAppSession, SuperSocket.SocketBase.Protocol.BinaryRequestInfo}" />
+    /// <seealso cref="SuperSocket.SocketBase.Command.CommandBase{TrunkSocketAppSession, BinaryRequestInfo}" />
     public abstract class TrunkCommand : CommandBase<TrunkSocketAppSession, BinaryRequestInfo>
     {
         protected virtual void ProcessException(TrunkSocketAppSession session, Exception exception)

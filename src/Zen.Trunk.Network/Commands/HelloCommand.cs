@@ -1,8 +1,7 @@
 ﻿using System.IO;
 using SuperSocket.SocketBase;
-using SuperSocket.SocketBase.Command;
 using SuperSocket.SocketBase.Protocol;
-using Zen.Trunk.Storage;
+using Zen.Trunk.Storage.BufferFields;
 using Zen.Trunk.Storage.IO;
 
 namespace Zen.Trunk.Network.Commands
