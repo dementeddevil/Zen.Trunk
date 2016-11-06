@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using Autofac;
 using Xunit;
+using Zen.Trunk.Storage.BufferFields;
 using Zen.Trunk.Storage.Data;
 using Zen.Trunk.Storage.Data.Index;
 using Zen.Trunk.Storage.IO;
