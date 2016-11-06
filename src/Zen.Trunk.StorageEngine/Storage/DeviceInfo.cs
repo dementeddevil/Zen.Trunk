@@ -1,4 +1,5 @@
 using System;
+using Zen.Trunk.Storage.BufferFields;
 
 namespace Zen.Trunk.Storage
 {

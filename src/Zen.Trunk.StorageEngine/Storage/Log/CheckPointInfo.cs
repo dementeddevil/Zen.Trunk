@@ -1,9 +1,11 @@
+using Zen.Trunk.Storage.BufferFields;
+
 namespace Zen.Trunk.Storage.Log
 {
     /// <summary>
     /// 
     /// </summary>
-    /// <seealso cref="Zen.Trunk.Storage.BufferFieldWrapper" />
+    /// <seealso cref="BufferFieldWrapper" />
     public class CheckPointInfo : BufferFieldWrapper
 	{
 		private readonly BufferFieldLogFileId _beginLogFileId;

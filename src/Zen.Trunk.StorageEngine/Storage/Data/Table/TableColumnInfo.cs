@@ -1,4 +1,6 @@
-﻿namespace Zen.Trunk.Storage.Data.Table
+﻿using Zen.Trunk.Storage.BufferFields;
+
+namespace Zen.Trunk.Storage.Data.Table
 {
 	using System;
 	using System.Collections;

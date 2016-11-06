@@ -1,6 +1,7 @@
 ﻿using System.Threading.Tasks;
 using System;
 using System.Collections.Generic;
+using Zen.Trunk.Storage.BufferFields;
 using Zen.Trunk.Storage.IO;
 using Zen.Trunk.Storage.Locking;
 

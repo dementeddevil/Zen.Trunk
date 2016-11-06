@@ -1,4 +1,6 @@
-﻿namespace Zen.Trunk.Storage.Data.Index
+﻿using Zen.Trunk.Storage.BufferFields;
+
+namespace Zen.Trunk.Storage.Data.Index
 {
     using System;
     using System.Collections.Specialized;

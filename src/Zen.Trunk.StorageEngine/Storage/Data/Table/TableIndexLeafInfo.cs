@@ -1,4 +1,5 @@
 ﻿using System;
+using Zen.Trunk.Storage.BufferFields;
 using Zen.Trunk.Storage.IO;
 
 namespace Zen.Trunk.Storage.Data.Table

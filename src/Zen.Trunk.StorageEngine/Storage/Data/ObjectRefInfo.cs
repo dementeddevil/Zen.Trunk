@@ -4,12 +4,14 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+using Zen.Trunk.Storage.BufferFields;
+
 namespace Zen.Trunk.Storage.Data
 {
     /// <summary>
     /// TODO: Update summary.
     /// </summary>
-    /// <seealso cref="Zen.Trunk.Storage.BufferFieldWrapper" />
+    /// <seealso cref="BufferFieldWrapper" />
     public class ObjectRefInfo : BufferFieldWrapper
     {
         private readonly BufferFieldObjectId _objectId;

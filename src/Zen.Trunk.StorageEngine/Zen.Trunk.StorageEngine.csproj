@@ -70,7 +70,32 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Storage\BufferField.cs" />
+    <Compile Include="Storage\BufferFields\ArrayBufferField.cs" />
+    <Compile Include="Storage\BufferFields\BufferField.cs" />
+    <Compile Include="Storage\BufferFields\BufferFieldBitVector32.cs" />
+    <Compile Include="Storage\BufferFields\BufferFieldBitVector8.cs" />
+    <Compile Include="Storage\BufferFields\BufferFieldByte.cs" />
+    <Compile Include="Storage\BufferFields\BufferFieldByteArrayUnbounded.cs" />
+    <Compile Include="Storage\BufferFields\BufferFieldChangingEventArgs.cs" />
+    <Compile Include="Storage\BufferFields\BufferFieldDouble.cs" />
+    <Compile Include="Storage\BufferFields\BufferFieldIndexId.cs" />
+    <Compile Include="Storage\BufferFields\BufferFieldInt16.cs" />
+    <Compile Include="Storage\BufferFields\BufferFieldInt32.cs" />
+    <Compile Include="Storage\BufferFields\BufferFieldInt64.cs" />
+    <Compile Include="Storage\BufferFields\BufferFieldLogFileId.cs" />
+    <Compile Include="Storage\BufferFields\BufferFieldLogicalPageId.cs" />
+    <Compile Include="Storage\BufferFields\BufferFieldObjectId.cs" />
+    <Compile Include="Storage\BufferFields\BufferFieldObjectType.cs" />
+    <Compile Include="Storage\BufferFields\BufferFieldSingle.cs" />
+    <Compile Include="Storage\BufferFields\BufferFieldStringFixed.cs" />
+    <Compile Include="Storage\BufferFields\BufferFieldStringVariable.cs" />
+    <Compile Include="Storage\BufferFields\BufferFieldUInt16.cs" />
+    <Compile Include="Storage\BufferFields\BufferFieldUInt32.cs" />
+    <Compile Include="Storage\BufferFields\BufferFieldUInt64.cs" />
+    <Compile Include="Storage\BufferFields\BufferFieldWrapper.cs" />
+    <Compile Include="Storage\BufferFields\BufferFieldWrapperBase.cs" />
+    <Compile Include="Storage\BufferFields\SimpleBufferField.cs" />
+    <Compile Include="Storage\BufferFields\VariableBufferField.cs" />
     <Compile Include="Storage\Configuration\ConfigurationNames.cs" />
     <Compile Include="Storage\Configuration\ITrunkConfigurationManager.cs" />
     <Compile Include="Storage\Configuration\ITrunkConfigurationSection.cs" />

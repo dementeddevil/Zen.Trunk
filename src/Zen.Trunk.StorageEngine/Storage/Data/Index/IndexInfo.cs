@@ -1,11 +1,12 @@
 ﻿using System;
+using Zen.Trunk.Storage.BufferFields;
 
 namespace Zen.Trunk.Storage.Data.Index
 {
     /// <summary>
     /// 
     /// </summary>
-    /// <seealso cref="Zen.Trunk.Storage.BufferFieldWrapper" />
+    /// <seealso cref="BufferFieldWrapper" />
     /// <seealso cref="System.IComparable" />
 #pragma warning disable 660, 661
 #pragma warning disable CS0659 // Type overrides Object.Equals(object o) but does not override Object.GetHashCode()

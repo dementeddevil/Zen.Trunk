@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using System.Transactions;
 using Zen.Trunk.CoordinationDataStructures;
 using Zen.Trunk.Logging;
+using Zen.Trunk.Storage.BufferFields;
 using Zen.Trunk.Storage.IO;
 using Zen.Trunk.Storage.Locking;
 

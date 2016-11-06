@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using Zen.Trunk.Storage.BufferFields;
 using Zen.Trunk.Storage.IO;
 
 namespace Zen.Trunk.Storage.Data.Table
@@ -204,7 +205,7 @@ namespace Zen.Trunk.Storage.Data.Table
     /// <summary>
     /// 
     /// </summary>
-    /// <seealso cref="Zen.Trunk.Storage.BufferFieldWrapper" />
+    /// <seealso cref="BufferFieldWrapper" />
     public class BufferFieldTableRow : BufferFieldWrapper
 	{
 		#region Private Fields

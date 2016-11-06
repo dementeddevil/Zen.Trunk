@@ -1,9 +1,11 @@
+using Zen.Trunk.Storage.BufferFields;
+
 namespace Zen.Trunk.Storage.Log
 {
     /// <summary>
     /// <c>VirtualLogFileInfo</c> defines information about a virtual log file.
     /// </summary>
-    /// <seealso cref="Zen.Trunk.Storage.BufferFieldWrapper" />
+    /// <seealso cref="BufferFieldWrapper" />
     public class VirtualLogFileInfo : BufferFieldWrapper
 	{
 		#region Private Fields

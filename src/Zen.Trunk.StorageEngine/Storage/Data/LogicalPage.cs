@@ -1,3 +1,5 @@
+using Zen.Trunk.Storage.BufferFields;
+
 namespace Zen.Trunk.Storage.Data
 {
 	/// <summary>

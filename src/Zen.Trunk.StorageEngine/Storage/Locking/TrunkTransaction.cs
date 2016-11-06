@@ -702,6 +702,10 @@ namespace Zen.Trunk.Storage.Locking
                 {
                     _transactionId = _logDevice.GetNextTransactionId();
                 }
+                else
+                {
+                    _transactionId = new TransactionId(uint.MaxValue);
+                }
             }
             catch (DependencyResolutionException)
             {

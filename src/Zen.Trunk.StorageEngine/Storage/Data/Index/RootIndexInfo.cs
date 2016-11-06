@@ -1,4 +1,6 @@
-﻿namespace Zen.Trunk.Storage.Data.Index
+﻿using Zen.Trunk.Storage.BufferFields;
+
+namespace Zen.Trunk.Storage.Data.Index
 {
 	/// <summary>
 	/// RootIndexInfo defines the core root index information.

@@ -5,6 +5,7 @@ using System.IO;
 using System.Threading.Tasks;
 using Autofac;
 using Zen.Trunk.Logging;
+using Zen.Trunk.Storage.BufferFields;
 using Zen.Trunk.Storage.IO;
 
 namespace Zen.Trunk.Storage

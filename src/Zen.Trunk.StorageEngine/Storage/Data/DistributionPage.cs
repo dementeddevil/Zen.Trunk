@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Zen.Trunk.Storage.BufferFields;
 using Zen.Trunk.Storage.IO;
 using Zen.Trunk.Storage.Locking;
 using Zen.Trunk.Utils;
@@ -14,8 +15,10 @@ namespace Zen.Trunk.Storage.Data
     /// </summary>
     /// <remarks>
     /// <para>
+    /// Given a page is 8192 bytes; distribution pages cover allocation for
+    /// the following 512 * 8192 = 4,194,304 bytes after the distribution page.
     ///	For the last distribution page on a given device (or the first if there
-    ///	is only a single dist page) it is possible that the extents listed 
+    ///	is only a single distribution page) it's possible that the extents listed 
     ///	might not all be usable as it is not a requirement for devices to be
     ///	valid for all pages managed by a distribution page.
     /// </para>
@@ -25,7 +28,15 @@ namespace Zen.Trunk.Storage.Data
     /// </para>
     /// <para>
     /// For an extent to be marked as usable, all its associated pages must be
-    /// usable.
+    /// usable. This means the minimum amount a device can be expanded is
+    /// 8 * 8192 = 65,536 bytes (there will be an additional 8192 bytes if a
+    /// further distribution page is needed.)
+    /// </para>
+    /// <para>
+    /// A device can only be shrunk if the extents covering the range being
+    /// removed are all marked as free (which implied to fully shrink a device
+    /// some page rewriting may be required in order to free up space at the
+    /// end of each associated device.)
     /// </para>
     /// </remarks>
     public class DistributionPage : DataPage
