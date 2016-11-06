@@ -1079,25 +1079,41 @@ namespace Zen.Trunk.Storage.Data
                 {
                     distPhyId += distTemp + strideLength - remainder;
                 }
+
+                // We must be expanding an existing device so we may need to update
+                //  the last distribution page to ensure the valid extents match up
+                var lastValidDistPagePhyId = distPhyId - strideLength;
+                if (lastValidDistPagePhyId > 0)
+                {
+                    using (var lastDistPage = new DistributionPage())
+                    {
+                        lastDistPage.VirtualPageId = new VirtualPageId(request.DeviceId, lastValidDistPagePhyId);
+                        await lastDistPage.SetDistributionLockAsync(ObjectLockType.Exclusive).ConfigureAwait(false);
+
+                        // Load existing final distribution page
+                        var loadPage = new LoadDataPageParameters(lastDistPage, true);
+                        await LoadDataPageAsync(loadPage).ConfigureAwait(false);
+
+                        // Update distribution page information
+                        await lastDistPage.UpdateValidExtentsAsync(request.EndPhysicalId).ConfigureAwait(false);
+                    }
+                }
             }
 
             for (; distPhyId <= request.EndPhysicalId; distPhyId += strideLength)
             {
                 // Create distribution page
-                var pageId = new VirtualPageId(request.DeviceId, distPhyId);
                 using (var page = new DistributionPage())
                 {
-                    page.VirtualPageId = pageId;
+                    page.VirtualPageId = new VirtualPageId(request.DeviceId, distPhyId);
                     await page.SetDistributionLockAsync(ObjectLockType.Exclusive).ConfigureAwait(false);
 
                     // Add page to the device
                     var initPage = new InitDataPageParameters(page);
                     await InitDataPageAsync(initPage).ConfigureAwait(false);
 
-                    // TODO: Check - page should already be dirty.
-                    // Make page explicitly dirty
-                    page.SetHeaderDirty();
-                    page.SetDataDirty();
+                    // Initialise distribution page information
+                    await page.UpdateValidExtentsAsync(request.EndPhysicalId).ConfigureAwait(false);
                 }
             }
 
@@ -1196,8 +1212,6 @@ namespace Zen.Trunk.Storage.Data
 
         private async Task<VirtualPageId> AllocateDataPageHandler(AllocateDataPageRequest request)
         {
-            // TODO: Implement support for constraining allocation to particular device
-            //  typically used to ensure root pages are placed on the primary device in filegroup.
             List<DeviceId> deviceIds;
             if (request.Message.OnlyUsePrimaryDevice)
             {
@@ -1216,7 +1230,6 @@ namespace Zen.Trunk.Storage.Data
             {
                 // Get distribution page device
                 var pageDevice = GetDistributionPageDevice(deviceId);
-
                 try
                 {
                     // Attempt to allocate (may fail)
@@ -1236,11 +1249,11 @@ namespace Zen.Trunk.Storage.Data
 
         private async Task<ObjectId> CreateObjectReferenceHandler(CreateObjectReferenceRequest request)
         {
-            // Determine free object id
+            // Determine object id
             var objectId = _nextObjectId;
             _nextObjectId = new ObjectId(_nextObjectId.Value + 1);
 
-            // Build object reference for this object and assign object ID.
+            // Build object reference information.
             var objectRef =
                 new ObjectRefInfo
                 {
@@ -1254,7 +1267,7 @@ namespace Zen.Trunk.Storage.Data
             var rootPage = (PrimaryFileGroupRootPage)
                 await _primaryDevice.LoadOrCreateRootPageAsync().ConfigureAwait(false);
 
-            // Obtain object id for this table
+            // Attempt to write reference information into a root page
             await rootPage.SetRootLockAsync(RootLockType.Exclusive).ConfigureAwait(false);
             while (true)
             {
@@ -1320,6 +1333,8 @@ namespace Zen.Trunk.Storage.Data
             table.FileGroupId = FileGroupId;
             table.ObjectId = request.Message.ObjectId;
             table.IsNewTable = false;
+            
+            //table.
             //table.AddIndex
 
             return Task.FromResult(indexId);

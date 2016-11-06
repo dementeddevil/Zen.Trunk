@@ -1,15 +1,25 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 
 namespace Zen.Trunk.Storage.Data.Table
 {
+    public class CreateTableIndexParameters
+    {
+        public string Name { get; }
+
+        public FileGroupId IndexFileGroupId { get; }
+
+        public TableIndexSubType IndexSubType { get; }
+
+        public ICollection<Tuple<ushort, TableIndexSortDirection>> Members { get; }
+    }
+
     /// <summary>
     /// 
     /// </summary>
     public class SplitTableIndexPageParameters
     {
-        #region Private Fields
-        #endregion
-
         #region Public Constructors
         /// <summary>
         /// Initialises an instance of <see cref="T:SplitTableIndexPageParameters" />.
@@ -72,9 +82,6 @@ namespace Zen.Trunk.Storage.Data.Table
     /// </summary>
     public class FindTableIndexParameters
     {
-        #region Private Fields
-        #endregion
-
         #region Public Constructors
         /// <summary>
         /// Initializes a new instance of the <see cref="FindTableIndexParameters"/> class.

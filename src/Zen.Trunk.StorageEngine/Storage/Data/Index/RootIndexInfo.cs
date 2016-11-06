@@ -8,8 +8,7 @@ namespace Zen.Trunk.Storage.Data.Index
 	public class RootIndexInfo : BufferFieldWrapper
 	{
 		#region Private Fields
-
-	    private readonly BufferFieldIndexId _indexId;
+        private readonly BufferFieldIndexId _indexId;
 		private readonly BufferFieldObjectId _objectId;
 		private readonly BufferFieldStringFixed _name;
 		private readonly BufferFieldLogicalPageId _rootLogicalPageId;
@@ -40,11 +39,15 @@ namespace Zen.Trunk.Storage.Data.Index
 		#endregion
 
 		#region Public Properties
-		/// <summary>
-		/// Gets the index id.
-		/// </summary>
-		/// <value>The index id.</value>
-		public IndexId IndexId => _indexId.Value;
+	    /// <summary>
+	    /// Gets the index id.
+	    /// </summary>
+	    /// <value>The index id.</value>
+	    public IndexId IndexId
+	    {
+	        get { return _indexId.Value; }
+            set { _indexId.Value = value; }
+	    }
 
 	    /// <summary>
 		/// Gets or sets the object id.

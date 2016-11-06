@@ -1009,12 +1009,12 @@ namespace Zen.Trunk.Storage.Data.Table
         }
 
         /// <summary>
-        /// Adds the index.
+        /// Creates the specified index on the table and returns the index id.
         /// </summary>
         /// <param name="info">The information.</param>
-        public void AddIndex(RootTableIndexInfo info)
+        public Task<IndexId> CreateIndexAsync(CreateTableIndexParameters info)
         {
-            _lifetimeScope.Resolve<TableIndexManager>().AddIndexInfo(info);
+            return _lifetimeScope.Resolve<TableIndexManager>().CreateIndexAsync(info);
         }
 
         /// <summary>

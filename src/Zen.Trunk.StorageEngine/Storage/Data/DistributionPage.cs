@@ -561,16 +561,18 @@ namespace Zen.Trunk.Storage.Data
         }
 
         /// <summary>
-        /// Initialises the valid extents for this distribution page
+        /// Updates the valid extents for this distribution page given the page
+        /// capacity of the underlying device
         /// </summary>
         /// <param name="devicePageCapacity">
         /// The number of pages allocated to the underlying device.
         /// </param>
         /// <remarks>
-        /// This method is called during the handling of InitDistributionPage
-        /// in the distribution page device.
+        /// This method is called as part of initialisation, expansion and 
+        /// shrinking of data devices and for a given page is safe to call
+        /// multiple times.
         /// </remarks>
-        public async Task InitialiseValidExtentsAsync(uint devicePageCapacity)
+        public async Task UpdateValidExtentsAsync(uint devicePageCapacity)
         {
             // TODO: We need to test this code
             //	It does not appear to be writing to the underlying buffer...
@@ -597,23 +599,23 @@ namespace Zen.Trunk.Storage.Data
             // Set extent usability state
             for (var index = 0; index < ExtentTrackingCount; ++index)
             {
-                if (index < usableExtents)
+                var extentInfo = _extents[index];
+                if (index < usableExtents && !extentInfo.IsUsable)
                 {
-                    _extents[index].IsUsable = true;
-                    _extents[index].IsMixedExtent = false;
-                    _extents[index].IsFull = false;
-                    _extents[index].ObjectId = ObjectId.Zero;
+                    extentInfo.IsUsable = true;
+                    extentInfo.IsMixedExtent = false;
+                    extentInfo.IsFull = false;
+                    extentInfo.ObjectId = ObjectId.Zero;
                 }
                 else
                 {
-                    _extents[index].IsUsable = false;
+                    extentInfo.IsUsable = false;
                 }
             }
 
+            // Force full save of this distribution page
             SetDirty();
             Save();
-            //WriteData();
-            //SetHeaderDirty();
         }
         #endregion
 

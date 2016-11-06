@@ -15,14 +15,15 @@ namespace Zen.Trunk.Storage.Data.Table
     internal class TableIndexManager : IndexManager<RootTableIndexInfo>
 	{
 		#region Private Types
-		private class CreateTableIndex : TransactionContextTaskRequest<RootTableIndexInfo, bool>
+		private class CreateTableIndex : TransactionContextTaskRequest<CreateTableIndexParameters, IndexId>
 		{
-			#region Public Constructors
-			/// <summary>
-			/// Initialises an instance of <see cref="T:CreateTableIndex" />.
-			/// </summary>
-			public CreateTableIndex(RootTableIndexInfo definition)
-				: base(definition)
+            #region Public Constructors
+            /// <summary>
+            /// Initialises an instance of <see cref="T:CreateTableIndex" />.
+            /// </summary>
+            /// <param name="parameters">The parameters.</param>
+            public CreateTableIndex(CreateTableIndexParameters parameters)
+				: base(parameters)
 			{
 			}
 			#endregion
@@ -80,7 +81,7 @@ namespace Zen.Trunk.Storage.Data.Table
 		{
 		    _ownerTable = parentLifetimeScope.Resolve<DatabaseTable>();
             var taskInterleave = new ConcurrentExclusiveSchedulerPair();
-            _createIndexPort = new TransactionContextActionBlock<CreateTableIndex, bool>(
+            _createIndexPort = new TransactionContextActionBlock<CreateTableIndex, IndexId>(
                 request => CreateIndexHandler(request),
                 new ExecutionDataflowBlockOptions
                 {
@@ -125,7 +126,7 @@ namespace Zen.Trunk.Storage.Data.Table
         /// <returns>
         /// A <see cref="Task"/> representing the asynchronous operation.
         /// </returns>
-        public Task<bool> CreateIndexAsync(RootTableIndexInfo parameters)
+        public Task<IndexId> CreateIndexAsync(CreateTableIndexParameters parameters)
 		{
 			var request = new CreateTableIndex(parameters);
 			_createIndexPort.Post(request);
@@ -176,20 +177,23 @@ namespace Zen.Trunk.Storage.Data.Table
 		#endregion
 
 		#region Private Methods
-		private async Task<bool> CreateIndexHandler(CreateTableIndex request)
+		private async Task<IndexId> CreateIndexHandler(CreateTableIndex request)
 		{
-			// Sanity checks
+			// Perform sanity checks and determine index id
+		    var indexId = new IndexId(1);
 			foreach (var def in Indices)
 			{
-				if (def.IndexId == request.Message.IndexId)
-				{
-					throw new CoreException("Duplicate index ID found.");
-				}
+                // Set index id to high-water mark of index identifiers
+                indexId = new IndexId(Math.Max(indexId.Value, def.IndexId.Value + 1));
+
+                // Cannot have more than one primary index
 				if (((def.IndexSubType & TableIndexSubType.Primary) != 0) &&
 					((request.Message.IndexSubType & TableIndexSubType.Primary) != 0))
 				{
 					throw new CoreException("Primary key index already defined.");
 				}
+
+                // Cannot have more than one clustered index
 				if (((def.IndexSubType & TableIndexSubType.Clustered) != 0) &&
 					((request.Message.IndexSubType & TableIndexSubType.Clustered) != 0))
 				{
@@ -197,9 +201,17 @@ namespace Zen.Trunk.Storage.Data.Table
 				}
 			}
 
-			// Initialise definition parameters
-			request.Message.ObjectId = _ownerTable.ObjectId;
-			request.Message.RootIndexDepth = 0;
+            // Create root table index information
+		    var rootTableIndexInfo =
+		        new RootTableIndexInfo(indexId)
+		        {
+		            Name = request.Message.Name,
+		            IndexFileGroupId = request.Message.IndexFileGroupId,
+		            IndexSubType = request.Message.IndexSubType,
+		            ObjectId = _ownerTable.ObjectId,
+                    ColumnIDs = request.Message.Members.Select(t => (byte)t.Item1).ToArray(),
+                    ColumnDirections = request.Message.Members.Select(t => t.Item2).ToArray()
+		        };
 
 			// Switch off clustered index during initial index population if table has data
 			var restoreClusteredIndex = false;
@@ -207,15 +219,15 @@ namespace Zen.Trunk.Storage.Data.Table
 				(request.Message.IndexSubType & TableIndexSubType.Clustered) != 0)
 			{
 				restoreClusteredIndex = true;
-				request.Message.IndexSubType &= ~TableIndexSubType.Clustered;
+                rootTableIndexInfo.IndexSubType &= ~TableIndexSubType.Clustered;
 			}
 
             // Create the root index page
             var rootPage = new TableIndexPage
             {
-                FileGroupId = request.Message.IndexFileGroupId,
-                ObjectId = request.Message.ObjectId,
-                IndexId = request.Message.IndexId,
+                FileGroupId = rootTableIndexInfo.IndexFileGroupId,
+                ObjectId = rootTableIndexInfo.ObjectId,
+                IndexId = indexId,
 		        IndexType = IndexType.Root | IndexType.Leaf
 		    };
 		    await Database
@@ -225,13 +237,13 @@ namespace Zen.Trunk.Storage.Data.Table
 
 			// Setup root index page
 			rootPage.SetHeaderDirty();
-			rootPage.SetContext(_ownerTable, request.Message);
-			request.Message.RootLogicalPageId = rootPage.LogicalPageId;
-			AddIndexInfo(request.Message);
+			rootPage.SetContext(_ownerTable, rootTableIndexInfo);
+            rootTableIndexInfo.RootLogicalPageId = rootPage.LogicalPageId;
+			AddIndexInfo(rootTableIndexInfo);
 
 			// We need the zero-based ordinal positions of the columns used
 			//	in the index being created
-			var indexOrdinals = request.Message.ColumnIDs
+			var indexOrdinals = rootTableIndexInfo.ColumnIDs
 				.Select(columnId => _ownerTable.Columns.IndexOf(
 					_ownerTable.Columns.First(item => item.Id == columnId)))
 				.ToArray();
@@ -289,7 +301,7 @@ namespace Zen.Trunk.Storage.Data.Table
 						{
 							// Generate search parameters
 							iterParams = new EnumerateIndexEntriesParameters(
-								request.Message, rowIndexValues, rowIndexValues,
+                                rootTableIndexInfo, rowIndexValues, rowIndexValues,
 								(page, entry, iterationCount) =>
 								{
 									lastIndexPage = page;
@@ -381,15 +393,15 @@ namespace Zen.Trunk.Storage.Data.Table
 					//	to the new table object (effectively an optimised copy)
 
 					// We'd be done at this point
-					return true;
+					return indexId;
 				}
 			}
 
 			// Add index to list of table indices
-			AddIndexInfo(request.Message);
+			AddIndexInfo(rootTableIndexInfo);
 
 			// Post success result
-			return true;
+			return indexId;
 		}
 
 		private async Task<bool> SplitPageHandler(SplitTableIndexPage request)

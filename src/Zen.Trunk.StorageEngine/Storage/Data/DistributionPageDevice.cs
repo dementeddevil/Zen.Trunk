@@ -339,7 +339,7 @@ namespace Zen.Trunk.Storage.Data
 					new InitDataPageParameters(page)).ConfigureAwait(false);
 
 				// Notify page as to the number of usable extents
-				await page.InitialiseValidExtentsAsync(devicePageCount).ConfigureAwait(false);
+				await page.UpdateValidExtentsAsync(devicePageCount).ConfigureAwait(false);
 				page.Save();
 
                 // Mark original request as complete
@@ -404,7 +404,7 @@ namespace Zen.Trunk.Storage.Data
 		{
 			await LoadDistributionPage(page, distPageIndex).ConfigureAwait(false);
 		    await FileGroupDevice.ImportDistributionPageAsync(page).ConfigureAwait(false);
-		} 
+		}
 		#endregion
 	}
 }
