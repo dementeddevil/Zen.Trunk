@@ -12,10 +12,8 @@ namespace Zen.Trunk.Storage.Query
     /// <seealso cref="TrunkSqlBaseVisitor{Boolean}" />
     public class SymbolTableValidator : TrunkSqlBaseVisitor<bool>
     {
-        private readonly GlobalSymbolScope _globalScope =
-            new GlobalSymbolScope();
-        private readonly Stack<SymbolScope> _scopeStack =
-            new Stack<SymbolScope>();
+        private readonly GlobalSymbolScope _globalScope = new GlobalSymbolScope();
+        private readonly Stack<SymbolScope> _scopeStack = new Stack<SymbolScope>();
 
         /// <summary>
         /// Gets the global symbol scope.

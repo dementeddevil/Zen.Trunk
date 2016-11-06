@@ -20,16 +20,10 @@ namespace Zen.Trunk.Storage.Query
             ParentScope = parentScope;
         }
 
-        /// <summary>
-        /// Gets the parent scope.
-        /// </summary>
-        /// <value>
-        /// The parent scope.
-        /// </value>
-        public virtual SymbolScope ParentScope { get; }
+        private SymbolScope ParentScope { get; }
 
         /// <summary>
-        /// Adds the symbol.
+        /// Adds the specified symbol to the symbol scope.
         /// </summary>
         /// <param name="symbol">The symbol.</param>
         public void AddSymbol(Symbol symbol)
@@ -39,23 +33,15 @@ namespace Zen.Trunk.Storage.Query
         }
 
         /// <summary>
-        /// Finds the specified symbol name.
+        /// Finds the symbol with the specified name.
         /// </summary>
         /// <param name="symbolName">Name of the symbol.</param>
         /// <returns></returns>
         public virtual Symbol Find(string symbolName)
         {
-            if (_symbolTable.ContainsKey(symbolName))
-            {
-                return _symbolTable[symbolName];
-            }
-
-            if (ParentScope != null)
-            {
-                return ParentScope.Find(symbolName);
-            }
-
-            return null;
+            return _symbolTable.ContainsKey(symbolName)
+                ? _symbolTable[symbolName]
+                : ParentScope?.Find(symbolName);
         }
 
         /// <summary>
