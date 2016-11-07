@@ -466,24 +466,23 @@ namespace Zen.Trunk.Storage.Data
         }
 
         /// <summary>
-        /// Frees the page.
+        /// Deallocates the page.
         /// </summary>
-        /// <param name="offset">The offset.</param>
-        /// <param name="timeout">The timeout.</param>
+        /// <param name="pageIndex">The zero-based page index.</param>
         /// <returns>
         /// A <see cref="Task"/> representing the asynchronous operation.
         /// </returns>
-        /// <exception cref="ArgumentOutOfRangeException">Offset outside page tracking range for this page.</exception>
-        public async Task FreePageAsync(uint offset, TimeSpan timeout)
+        /// <exception cref="ArgumentOutOfRangeException">Offset outside page tracking range.</exception>
+        public async Task DeallocatePageAsync(uint pageIndex)
         {
             // Sanity checks
-            CheckPageId(offset);
+            CheckPageId(pageIndex);
             CheckReadOnly();
 
             // Determine extent and page index
-            var extent = offset / PagesPerExtent;
-            var pageIndex = offset % PagesPerExtent;
-            if (_extents[extent].Pages[pageIndex].AllocationStatus)
+            var extentIndex = pageIndex / PagesPerExtent;
+            var pageIndexInExtent = pageIndex % PagesPerExtent;
+            if (_extents[extentIndex].Pages[pageIndexInExtent].AllocationStatus)
             {
                 // We need extent lock before we can free page
                 if (DistributionLock != ObjectLockType.IntentExclusive &&
@@ -491,31 +490,30 @@ namespace Zen.Trunk.Storage.Data
                 {
                     await SetDistributionLockAsync(ObjectLockType.IntentExclusive).ConfigureAwait(false);
                 }
-                if (!_lockedExtents.Contains(extent))
+                if (!_lockedExtents.Contains(extentIndex))
                 {
-                    System.Diagnostics.Debug.Assert(extent < ExtentTrackingCount);
-                    await LockExtentAsync(extent, DataLockType.Update).ConfigureAwait(false);
-                    await LockExtentAsync(extent, DataLockType.Exclusive).ConfigureAwait(false);
+                    System.Diagnostics.Debug.Assert(extentIndex < ExtentTrackingCount);
+                    await LockExtentAsync(extentIndex, DataLockType.Update).ConfigureAwait(false);
+                    await LockExtentAsync(extentIndex, DataLockType.Exclusive).ConfigureAwait(false);
                 }
 
                 // Update page information
-                _extents[extent].Pages[pageIndex].AllocationStatus = false;
-                _extents[extent].Pages[pageIndex].ObjectId = ObjectId.Zero;
-                _extents[extent].Pages[pageIndex].LogicalPageId = LogicalPageId.Zero;
-                _extents[extent].Pages[pageIndex].ObjectType = ObjectType.Unknown;
+                _extents[extentIndex].Pages[pageIndexInExtent].AllocationStatus = false;
+                _extents[extentIndex].Pages[pageIndexInExtent].ObjectId = ObjectId.Zero;
+                _extents[extentIndex].Pages[pageIndexInExtent].LogicalPageId = LogicalPageId.Zero;
+                _extents[extentIndex].Pages[pageIndexInExtent].ObjectType = ObjectType.Unknown;
 
                 // Update extent information
-                _extents[extent].IsFull = false;
-                if (!_extents[extent].Pages.Any(pi => pi.AllocationStatus))
+                _extents[extentIndex].IsFull = false;
+                if (!_extents[extentIndex].Pages.Any(pi => pi.AllocationStatus))
                 {
-                    _extents[extent].IsMixedExtent = false;
-                    _extents[extent].ObjectId = ObjectId.Zero;
+                    _extents[extentIndex].IsMixedExtent = false;
+                    _extents[extentIndex].ObjectId = ObjectId.Zero;
                 }
 
+                // Perform full save of distribution page
                 SetDirty();
                 Save();
-                //WriteData();
-                //SetHeaderDirty();
             }
         }
 

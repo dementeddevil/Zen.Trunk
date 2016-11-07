@@ -307,6 +307,43 @@ namespace Zen.Trunk.Storage.Data
     /// <summary>
     /// 
     /// </summary>
+    public class DeallocateDataPageParameters
+    {
+        #region Public Constructors
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DeallocateDataPageParameters"/> class.
+        /// </summary>
+        /// <param name="virtualPageId">The virtual page identifier.</param>
+        /// <param name="logicalPageId">The logical page identifier.</param>
+        public DeallocateDataPageParameters(VirtualPageId virtualPageId, LogicalPageId logicalPageId)
+        {
+            VirtualPageId = virtualPageId;
+            LogicalPageId = logicalPageId;
+        }
+        #endregion
+
+        #region Public Properties
+        /// <summary>
+        /// Gets the virtual page identifier.
+        /// </summary>
+        /// <value>
+        /// The virtual page identifier.
+        /// </value>
+        public VirtualPageId VirtualPageId { get; }
+
+        /// <summary>
+        /// Gets the logical page identifier.
+        /// </summary>
+        /// <value>
+        /// The logical page identifier.
+        /// </value>
+        public LogicalPageId LogicalPageId { get; }
+        #endregion
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
     public class ExpandDataDeviceParameters
     {
         /// <summary>

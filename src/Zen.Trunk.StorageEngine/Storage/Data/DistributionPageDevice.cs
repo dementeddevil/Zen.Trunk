@@ -156,13 +156,17 @@ namespace Zen.Trunk.Storage.Data
 			return rootPage;
 		}
 
-		/// <summary>
-		/// Allocates the data page.
-		/// </summary>
-		/// <param name="allocParams">The alloc parameters.</param>
-		/// <returns></returns>
-		/// <exception cref="DeviceFullException"></exception>
-		public async Task<VirtualPageId> AllocateDataPageAsync(AllocateDataPageParameters allocParams)
+        /// <summary>
+        /// Allocates the data page.
+        /// </summary>
+        /// <param name="allocParams">The alloc parameters.</param>
+        /// <returns>
+        /// A <see cref="Task"/> representing the asynchronous operation that
+        ///  when complete will return the virtual page identifier of the newly
+        ///  allocated page.
+        /// </returns>
+        /// <exception cref="DeviceFullException"></exception>
+        public async Task<VirtualPageId> AllocateDataPageAsync(AllocateDataPageParameters allocParams)
 		{
 			// Keep looping until we allocate
 			var isExpand = false;
@@ -191,7 +195,6 @@ namespace Zen.Trunk.Storage.Data
 								// NOTE: This may throw lock exception if some
 								//	other connection is currently updating an
 								//	extent etc...
-								await distPage.SetDistributionLockAsync(ObjectLockType.Shared).ConfigureAwait(false);
 								await LoadDistributionPage(distPage, distPageIndex).ConfigureAwait(false);
 
 								// Ask distribution page to allocate for object
@@ -229,6 +232,32 @@ namespace Zen.Trunk.Storage.Data
 				isExpand = true;
 			}
 		}
+
+        /// <summary>
+        /// Deallocates the data page.
+        /// </summary>
+        /// <param name="deallocParams">The dealloc parameters.</param>
+        /// <returns>
+        /// A <see cref="Task"/> representing the asynchronous operation.
+        /// </returns>
+        public async Task DeallocateDataPageAsync(DeallocateDataPageParameters deallocParams)
+	    {
+	        // Locate the distribution page that is tracking this page
+	        var distPageIndex =
+	            (deallocParams.VirtualPageId.PhysicalPageId - DistributionPageOffset) /
+	            DistributionPage.PageTrackingCount;
+	        using (var distPage = new DistributionPage())
+	        {
+                // Load the distribution page (it will be under a SHARED lock)
+	            await LoadDistributionPage(distPage, distPageIndex).ConfigureAwait(false);
+
+                // Determine the page index (relative to distribution page that tracks it)
+	            var pageOffset = deallocParams.VirtualPageId.PhysicalPageId - distPage.VirtualPageId.PhysicalPageId - 1;
+
+                // Delegate deallocation request to the distribution page
+	            await distPage.DeallocatePageAsync(pageOffset).ConfigureAwait(false);
+	        }
+	    }
 		#endregion
 
 		#region Protected Methods
@@ -379,8 +408,8 @@ namespace Zen.Trunk.Storage.Data
                     Logger.Debug($"Distribution page at {pageId}");
                 }
 
-				// Issue the sub-ordinate request
-				await FileGroupDevice
+                // Issue the sub-ordinate request
+                await FileGroupDevice
                     .LoadDataPageAsync(new LoadDataPageParameters(page))
                     .ConfigureAwait(false);
 
