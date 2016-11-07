@@ -77,6 +77,57 @@ namespace Zen.Trunk.Storage.Data.Table
         #endregion
     }
 
+    public class MergeTableIndexPageParameters
+    {
+        #region Public Constructors
+        public MergeTableIndexPageParameters(
+            IndexId indexId,
+            TableIndexPage parentPage,
+            TableIndexPage primaryPage,
+            TableIndexPage pageToBeMerged)
+        {
+            IndexId = indexId;
+            ParentPage = parentPage;
+            PrimaryPage = primaryPage;
+            PageToBeMerged = pageToBeMerged;
+        }
+        #endregion
+
+        #region Public Properties
+        /// <summary>
+        /// Gets the index identifier.
+        /// </summary>
+        /// <value>
+        /// The index identifier.
+        /// </value>
+        public IndexId IndexId { get; }
+
+        /// <summary>
+        /// Gets the parent page.
+        /// </summary>
+        /// <value>
+        /// The parent page.
+        /// </value>
+        public TableIndexPage ParentPage { get; }
+
+        /// <summary>
+        /// Gets the primary page.
+        /// </summary>
+        /// <value>
+        /// The primary page.
+        /// </value>
+        public TableIndexPage PrimaryPage { get; }
+
+        /// <summary>
+        /// Gets the page to be merged.
+        /// </summary>
+        /// <value>
+        /// The page to be merged.
+        /// </value>
+        public TableIndexPage PageToBeMerged { get; }
+        #endregion
+    }
+
     /// <summary>
     /// 
     /// </summary>

@@ -15,47 +15,57 @@ namespace Zen.Trunk.Storage.Data.Table
     internal class TableIndexManager : IndexManager<RootTableIndexInfo>
 	{
 		#region Private Types
-		private class CreateTableIndex : TransactionContextTaskRequest<CreateTableIndexParameters, IndexId>
+		private class CreateTableIndexRequest : TransactionContextTaskRequest<CreateTableIndexParameters, IndexId>
 		{
             #region Public Constructors
             /// <summary>
             /// Initialises an instance of <see cref="T:CreateTableIndex" />.
             /// </summary>
             /// <param name="parameters">The parameters.</param>
-            public CreateTableIndex(CreateTableIndexParameters parameters)
+            public CreateTableIndexRequest(CreateTableIndexParameters parameters)
 				: base(parameters)
 			{
 			}
 			#endregion
 		}
 
-		private class SplitTableIndexPage : TransactionContextTaskRequest<SplitTableIndexPageParameters, bool>
+		private class SplitTableIndexPageRequest : TransactionContextTaskRequest<SplitTableIndexPageParameters, bool>
 		{
 			#region Public Constructors
 			/// <summary>
 			/// Initialises an instance of <see cref="T:SplitTableIndexPage" />.
 			/// </summary>
-			public SplitTableIndexPage(SplitTableIndexPageParameters message)
+			public SplitTableIndexPageRequest(SplitTableIndexPageParameters message)
 				: base(message)
 			{
 			}
 			#endregion
 		}
 
-		private class FindTableIndex : TransactionContextTaskRequest<FindTableIndexParameters, FindTableIndexResult>
+	    private class MergeTableIndexPagesRequest : TransactionContextTaskRequest<MergeTableIndexPageParameters, bool>
+	    {
+	        #region Public Constructors
+	        public MergeTableIndexPagesRequest(MergeTableIndexPageParameters parameters)
+                : base(parameters)
+	        {
+	        }
+	        #endregion
+        }
+
+		private class FindTableIndexRequest : TransactionContextTaskRequest<FindTableIndexParameters, FindTableIndexResult>
 		{
 			#region Public Constructors
-			public FindTableIndex(FindTableIndexParameters message)
+			public FindTableIndexRequest(FindTableIndexParameters message)
 				: base(message)
 			{
 			}
 			#endregion
 		}
 
-		private class EnumerateIndexEntries : TransactionContextTaskRequest<EnumerateIndexEntriesParameters, bool>
+		private class EnumerateIndexEntriesRequest : TransactionContextTaskRequest<EnumerateIndexEntriesParameters, bool>
 		{
 			#region Public Constructors
-			public EnumerateIndexEntries(EnumerateIndexEntriesParameters message)
+			public EnumerateIndexEntriesRequest(EnumerateIndexEntriesParameters message)
 				: base(message)
 			{
 			}
@@ -65,10 +75,11 @@ namespace Zen.Trunk.Storage.Data.Table
 
 		#region Private Fields
 		private readonly DatabaseTable _ownerTable;
-	    private readonly ITargetBlock<CreateTableIndex> _createIndexPort;
-		private readonly ITargetBlock<SplitTableIndexPage> _splitPagePort;
-		private readonly ITargetBlock<FindTableIndex> _findIndexPort;
-		private readonly ITargetBlock<EnumerateIndexEntries> _enumerateIndexEntriesPort;
+	    private readonly ITargetBlock<CreateTableIndexRequest> _createIndexPort;
+		private readonly ITargetBlock<SplitTableIndexPageRequest> _splitPagePort;
+	    private readonly ITargetBlock<MergeTableIndexPagesRequest> _mergePagesPort;
+		private readonly ITargetBlock<FindTableIndexRequest> _findIndexPort;
+		private readonly ITargetBlock<EnumerateIndexEntriesRequest> _enumerateIndexEntriesPort;
 		#endregion
 
 		#region Public Constructors
@@ -81,25 +92,31 @@ namespace Zen.Trunk.Storage.Data.Table
 		{
 		    _ownerTable = parentLifetimeScope.Resolve<DatabaseTable>();
             var taskInterleave = new ConcurrentExclusiveSchedulerPair();
-            _createIndexPort = new TransactionContextActionBlock<CreateTableIndex, IndexId>(
+            _createIndexPort = new TransactionContextActionBlock<CreateTableIndexRequest, IndexId>(
                 request => CreateIndexHandler(request),
                 new ExecutionDataflowBlockOptions
                 {
                     TaskScheduler = taskInterleave.ExclusiveScheduler,
                 });
-            _splitPagePort = new TransactionContextActionBlock<SplitTableIndexPage, bool>(
+            _splitPagePort = new TransactionContextActionBlock<SplitTableIndexPageRequest, bool>(
                 request => SplitPageHandler(request),
                 new ExecutionDataflowBlockOptions
                 {
                     TaskScheduler = taskInterleave.ConcurrentScheduler,
                 });
-            _findIndexPort = new TransactionContextActionBlock<FindTableIndex, FindTableIndexResult>(
+            _mergePagesPort = new TransactionContextActionBlock<MergeTableIndexPagesRequest, bool>(
+                request => MergePagesHandler(request),
+                new ExecutionDataflowBlockOptions
+                {
+                    TaskScheduler = taskInterleave.ConcurrentScheduler,
+                });
+            _findIndexPort = new TransactionContextActionBlock<FindTableIndexRequest, FindTableIndexResult>(
                 request => FindIndexHandler(request),
                 new ExecutionDataflowBlockOptions
                 {
                     TaskScheduler = taskInterleave.ConcurrentScheduler,
                 });
-            _enumerateIndexEntriesPort = new TransactionContextActionBlock<EnumerateIndexEntries, bool>(
+            _enumerateIndexEntriesPort = new TransactionContextActionBlock<EnumerateIndexEntriesRequest, bool>(
                 request => EnumerateIndexEntriesHandler(request),
                 new ExecutionDataflowBlockOptions
                 {
@@ -128,13 +145,13 @@ namespace Zen.Trunk.Storage.Data.Table
         /// </returns>
         public Task<IndexId> CreateIndexAsync(CreateTableIndexParameters parameters)
 		{
-			var request = new CreateTableIndex(parameters);
+			var request = new CreateTableIndexRequest(parameters);
 			_createIndexPort.Post(request);
 			return request.Task;
 		}
 
         /// <summary>
-        /// Splits the an index page.
+        /// Splits an index page into two pages.
         /// </summary>
         /// <param name="parameters">The parameters.</param>
         /// <returns>
@@ -142,10 +159,24 @@ namespace Zen.Trunk.Storage.Data.Table
         /// </returns>
         public Task<bool> SplitPageAsync(SplitTableIndexPageParameters parameters)
 		{
-			var request = new SplitTableIndexPage(parameters);
+			var request = new SplitTableIndexPageRequest(parameters);
 			_splitPagePort.Post(request);
 			return request.Task;
 		}
+
+        /// <summary>
+        /// Merges the two index pages together.
+        /// </summary>
+        /// <param name="parameters">The parameters.</param>
+        /// <returns>
+        /// A <see cref="Task"/> representing the asynchronous operation.
+        /// </returns>
+        public Task<bool> MergePagesAsync(MergeTableIndexPageParameters parameters)
+	    {
+	        var request = new MergeTableIndexPagesRequest(parameters);
+	        _mergePagesPort.Post(request);
+	        return request.Task;
+	    }
 
         /// <summary>
         /// Finds the index matching the find parameters.
@@ -156,7 +187,7 @@ namespace Zen.Trunk.Storage.Data.Table
         /// </returns>
         public Task<FindTableIndexResult> FindIndexAsync(FindTableIndexParameters parameters)
 		{
-			var findLeaf = new FindTableIndex(parameters);
+			var findLeaf = new FindTableIndexRequest(parameters);
 			_findIndexPort.Post(findLeaf);
 			return findLeaf.Task;
 		}
@@ -170,14 +201,14 @@ namespace Zen.Trunk.Storage.Data.Table
         /// </returns>
         public Task<bool> EnumerateIndexAsync(EnumerateIndexEntriesParameters parameters)
 		{
-			var iter = new EnumerateIndexEntries(parameters);
+			var iter = new EnumerateIndexEntriesRequest(parameters);
 			_enumerateIndexEntriesPort.Post(iter);
 			return iter.Task;
 		}
 		#endregion
 
 		#region Private Methods
-		private async Task<IndexId> CreateIndexHandler(CreateTableIndex request)
+		private async Task<IndexId> CreateIndexHandler(CreateTableIndexRequest request)
 		{
 			// Perform sanity checks and determine index id
 		    var indexId = new IndexId(1);
@@ -404,7 +435,7 @@ namespace Zen.Trunk.Storage.Data.Table
 			return indexId;
 		}
 
-		private async Task<bool> SplitPageHandler(SplitTableIndexPage request)
+		private async Task<bool> SplitPageHandler(SplitTableIndexPageRequest request)
 		{
 			var parentPage = request.Message.ParentPage;
 			var currentPage = request.Message.PageToSplit;
@@ -415,7 +446,7 @@ namespace Zen.Trunk.Storage.Data.Table
 			//	FindIndex searches the pages we are working on should already
 			//	be locked.
 
-			// Make sure split page will use same file-group as original
+			// Make sure split page will use same identifiers as original
 			splitPage.FileGroupId = currentPage.FileGroupId;
             splitPage.ObjectId = currentPage.ObjectId;
             splitPage.IndexId = currentPage.IndexId;
@@ -518,7 +549,12 @@ namespace Zen.Trunk.Storage.Data.Table
 			return true;
 		}
 
-		private async Task<FindTableIndexResult> FindIndexHandler(FindTableIndex request)
+	    private async Task<bool> MergePagesHandler(MergeTableIndexPagesRequest request)
+	    {
+	        return false;
+	    }
+
+		private async Task<FindTableIndexResult> FindIndexHandler(FindTableIndexRequest request)
 		{
 			TableIndexPage prevPage = null, parentPage = null;
 			var logicalId = request.Message.RootInfo.RootLogicalPageId;
@@ -673,7 +709,7 @@ namespace Zen.Trunk.Storage.Data.Table
 			return null;
 		}
 
-		private async Task<bool> EnumerateIndexEntriesHandler(EnumerateIndexEntries request)
+		private async Task<bool> EnumerateIndexEntriesHandler(EnumerateIndexEntriesRequest request)
 		{
 			var success = false;
 			var find = new FindTableIndexParameters(
