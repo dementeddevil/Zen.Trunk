@@ -127,7 +127,7 @@ Then the allocation fails.")]
             pageDevice.BeginTransaction();
 
             var page = pageDevice.CreatePage<DistributionPage>(new VirtualPageId(0));
-            await page.InitialiseValidExtentsAsync(129).ConfigureAwait(true);
+            await page.UpdateValidExtentsAsync(129).ConfigureAwait(true);
 
             // We should be able to allocate 128 exclusive extents for 128 
             //	objects
