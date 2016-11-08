@@ -240,6 +240,71 @@ namespace Zen.Trunk.Storage.Data
     /// <summary>
     /// 
     /// </summary>
+    public class FreeDataPageParameters
+    {
+        #region Public Constructors
+        /// <summary>
+        /// Initializes a new instance of the <see cref="FreeDataPageParameters"/> class.
+        /// </summary>
+        /// <param name="page">The page.</param>
+        public FreeDataPageParameters(DataPage page)
+        {
+            if (page == null)
+            {
+                throw new ArgumentNullException(nameof(page));
+            }
+
+            VirtualPageId = page.VirtualPageId;
+            var logicalPage = page as LogicalPage;
+            if (logicalPage != null)
+            {
+                LogicalPageId = logicalPage.LogicalPageId;
+            }
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="FreeDataPageParameters"/> class.
+        /// </summary>
+        /// <param name="virtualPageId">The virtual page identifier.</param>
+        public FreeDataPageParameters(VirtualPageId virtualPageId)
+            : this(virtualPageId, LogicalPageId.Zero)
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="FreeDataPageParameters"/> class.
+        /// </summary>
+        /// <param name="virtualPageId">The virtual page identifier.</param>
+        /// <param name="logicalPageId">The logical page identifier.</param>
+        public FreeDataPageParameters(VirtualPageId virtualPageId, LogicalPageId logicalPageId)
+        {
+            VirtualPageId = virtualPageId;
+            LogicalPageId = logicalPageId;
+        }
+        #endregion
+
+        #region Public Properties
+        /// <summary>
+        /// Gets the virtual page identifier.
+        /// </summary>
+        /// <value>
+        /// The virtual page identifier.
+        /// </value>
+        public VirtualPageId VirtualPageId { get; }
+
+        /// <summary>
+        /// Gets the logical page identifier.
+        /// </summary>
+        /// <value>
+        /// The logical page identifier.
+        /// </value>
+        public LogicalPageId LogicalPageId { get; } 
+        #endregion
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
     public class AllocateDataPageParameters
 	{
         #region Public Constructors
