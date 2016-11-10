@@ -69,19 +69,23 @@ namespace Zen.Trunk.Storage.Data
 
         private class CreateDistributionPagesRequest : TransactionContextTaskRequest<bool>
         {
+            #region Public Constructors
             public CreateDistributionPagesRequest(
-                DeviceId deviceId, uint startPhysicalId, uint endPhysicalId)
+                    DeviceId deviceId, uint startPhysicalId, uint endPhysicalId)
             {
                 DeviceId = deviceId;
                 StartPhysicalId = startPhysicalId;
                 EndPhysicalId = endPhysicalId;
             }
+            #endregion
 
+            #region Public Properties
             public DeviceId DeviceId { get; }
 
             public uint StartPhysicalId { get; }
 
-            public uint EndPhysicalId { get; }
+            public uint EndPhysicalId { get; } 
+            #endregion
         }
 
         private class AllocateDataPageRequest : TransactionContextTaskRequest<AllocateDataPageParameters, VirtualPageId>
@@ -89,6 +93,16 @@ namespace Zen.Trunk.Storage.Data
             #region Public Constructors
             public AllocateDataPageRequest(AllocateDataPageParameters allocParams)
                 : base(allocParams)
+            {
+            }
+            #endregion
+        }
+
+        private class DeallocateDataPageRequest : TransactionContextTaskRequest<DeallocateDataPageParameters, bool>
+        {
+            #region Public Constructors
+            public DeallocateDataPageRequest(DeallocateDataPageParameters deallocParams)
+                : base(deallocParams)
             {
             }
             #endregion
@@ -188,6 +202,12 @@ namespace Zen.Trunk.Storage.Data
                 });
             AllocateDataPagePort = new TransactionContextActionBlock<AllocateDataPageRequest, VirtualPageId>(
                 request => AllocateDataPageHandler(request),
+                new ExecutionDataflowBlockOptions
+                {
+                    TaskScheduler = taskInterleave.ExclusiveScheduler
+                });
+            DeallocateDataPagePort = new TransactionContextActionBlock<DeallocateDataPageRequest,bool>(
+                request => DeallocateDataPageHandler(request),
                 new ExecutionDataflowBlockOptions
                 {
                     TaskScheduler = taskInterleave.ExclusiveScheduler
@@ -343,6 +363,14 @@ namespace Zen.Trunk.Storage.Data
         /// </summary>
         /// <value>The allocate data page port.</value>
         private ITargetBlock<AllocateDataPageRequest> AllocateDataPagePort { get; }
+
+        /// <summary>
+        /// Gets the deallocate data page port.
+        /// </summary>
+        /// <value>
+        /// The deallocate data page port.
+        /// </value>
+        private ITargetBlock<DeallocateDataPageRequest> DeallocateDataPagePort { get; }
 
         /// <summary>
         /// Gets the import distribution page port.
@@ -1245,6 +1273,29 @@ namespace Zen.Trunk.Storage.Data
 
             // File group must be full if we reach this point!
             throw new FileGroupFullException(DeviceId.Zero, FileGroupId, null);
+        }
+
+        private async Task<bool> DeallocateDataPageHandler(DeallocateDataPageRequest request)
+        {
+            // Determine the virtual page identifier
+            var virtualPageId = request.Message.VirtualPageId;
+            if (virtualPageId == VirtualPageId.Zero)
+            {
+                // Ask the LVM to translate logical page id
+                virtualPageId = await _logicalVirtual
+                    .GetVirtualAsync(request.Message.LogicalPageId)
+                    .ConfigureAwait(false);
+            }
+
+            // Load distribution device for this virtual page
+            var distDevice = GetDistributionPageDevice(virtualPageId.DeviceId);
+
+            // Delegate deallocation request via device
+            await distDevice
+                .DeallocateDataPageAsync(
+                    new DeallocateDataPageParameters(virtualPageId, LogicalPageId.Zero))
+                .ConfigureAwait(false);
+            return true;
         }
 
         private async Task<ObjectId> CreateObjectReferenceHandler(CreateObjectReferenceRequest request)
