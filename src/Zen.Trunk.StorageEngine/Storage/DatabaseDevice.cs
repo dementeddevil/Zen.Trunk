@@ -62,6 +62,16 @@ namespace Zen.Trunk.Storage
             #endregion
         }
 
+        private class DeallocateFileGroupPageRequest : TransactionContextTaskRequest<DeallocateFileGroupDataPageParameters, bool>
+        {
+            #region Public Constructors
+            public DeallocateFileGroupPageRequest(DeallocateFileGroupDataPageParameters parameters)
+                : base(parameters)
+            {
+            }
+            #endregion
+        }
+
         private class AddFileGroupTableRequest : TransactionContextTaskRequest<AddFileGroupTableParameters, ObjectId>
         {
             #region Public Constructors
@@ -151,6 +161,13 @@ namespace Zen.Trunk.Storage
             LoadFileGroupPagePort =
                 new TransactionContextActionBlock<LoadFileGroupPageRequest, bool>(
                     request => LoadFileGroupPageHandler(request),
+                    new ExecutionDataflowBlockOptions
+                    {
+                        TaskScheduler = taskInterleave.ConcurrentScheduler
+                    });
+            DeallocateFileGroupPagePort =
+                new TransactionContextActionBlock<DeallocateFileGroupPageRequest, bool>(
+                    request => DeallocateFileGroupPageHandler(request),
                     new ExecutionDataflowBlockOptions
                     {
                         TaskScheduler = taskInterleave.ConcurrentScheduler
@@ -300,6 +317,14 @@ namespace Zen.Trunk.Storage
         private ITargetBlock<LoadFileGroupPageRequest> LoadFileGroupPagePort { get; }
 
         /// <summary>
+        /// Gets the deallocate file group page port.
+        /// </summary>
+        /// <value>
+        /// The deallocate file group page port.
+        /// </value>
+        private ITargetBlock<DeallocateFileGroupPageRequest> DeallocateFileGroupPagePort { get; }
+
+        /// <summary>
         /// Gets the flush device buffers port.
         /// </summary>
         /// <value>The flush device buffers port.</value>
@@ -399,6 +424,29 @@ namespace Zen.Trunk.Storage
         {
             var request = new LoadFileGroupPageRequest(loadParams);
             if (!LoadFileGroupPagePort.Post(request))
+            {
+                throw new BufferDeviceShuttingDownException();
+            }
+            return request.Task;
+        }
+
+        /// <summary>
+        /// Deallocates the file group page.
+        /// </summary>
+        /// <param name="deallocParams">The dealloc parameters.</param>
+        /// <returns>
+        /// A <see cref="Task"/> representing the asynchronous operation.
+        /// </returns>
+        /// <exception cref="FileGroupInvalidException">
+        /// Thrown if the appropriate filegroup device cannot be resolved.
+        /// </exception>
+        /// <exception cref="BufferDeviceShuttingDownException">
+        /// Thrown if the buffer device is shutting down.
+        /// </exception>
+        public Task DeallocateFileGroupPageAsync(DeallocateFileGroupDataPageParameters deallocParams)
+        {
+            var request = new DeallocateFileGroupPageRequest(deallocParams);
+            if (!DeallocateFileGroupPagePort.Post(request))
             {
                 throw new BufferDeviceShuttingDownException();
             }
@@ -905,6 +953,19 @@ namespace Zen.Trunk.Storage
             return true;
         }
 
+        private async Task<bool> DeallocateFileGroupPageHandler(DeallocateFileGroupPageRequest request)
+        {
+            // Locate appropriate filegroup device
+            var fileGroupDevice = GetFileGroupDeviceCore(
+                request.Message.FileGroupId, request.Message.FileGroupName);
+
+            // Pass request onwards
+            await fileGroupDevice
+                .DeallocateDataPageAsync(request.Message)
+                .ConfigureAwait(false);
+            return true;
+        }
+
         private async Task<bool> FlushDeviceBuffersHandler(FlushFileGroupRequest request)
         {
             // Delegate request through to caching buffer device
@@ -919,7 +980,7 @@ namespace Zen.Trunk.Storage
                 request.Message.FileGroupId, request.Message.FileGroupName);
 
             // Delegate request to file-group device.
-            return fileGroupDevice.AddTable(request.Message);
+            return fileGroupDevice.AddTableAsync(request.Message);
         }
 
         // ReSharper disable once UnusedParameter.Local

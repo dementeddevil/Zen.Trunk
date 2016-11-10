@@ -12,7 +12,7 @@ namespace Zen.Trunk.Storage.Data
     /// <seealso cref="AddDeviceParameters" />
     /// <seealso cref="FileGroupDevice.AddDataDeviceAsync(AddDataDeviceParameters)"/>
     public class AddDataDeviceParameters : AddDeviceParameters
-	{
+    {
         #region Public Constructors
         /// <summary>
         /// Initializes a new instance of the <see cref="AddDataDeviceParameters" /> class.
@@ -25,25 +25,25 @@ namespace Zen.Trunk.Storage.Data
         /// Set to <c>true</c> to update the root page; otherwise <c>false</c>.
         /// </param>
         public AddDataDeviceParameters(
-			string name,
-			string pathName,
+            string name,
+            string pathName,
             DeviceId deviceId,
-			uint createPageCount = 0,
-			bool updateRootPage = false)
-			: base(name, pathName, deviceId, createPageCount)
-		{
-			UpdateRootPage = updateRootPage;
-		}
-		#endregion
+            uint createPageCount = 0,
+            bool updateRootPage = false)
+            : base(name, pathName, deviceId, createPageCount)
+        {
+            UpdateRootPage = updateRootPage;
+        }
+        #endregion
 
-		#region Public Properties
-		/// <summary>
-		/// Gets or sets a value indicating whether [update root page].
-		/// </summary>
-		/// <value><c>true</c> if [update root page]; otherwise, <c>false</c>.</value>
-		public bool UpdateRootPage { get; }
-		#endregion
-	}
+        #region Public Properties
+        /// <summary>
+        /// Gets or sets a value indicating whether [update root page].
+        /// </summary>
+        /// <value><c>true</c> if [update root page]; otherwise, <c>false</c>.</value>
+        public bool UpdateRootPage { get; }
+        #endregion
+    }
 
     /// <summary>
     /// <c>RemoveDataDeviceParameters</c> encapsulates data used with a call
@@ -52,143 +52,143 @@ namespace Zen.Trunk.Storage.Data
     /// <seealso cref="RemoveDeviceParameters" />
     /// <seealso cref="FileGroupDevice.RemoveDataDeviceAsync(RemoveDataDeviceParameters)"/>
     public class RemoveDataDeviceParameters : RemoveDeviceParameters
-	{
-		#region Public Constructors
-		/// <summary>
-		/// Initializes a new instance of the <see cref="RemoveDataDeviceParameters"/> class.
-		/// </summary>
-		/// <param name="deviceId">The device unique identifier.</param>
-		/// <param name="updateRootPage">if set to <c>true</c> [update root page].</param>
-		public RemoveDataDeviceParameters(DeviceId deviceId, bool updateRootPage = false)
-			: base(deviceId)
-		{
-			UpdateRootPage = updateRootPage;
-		}
+    {
+        #region Public Constructors
+        /// <summary>
+        /// Initializes a new instance of the <see cref="RemoveDataDeviceParameters"/> class.
+        /// </summary>
+        /// <param name="deviceId">The device unique identifier.</param>
+        /// <param name="updateRootPage">if set to <c>true</c> [update root page].</param>
+        public RemoveDataDeviceParameters(DeviceId deviceId, bool updateRootPage = false)
+            : base(deviceId)
+        {
+            UpdateRootPage = updateRootPage;
+        }
 
-		/// <summary>
-		/// Initializes a new instance of the <see cref="RemoveDataDeviceParameters"/> class.
-		/// </summary>
-		/// <param name="name">The name.</param>
-		/// <param name="updateRootPage">if set to <c>true</c> [update root page].</param>
-		public RemoveDataDeviceParameters(string name, bool updateRootPage = false)
-			: base(name)
-		{
-			UpdateRootPage = updateRootPage;
-		}
-		#endregion
+        /// <summary>
+        /// Initializes a new instance of the <see cref="RemoveDataDeviceParameters"/> class.
+        /// </summary>
+        /// <param name="name">The name.</param>
+        /// <param name="updateRootPage">if set to <c>true</c> [update root page].</param>
+        public RemoveDataDeviceParameters(string name, bool updateRootPage = false)
+            : base(name)
+        {
+            UpdateRootPage = updateRootPage;
+        }
+        #endregion
 
-		#region Public Properties
-		/// <summary>
-		/// Gets or sets a value indicating whether [update root page].
-		/// </summary>
-		/// <value>
-		///   <c>true</c> if [update root page]; otherwise, <c>false</c>.
-		/// </value>
-		public bool UpdateRootPage
-		{
-			get;
-			private set;
-		}
-		#endregion
-	}
+        #region Public Properties
+        /// <summary>
+        /// Gets or sets a value indicating whether [update root page].
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if [update root page]; otherwise, <c>false</c>.
+        /// </value>
+        public bool UpdateRootPage
+        {
+            get;
+            private set;
+        }
+        #endregion
+    }
 
     /// <summary>
     /// 
     /// </summary>
     public class InitDataPageParameters
-	{
-		#region Public Constructors
-		/// <summary>
-		/// Initializes a new instance of the <see cref="InitDataPageParameters"/> class.
-		/// </summary>
-		/// <param name="page">The page.</param>
-		/// <param name="assignVirtualPageId">if set to <c>true</c> [assign virtual unique identifier].</param>
-		/// <param name="assignLogicalPageId">if set to <c>true</c> [assign logical unique identifier].</param>
-		/// <param name="assignAutomaticLogicalPageId">if set to <c>true</c> [assign automatic logical unique identifier].</param>
-		/// <param name="isNewObject">if set to <c>true</c> [is new object].</param>
-		public InitDataPageParameters(DataPage page, bool assignVirtualPageId = false, bool assignLogicalPageId = false, bool assignAutomaticLogicalPageId = false, bool isNewObject = false)
-		{
-			Page = page;
-			AssignVirtualPageId = assignVirtualPageId;
-			AssignLogicalPageId = assignLogicalPageId;
-			AssignAutomaticLogicalPageId = assignAutomaticLogicalPageId;
-			IsNewObject = isNewObject;
-		}
-		#endregion
+    {
+        #region Public Constructors
+        /// <summary>
+        /// Initializes a new instance of the <see cref="InitDataPageParameters"/> class.
+        /// </summary>
+        /// <param name="page">The page.</param>
+        /// <param name="assignVirtualPageId">if set to <c>true</c> [assign virtual unique identifier].</param>
+        /// <param name="assignLogicalPageId">if set to <c>true</c> [assign logical unique identifier].</param>
+        /// <param name="assignAutomaticLogicalPageId">if set to <c>true</c> [assign automatic logical unique identifier].</param>
+        /// <param name="isNewObject">if set to <c>true</c> [is new object].</param>
+        public InitDataPageParameters(DataPage page, bool assignVirtualPageId = false, bool assignLogicalPageId = false, bool assignAutomaticLogicalPageId = false, bool isNewObject = false)
+        {
+            Page = page;
+            AssignVirtualPageId = assignVirtualPageId;
+            AssignLogicalPageId = assignLogicalPageId;
+            AssignAutomaticLogicalPageId = assignAutomaticLogicalPageId;
+            IsNewObject = isNewObject;
+        }
+        #endregion
 
-		#region Public Properties
-		/// <summary>
-		/// Gets the page.
-		/// </summary>
-		/// <value>
-		/// The page.
-		/// </value>
-		public DataPage Page
-		{
-			get;
-			private set;
-		}
+        #region Public Properties
+        /// <summary>
+        /// Gets the page.
+        /// </summary>
+        /// <value>
+        /// The page.
+        /// </value>
+        public DataPage Page
+        {
+            get;
+            private set;
+        }
 
-		/// <summary>
-		/// Gets a value indicating whether [assign virtual unique identifier].
-		/// </summary>
-		/// <value>
-		/// <c>true</c> if [assign virtual unique identifier]; otherwise, <c>false</c>.
-		/// </value>
-		public bool AssignVirtualPageId
-		{
-			get;
-			private set;
-		}
+        /// <summary>
+        /// Gets a value indicating whether [assign virtual unique identifier].
+        /// </summary>
+        /// <value>
+        /// <c>true</c> if [assign virtual unique identifier]; otherwise, <c>false</c>.
+        /// </value>
+        public bool AssignVirtualPageId
+        {
+            get;
+            private set;
+        }
 
-		/// <summary>
-		/// Gets a value indicating whether [assign logical unique identifier].
-		/// </summary>
-		/// <value>
-		/// <c>true</c> if [assign logical unique identifier]; otherwise, <c>false</c>.
-		/// </value>
-		public bool AssignLogicalPageId
-		{
-			get;
-			private set;
-		}
+        /// <summary>
+        /// Gets a value indicating whether [assign logical unique identifier].
+        /// </summary>
+        /// <value>
+        /// <c>true</c> if [assign logical unique identifier]; otherwise, <c>false</c>.
+        /// </value>
+        public bool AssignLogicalPageId
+        {
+            get;
+            private set;
+        }
 
-		/// <summary>
-		/// Gets a value indicating whether [assign automatic logical unique identifier].
-		/// </summary>
-		/// <value>
-		/// <c>true</c> if [assign automatic logical unique identifier]; otherwise, <c>false</c>.
-		/// </value>
-		public bool AssignAutomaticLogicalPageId
-		{
-			get;
-			private set;
-		}
+        /// <summary>
+        /// Gets a value indicating whether [assign automatic logical unique identifier].
+        /// </summary>
+        /// <value>
+        /// <c>true</c> if [assign automatic logical unique identifier]; otherwise, <c>false</c>.
+        /// </value>
+        public bool AssignAutomaticLogicalPageId
+        {
+            get;
+            private set;
+        }
 
-		/// <summary>
-		/// Gets or sets a value indicating whether this instance is new object.
-		/// </summary>
-		/// <value>
-		/// <c>true</c> if this instance is new object; otherwise, <c>false</c>.
-		/// </value>
-		///	<remarks>
-		///	The term "New Object" refers to the Object ID. If the object is new
-		///	then the first set of pages for the object are placed in a mixed
-		///	extent.
-		///	</remarks>
-		public bool IsNewObject
-		{
-			get;
-			private set;
-		}
-		#endregion
-	}
+        /// <summary>
+        /// Gets or sets a value indicating whether this instance is new object.
+        /// </summary>
+        /// <value>
+        /// <c>true</c> if this instance is new object; otherwise, <c>false</c>.
+        /// </value>
+        ///	<remarks>
+        ///	The term "New Object" refers to the Object ID. If the object is new
+        ///	then the first set of pages for the object are placed in a mixed
+        ///	extent.
+        ///	</remarks>
+        public bool IsNewObject
+        {
+            get;
+            private set;
+        }
+        #endregion
+    }
 
     /// <summary>
     /// 
     /// </summary>
     public class LoadDataPageParameters
-	{
+    {
         #region Public Constructors
         /// <summary>
         /// Initializes a new instance of the <see cref="LoadDataPageParameters"/> class.
@@ -203,102 +203,37 @@ namespace Zen.Trunk.Storage.Data
         /// otherwise <c>false</c>.
         /// </param>
         public LoadDataPageParameters(DataPage page, bool virtualPageIdValid = false, bool logicalPageIdValid = false)
-		{
-			Page = page;
-			VirtualPageIdValid = virtualPageIdValid;
-			LogicalPageIdValid = logicalPageIdValid;
-		}
-		#endregion
-
-		#region Public Properties
-		/// <summary>
-		/// Gets the page.
-		/// </summary>
-		/// <value>
-		/// The page.
-		/// </value>
-		public DataPage Page { get; }
-
-		/// <summary>
-		/// Gets a value indicating whether [virtual page unique identifier valid].
-		/// </summary>
-		/// <value>
-		/// <c>true</c> if [virtual page unique identifier valid]; otherwise, <c>false</c>.
-		/// </value>
-		public bool VirtualPageIdValid { get; }
-
-		/// <summary>
-		/// Gets a value indicating whether [logical page unique identifier valid].
-		/// </summary>
-		/// <value>
-		/// <c>true</c> if [logical page unique identifier valid]; otherwise, <c>false</c>.
-		/// </value>
-		public bool LogicalPageIdValid { get; }
-		#endregion
-	}
-
-    /// <summary>
-    /// 
-    /// </summary>
-    public class FreeDataPageParameters
-    {
-        #region Public Constructors
-        /// <summary>
-        /// Initializes a new instance of the <see cref="FreeDataPageParameters"/> class.
-        /// </summary>
-        /// <param name="page">The page.</param>
-        public FreeDataPageParameters(DataPage page)
         {
-            if (page == null)
-            {
-                throw new ArgumentNullException(nameof(page));
-            }
-
-            VirtualPageId = page.VirtualPageId;
-            var logicalPage = page as LogicalPage;
-            if (logicalPage != null)
-            {
-                LogicalPageId = logicalPage.LogicalPageId;
-            }
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="FreeDataPageParameters"/> class.
-        /// </summary>
-        /// <param name="virtualPageId">The virtual page identifier.</param>
-        public FreeDataPageParameters(VirtualPageId virtualPageId)
-            : this(virtualPageId, LogicalPageId.Zero)
-        {
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="FreeDataPageParameters"/> class.
-        /// </summary>
-        /// <param name="virtualPageId">The virtual page identifier.</param>
-        /// <param name="logicalPageId">The logical page identifier.</param>
-        public FreeDataPageParameters(VirtualPageId virtualPageId, LogicalPageId logicalPageId)
-        {
-            VirtualPageId = virtualPageId;
-            LogicalPageId = logicalPageId;
+            Page = page;
+            VirtualPageIdValid = virtualPageIdValid;
+            LogicalPageIdValid = logicalPageIdValid;
         }
         #endregion
 
         #region Public Properties
         /// <summary>
-        /// Gets the virtual page identifier.
+        /// Gets the page.
         /// </summary>
         /// <value>
-        /// The virtual page identifier.
+        /// The page.
         /// </value>
-        public VirtualPageId VirtualPageId { get; }
+        public DataPage Page { get; }
 
         /// <summary>
-        /// Gets the logical page identifier.
+        /// Gets a value indicating whether the virtual page unique identifier is valid.
         /// </summary>
         /// <value>
-        /// The logical page identifier.
+        /// <c>true</c> if the virtual page unique identifier is valid; otherwise, <c>false</c>.
         /// </value>
-        public LogicalPageId LogicalPageId { get; } 
+        public bool VirtualPageIdValid { get; }
+
+        /// <summary>
+        /// Gets a value indicating whether the logical page unique identifier is valid.
+        /// </summary>
+        /// <value>
+        /// <c>true</c> if the logical page unique identifier is valid; otherwise, <c>false</c>.
+        /// </value>
+        public bool LogicalPageIdValid { get; }
         #endregion
     }
 
@@ -306,7 +241,7 @@ namespace Zen.Trunk.Storage.Data
     /// 
     /// </summary>
     public class AllocateDataPageParameters
-	{
+    {
         #region Public Constructors
         /// <summary>
         /// Initializes a new instance of the <see cref="AllocateDataPageParameters"/> class.
@@ -375,6 +310,25 @@ namespace Zen.Trunk.Storage.Data
     public class DeallocateDataPageParameters
     {
         #region Public Constructors
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DeallocateDataPageParameters"/> class.
+        /// </summary>
+        /// <param name="page">The page.</param>
+        public DeallocateDataPageParameters(DataPage page)
+        {
+            if (page == null)
+            {
+                throw new ArgumentNullException(nameof(page));
+            }
+
+            VirtualPageId = page.VirtualPageId;
+            var logicalPage = page as LogicalPage;
+            if (logicalPage != null)
+            {
+                LogicalPageId = logicalPage.LogicalPageId;
+            }
+        }
+
         /// <summary>
         /// Initializes a new instance of the <see cref="DeallocateDataPageParameters"/> class.
         /// </summary>
@@ -448,7 +402,7 @@ namespace Zen.Trunk.Storage.Data
     /// 
     /// </summary>
     public class AddTableParameters
-	{
+    {
         /// <summary>
         /// Initializes a new instance of the <see cref="AddTableParameters"/> class.
         /// </summary>
@@ -460,22 +414,22 @@ namespace Zen.Trunk.Storage.Data
         /// Table must have at least one column definition.
         /// </exception>
         public AddTableParameters(string tableName, params TableColumnInfo[] columns)
-		{
+        {
             if (string.IsNullOrWhiteSpace(tableName))
             {
                 throw new ArgumentException("Table name is required.");
             }
-			if (columns == null || columns.Length == 0)
-			{
-				throw new ArgumentException("Table must have at least one column definition.");
-			}
+            if (columns == null || columns.Length == 0)
+            {
+                throw new ArgumentException("Table must have at least one column definition.");
+            }
 
             TableName = tableName;
-		    foreach (var column in columns)
-		    {
-		        Columns.Add(column);
-		    }
-		}
+            foreach (var column in columns)
+            {
+                Columns.Add(column);
+            }
+        }
 
         /// <summary>
         /// Gets the name of the table.
@@ -498,9 +452,9 @@ namespace Zen.Trunk.Storage.Data
     /// 
     /// </summary>
     public class AddTableIndexParameters
-	{
-	    private readonly IDictionary<string, TableIndexSortDirection> _columns =
-	        new Dictionary<string, TableIndexSortDirection>(StringComparer.OrdinalIgnoreCase);
+    {
+        private readonly IDictionary<string, TableIndexSortDirection> _columns =
+            new Dictionary<string, TableIndexSortDirection>(StringComparer.OrdinalIgnoreCase);
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AddTableIndexParameters"/> class.
@@ -509,11 +463,11 @@ namespace Zen.Trunk.Storage.Data
         /// <param name="indexSubType">Type of the index sub.</param>
         /// <param name="objectId">The object identifier.</param>
         public AddTableIndexParameters(string name, TableIndexSubType indexSubType, ObjectId objectId)
-		{
-			Name = name;
-			IndexSubType = indexSubType;
-			ObjectId = objectId;
-		}
+        {
+            Name = name;
+            IndexSubType = indexSubType;
+            ObjectId = objectId;
+        }
 
         /// <summary>
         /// Gets the name.
@@ -553,10 +507,10 @@ namespace Zen.Trunk.Storage.Data
         /// <param name="columnName">Name of the column.</param>
         /// <param name="direction">The direction.</param>
         public void AddColumnAndSortDirection(string columnName, TableIndexSortDirection direction)
-		{
-			_columns.Add(columnName, direction);
-		}
-	}
+        {
+            _columns.Add(columnName, direction);
+        }
+    }
 
     /// <summary>
     /// 

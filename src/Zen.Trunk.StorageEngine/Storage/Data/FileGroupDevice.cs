@@ -84,7 +84,7 @@ namespace Zen.Trunk.Storage.Data
 
             public uint StartPhysicalId { get; }
 
-            public uint EndPhysicalId { get; } 
+            public uint EndPhysicalId { get; }
             #endregion
         }
 
@@ -206,11 +206,11 @@ namespace Zen.Trunk.Storage.Data
                 {
                     TaskScheduler = taskInterleave.ExclusiveScheduler
                 });
-            DeallocateDataPagePort = new TransactionContextActionBlock<DeallocateDataPageRequest,bool>(
+            DeallocateDataPagePort = new TransactionContextActionBlock<DeallocateDataPageRequest, bool>(
                 request => DeallocateDataPageHandler(request),
                 new ExecutionDataflowBlockOptions
                 {
-                    TaskScheduler = taskInterleave.ExclusiveScheduler
+                    TaskScheduler = taskInterleave.ConcurrentScheduler
                 });
             CreateDistributionPagesPort = new TransactionContextActionBlock<CreateDistributionPagesRequest, bool>(
                 request => CreateDistributionPagesHandler(request),
@@ -523,6 +523,22 @@ namespace Zen.Trunk.Storage.Data
         }
 
         /// <summary>
+        /// Deallocates the data page.
+        /// </summary>
+        /// <param name="deallocParams">The dealloc parameters.</param>
+        /// <returns></returns>
+        /// <exception cref="BufferDeviceShuttingDownException"></exception>
+        public Task DeallocateDataPageAsync(DeallocateDataPageParameters deallocParams)
+        {
+            var request = new DeallocateDataPageRequest(deallocParams);
+            if (!DeallocateDataPagePort.Post(request))
+            {
+                throw new BufferDeviceShuttingDownException();
+            }
+            return request.Task;
+        }
+
+        /// <summary>
         /// Imports the distribution page.
         /// </summary>
         /// <param name="page">The page.</param>
@@ -560,7 +576,7 @@ namespace Zen.Trunk.Storage.Data
         /// <param name="parameters">The parameters.</param>
         /// <returns></returns>
         /// <exception cref="BufferDeviceShuttingDownException"></exception>
-        public Task ExpandDataDevice(ExpandDataDeviceParameters parameters)
+        public Task ExpandDataDeviceAsync(ExpandDataDeviceParameters parameters)
         {
             var request = new ExpandDataDeviceRequest(parameters);
             if (!ExpandDataDevicePort.Post(request))
@@ -576,7 +592,7 @@ namespace Zen.Trunk.Storage.Data
         /// <param name="tableParams">The table parameters.</param>
         /// <returns></returns>
         /// <exception cref="BufferDeviceShuttingDownException"></exception>
-        public Task<ObjectId> AddTable(AddTableParameters tableParams)
+        public Task<ObjectId> AddTableAsync(AddTableParameters tableParams)
         {
             var request = new AddTableRequest(tableParams);
             if (!AddTablePort.Post(request))
@@ -592,7 +608,7 @@ namespace Zen.Trunk.Storage.Data
         /// <param name="indexParams">The index parameters.</param>
         /// <returns></returns>
         /// <exception cref="BufferDeviceShuttingDownException"></exception>
-        public Task<IndexId> AddIndex(AddTableIndexParameters indexParams)
+        public Task<IndexId> AddTableIndexAsync(AddTableIndexParameters indexParams)
         {
             var request = new AddTableIndexRequest(indexParams);
             if (!AddTableIndexPort.Post(request))
@@ -1384,7 +1400,7 @@ namespace Zen.Trunk.Storage.Data
             table.FileGroupId = FileGroupId;
             table.ObjectId = request.Message.ObjectId;
             table.IsNewTable = false;
-            
+
             //table.
             //table.AddIndex
 

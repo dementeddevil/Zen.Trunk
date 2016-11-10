@@ -225,7 +225,7 @@ namespace Zen.Trunk.Storage.Data
 				// NOTE: We first release the root page to be sure the
 				//	expand will succeed (although since it would be using
 				//	the same transaction id it would have the same lock)
-				await FileGroupDevice.ExpandDataDevice(
+				await FileGroupDevice.ExpandDataDeviceAsync(
                     new ExpandDataDeviceParameters(DeviceId, 0)).ConfigureAwait(false);
 
 				// Signal we have expanded the device

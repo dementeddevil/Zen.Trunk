@@ -577,7 +577,9 @@ namespace Zen.Trunk.Storage.Data.Table
             }
 
             // Free the merged page
-            await Database.Free
+            await Database
+                .DeallocateFileGroupPageAsync(new DeallocateFileGroupDataPageParameters(string.Empty, mergePage))
+                .ConfigureAwait(false);
 
             // TODO: If the parent page is the root page and this is the last
             //  child page then this page becomes the new root page
