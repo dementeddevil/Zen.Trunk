@@ -153,35 +153,35 @@ namespace Zen.Trunk.Storage
             var taskInterleave = new ConcurrentExclusiveSchedulerPair(TaskScheduler.Default);
             InitFileGroupPagePort =
                 new TransactionContextActionBlock<InitFileGroupPageRequest, bool>(
-                    request => InitFileGroupPageHandler(request),
+                    request => InitFileGroupPageHandlerAsync(request),
                     new ExecutionDataflowBlockOptions
                     {
                         TaskScheduler = taskInterleave.ConcurrentScheduler
                     });
             LoadFileGroupPagePort =
                 new TransactionContextActionBlock<LoadFileGroupPageRequest, bool>(
-                    request => LoadFileGroupPageHandler(request),
+                    request => LoadFileGroupPageHandlerAsync(request),
                     new ExecutionDataflowBlockOptions
                     {
                         TaskScheduler = taskInterleave.ConcurrentScheduler
                     });
             DeallocateFileGroupPagePort =
                 new TransactionContextActionBlock<DeallocateFileGroupPageRequest, bool>(
-                    request => DeallocateFileGroupPageHandler(request),
+                    request => DeallocateFileGroupPageHandlerAsync(request),
                     new ExecutionDataflowBlockOptions
                     {
                         TaskScheduler = taskInterleave.ConcurrentScheduler
                     });
             AddFileGroupDevicePort =
                 new TransactionContextActionBlock<AddFileGroupDeviceRequest, Tuple<DeviceId, string>>(
-                    request => AddFileGroupDataDeviceHandler(request),
+                    request => AddFileGroupDataDeviceHandlerAsync(request),
                     new ExecutionDataflowBlockOptions
                     {
                         TaskScheduler = taskInterleave.ExclusiveScheduler
                     });
             RemoveFileGroupDevicePort =
                 new TransactionContextActionBlock<RemoveFileGroupDeviceRequest, bool>(
-                    request => RemoveFileGroupDeviceHandler(request),
+                    request => RemoveFileGroupDeviceHandlerAsync(request),
                     new ExecutionDataflowBlockOptions
                     {
                         TaskScheduler = taskInterleave.ExclusiveScheduler
@@ -189,7 +189,7 @@ namespace Zen.Trunk.Storage
 
             FlushPageBuffersPort =
                 new TaskRequestActionBlock<FlushFileGroupRequest, bool>(
-                    request => FlushDeviceBuffersHandler(request),
+                    request => FlushDeviceBuffersHandlerAsync(request),
                     new ExecutionDataflowBlockOptions
                     {
                         TaskScheduler = taskInterleave.ExclusiveScheduler
@@ -198,7 +198,7 @@ namespace Zen.Trunk.Storage
             // Table action ports
             AddFileGroupTablePort =
                 new TransactionContextActionBlock<AddFileGroupTableRequest, ObjectId>(
-                    request => AddFileGroupTableHandler(request),
+                    request => AddFileGroupTableHandlerAsync(request),
                     new ExecutionDataflowBlockOptions
                     {
                         TaskScheduler = taskInterleave.ExclusiveScheduler
@@ -206,7 +206,7 @@ namespace Zen.Trunk.Storage
 
             IssueCheckPointPort =
                 new TransactionContextActionBlock<IssueCheckPointRequest, bool>(
-                    request => IssueCheckPointHandler(request),
+                    request => IssueCheckPointHandlerAsync(request),
                     new ExecutionDataflowBlockOptions
                     {
                         TaskScheduler = taskInterleave.ExclusiveScheduler
@@ -214,14 +214,14 @@ namespace Zen.Trunk.Storage
 
             AddLogDevicePort =
                 new TransactionContextActionBlock<AddLogDeviceRequest, Tuple<DeviceId, string>>(
-                    request => AddLogDeviceHandler(request),
+                    request => AddLogDeviceHandlerAsync(request),
                     new ExecutionDataflowBlockOptions
                     {
                         TaskScheduler = taskInterleave.ExclusiveScheduler
                     });
             RemoveLogDevicePort =
                 new TransactionContextActionBlock<RemoveLogDeviceRequest, bool>(
-                    request => RemoveLogDeviceHandler(request),
+                    request => RemoveLogDeviceHandlerAsync(request),
                     new ExecutionDataflowBlockOptions
                     {
                         TaskScheduler = taskInterleave.ExclusiveScheduler
@@ -806,7 +806,7 @@ namespace Zen.Trunk.Storage
         #endregion
 
         #region Private Methods
-        private async Task<Tuple<DeviceId, string>> AddFileGroupDataDeviceHandler(AddFileGroupDeviceRequest request)
+        private async Task<Tuple<DeviceId, string>> AddFileGroupDataDeviceHandlerAsync(AddFileGroupDeviceRequest request)
         {
             // Create valid file group ID as needed
             FileGroupDevice fileGroupDevice = null;
@@ -894,14 +894,14 @@ namespace Zen.Trunk.Storage
             return deviceInfo;
         }
 
-        private async Task<bool> RemoveFileGroupDeviceHandler(RemoveFileGroupDeviceRequest request)
+        private async Task<bool> RemoveFileGroupDeviceHandlerAsync(RemoveFileGroupDeviceRequest request)
         {
             var fileGroupDevice = GetFileGroupDeviceCore(FileGroupId.Invalid, request.Message.FileGroupName);
             await fileGroupDevice.RemoveDataDeviceAsync(request.Message).ConfigureAwait(false);
             return true;
         }
 
-        private async Task<Tuple<DeviceId, string>> AddLogDeviceHandler(AddLogDeviceRequest request)
+        private async Task<Tuple<DeviceId, string>> AddLogDeviceHandlerAsync(AddLogDeviceRequest request)
         {
             if (_masterLogPageDevice == null)
             {
@@ -912,7 +912,7 @@ namespace Zen.Trunk.Storage
             return await _masterLogPageDevice.AddDeviceAsync(request.Message).ConfigureAwait(false);
         }
 
-        private async Task<bool> RemoveLogDeviceHandler(RemoveLogDeviceRequest request)
+        private async Task<bool> RemoveLogDeviceHandlerAsync(RemoveLogDeviceRequest request)
         {
             if (_masterLogPageDevice != null)
             {
@@ -927,7 +927,7 @@ namespace Zen.Trunk.Storage
             return false;
         }
 
-        private async Task<bool> InitFileGroupPageHandler(InitFileGroupPageRequest request)
+        private async Task<bool> InitFileGroupPageHandlerAsync(InitFileGroupPageRequest request)
         {
             // Locate appropriate filegroup device
             var fileGroupDevice = GetFileGroupDeviceCore(
@@ -940,7 +940,7 @@ namespace Zen.Trunk.Storage
             return true;
         }
 
-        private async Task<bool> LoadFileGroupPageHandler(LoadFileGroupPageRequest request)
+        private async Task<bool> LoadFileGroupPageHandlerAsync(LoadFileGroupPageRequest request)
         {
             // Locate appropriate filegroup device
             var fileGroupDevice = GetFileGroupDeviceCore(
@@ -953,7 +953,7 @@ namespace Zen.Trunk.Storage
             return true;
         }
 
-        private async Task<bool> DeallocateFileGroupPageHandler(DeallocateFileGroupPageRequest request)
+        private async Task<bool> DeallocateFileGroupPageHandlerAsync(DeallocateFileGroupPageRequest request)
         {
             // Locate appropriate filegroup device
             var fileGroupDevice = GetFileGroupDeviceCore(
@@ -966,14 +966,14 @@ namespace Zen.Trunk.Storage
             return true;
         }
 
-        private async Task<bool> FlushDeviceBuffersHandler(FlushFileGroupRequest request)
+        private async Task<bool> FlushDeviceBuffersHandlerAsync(FlushFileGroupRequest request)
         {
             // Delegate request through to caching buffer device
             await CachingBufferDevice.FlushPagesAsync(request.Message).ConfigureAwait(false);
             return true;
         }
 
-        private Task<ObjectId> AddFileGroupTableHandler(AddFileGroupTableRequest request)
+        private Task<ObjectId> AddFileGroupTableHandlerAsync(AddFileGroupTableRequest request)
         {
             // Locate appropriate filegroup device
             var fileGroupDevice = GetFileGroupDeviceCore(
@@ -984,7 +984,7 @@ namespace Zen.Trunk.Storage
         }
 
         // ReSharper disable once UnusedParameter.Local
-        private Task<bool> IssueCheckPointHandler(IssueCheckPointRequest request)
+        private Task<bool> IssueCheckPointHandlerAsync(IssueCheckPointRequest request)
         {
             var tcs = new TaskCompletionSource<bool>();
 

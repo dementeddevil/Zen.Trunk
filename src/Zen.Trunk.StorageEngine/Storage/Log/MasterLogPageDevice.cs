@@ -80,13 +80,13 @@ namespace Zen.Trunk.Storage.Log
         {
             var taskInterleave = new ConcurrentExclusiveSchedulerPair(TaskScheduler.Default);
             AddLogDevicePort = new TaskRequestActionBlock<AddLogDeviceRequest, Tuple<DeviceId, string>>(
-                request => AddLogDeviceHandler(request),
+                request => AddLogDeviceHandlerAsync(request),
                 new ExecutionDataflowBlockOptions
                 {
                     TaskScheduler = taskInterleave.ExclusiveScheduler
                 });
             RemoveLogDevicePort = new TaskRequestActionBlock<RemoveLogDeviceRequest, bool>(
-                request => RemoveLogDeviceHandler(request),
+                request => RemoveLogDeviceHandlerAsync(request),
                 new ExecutionDataflowBlockOptions
                 {
                     TaskScheduler = taskInterleave.ExclusiveScheduler
@@ -98,7 +98,7 @@ namespace Zen.Trunk.Storage.Log
                     TaskScheduler = taskInterleave.ExclusiveScheduler
                 });
             PerformRecoveryPort = new ActionBlock<PerformRecoveryRequest>(
-                request => PerformRecoveryHandler(request),
+                request => PerformRecoveryHandlerAsync(request),
                 new ExecutionDataflowBlockOptions
                 {
                     TaskScheduler = taskInterleave.ExclusiveScheduler
@@ -512,7 +512,7 @@ namespace Zen.Trunk.Storage.Log
         #endregion
 
         #region Private Methods
-        private async Task<Tuple<DeviceId, string>> AddLogDeviceHandler(AddLogDeviceRequest request)
+        private async Task<Tuple<DeviceId, string>> AddLogDeviceHandlerAsync(AddLogDeviceRequest request)
         {
             var masterRootPage = GetRootPage<MasterLogRootPage>();
 
@@ -631,7 +631,7 @@ namespace Zen.Trunk.Storage.Log
         }
 
         // ReSharper disable once UnusedParameter.Local
-        private bool RemoveLogDeviceHandler(RemoveLogDeviceRequest request)
+        private bool RemoveLogDeviceHandlerAsync(RemoveLogDeviceRequest request)
         {
             return true;
         }
@@ -849,7 +849,7 @@ namespace Zen.Trunk.Storage.Log
             _currentStream.WriteEntry(entry);
         }
 
-        private async Task PerformRecoveryHandler(PerformRecoveryRequest request)
+        private async Task PerformRecoveryHandlerAsync(PerformRecoveryRequest request)
         {
             if (_isInRecovery)
             {

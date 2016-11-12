@@ -93,31 +93,31 @@ namespace Zen.Trunk.Storage.Data.Table
             _ownerTable = parentLifetimeScope.Resolve<DatabaseTable>();
             var taskInterleave = new ConcurrentExclusiveSchedulerPair();
             _createIndexPort = new TransactionContextActionBlock<CreateTableIndexRequest, IndexId>(
-                request => CreateIndexHandler(request),
+                request => CreateIndexHandlerAsync(request),
                 new ExecutionDataflowBlockOptions
                 {
                     TaskScheduler = taskInterleave.ExclusiveScheduler,
                 });
             _splitPagePort = new TransactionContextActionBlock<SplitTableIndexPageRequest, bool>(
-                request => SplitPageHandler(request),
+                request => SplitPageHandlerAsync(request),
                 new ExecutionDataflowBlockOptions
                 {
                     TaskScheduler = taskInterleave.ConcurrentScheduler,
                 });
             _mergePagesPort = new TransactionContextActionBlock<MergeTableIndexPagesRequest, bool>(
-                request => MergePagesHandler(request),
+                request => MergePagesHandlerAsync(request),
                 new ExecutionDataflowBlockOptions
                 {
                     TaskScheduler = taskInterleave.ConcurrentScheduler,
                 });
             _findIndexPort = new TransactionContextActionBlock<FindTableIndexRequest, FindTableIndexResult>(
-                request => FindIndexHandler(request),
+                request => FindIndexHandlerAsync(request),
                 new ExecutionDataflowBlockOptions
                 {
                     TaskScheduler = taskInterleave.ConcurrentScheduler,
                 });
             _enumerateIndexEntriesPort = new TransactionContextActionBlock<EnumerateIndexEntriesRequest, bool>(
-                request => EnumerateIndexEntriesHandler(request),
+                request => EnumerateIndexEntriesHandlerAsync(request),
                 new ExecutionDataflowBlockOptions
                 {
                     TaskScheduler = taskInterleave.ConcurrentScheduler,
@@ -208,7 +208,7 @@ namespace Zen.Trunk.Storage.Data.Table
         #endregion
 
         #region Private Methods
-        private async Task<IndexId> CreateIndexHandler(CreateTableIndexRequest request)
+        private async Task<IndexId> CreateIndexHandlerAsync(CreateTableIndexRequest request)
         {
             // Perform sanity checks and determine index id
             var indexId = new IndexId(1);
@@ -435,7 +435,7 @@ namespace Zen.Trunk.Storage.Data.Table
             return indexId;
         }
 
-        private async Task<bool> SplitPageHandler(SplitTableIndexPageRequest request)
+        private async Task<bool> SplitPageHandlerAsync(SplitTableIndexPageRequest request)
         {
             var parentPage = request.Message.ParentPage;
             var currentPage = request.Message.PageToSplit;
@@ -549,7 +549,7 @@ namespace Zen.Trunk.Storage.Data.Table
             return true;
         }
 
-        private async Task<bool> MergePagesHandler(MergeTableIndexPagesRequest request)
+        private async Task<bool> MergePagesHandlerAsync(MergeTableIndexPagesRequest request)
         {
             var parentPage = request.Message.ParentPage;
             var primaryPage = request.Message.PrimaryPage;
@@ -598,7 +598,7 @@ namespace Zen.Trunk.Storage.Data.Table
             return true;
         }
 
-        private async Task<FindTableIndexResult> FindIndexHandler(FindTableIndexRequest request)
+        private async Task<FindTableIndexResult> FindIndexHandlerAsync(FindTableIndexRequest request)
         {
             TableIndexPage prevPage = null, parentPage = null;
             var logicalId = request.Message.RootInfo.RootLogicalPageId;
@@ -753,7 +753,7 @@ namespace Zen.Trunk.Storage.Data.Table
             return null;
         }
 
-        private async Task<bool> EnumerateIndexEntriesHandler(EnumerateIndexEntriesRequest request)
+        private async Task<bool> EnumerateIndexEntriesHandlerAsync(EnumerateIndexEntriesRequest request)
         {
             var success = false;
             var find = new FindTableIndexParameters(
