@@ -18,6 +18,7 @@ namespace Zen.Trunk.Storage
         }
         #endregion
 
+        #region Protected Methods
         /// <summary>
         /// Called when closing the device.
         /// </summary>
@@ -31,6 +32,7 @@ namespace Zen.Trunk.Storage
 
             // Now delete underlying files.
             //this[]
-        }
+        } 
+        #endregion
     }
 }

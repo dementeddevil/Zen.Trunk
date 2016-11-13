@@ -188,11 +188,13 @@ namespace Zen.Trunk.Service
 
         private async Task MountAndOpenSystemDatabasesAsync()
         {
-            var masterDatabase = _globaLifetimeScope.Resolve<MasterDatabaseDevice>();
-
-            // TODO: Create temp DB
+            // Create temp DB
+            var temporaryDatabase = _globaLifetimeScope.Resolve<TemporaryDatabaseDevice>();
+            var tempDbFolder = Path.GetDirectoryName(_masterDataPathname);
+            //await temporaryDatabase.
 
             // Mount master DB
+            var masterDatabase = _globaLifetimeScope.Resolve<MasterDatabaseDevice>();
             var attachParams = new AttachDatabaseParameters("MASTER");
             attachParams.AddDataFile(
                 "PRIMARY",
@@ -277,6 +279,11 @@ namespace Zen.Trunk.Service
 
             // Register master database device
             builder.RegisterType<MasterDatabaseDevice>()
+                .SingleInstance()
+                .AsSelf();
+
+            // Register temporary database device
+            builder.RegisterType<TemporaryDatabaseDevice>()
                 .SingleInstance()
                 .AsSelf();
 
