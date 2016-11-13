@@ -23,6 +23,7 @@ namespace Zen.Trunk.Storage
         }
         #endregion
 
+        #region Public Methods
         /// <summary>
         /// Creates and opens the database
         /// </summary>
@@ -62,7 +63,9 @@ namespace Zen.Trunk.Storage
             // Issue open request now
             await OpenAsync(true).ConfigureAwait(false);
         }
+        #endregion
 
+        #region Protected Methods
         /// <summary>
         /// Called when closing the device.
         /// </summary>
@@ -84,5 +87,6 @@ namespace Zen.Trunk.Storage
                 File.Delete(_tempLogPathname);
             }
         }
+        #endregion
     }
 }
