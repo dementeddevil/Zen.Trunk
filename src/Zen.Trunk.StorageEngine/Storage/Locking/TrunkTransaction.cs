@@ -711,6 +711,10 @@ namespace Zen.Trunk.Storage.Locking
             {
                 _transactionId = TransactionId.Pending;
             }
+            if (Logger.IsDebugEnabled())
+            {
+                Logger.Debug($"{_transactionId} => Returned from TryEnlistTransaction()");
+            }
         }
 
         private async Task WriteBeginXact()

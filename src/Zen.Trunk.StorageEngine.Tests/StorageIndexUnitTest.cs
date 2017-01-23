@@ -197,7 +197,7 @@ namespace Zen.Trunk.Storage
                             DeviceId.Zero,
                             128,
                             true);
-                    await dbDevice.AddFileGroupDeviceAsync(addFgDevice);
+                    await dbDevice.AddFileGroupDeviceAsync(addFgDevice).ConfigureAwait(true);
 
                     var addLogDevice =
                         new AddLogDeviceParameters(
@@ -205,11 +205,11 @@ namespace Zen.Trunk.Storage
                             masterLogPathName,
                             DeviceId.Zero,
                             2);
-                    await dbDevice.AddLogDeviceAsync(addLogDevice);
+                    await dbDevice.AddLogDeviceAsync(addLogDevice).ConfigureAwait(true);
 
-                    await dbDevice.OpenAsync(true);
+                    await dbDevice.OpenAsync(true).ConfigureAwait(true);
 
-                    await TrunkTransactionContext.CommitAsync();
+                    await TrunkTransactionContext.CommitAsync().ConfigureAwait(true);
 
                     dbDevice.BeginTransaction(TimeSpan.FromMinutes(10));
 
@@ -224,11 +224,12 @@ namespace Zen.Trunk.Storage
                     manager.CreateIndex(indexInfo);
                     //manager.
 
-                    await TrunkTransactionContext.CommitAsync();
+                    await TrunkTransactionContext.CommitAsync().ConfigureAwait(true);
                 }
                 finally
                 {
                     await dbDevice.CloseAsync().ConfigureAwait(true);
+                    dbDevice.Dispose();
                 }
             }
         }
