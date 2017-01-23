@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Autofac;
 using Moq;
@@ -134,6 +135,19 @@ namespace Zen.Trunk.Storage
                 .Verify(mbd => mbd.LoadBufferAsync(new VirtualPageId(deviceId, physicalPage), It.IsAny<IVirtualBuffer>()), Times.Once);
             MockedMultipleBufferDevice
                 .Verify(mbd => mbd.LoadBufferAsync(new VirtualPageId(deviceId, physicalPage), It.IsAny<IVirtualBuffer>()), Times.Once);
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                if (_pageBufferDevice != null)
+                {
+                    _pageBufferDevice.Dispose();
+                    _pageBufferDevice = null;
+                }
+            }
+            base.Dispose(disposing);
         }
     }
 
