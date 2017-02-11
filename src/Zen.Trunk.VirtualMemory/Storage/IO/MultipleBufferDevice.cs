@@ -179,21 +179,18 @@ namespace Zen.Trunk.Storage.IO
 		}
 
         /// <summary>
-        /// Expands the device.
+        /// Resizes the specified device to the soecified number of pages.
         /// </summary>
         /// <param name="deviceId">The device identifier.</param>
         /// <param name="pageCount">The page count.</param>
-        /// <returns>
-        /// An unsigned integer indicating the new size of the device in pages.
-        /// </returns>
         /// <remarks>
         /// If the <paramref name="pageCount"/> is negative then the device
         /// will be shrunk.
         /// </remarks>
-        public uint ExpandDevice(DeviceId deviceId, int pageCount)
+        public void ResizeDevice(DeviceId deviceId, uint pageCount)
 		{
 			var device = GetDevice(deviceId);
-			return device.ExpandDevice(pageCount);
+			device.Resize(pageCount);
 		}
 
         /// <summary>

@@ -1465,7 +1465,8 @@ namespace Zen.Trunk.Storage.Data
                 // Delegate the request to the underlying device
                 var bufferDevice = GetService<IMultipleBufferDevice>();
                 oldPageCount = bufferDevice.GetDeviceInfo(deviceId).PageCount;
-                newPageCount = bufferDevice.ExpandDevice(deviceId, (int)growthPages);
+                newPageCount = oldPageCount + growthPages;
+                bufferDevice.ResizeDevice(deviceId, growthPages);
             }
             catch
             {

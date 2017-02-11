@@ -75,10 +75,9 @@ namespace Zen.Trunk.Storage
         Task FlushBuffersAsync(bool flushReads, bool flushWrites);
 
         /// <summary>
-        /// Expands the device.
+        /// Resizes the device to the specified number of pages.
         /// </summary>
         /// <param name="pageCount">The page count.</param>
-        /// <returns></returns>
-        uint ExpandDevice(int pageCount);
+        void Resize(uint pageCount);
 	}
 }

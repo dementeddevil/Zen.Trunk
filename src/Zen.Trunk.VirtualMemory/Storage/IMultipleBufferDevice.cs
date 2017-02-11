@@ -53,12 +53,11 @@ namespace Zen.Trunk.Storage
         Task RemoveDeviceAsync(DeviceId deviceId);
 
         /// <summary>
-        /// Expands the device.
+        /// Resizes the specified device to the soecified number of pages.
         /// </summary>
         /// <param name="deviceId">The device identifier.</param>
         /// <param name="pageCount">The page count.</param>
-        /// <returns></returns>
-        uint ExpandDevice(DeviceId deviceId, int pageCount);
+        void ResizeDevice(DeviceId deviceId, uint pageCount);
 
         /// <summary>
         /// Loads the page data from the physical page into the supplied buffer.

@@ -209,15 +209,12 @@ namespace Zen.Trunk.Storage.IO
         }
 
         /// <summary>
-        /// Expands the device.
+        /// Resizes the device to the specified number of pages.
         /// </summary>
         /// <param name="pageCount">The page count.</param>
-        /// <returns></returns>
-        public uint ExpandDevice(int pageCount)
+        public void Resize(uint pageCount)
         {
-            var oldPageCapacity = PageCount;
-            var newPageCapacity = (uint)(oldPageCapacity + pageCount);
-            var fileLengthInBytes = _bufferFactory.BufferSize * newPageCapacity;
+            var fileLengthInBytes = _bufferFactory.BufferSize * pageCount;
 
             if (_fileStream != null)
             {
@@ -228,8 +225,7 @@ namespace Zen.Trunk.Storage.IO
                 _scatterGatherStream?.SetLength(fileLengthInBytes);
             }
 
-            PageCount = newPageCapacity;
-            return newPageCapacity;
+            PageCount = pageCount;
         }
         #endregion
 
