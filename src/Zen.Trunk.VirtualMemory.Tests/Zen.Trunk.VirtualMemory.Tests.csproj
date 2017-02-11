@@ -103,6 +103,10 @@
     <Compile Include="VirtualMemory\VirtualMemoryUnitTest.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Zen.Trunk.StorageEngine\Zen.Trunk.StorageEngine.csproj">
+      <Project>{2F2A3E61-960A-4DA0-A087-D45C89B33099}</Project>
+      <Name>Zen.Trunk.StorageEngine</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Zen.Trunk.VirtualMemory\Zen.Trunk.VirtualMemory.csproj">
       <Project>{837f9dbd-7e29-4237-add9-1bd32fef964a}</Project>
       <Name>Zen.Trunk.VirtualMemory</Name>

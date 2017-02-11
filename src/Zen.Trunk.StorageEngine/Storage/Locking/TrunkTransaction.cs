@@ -340,10 +340,10 @@ namespace Zen.Trunk.Storage.Locking
             try
             {
                 // If we don't yet have a valid transaction ID then try to get one now
-                if (_transactionId == TransactionId.Zero)
+                if (_transactionId == TransactionId.Zero || _transactionId == TransactionId.Pending)
                 {
                     TryEnlistInTransaction();
-                    if (_transactionId != TransactionId.Zero)
+                    if (_transactionId != TransactionId.Zero && _transactionId != TransactionId.Pending)
                     {
                         needToResetTransactionId = true;
                     }
@@ -704,11 +704,16 @@ namespace Zen.Trunk.Storage.Locking
                 }
                 else
                 {
-                    _transactionId = new TransactionId(uint.MaxValue);
+                    _transactionId = TransactionId.Pending;
                 }
             }
             catch (DependencyResolutionException)
             {
+                _transactionId = TransactionId.Pending;
+            }
+            if (Logger.IsDebugEnabled())
+            {
+                Logger.Debug($"{_transactionId} => Returned from TryEnlistTransaction()");
             }
         }
 
