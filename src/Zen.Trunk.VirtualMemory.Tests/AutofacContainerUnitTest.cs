@@ -1,9 +1,7 @@
 ﻿using System;
 using Autofac;
-using Zen.Trunk.Storage;
-using Zen.Trunk.Storage.Locking;
 
-namespace Zen.Trunk
+namespace Zen.Trunk.VirtualMemory.Tests
 {
     public class AutofacContainerUnitTests : IDisposable
     {

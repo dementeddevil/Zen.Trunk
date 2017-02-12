@@ -1,7 +1,6 @@
 ﻿using Autofac;
-using Zen.Trunk.Storage;
 
-namespace Zen.Trunk.VirtualMemory
+namespace Zen.Trunk.VirtualMemory.Tests
 {
     public class AutofacVirtualMemoryUnitTests : AutofacContainerUnitTests
     {

@@ -1,6 +1,4 @@
-using Zen.Trunk.Storage;
-
-namespace Zen.Trunk.VirtualMemory
+namespace Zen.Trunk.VirtualMemory.Tests
 {
     public static class VirtualBufferFactoryExtensions
     {

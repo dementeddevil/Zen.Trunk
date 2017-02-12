@@ -1,9 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using Xunit;
-using Zen.Trunk.Storage;
 
-namespace Zen.Trunk.VirtualMemory
+namespace Zen.Trunk.VirtualMemory.Tests
 {
 
     /// <summary>

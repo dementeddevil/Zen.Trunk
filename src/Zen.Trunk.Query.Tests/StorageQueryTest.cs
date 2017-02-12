@@ -13,6 +13,7 @@ using Autofac;
 using Xunit;
 using Zen.Trunk.Storage.Locking;
 using Zen.Trunk.Storage.Query;
+using Zen.Trunk.VirtualMemory.Tests;
 
 namespace Zen.Trunk.Storage
 {

@@ -5,7 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 
-namespace Zen.Trunk
+namespace Zen.Trunk.VirtualMemory.Tests
 {
     /// <summary>
     /// 

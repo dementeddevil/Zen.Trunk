@@ -9,6 +9,7 @@ using Zen.Trunk.Storage.Data.Table;
 using Zen.Trunk.Storage.Locking;
 using Zen.Trunk.Storage.Log;
 using Zen.Trunk.VirtualMemory;
+using Zen.Trunk.VirtualMemory.Tests;
 
 namespace Zen.Trunk.Storage
 {

@@ -6,7 +6,7 @@
     <ProjectGuid>{665652E5-B6F9-42AB-8C93-11B4EE8DDBA5}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Zen.Trunk</RootNamespace>
+    <RootNamespace>Zen.Trunk.VirtualMemory.Tests</RootNamespace>
     <AssemblyName>Zen.Trunk.VirtualMemory.Tests</AssemblyName>
     <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
@@ -93,14 +93,14 @@
     <Otherwise />
   </Choose>
   <ItemGroup>
-    <Compile Include="VirtualMemory\MultipleDeviceUnitTest.cs" />
-    <Compile Include="VirtualMemory\SingleDeviceUnitTest.cs" />
+    <Compile Include="MultipleDeviceUnitTest.cs" />
+    <Compile Include="SingleDeviceUnitTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="AutofacContainerUnitTest.cs" />
     <Compile Include="TempFileTracker.cs" />
-    <Compile Include="VirtualMemory\VirtualBufferFactoryExtensions.cs" />
-    <Compile Include="VirtualMemory\AutofacVirtualMemoryUnitTests.cs" />
-    <Compile Include="VirtualMemory\VirtualMemoryUnitTest.cs" />
+    <Compile Include="VirtualBufferFactoryExtensions.cs" />
+    <Compile Include="AutofacVirtualMemoryUnitTests.cs" />
+    <Compile Include="VirtualMemoryUnitTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Zen.Trunk.Logging\Zen.Trunk.Logging.csproj">
@@ -127,6 +127,7 @@
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup />
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">
       <ItemGroup>

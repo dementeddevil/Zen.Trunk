@@ -4,6 +4,7 @@ using Xunit;
 using Zen.Trunk.Storage.Data;
 using Zen.Trunk.Storage.Locking;
 using Zen.Trunk.VirtualMemory;
+using Zen.Trunk.VirtualMemory.Tests;
 
 namespace Zen.Trunk.Storage
 {

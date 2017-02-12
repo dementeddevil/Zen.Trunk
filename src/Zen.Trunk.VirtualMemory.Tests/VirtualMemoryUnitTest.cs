@@ -5,9 +5,8 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
-using Zen.Trunk.Storage;
 
-namespace Zen.Trunk.VirtualMemory
+namespace Zen.Trunk.VirtualMemory.Tests
 {
     /// <summary>
     /// Summary description for Virtual Memory Unit Test suite
