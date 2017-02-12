@@ -6,8 +6,8 @@
 
 using System;
 using System.Collections.Generic;
+using Zen.Trunk.IO;
 using Zen.Trunk.Storage.BufferFields;
-using Zen.Trunk.Storage.IO;
 
 namespace Zen.Trunk.Storage.Data
 {
@@ -225,7 +225,7 @@ namespace Zen.Trunk.Storage.Data
 		/// Overridden. Reads the data.
 		/// </summary>
 		/// <param name="streamManager">The stream manager.</param>
-		protected override void ReadData(BufferReaderWriter streamManager)
+		protected override void ReadData(SwitchingBinaryReader streamManager)
 		{
 			base.ReadData(streamManager);
 			for (var index = 0; index < _databaseCount.Value; ++index)
@@ -240,7 +240,7 @@ namespace Zen.Trunk.Storage.Data
 		/// Writes the page header block to the specified buffer writer.
 		/// </summary>
 		/// <param name="streamManager">The stream manager.</param>
-		protected override void WriteHeader(BufferReaderWriter streamManager)
+		protected override void WriteHeader(SwitchingBinaryWriter streamManager)
 		{
 			_databaseCount.Value = _databases.Count;
 			base.WriteHeader(streamManager);
@@ -250,7 +250,7 @@ namespace Zen.Trunk.Storage.Data
 		/// Overridden. Writes the data.
 		/// </summary>
 		/// <param name="streamManager">The stream manager.</param>
-		protected override void WriteData(BufferReaderWriter streamManager)
+		protected override void WriteData(SwitchingBinaryWriter streamManager)
 		{
 			base.WriteData(streamManager);
 			foreach (var info in _databases.Values)

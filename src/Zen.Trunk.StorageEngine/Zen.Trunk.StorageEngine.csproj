@@ -10,7 +10,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Zen.Trunk</RootNamespace>
     <AssemblyName>Zen.Trunk.StorageEngine</AssemblyName>
-    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
   </PropertyGroup>
@@ -51,8 +51,8 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Autofac, Version=4.1.1.0, Culture=neutral, PublicKeyToken=17863af14b0044da, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Autofac.4.1.1\lib\net45\Autofac.dll</HintPath>
+    <Reference Include="Autofac, Version=4.3.0.0, Culture=neutral, PublicKeyToken=17863af14b0044da, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Autofac.4.3.0\lib\net45\Autofac.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
@@ -116,7 +116,15 @@
     <Compile Include="Storage\Data\Index\RootIndexInfo.cs" />
     <Compile Include="Storage\Data\ITransactionContextTaskRequest.cs" />
     <Compile Include="Storage\Data\LogicalVirtualManager.cs" />
+    <Compile Include="Storage\Data\Table\RowConstraint.cs" />
+    <Compile Include="Storage\Data\Table\RowConstraintExecute.cs" />
+    <Compile Include="Storage\Data\Table\RowConstraintType.cs" />
+    <Compile Include="Storage\Data\Table\RowInfo.cs" />
+    <Compile Include="Storage\Data\Table\TableColumnDataType.cs" />
+    <Compile Include="Storage\Data\Table\TableIndexLogicalInfo.cs" />
     <Compile Include="Storage\Data\Table\TableIndexManagerMessages.cs" />
+    <Compile Include="Storage\Data\Table\TableRowWriter.cs" />
+    <Compile Include="Storage\Data\Table\TableSchemaRootPage.cs" />
     <Compile Include="Storage\Data\TransactionContextTaskRequestExtensions.cs" />
     <Compile Include="Storage\FileSpec.cs" />
     <Compile Include="Storage\ISession.cs" />
@@ -152,7 +160,7 @@
     <Compile Include="Storage\Data\FileGroupDevice.cs" />
     <Compile Include="Storage\Data\Table\DatabaseTable.cs" />
     <Compile Include="Storage\Data\Table\RootTableIndexInfo.cs" />
-    <Compile Include="Storage\Data\Table\RowReaderWriter.cs" />
+    <Compile Include="Storage\Data\Table\TableRowReader.cs" />
     <Compile Include="Storage\Data\Table\TableBufferField.cs" />
     <Compile Include="Storage\Data\Table\TableColumnInfo.cs" />
     <Compile Include="Storage\Data\Table\TableDataPage.cs" />
@@ -233,13 +241,21 @@
     <Compile Include="Storage\TransactionalSpinLock.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Zen.Trunk.IO\Zen.Trunk.IO.csproj">
+      <Project>{6abdfb09-8e8c-47f1-a0b5-a5541eaad61b}</Project>
+      <Name>Zen.Trunk.IO</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Zen.Trunk.Logging\Zen.Trunk.Logging.csproj">
+      <Project>{e7e84aa7-daf9-4285-9f66-1ee692676b60}</Project>
+      <Name>Zen.Trunk.Logging</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Zen.Trunk.Utilities\Zen.Trunk.Utilities.csproj">
       <Project>{f7ed3f65-bfe8-4949-8bde-494f12cc30c6}</Project>
       <Name>Zen.Trunk.Utilities</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Zen.Trunk.VirtualMemory\Zen.Trunk.VirtualMemory.csproj">
-      <Project>{837f9dbd-7e29-4237-add9-1bd32fef964a}</Project>
-      <Name>Zen.Trunk.VirtualMemory</Name>
+    <ProjectReference Include="..\Zen.Trunk.VirtualMemory.Interfaces\Zen.Trunk.VirtualMemory.Interfaces.csproj">
+      <Project>{837f9dbd-7e29-4237-add9-1bd32fef965c}</Project>
+      <Name>Zen.Trunk.VirtualMemory.Interfaces</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

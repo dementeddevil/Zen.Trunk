@@ -308,8 +308,8 @@ namespace Zen.Trunk.Storage.Data.Table
                     for (uint rowIndex = 0; rowIndex < dataPage.RowCount; ++rowIndex)
                     {
                         // Get row reader for this row
-                        var rowReader = dataPage.GetRowReaderWriter(
-                            rowIndex, _ownerTable.Columns, false);
+                        var rowReader = dataPage.GetRowReader(
+                            rowIndex, _ownerTable.Columns);
 
                         // Build array of row index values
                         var rowIndexValues = new object[indexOrdinals.Length];

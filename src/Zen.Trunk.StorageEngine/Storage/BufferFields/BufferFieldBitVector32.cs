@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Specialized;
-using Zen.Trunk.Storage.IO;
+using Zen.Trunk.IO;
 
 namespace Zen.Trunk.Storage.BufferFields
 {
@@ -57,12 +57,12 @@ namespace Zen.Trunk.Storage.BufferFields
             vector[section] = value;
         }
 
-        protected override void OnRead(BufferReaderWriter streamManager)
+        protected override void OnRead(SwitchingBinaryReader streamManager)
         {
             Value = new BitVector32(streamManager.ReadInt32());
         }
 
-        protected override void OnWrite(BufferReaderWriter streamManager)
+        protected override void OnWrite(SwitchingBinaryWriter streamManager)
         {
             streamManager.Write(Value.Data);
         }

@@ -1,6 +1,7 @@
 ﻿using System.IO;
 using SuperSocket.SocketBase;
 using SuperSocket.SocketBase.Protocol;
+using Zen.Trunk.IO;
 using Zen.Trunk.Storage.BufferFields;
 using Zen.Trunk.Storage.IO;
 
@@ -49,9 +50,9 @@ namespace Zen.Trunk.Network.Commands
             var payload = new Payload();
             using (var stream = new MemoryStream(requestInfo.Body, false))
             {
-                using (var bufferReaderWriter = new BufferReaderWriter(stream))
+                using (var reader = new SwitchingBinaryReader(stream))
                 {
-                    payload.Read(bufferReaderWriter);
+                    payload.Read(reader);
                 }
             }
 

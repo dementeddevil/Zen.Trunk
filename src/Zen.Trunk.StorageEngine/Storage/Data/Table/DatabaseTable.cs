@@ -1104,7 +1104,7 @@ namespace Zen.Trunk.Storage.Data.Table
 
             // Setup buffer for building row data
             var stream = new MemoryStream();
-            var readerWriter = new RowReaderWriter(stream, _columns);
+            var rowWriter = new TableRowWriter(stream, _columns);
 
             // We need to build a full row
             var columnIdList = columnIDs.ToList();
@@ -1139,7 +1139,7 @@ namespace Zen.Trunk.Storage.Data.Table
                         incrValue = 1;
                     }
 
-                    readerWriter[columnIndex] = incrValue;
+                    rowWriter[columnIndex] = incrValue;
                     continue;
                 }
                 if (column.DataType == TableColumnDataType.Timestamp)
@@ -1151,7 +1151,7 @@ namespace Zen.Trunk.Storage.Data.Table
                     }
 
                     // Add timestamp data
-                    readerWriter[columnIndex] = (ulong)1;
+                    rowWriter[columnIndex] = (ulong)1;
                     continue;
                 }
 
@@ -1176,7 +1176,7 @@ namespace Zen.Trunk.Storage.Data.Table
                     }
 
                     // Add default to row data
-                    readerWriter[columnIndex] = defaultValue;
+                    rowWriter[columnIndex] = defaultValue;
                     continue;
                 }
 
@@ -1197,12 +1197,12 @@ namespace Zen.Trunk.Storage.Data.Table
                     //checkConstraint.Ex
                 }
 
-                readerWriter[columnIndex] = dataValue;
+                rowWriter[columnIndex] = dataValue;
             }
 
             // Determine row size and write row to underlying stream
-            var rowSize = readerWriter.RowSize;
-            readerWriter.Write();
+            var rowSize = rowWriter.RowSize;
+            rowWriter.Write();
             var rowBuffer = stream.GetBuffer();
 
             // If we get this far we have the full row data and all constraints
@@ -1456,10 +1456,10 @@ namespace Zen.Trunk.Storage.Data.Table
                     }
 
                     // Create row reader and row writer objects
-                    var rowReader = currentReadPage.GetRowReaderWriter(
-                        readRowIndex, request.OldColumns, false);
-                    var rowWriter = currentWritePage.GetRowReaderWriter(
-                        writeRowIndex, request.NewColumns, true);
+                    var rowReader = currentReadPage.GetRowReader(
+                        readRowIndex, request.OldColumns);
+                    var rowWriter = currentWritePage.GetRowWriter(
+                        writeRowIndex, request.NewColumns);
 
                     // Read next row...
                     var hasWorkToDo = true;

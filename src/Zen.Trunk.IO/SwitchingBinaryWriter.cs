@@ -2,45 +2,49 @@ using System;
 using System.IO;
 using System.Text;
 
-namespace Zen.Trunk.Storage.IO
+namespace Zen.Trunk.IO
 {
     /// <summary>
     /// 
     /// </summary>
     /// <seealso cref="System.IDisposable" />
-    public class BufferReaderWriter : IDisposable
+    public class SwitchingBinaryWriter : IDisposable
     {
         #region Private Fields
         private bool _disposed;
-        private NonClosingStream _stream;
-        private BinaryReader _reader;
+        private Stream _stream;
         private BinaryWriter _writer;
-        private bool _isWritable = true;
         private bool _useUnicode;
         private Encoding _currentEncoding = Encoding.ASCII;
         #endregion
 
         #region Public Constructors
         /// <summary>
-        /// Creates a new <see cref="T:BufferReaderWriter"/> object against
-        /// the specified <see cref="T:Stream"/> object.
+        /// Creates a new <see cref="T:SwitchingBinaryWriter" /> object against
+        /// the specified <see cref="T:Stream" /> object.
         /// </summary>
-        /// <param name="stream"></param>
-        public BufferReaderWriter(Stream stream)
+        /// <param name="stream">The stream.</param>
+        /// <param name="leaveOpen">if set to <c>true</c> [leave open].</param>
+        public SwitchingBinaryWriter(Stream stream, bool leaveOpen = false)
         {
             // Wrap stream in non-closing stream
-            if (!(stream is NonClosingStream))
+            if (!leaveOpen)
             {
-                stream = new NonClosingStream(stream);
+                _stream = stream;
             }
-            _stream = (NonClosingStream)stream;
+            else
+            {
+                if (!(stream is NonClosingStream))
+                {
+                    stream = new NonClosingStream(stream);
+                }
+                else
+                {
+                    _stream = (NonClosingStream)stream;
+                }
+            }
 
-            // Always create reader but check stream for writer
-            _reader = new BinaryReader(stream);
-            if (stream.CanWrite)
-            {
-                _writer = new BinaryWriter(stream);
-            }
+            _writer = new BinaryWriter(stream);
         }
         #endregion
 
@@ -51,28 +55,12 @@ namespace Zen.Trunk.Storage.IO
         public Stream BaseStream => _stream;
 
         /// <summary>
-        /// Gets/sets a boolean value controlling whether writes to this
-        /// instance are passed to the underlying stream.
+        /// Gets or sets a value indicating whether [write to underlying stream].
         /// </summary>
         /// <value>
-        /// <c>true</c> if this instance is writeable; otherwise, <c>false</c>.
+        /// <c>true</c> if [write to underlying stream]; otherwise, <c>false</c>.
         /// </value>
-        /// <remarks>
-        /// When the <see cref="BufferReaderWriter"/> is not writeable all 
-        /// writes are transformed into no-ops that move the file pointer by
-        /// the same amount as if the write had taken place.
-        /// </remarks>
-        public bool IsWritable
-        {
-            get
-            {
-                return _isWritable;
-            }
-            set
-            {
-                _isWritable = value;
-            }
-        }
+        public bool WriteToUnderlyingStream { get; set; } = true;
 
         /// <summary>
         /// Gets/sets a boolean value controlling whether text strings
@@ -129,11 +117,6 @@ namespace Zen.Trunk.Storage.IO
         /// </summary>
         public void Close()
         {
-            if (_reader != null)
-            {
-                _reader.Close();
-                _reader = null;
-            }
             if (_writer != null)
             {
                 _writer.Close();
@@ -145,182 +128,6 @@ namespace Zen.Trunk.Storage.IO
                 _stream = null;
             }
             _disposed = true;
-        }
-        #endregion
-
-        #region Reader Methods
-        /// <summary>
-        /// Reads the boolean.
-        /// </summary>
-        /// <returns></returns>
-        public bool ReadBoolean()
-        {
-            CheckDisposed();
-            return ((_reader.ReadByte() & 1) != 0);
-        }
-
-        /// <summary>
-        /// Reads the byte.
-        /// </summary>
-        /// <returns></returns>
-        public byte ReadByte()
-        {
-            CheckDisposed();
-            return _reader.ReadByte();
-        }
-
-        /// <summary>
-        /// Reads the bytes.
-        /// </summary>
-        /// <param name="count">The count.</param>
-        /// <returns></returns>
-        public byte[] ReadBytes(int count)
-        {
-            CheckDisposed();
-            return _reader.ReadBytes(count);
-        }
-
-        /// <summary>
-        /// Reads the character.
-        /// </summary>
-        /// <returns></returns>
-        public char ReadChar()
-        {
-            CheckDisposed();
-            var byteCount = _currentEncoding.GetMaxByteCount(1);
-            var bytes = _reader.ReadBytes(byteCount);
-            return _currentEncoding.GetChars(bytes)[0];
-        }
-
-        /// <summary>
-        /// Reads the chars.
-        /// </summary>
-        /// <param name="count">The count.</param>
-        /// <returns></returns>
-        public char[] ReadChars(int count)
-        {
-            CheckDisposed();
-            var byteCount = _currentEncoding.GetMaxByteCount(count);
-            var bytes = _reader.ReadBytes(byteCount);
-            return _currentEncoding.GetChars(bytes);
-        }
-
-        /// <summary>
-        /// Reads the string.
-        /// </summary>
-        /// <returns></returns>
-        public string ReadString()
-        {
-            CheckDisposed();
-            var byteCount = _reader.ReadUInt16();
-            var buffer = _reader.ReadBytes(byteCount);
-            return _currentEncoding.GetString(buffer);
-        }
-
-        /// <summary>
-        /// Reads the string exact.
-        /// </summary>
-        /// <param name="count">The count.</param>
-        /// <returns></returns>
-        public string ReadStringExact(int count)
-        {
-            CheckDisposed();
-            var byteCount = count * (_currentEncoding.IsSingleByte ? 1 : 2);
-            var buffer = _reader.ReadBytes(byteCount);
-            return _currentEncoding.GetString(buffer);
-        }
-
-        /// <summary>
-        /// Reads the single.
-        /// </summary>
-        /// <returns></returns>
-        public float ReadSingle()
-        {
-            CheckDisposed();
-            return _reader.ReadSingle();
-        }
-
-        /// <summary>
-        /// Reads the double.
-        /// </summary>
-        /// <returns></returns>
-        public double ReadDouble()
-        {
-            CheckDisposed();
-            return _reader.ReadDouble();
-        }
-
-        /// <summary>
-        /// Reads the decimal.
-        /// </summary>
-        /// <returns></returns>
-        public Decimal ReadDecimal()
-        {
-            CheckDisposed();
-            return _reader.ReadDecimal();
-        }
-
-        /// <summary>
-        /// Reads the u int16.
-        /// </summary>
-        /// <returns></returns>
-        [CLSCompliant(false)]
-        public ushort ReadUInt16()
-        {
-            CheckDisposed();
-            return _reader.ReadUInt16();
-        }
-
-        /// <summary>
-        /// Reads the u int32.
-        /// </summary>
-        /// <returns></returns>
-        [CLSCompliant(false)]
-        public uint ReadUInt32()
-        {
-            CheckDisposed();
-            return _reader.ReadUInt32();
-        }
-
-        /// <summary>
-        /// Reads the u int64.
-        /// </summary>
-        /// <returns></returns>
-        [CLSCompliant(false)]
-        public ulong ReadUInt64()
-        {
-            CheckDisposed();
-            return _reader.ReadUInt64();
-        }
-
-        /// <summary>
-        /// Reads the int16.
-        /// </summary>
-        /// <returns></returns>
-        public short ReadInt16()
-        {
-            CheckDisposed();
-            return _reader.ReadInt16();
-        }
-
-        /// <summary>
-        /// Reads the int32.
-        /// </summary>
-        /// <returns></returns>
-        public int ReadInt32()
-        {
-            CheckDisposed();
-            return _reader.ReadInt32();
-        }
-
-        /// <summary>
-        /// Reads the int64.
-        /// </summary>
-        /// <returns></returns>
-        public long ReadInt64()
-        {
-            CheckDisposed();
-            return _reader.ReadInt64();
         }
         #endregion
 
@@ -340,10 +147,10 @@ namespace Zen.Trunk.Storage.IO
         /// <param name="value">The value.</param>
         public void Write(byte value)
         {
-            CheckWritable();
-            if (!IsWritable)
+            CheckDisposed();
+            if (!WriteToUnderlyingStream)
             {
-                ReadByte();
+                _stream.Seek(1, SeekOrigin.Current);
             }
             else
             {
@@ -368,8 +175,8 @@ namespace Zen.Trunk.Storage.IO
         /// <param name="count">The count.</param>
         public void Write(byte[] buffer, int index, int count)
         {
-            CheckWritable();
-            if (!IsWritable)
+            CheckDisposed();
+            if (!WriteToUnderlyingStream)
             {
                 _stream.Seek(count, SeekOrigin.Current);
             }
@@ -385,9 +192,9 @@ namespace Zen.Trunk.Storage.IO
         /// <param name="value">The value.</param>
         public void Write(char value)
         {
-            CheckWritable();
+            CheckDisposed();
             var byteCount = _currentEncoding.GetByteCount(new[] { value });
-            if (!IsWritable)
+            if (!WriteToUnderlyingStream)
             {
                 _stream.Seek(byteCount, SeekOrigin.Current);
             }
@@ -415,9 +222,9 @@ namespace Zen.Trunk.Storage.IO
         /// <param name="count">The count.</param>
         public void Write(char[] buffer, int index, int count)
         {
-            CheckWritable();
+            CheckDisposed();
             var byteCount = _currentEncoding.GetByteCount(buffer, index, count);
-            if (!IsWritable)
+            if (!WriteToUnderlyingStream)
             {
                 _stream.Seek(byteCount, SeekOrigin.Current);
             }
@@ -434,10 +241,13 @@ namespace Zen.Trunk.Storage.IO
         /// <param name="value">The value.</param>
         public void Write(string value)
         {
-            CheckWritable();
-            if (!IsWritable)
+            CheckDisposed();
+            if (!WriteToUnderlyingStream)
             {
-                ReadString();
+                // TODO: Assume we want to skip an existing string
+                // Therefore, read existing string length
+                //  then skip bytes
+                throw new InvalidOperationException();
             }
             else
             {
@@ -456,12 +266,12 @@ namespace Zen.Trunk.Storage.IO
         /// <param name="count">The count.</param>
         public void WriteStringExact(string value, int count)
         {
-            CheckWritable();
+            CheckDisposed();
             if (value.Length > count)
             {
                 value = value.Substring(0, count);
             }
-            if (!IsWritable)
+            if (!WriteToUnderlyingStream)
             {
                 var byteCount = _currentEncoding.GetByteCount(
                     new string(' ', count));
@@ -489,10 +299,10 @@ namespace Zen.Trunk.Storage.IO
         /// <param name="value">The value.</param>
         public void Write(float value)
         {
-            CheckWritable();
-            if (!IsWritable)
+            CheckDisposed();
+            if (!WriteToUnderlyingStream)
             {
-                ReadSingle();
+                _stream.Seek(4, SeekOrigin.Current);
             }
             else
             {
@@ -506,10 +316,10 @@ namespace Zen.Trunk.Storage.IO
         /// <param name="value">The value.</param>
         public void Write(double value)
         {
-            CheckWritable();
-            if (!IsWritable)
+            CheckDisposed();
+            if (!WriteToUnderlyingStream)
             {
-                ReadDouble();
+                _stream.Seek(8, SeekOrigin.Current);
             }
             else
             {
@@ -523,10 +333,10 @@ namespace Zen.Trunk.Storage.IO
         /// <param name="value">The value.</param>
         public void Write(Decimal value)
         {
-            CheckWritable();
-            if (!IsWritable)
+            CheckDisposed();
+            if (!WriteToUnderlyingStream)
             {
-                ReadDecimal();
+                _stream.Seek(16, SeekOrigin.Current);
             }
             else
             {
@@ -541,10 +351,10 @@ namespace Zen.Trunk.Storage.IO
         [CLSCompliant(false)]
         public void Write(ushort value)
         {
-            CheckWritable();
-            if (!IsWritable)
+            CheckDisposed();
+            if (!WriteToUnderlyingStream)
             {
-                ReadUInt16();
+                _stream.Seek(2, SeekOrigin.Current);
             }
             else
             {
@@ -559,10 +369,10 @@ namespace Zen.Trunk.Storage.IO
         [CLSCompliant(false)]
         public void Write(uint value)
         {
-            CheckWritable();
-            if (!IsWritable)
+            CheckDisposed();
+            if (!WriteToUnderlyingStream)
             {
-                ReadUInt32();
+                _stream.Seek(4, SeekOrigin.Current);
             }
             else
             {
@@ -577,10 +387,10 @@ namespace Zen.Trunk.Storage.IO
         [CLSCompliant(false)]
         public void Write(ulong value)
         {
-            CheckWritable();
-            if (!IsWritable)
+            CheckDisposed();
+            if (!WriteToUnderlyingStream)
             {
-                ReadUInt64();
+                _stream.Seek(8, SeekOrigin.Current);
             }
             else
             {
@@ -594,10 +404,10 @@ namespace Zen.Trunk.Storage.IO
         /// <param name="value">The value.</param>
         public void Write(short value)
         {
-            CheckWritable();
-            if (!IsWritable)
+            CheckDisposed();
+            if (!WriteToUnderlyingStream)
             {
-                ReadInt16();
+                _stream.Seek(2, SeekOrigin.Current);
             }
             else
             {
@@ -611,10 +421,10 @@ namespace Zen.Trunk.Storage.IO
         /// <param name="value">The value.</param>
         public void Write(int value)
         {
-            CheckWritable();
-            if (!IsWritable)
+            CheckDisposed();
+            if (!WriteToUnderlyingStream)
             {
-                ReadInt32();
+                _stream.Seek(4, SeekOrigin.Current);
             }
             else
             {
@@ -628,10 +438,10 @@ namespace Zen.Trunk.Storage.IO
         /// <param name="value">The value.</param>
         public void Write(long value)
         {
-            CheckWritable();
-            if (!IsWritable)
+            CheckDisposed();
+            if (!WriteToUnderlyingStream)
             {
-                ReadInt64();
+                _stream.Seek(8, SeekOrigin.Current);
             }
             else
             {
@@ -657,15 +467,6 @@ namespace Zen.Trunk.Storage.IO
         #endregion
 
         #region Private Methods
-        private void CheckWritable()
-        {
-            CheckDisposed();
-            if (_writer == null)
-            {
-                throw new InvalidOperationException("Not writable.");
-            }
-        }
-
         private void CheckDisposed()
         {
             if (_disposed)

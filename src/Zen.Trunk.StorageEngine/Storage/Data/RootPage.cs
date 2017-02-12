@@ -1,7 +1,7 @@
 using System;
 using System.Threading.Tasks;
+using Zen.Trunk.IO;
 using Zen.Trunk.Storage.BufferFields;
-using Zen.Trunk.Storage.IO;
 using Zen.Trunk.Storage.Locking;
 
 namespace Zen.Trunk.Storage.Data
@@ -370,7 +370,7 @@ namespace Zen.Trunk.Storage.Data
 		/// Reads the page header block from the specified buffer reader.
 		/// </summary>
 		/// <param name="streamManager">The stream manager.</param>
-		protected override void ReadHeader(BufferReaderWriter streamManager)
+		protected override void ReadHeader(SwitchingBinaryReader streamManager)
 		{
 			base.ReadHeader(streamManager);
 			ValidatePageSignatureAndVersion();
@@ -380,7 +380,7 @@ namespace Zen.Trunk.Storage.Data
 		/// Writes the page header block to the specified buffer writer.
 		/// </summary>
 		/// <param name="streamManager">The stream manager.</param>
-		protected override void WriteHeader(BufferReaderWriter streamManager)
+		protected override void WriteHeader(SwitchingBinaryWriter streamManager)
 		{
 			WritePageSignatureAndVersion();
 			base.WriteHeader(streamManager);

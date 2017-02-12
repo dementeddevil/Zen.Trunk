@@ -1,6 +1,6 @@
 ﻿using System;
 using Zen.Trunk.Storage.BufferFields;
-using Zen.Trunk.Storage.IO;
+using Zen.Trunk.IO;
 
 namespace Zen.Trunk.Storage.Data.Table
 {
@@ -244,28 +244,28 @@ namespace Zen.Trunk.Storage.Data.Table
 
 			_clusteredKey.SetContext(columns);
 		}
-		#endregion
+        #endregion
 
-		#region Protected Methods
-		/// <summary>
-		/// Reads the field chain from the specified stream manager.
-		/// </summary>
-		/// <param name="streamManager">A <see cref="T:BufferReaderWriter" /> object.</param>
-		protected override void DoRead(BufferReaderWriter streamManager)
+        #region Protected Methods
+        /// <summary>
+        /// Reads the field chain from the specified stream manager.
+        /// </summary>
+        /// <param name="reader">A <see cref="T:SwitchingBinaryReader" /> object.</param>
+        protected override void OnRead(SwitchingBinaryReader reader)
 		{
 			// Wire up columns
-			base.DoRead(streamManager);
-			_clusteredKey.Read(streamManager);
+			base.OnRead(reader);
+			_clusteredKey.Read(reader);
 		}
 
-		/// <summary>
-		/// Writes the field chain to the specified stream manager.
-		/// </summary>
-		/// <param name="streamManager">A <see cref="T:BufferReaderWriter" /> object.</param>
-		protected override void DoWrite(BufferReaderWriter streamManager)
+        /// <summary>
+        /// Writes the field chain to the specified stream manager.
+        /// </summary>
+        /// <param name="writer">A <see cref="T:SwitchingBinaryWriter" /> object.</param>
+        protected override void OnWrite(SwitchingBinaryWriter writer)
 		{
-			base.DoWrite(streamManager);
-			_clusteredKey.Write(streamManager);
+			base.OnWrite(writer);
+			_clusteredKey.Write(writer);
 		}
 		#endregion
 	}

@@ -16,12 +16,14 @@ namespace Zen.Trunk.Storage
     {
         private class MockPageDevice : PageDevice, IMultipleBufferDevice
         {
+            private readonly DevicePageTracker _pageTracker;
             private readonly Dictionary<VirtualPageId, PageBuffer> _pages =
                 new Dictionary<VirtualPageId, PageBuffer>();
 
             public MockPageDevice(ILifetimeScope parentLifetimeScope)
             {
                 InitialiseDeviceLifetimeScope(parentLifetimeScope);
+                _pageTracker = new DevicePageTracker(LifetimeScope, this);
             }
 
             /// <summary>
@@ -32,35 +34,7 @@ namespace Zen.Trunk.Storage
             public TPage CreatePage<TPage>(VirtualPageId pageId)
                 where TPage : DataPage, new()
             {
-                var treatAsInit = false;
-                PageBuffer pageBuffer;
-                if (!_pages.TryGetValue(pageId, out pageBuffer))
-                {
-                    pageBuffer = new PageBuffer(this);
-                    pageBuffer.InitAsync(pageId, LogicalPageId.Zero);
-                    _pages.Add(pageId, pageBuffer);
-                    treatAsInit = true;
-                }
-
-                var page = new TPage();
-                HookupPageSite(page);
-
-                page.VirtualPageId = pageId;
-
-                if (treatAsInit)
-                {
-                    page.PreInitInternal();
-                    page.DataBuffer = pageBuffer;
-                    page.OnInitInternal();
-                }
-                else
-                {
-                    page.PreLoadInternal();
-                    page.DataBuffer = pageBuffer;
-                    page.PostLoadInternal();
-                }
-
-                return page;
+                return _pageTracker.CreatePage<TPage>(pageId);
             }
 
             public IVirtualBufferFactory BufferFactory => GetService<IVirtualBufferFactory>();
@@ -85,7 +59,7 @@ namespace Zen.Trunk.Storage
                 throw new NotImplementedException();
             }
 
-            public uint ExpandDevice(DeviceId deviceId, int pageCount)
+            public void ResizeDevice(DeviceId deviceId, uint pageCount)
             {
                 throw new NotImplementedException();
             }
@@ -176,7 +150,7 @@ Then the allocation fails.")]
                 .ThenBy(p => p.MinHeaderSize);
             foreach (var page in concretePages)
             {
-                Console.WriteLine($"{page.GetType().FullName} => MinHeaderSize={page.MinHeaderSize}");
+                Debug.WriteLine($"{page.GetType().FullName} => MinHeaderSize={page.MinHeaderSize}");
                 Assert.True(page.HeaderSize >= page.MinHeaderSize, "Page header must be large enough to accommodate min header.");
             }
         }

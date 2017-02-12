@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using Zen.Trunk.IO;
 
 namespace Zen.Trunk.Storage.IO
 {
@@ -503,7 +504,7 @@ namespace Zen.Trunk.Storage.IO
 			}
 
 			// Construct memory stream on correct buffer object
-			var stream = new BufferStream(this, offset, count, writable);
+			var stream = new NonResizeableStream(new BufferStream(this, offset, count, writable));
 			_streams.Add(stream, new StreamInfo(offset, count));
 			return stream;
 		}

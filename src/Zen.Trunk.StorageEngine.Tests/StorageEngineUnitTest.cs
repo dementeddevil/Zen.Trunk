@@ -206,86 +206,96 @@ namespace Zen.Trunk.Storage
 
                 using (var dbDevice = new DatabaseDevice(PrimaryDatabaseId))
                 {
-                    dbDevice.InitialiseDeviceLifetimeScope(Scope);
-                    dbDevice.BeginTransaction();
+                    try
+                    {
+                        dbDevice.InitialiseDeviceLifetimeScope(Scope);
+                        dbDevice.BeginTransaction();
 
-                    var addFgDevice =
-                        new AddFileGroupDeviceParameters(
-                            FileGroupId.Primary,
-                            "PRIMARY",
-                            "master",
-                            masterDataPathName,
-                            DeviceId.Zero,
-                            128,
-                            true);
-                    await dbDevice.AddFileGroupDeviceAsync(addFgDevice).ConfigureAwait(true);
+                        var addFgDevice =
+                            new AddFileGroupDeviceParameters(
+                                FileGroupId.Primary,
+                                "PRIMARY",
+                                "master",
+                                masterDataPathName,
+                                DeviceId.Zero,
+                                128,
+                                true);
+                        await dbDevice.AddFileGroupDeviceAsync(addFgDevice).ConfigureAwait(true);
 
-                    var addLogDevice =
-                        new AddLogDeviceParameters(
-                            "MASTER_LOG",
-                            masterLogPathName,
-                            DeviceId.Zero,
-                            2);
-                    await dbDevice.AddLogDeviceAsync(addLogDevice).ConfigureAwait(true);
+                        var addLogDevice =
+                            new AddLogDeviceParameters(
+                                "MASTER_LOG",
+                                masterLogPathName,
+                                DeviceId.Zero,
+                                2);
+                        await dbDevice.AddLogDeviceAsync(addLogDevice).ConfigureAwait(true);
 
-                    await dbDevice.OpenAsync(true).ConfigureAwait(true);
+                        await dbDevice.OpenAsync(true).ConfigureAwait(true);
 
-                    await TrunkTransactionContext.CommitAsync().ConfigureAwait(true);
+                        await TrunkTransactionContext.CommitAsync().ConfigureAwait(true);
 
-                    dbDevice.BeginTransaction();
+                        dbDevice.BeginTransaction();
+                        try
+                        {
+                            var param =
+                                new AddFileGroupTableParameters(
+                                    addFgDevice.FileGroupId,
+                                    addFgDevice.FileGroupName,
+                                    "Test",
+                                    new TableColumnInfo(
+                                        "Id",
+                                        TableColumnDataType.Int,
+                                        false,
+                                        0,
+                                        1,
+                                        1),
+                                    new TableColumnInfo(
+                                        "Name",
+                                        TableColumnDataType.NVarChar,
+                                        false,
+                                        50),
+                                    new TableColumnInfo(
+                                        "SequenceIndex",
+                                        TableColumnDataType.Int,
+                                        false),
+                                    new TableColumnInfo(
+                                        "CreatedDate",
+                                        TableColumnDataType.DateTime,
+                                        false));
+                            await dbDevice.AddFileGroupTableAsync(param).ConfigureAwait(true);
 
-                    var param =
-                        new AddFileGroupTableParameters(
-                            addFgDevice.FileGroupId,
-                            addFgDevice.FileGroupName,
-                            "Test",
-                            new TableColumnInfo(
-                                "Id",
-                                TableColumnDataType.Int,
-                                false,
-                                0,
-                                1,
-                                1),
-                            new TableColumnInfo(
-                                "Name",
-                                TableColumnDataType.NVarChar,
-                                false,
-                                50),
-                            new TableColumnInfo(
-                                "SequenceIndex",
-                                TableColumnDataType.Int,
-                                false),
-                            new TableColumnInfo(
-                                "CreatedDate",
-                                TableColumnDataType.DateTime,
-                                false));
-                    await dbDevice.AddFileGroupTableAsync(param).ConfigureAwait(true);
+                            /*table.AddIndex(
+                                new RootTableIndexInfo
+                                {
+                                    IndexFileGroupId = FileGroupDevice.Primary,
+                                    IndexSubType = TableIndexSubType.Primary | TableIndexSubType.Unique,
+                                    Name = "PK_Test",
+                                    ObjectId = 12,
+                                    ColumnIDs = new byte[] { 1 }
+                                });*/
 
-                    /*table.AddIndex(
-				        new RootTableIndexInfo
-				        {
-					        IndexFileGroupId = FileGroupDevice.Primary,
-					        IndexSubType = TableIndexSubType.Primary | TableIndexSubType.Unique,
-					        Name = "PK_Test",
-					        ObjectId = 12,
-					        ColumnIDs = new byte[] { 1 }
-				        });*/
+                            //table.EndColumnUpdate().Wait();
 
-                    //table.EndColumnUpdate().Wait();
+                            await TrunkTransactionContext.CommitAsync().ConfigureAwait(true);
+                        }
+                        catch (Exception e)
+                        {
+                            await TrunkTransactionContext.RollbackAsync().ConfigureAwait(true);
+                        }
 
-                    await TrunkTransactionContext.CommitAsync().ConfigureAwait(true);
-
-                    // Insert some data
-                    /*TrunkTransactionContext.BeginTransaction(dbDevice, TimeSpan.FromMinutes(5));
-
-
-
-			        TrunkTransactionContext.Commit();*/
-                    await dbDevice.CloseAsync().ConfigureAwait(true);
+                        // Insert some data
+                        /*TrunkTransactionContext.BeginTransaction(dbDevice, TimeSpan.FromMinutes(5));
+                        TrunkTransactionContext.Commit();*/
+                    }
+                    finally
+                    {
+                        await dbDevice.CloseAsync().ConfigureAwait(true);
+                    }
                 }
             }
         }
 
+        [Fact(DisplayName = "Verify USE DATABASE statement creates shared database lock.")]
         public async Task UseDatabaseLockTest()
         {
             using (AmbientSessionContext.SwitchSessionContext(
@@ -327,20 +337,20 @@ namespace Zen.Trunk.Storage
                         Trace.WriteLine("Transaction commit succeeded");
 
                         // This will acquire a session based lock
-                        await dbDevice.UseDatabaseAsync(TimeSpan.FromSeconds(10));
+                        await dbDevice.UseDatabaseAsync(TimeSpan.FromSeconds(10)).ConfigureAwait(true);
 
                         dbDevice.BeginTransaction();
 
                         var lockObject = dbDevice.LifetimeScope.Resolve<IDatabaseLockManager>().GetDatabaseLock();
-                        Assert.True(await lockObject.HasLockAsync(DatabaseLockType.Shared));
+                        var hasLock = await lockObject.HasLockAsync(DatabaseLockType.Shared).ConfigureAwait(true);
+                        Assert.True(hasLock, "Expected to have shared database lock");
 
-                        
                         await dbDevice.CloseAsync().ConfigureAwait(true);
                         Trace.WriteLine("DatabaseDevice.Close succeeded");
                     }
                 }
 
-                
+
             }
         }
 

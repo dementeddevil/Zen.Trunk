@@ -1,6 +1,6 @@
 using System;
 using System.IO;
-using Zen.Trunk.Storage.IO;
+using Zen.Trunk.IO;
 
 namespace Zen.Trunk.Storage.Log
 {
@@ -29,9 +29,12 @@ namespace Zen.Trunk.Storage.Log
         #endregion
         
         #region Private Fields
+        private readonly object _syncWrite = new object();
         private readonly ILogPageDevice _device;
         private readonly VirtualLogFileInfo _logFileInfo;
-        private readonly BufferReaderWriter _streamManager;
+        private readonly Stream _innerStream;
+        private readonly SwitchingBinaryReader _streamReader;
+        private readonly SwitchingBinaryWriter _streamWriter;
         private bool _writeFirstHeader = true;
         private bool _headerDirty;
         private long _position;
@@ -39,20 +42,22 @@ namespace Zen.Trunk.Storage.Log
 
         #region Public Constructors
         /// <summary>
-        /// Creates a new <see cref="T:VirtualLogFileStream"/> object owned by
-        /// the specified <see cref="T:LogPageDevice"/> and mapped against the
-        /// given <see cref="T:Stream"/>. The log file has the characteristics
-        /// specified in the <see cref="T:VirtualLogFileInfo"/>.
+        /// Creates a new <see cref="T:VirtualLogFileStream" /> object owned by
+        /// the specified <see cref="T:LogPageDevice" /> and mapped against the
+        /// given <see cref="T:Stream" />. The log file has the characteristics
+        /// specified in the <see cref="T:VirtualLogFileInfo" />.
         /// </summary>
         /// <param name="device">The log device that owns this log stream.</param>
         /// <param name="backingStore">The stream backing store for this object.</param>
-        /// <param name="logFileInfo"></param>
+        /// <param name="logFileInfo">The log file information.</param>
         public VirtualLogFileStream(
             ILogPageDevice device, Stream backingStore, VirtualLogFileInfo logFileInfo)
         {
             _device = device;
             _logFileInfo = logFileInfo;
-            _streamManager = new BufferReaderWriter(backingStore);
+            _innerStream = backingStore;
+            _streamReader = new SwitchingBinaryReader(backingStore, true);
+            _streamWriter = new SwitchingBinaryWriter(backingStore, true);
         }
         #endregion
 
@@ -217,7 +222,7 @@ namespace Zen.Trunk.Storage.Log
         /// written.</param>
         public void WriteEntry(LogEntry entry)
         {
-            lock (_streamManager)
+            lock (_syncWrite)
             {
                 // Record cursor position of last log record written to the
                 //	stream and move stream position to write point.
@@ -228,7 +233,7 @@ namespace Zen.Trunk.Storage.Log
                 EnsurePositionValid();
                 try
                 {
-                    entry.Write(_streamManager);
+                    entry.Write(_streamWriter);
                 }
                 finally
                 {
@@ -253,7 +258,7 @@ namespace Zen.Trunk.Storage.Log
             EnsurePositionValid();
             try
             {
-                entry = LogEntry.ReadEntry(_streamManager);
+                entry = LogEntry.ReadEntry(_streamReader);
             }
             finally
             {
@@ -304,8 +309,11 @@ namespace Zen.Trunk.Storage.Log
             {
                 newOffset = _logFileInfo.StartOffset + Length;
             }
-            _streamManager.BaseStream.Seek(newOffset, SeekOrigin.Begin);
+
+            // Seek inner stream and update known position
+            _innerStream.Seek(newOffset, SeekOrigin.Begin);
             UpdatePosition();
+
             return Position;
         }
 
@@ -319,7 +327,7 @@ namespace Zen.Trunk.Storage.Log
         /// <param name="value"></param>
         public override void SetLength(long value)
         {
-            throw new NotSupportedException("Setting page stream length is not supported.");
+            throw new NotSupportedException("Setting virtual log file stream length is not supported.");
         }
 
         /// <summary>
@@ -327,7 +335,7 @@ namespace Zen.Trunk.Storage.Log
         /// </summary>
         public override void Flush()
         {
-            if (_streamManager != null && CanWrite)
+            if (_streamWriter != null && CanWrite)
             {
                 // Write header block if necessary
                 if (_headerDirty)
@@ -336,7 +344,7 @@ namespace Zen.Trunk.Storage.Log
                 }
 
                 // Flush to underlying stream
-                _streamManager.Flush();
+                _streamWriter.Flush();
             }
         }
 
@@ -361,7 +369,7 @@ namespace Zen.Trunk.Storage.Log
             EnsurePositionValid();
             try
             {
-                retVal = _streamManager.BaseStream.Read(buffer, offset, count);
+                retVal = _innerStream.Read(buffer, offset, count);
             }
             finally
             {
@@ -388,7 +396,7 @@ namespace Zen.Trunk.Storage.Log
             EnsurePositionValid();
             try
             {
-                retVal = _streamManager.BaseStream.ReadByte();
+                retVal = _innerStream.ReadByte();
             }
             finally
             {
@@ -422,7 +430,7 @@ namespace Zen.Trunk.Storage.Log
             EnsurePositionValid();
             try
             {
-                _streamManager.BaseStream.Write(buffer, offset, count);
+                _innerStream.Write(buffer, offset, count);
             }
             finally
             {
@@ -447,7 +455,7 @@ namespace Zen.Trunk.Storage.Log
             EnsurePositionValid();
             try
             {
-                _streamManager.BaseStream.WriteByte(value);
+                _innerStream.WriteByte(value);
             }
             finally
             {
@@ -462,12 +470,12 @@ namespace Zen.Trunk.Storage.Log
             // Read first header from log stream
             Position = 0;
             var firstHeader = new VirtualLogFileHeader();
-            firstHeader.Read(_streamManager);
+            firstHeader.Read(_streamReader);
 
             // Read second header from log stream
             Position = HeaderSize;
             var secondHeader = new VirtualLogFileHeader();
-            secondHeader.Read(_streamManager);
+            secondHeader.Read(_streamReader);
 
             // Determine whether each header is valid by comparison of timestamp hash
             //  with the value in the hash field (timestamp is written first and hash last)
@@ -516,12 +524,12 @@ namespace Zen.Trunk.Storage.Log
         private void EnsurePositionValid()
         {
             // Set the underlying stream position
-            _streamManager.BaseStream.Position = TotalHeaderSize + _position;
+            _innerStream.Position = TotalHeaderSize + _position;
         }
 
         private void UpdatePosition()
         {
-            _position = _streamManager.BaseStream.Position - TotalHeaderSize;
+            _position = _innerStream.Position - TotalHeaderSize;
             if (_position < 0)
             {
                 _position = 0;
@@ -531,12 +539,12 @@ namespace Zen.Trunk.Storage.Log
         private void WriteHeader()
         {
             // Save the current position
-            var currentPosition = _streamManager.BaseStream.Position;
+            var currentPosition = _innerStream.Position;
             try
             {
                 // Header size is 28 bytes
-                _streamManager.Flush();
-                _streamManager.BaseStream.Seek(_logFileInfo.StartOffset +
+                _streamWriter.Flush();
+                _innerStream.Seek(_logFileInfo.StartOffset +
                     (_writeFirstHeader ? 0 : HeaderSize), SeekOrigin.Begin);
 
                 // Update state machine
@@ -545,12 +553,12 @@ namespace Zen.Trunk.Storage.Log
                 _logFileInfo.CurrentHeader.Hash = _logFileInfo.CurrentHeader.Timestamp.GetHashCode();
 
                 // Write the header block (28 bytes)
-                _logFileInfo.CurrentHeader.Write(_streamManager);
+                _logFileInfo.CurrentHeader.Write(_streamWriter);
                 _headerDirty = false;
             }
             finally
             {
-                _streamManager.BaseStream.Position = currentPosition;
+                _innerStream.Position = currentPosition;
             }
         }
         #endregion

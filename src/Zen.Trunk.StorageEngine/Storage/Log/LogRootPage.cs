@@ -1,11 +1,10 @@
+using System;
+using System.Collections.Generic;
+using Zen.Trunk.IO;
 using Zen.Trunk.Storage.BufferFields;
 
 namespace Zen.Trunk.Storage.Log
 {
-	using System;
-	using System.Collections.Generic;
-	using IO;
-
     /// <summary>
     /// 
     /// </summary>
@@ -341,7 +340,7 @@ namespace Zen.Trunk.Storage.Log
         /// Reads the page data block from the specified buffer reader.
         /// </summary>
         /// <param name="streamManager">The stream manager.</param>
-        protected override void ReadData(BufferReaderWriter streamManager)
+        protected override void ReadData(SwitchingBinaryReader streamManager)
 		{
 			base.ReadData(streamManager);
 			if (_logFileCount.Value > 0)
@@ -359,7 +358,7 @@ namespace Zen.Trunk.Storage.Log
         /// Writes the page data block to the specified buffer writer.
         /// </summary>
         /// <param name="streamManager">The stream manager.</param>
-        protected override void WriteData(BufferReaderWriter streamManager)
+        protected override void WriteData(SwitchingBinaryWriter streamManager)
 		{
 			base.WriteData(streamManager);
 			for (var index = 0; index < _logFiles.Count; ++index)

@@ -1,181 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Zen.Trunk.IO;
 using Zen.Trunk.Storage.BufferFields;
-using Zen.Trunk.Storage.IO;
 
 namespace Zen.Trunk.Storage.Data.Table
 {
     /// <summary>
-    /// 
-    /// </summary>
-    public enum RowConstraintType
-	{
-        /// <summary>
-        /// The default
-        /// </summary>
-        Default,
-        
-        /// <summary>
-        /// The check
-        /// </summary>
-        Check,
-        
-        /// <summary>
-        /// The timestamp
-        /// </summary>
-        Timestamp,
-
-        /// <summary>
-        /// The identity
-        /// </summary>
-        Identity
-    }
-
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <seealso cref="BufferFieldWrapper" />
-    public class RowConstraint : BufferFieldWrapper
-	{
-		private readonly BufferFieldUInt16 _columnId;
-		private readonly BufferFieldByte _constraintType;
-		private readonly BufferFieldStringFixed _constraintData;
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="RowConstraint"/> class.
-        /// </summary>
-        public RowConstraint()
-		{
-			_columnId = new BufferFieldUInt16();
-			_constraintType = new BufferFieldByte(_columnId);
-			_constraintData = new BufferFieldStringFixed(_constraintType, 64);
-		}
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="RowConstraint"/> class.
-        /// </summary>
-        /// <param name="columnId">The column identifier.</param>
-        /// <param name="constraintType">Type of the constraint.</param>
-        public RowConstraint(ushort columnId, RowConstraintType constraintType)
-		{
-			ColumnId = columnId;
-			ConstraintType = constraintType;
-		}
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="RowConstraint"/> class.
-        /// </summary>
-        /// <param name="columnId">The column identifier.</param>
-        /// <param name="constraintType">Type of the constraint.</param>
-        /// <param name="constraintData">The constraint data.</param>
-        public RowConstraint(ushort columnId, RowConstraintType constraintType,
-			string constraintData)
-		{
-			ColumnId = columnId;
-			ConstraintType = constraintType;
-			ConstraintData = constraintData;
-		}
-
-        /// <summary>
-        /// Gets or sets the column identifier.
-        /// </summary>
-        /// <value>
-        /// The column identifier.
-        /// </value>
-        public ushort ColumnId
-		{
-			get
-			{
-				return _columnId.Value;
-			}
-			set
-			{
-				_columnId.Value = value;
-			}
-		}
-
-        /// <summary>
-        /// Gets or sets the type of the constraint.
-        /// </summary>
-        /// <value>
-        /// The type of the constraint.
-        /// </value>
-        public RowConstraintType ConstraintType
-		{
-			get
-			{
-				return (RowConstraintType)_constraintType.Value;
-			}
-			set
-			{
-				_constraintType.Value = (byte)value;
-			}
-		}
-
-        /// <summary>
-        /// Gets or sets the constraint data.
-        /// </summary>
-        /// <value>
-        /// The constraint data.
-        /// </value>
-        public string ConstraintData
-		{
-			get
-			{
-				return _constraintData.Value;
-			}
-			set
-			{
-				_constraintData.Value = value;
-			}
-		}
-
-        /// <summary>
-        /// Gets the first buffer field object.
-        /// </summary>
-        /// <value>
-        /// A <see cref="T:BufferField" /> object.
-        /// </value>
-        protected override BufferField FirstField => _columnId;
-
-        /// <summary>
-        /// Gets the last buffer field object.
-        /// </summary>
-        /// <value>
-        /// A <see cref="T:BufferField" /> object.
-        /// </value>
-        protected override BufferField LastField => _constraintData;
-	}
-
-	internal abstract class RowConstraintExecute
-	{
-		public abstract RowConstraintType ConstraintType
-		{
-			get;
-		}
-
-		public abstract void ValidateRow(RowConstraint constraint, TableColumnInfo[] columnDef,
-			object[] rowData);
-	}
-
-    /// <summary>
-    /// 
-    /// </summary>
-    public class RowInfo
-	{
-        /// <summary>
-        /// The offset
-        /// </summary>
-        public ushort Offset;       // Stored
-
-        /// <summary>
-        /// The length
-        /// </summary>
-        public ushort Length;		// Calculated
-	}
-
-	/// <summary>
 	/// The table schema page object encapsulates a table schema definition.
 	/// </summary>
 	public class TableSchemaPage : ObjectSchemaPage
@@ -374,11 +205,11 @@ namespace Zen.Trunk.Storage.Data.Table
         /// Writes the page header block to the specified buffer writer.
         /// </summary>
         /// <param name="streamManager">The stream manager.</param>
-        protected override void WriteHeader(BufferReaderWriter streamManager)
+        protected override void WriteHeader(SwitchingBinaryWriter streamManager)
 		{
-			_columnCount.Value = (byte)(_columns != null ? _columns.Count : 0);
-			_constraintCount.Value = (byte)(_constraints != null ? _constraints.Count : 0);
-			_indexCount.Value = (byte)(_indices != null ? _indices.Count : 0);
+			_columnCount.Value = (byte)(_columns?.Count ?? 0);
+			_constraintCount.Value = (byte)(_constraints?.Count ?? 0);
+			_indexCount.Value = (byte)(_indices?.Count ?? 0);
 			base.WriteHeader(streamManager);
 		}
 
@@ -386,7 +217,7 @@ namespace Zen.Trunk.Storage.Data.Table
         /// Reads the page data block from the specified buffer reader.
         /// </summary>
         /// <param name="streamManager">The stream manager.</param>
-        protected override void ReadData(BufferReaderWriter streamManager)
+        protected override void ReadData(SwitchingBinaryReader streamManager)
 		{
 			_columns.Clear();
 			for (byte index = 0; index < _columnCount.Value; ++index)
@@ -415,7 +246,7 @@ namespace Zen.Trunk.Storage.Data.Table
         /// Writes the page data block to the specified buffer writer.
         /// </summary>
         /// <param name="streamManager">The stream manager.</param>
-        protected override void WriteData(BufferReaderWriter streamManager)
+        protected override void WriteData(SwitchingBinaryWriter streamManager)
 		{
 			if (_columns != null)
 			{
@@ -440,98 +271,5 @@ namespace Zen.Trunk.Storage.Data.Table
 			}
 		}
 		#endregion
-	}
-
-	/// <summary>
-	/// TableSchemaRootPage extends <see cref="TableSchemaPage"/> for holding
-	/// extra information needed for recording table extends.
-	/// </summary>
-	/// <remarks>
-	/// The table schema root page object maintains two additional properties;
-	/// 1. The first data page
-	/// 2. The last data page
-	/// </remarks>
-	public class TableSchemaRootPage : TableSchemaPage
-	{
-		#region Private Fields
-		private readonly BufferFieldUInt64 _dataFirstLogicalPageId;
-		private readonly BufferFieldUInt64 _dataLastLogicalPageId;
-		#endregion
-
-		#region Public Constructors
-		/// <summary>
-		/// Initializes a new instance of the <see cref="TableSchemaRootPage"/> class.
-		/// </summary>
-		public TableSchemaRootPage()
-		{
-			_dataFirstLogicalPageId = new BufferFieldUInt64(base.LastHeaderField);
-			_dataLastLogicalPageId = new BufferFieldUInt64(_dataFirstLogicalPageId);
-		}
-		#endregion
-
-		#region Public Properties
-		/// <summary>
-		/// Gets the minimum size of the header.
-		/// </summary>
-		/// <value>
-		/// The minimum size of the header.
-		/// </value>
-		public override uint MinHeaderSize => base.MinHeaderSize + 16;
-
-	    /// <summary>
-		/// Gets or sets the logical page identifier of the first data page for the table.
-		/// </summary>
-		/// <value>
-		/// The logical page identifier.
-		/// </value>
-		public LogicalPageId DataFirstLogicalPageId
-		{
-			get
-			{
-				return new LogicalPageId(_dataFirstLogicalPageId.Value);
-			}
-			set
-			{
-				if (_dataFirstLogicalPageId.Value != value.Value)
-				{
-					_dataFirstLogicalPageId.Value = value.Value;
-					SetHeaderDirty();
-				}
-			}
-		}
-
-		/// <summary>
-		/// Gets or sets the logical page identifier of the last data page for the table.
-		/// </summary>
-		/// <value>
-		/// The logical page identifier.
-		/// </value>
-		public LogicalPageId DataLastLogicalPageId
-		{
-			get
-			{
-				return new LogicalPageId(_dataLastLogicalPageId.Value);
-			}
-			set
-			{
-				if (_dataLastLogicalPageId.Value != value.Value)
-				{
-					_dataLastLogicalPageId.Value = value.Value;
-					SetHeaderDirty();
-				}
-			}
-		}
-		#endregion
-
-		#region Protected Properties
-		/// <summary>
-		/// Gets the last header field.
-		/// </summary>
-		/// <value>
-		/// The last header field.
-		/// </value>
-		protected override BufferField LastHeaderField => _dataLastLogicalPageId;
-
-	    #endregion
 	}
 }

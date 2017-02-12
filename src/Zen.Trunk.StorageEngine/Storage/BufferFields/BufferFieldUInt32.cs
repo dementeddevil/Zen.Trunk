@@ -1,5 +1,5 @@
 using System;
-using Zen.Trunk.Storage.IO;
+using Zen.Trunk.IO;
 
 namespace Zen.Trunk.Storage.BufferFields
 {
@@ -30,12 +30,12 @@ namespace Zen.Trunk.Storage.BufferFields
 
         #endregion
 
-        protected override void OnRead(BufferReaderWriter streamManager)
+        protected override void OnRead(SwitchingBinaryReader streamManager)
         {
             Value = streamManager.ReadUInt32();
         }
 
-        protected override void OnWrite(BufferReaderWriter streamManager)
+        protected override void OnWrite(SwitchingBinaryWriter streamManager)
         {
             streamManager.Write(Value);
         }

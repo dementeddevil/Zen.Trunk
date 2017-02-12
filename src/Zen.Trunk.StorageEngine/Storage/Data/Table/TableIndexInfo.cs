@@ -1,7 +1,6 @@
 ﻿using System;
-using Zen.Trunk.Storage.BufferFields;
+using Zen.Trunk.IO;
 using Zen.Trunk.Storage.Data.Index;
-using Zen.Trunk.Storage.IO;
 
 namespace Zen.Trunk.Storage.Data.Table
 {
@@ -180,130 +179,28 @@ namespace Zen.Trunk.Storage.Data.Table
 			// Indices are the same
 			return 0;
 		}
-		#endregion
+        #endregion
 
-		#region Protected Methods
-		/// <summary>
-		/// Reads the field chain from the specified stream manager.
-		/// </summary>
-		/// <param name="streamManager">A <see cref="T:BufferReaderWriter" /> object.</param>
-		protected override void DoRead(BufferReaderWriter streamManager)
+        #region Protected Methods
+        /// <summary>
+        /// Reads the field chain from the specified stream manager.
+        /// </summary>
+        /// <param name="reader">A <see cref="T:SwitchingBinaryReader" /> object.</param>
+        protected override void OnRead(SwitchingBinaryReader reader)
 		{
 			// Wire up columns
-			base.DoRead(streamManager);
-			_keyRow.Read(streamManager);
+			base.OnRead(reader);
+			_keyRow.Read(reader);
 		}
 
-		/// <summary>
-		/// Writes the field chain to the specified stream manager.
-		/// </summary>
-		/// <param name="streamManager">A <see cref="T:BufferReaderWriter" /> object.</param>
-		protected override void DoWrite(BufferReaderWriter streamManager)
+        /// <summary>
+        /// Writes the field chain to the specified stream manager.
+        /// </summary>
+        /// <param name="writer">A <see cref="T:SwitchingBinaryWriter" /> object.</param>
+        protected override void OnWrite(SwitchingBinaryWriter writer)
 		{
-			base.DoWrite(streamManager);
-			_keyRow.Write(streamManager);
-		}
-		#endregion
-	}
-
-    /// <summary>
-    /// <c>TableIndexLogicalInfo</c> is used to describe root and intermediate
-    /// index pages.
-    /// </summary>
-	public class TableIndexLogicalInfo : TableIndexInfo
-	{
-		#region Private Fields
-		private readonly BufferFieldLogicalPageId _logicalId;
-		#endregion
-
-		#region Public Constructors
-		/// <summary>
-		/// Initializes a new instance of the <see cref="IndexInfo" /> class.
-		/// </summary>
-		/// <param name="keySize">Size of the key.</param>
-		public TableIndexLogicalInfo(int keySize)
-			: base(keySize)
-		{
-			_logicalId = new BufferFieldLogicalPageId(LogicalPageId.Zero);
-		}
-
-		/// <summary>
-		/// Initializes a new instance of the <see cref="IndexInfo" /> class.
-		/// </summary>
-		/// <param name="keys">The keys.</param>
-		public TableIndexLogicalInfo(object[] keys)
-			: base(keys)
-		{
-			_logicalId = new BufferFieldLogicalPageId(LogicalPageId.Zero);
-        }
-
-		/// <summary>
-		/// Initializes a new instance of the <see cref="IndexInfo" /> class.
-		/// </summary>
-		/// <param name="keySize">Size of the key.</param>
-		/// <param name="logicalId">The logical id.</param>
-		public TableIndexLogicalInfo(int keySize, LogicalPageId logicalId)
-			: base(keySize)
-		{
-			_logicalId = new BufferFieldLogicalPageId(logicalId);
-		}
-
-		/// <summary>
-		/// Initializes a new instance of the <see cref="IndexInfo" /> class.
-		/// </summary>
-		/// <param name="keys">The keys.</param>
-		/// <param name="logicalId">The logical id.</param>
-		public TableIndexLogicalInfo(object[] keys, LogicalPageId logicalId)
-			: base(keys)
-		{
-			_logicalId = new BufferFieldLogicalPageId(logicalId);
-        }
-		#endregion
-
-		#region Public Properties
-		/// <summary>
-		/// Represents the logical ID of the child index page (root and
-		/// intermediate index pages only) or the logical ID of the
-		/// data page (leaf pages only).
-		/// </summary>
-		public LogicalPageId LogicalPageId
-		{
-			get
-			{
-				return _logicalId.Value;
-			}
-			set
-			{
-				_logicalId.Value = value;
-			}
-		}
-		#endregion
-
-		#region Protected Properties
-		/// <summary>
-		/// Gets the first buffer field object.
-		/// </summary>
-		/// <value>A <see cref="T:BufferField"/> object.</value>
-		protected override BufferField FirstField => _logicalId;
-
-	    /// <summary>
-		/// Gets the last buffer field object.
-		/// </summary>
-		/// <value>A <see cref="T:BufferField"/> object.</value>
-		protected override BufferField LastField => _logicalId;
-
-	    #endregion
-
-		#region Public Methods
-		/// <summary>
-		/// Returns a hash code for this instance.
-		/// </summary>
-		/// <returns>
-		/// A hash code for this instance, suitable for use in hashing algorithms and data structures like a hash table. 
-		/// </returns>
-		public override int GetHashCode()
-		{
-			return _logicalId.Value.GetHashCode();
+			base.OnWrite(writer);
+			_keyRow.Write(writer);
 		}
 		#endregion
 	}

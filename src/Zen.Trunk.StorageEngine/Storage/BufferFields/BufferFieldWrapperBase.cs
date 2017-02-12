@@ -1,4 +1,4 @@
-using Zen.Trunk.Storage.IO;
+using Zen.Trunk.IO;
 
 namespace Zen.Trunk.Storage.BufferFields
 {
@@ -64,27 +64,21 @@ namespace Zen.Trunk.Storage.BufferFields
 
         #region Protected Methods
         /// <summary>
-        /// Reads the field chain from the specified stream manager.
+        /// Reads the field chain from the specified stream reader.
         /// </summary>
-        /// <param name="streamManager">A <see cref="T:BufferReaderWriter"/> object.</param>
-        protected virtual void DoRead(BufferReaderWriter streamManager)
+        /// <param name="reader">A <see cref="T:SwitchingBinaryReader"/> object.</param>
+        protected virtual void OnRead(SwitchingBinaryReader reader)
         {
-            if (FirstField != null)
-            {
-                FirstField.Read(streamManager);
-            }
+            FirstField?.Read(reader);
         }
 
         /// <summary>
-        /// Writes the field chain to the specified stream manager.
+        /// Writes the field chain to the specified stream writer.
         /// </summary>
-        /// <param name="streamManager">A <see cref="T:BufferReaderWriter"/> object.</param>
-        protected virtual void DoWrite(BufferReaderWriter streamManager)
+        /// <param name="writer">A <see cref="T:SwitchingBinaryWriter"/> object.</param>
+        protected virtual void OnWrite(SwitchingBinaryWriter writer)
         {
-            if (FirstField != null)
-            {
-                FirstField.Write(streamManager);
-            }
+            FirstField?.Write(writer);
         }
         #endregion
     }

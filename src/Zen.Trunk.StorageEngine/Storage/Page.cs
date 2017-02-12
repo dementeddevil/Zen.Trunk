@@ -4,9 +4,9 @@ using System.ComponentModel;
 using System.IO;
 using System.Threading.Tasks;
 using Autofac;
+using Zen.Trunk.IO;
 using Zen.Trunk.Logging;
 using Zen.Trunk.Storage.BufferFields;
-using Zen.Trunk.Storage.IO;
 
 namespace Zen.Trunk.Storage
 {
@@ -47,11 +47,11 @@ namespace Zen.Trunk.Storage
 				return true;
 			}
 
-			protected override void OnRead(BufferReaderWriter streamManager)
+			protected override void OnRead(SwitchingBinaryReader streamManager)
 			{
 			}
 
-			protected override void OnWrite(BufferReaderWriter streamManager)
+			protected override void OnWrite(SwitchingBinaryWriter streamManager)
 			{
 			}
 		}
@@ -455,7 +455,7 @@ namespace Zen.Trunk.Storage
 		{
 			using (var stream = CreateHeaderStream(true))
 			{
-				using (var streamManager = new BufferReaderWriter(stream))
+				using (var streamManager = new SwitchingBinaryReader(stream))
 				{
 					ReadHeader(streamManager);
 					streamManager.Close();
@@ -471,7 +471,7 @@ namespace Zen.Trunk.Storage
 		{
 			using (var stream = CreateHeaderStream(false))
 			{
-				using (var streamManager = new BufferReaderWriter(stream))
+				using (var streamManager = new SwitchingBinaryWriter(stream))
 				{
 					WriteHeader(streamManager);
 					streamManager.Close();
@@ -491,7 +491,7 @@ namespace Zen.Trunk.Storage
 		/// Writes the page header block to the specified buffer writer.
 		/// </summary>
 		/// <param name="streamManager">The stream manager.</param>
-		protected virtual void WriteHeader(BufferReaderWriter streamManager)
+		protected virtual void WriteHeader(SwitchingBinaryWriter streamManager)
 		{
 			FirstHeaderField.Write(streamManager);
 		}
@@ -500,7 +500,7 @@ namespace Zen.Trunk.Storage
 		/// Reads the page header block from the specified buffer reader.
 		/// </summary>
 		/// <param name="streamManager">The stream manager.</param>
-		protected virtual void ReadHeader(BufferReaderWriter streamManager)
+		protected virtual void ReadHeader(SwitchingBinaryReader streamManager)
 		{
 			FirstHeaderField.Read(streamManager);
 		}
@@ -509,7 +509,7 @@ namespace Zen.Trunk.Storage
 		/// Writes the page data block to the specified buffer writer.
 		/// </summary>
 		/// <param name="streamManager">The stream manager.</param>
-		protected virtual void WriteData(BufferReaderWriter streamManager)
+		protected virtual void WriteData(SwitchingBinaryWriter streamManager)
 		{
 		}
 
@@ -517,7 +517,7 @@ namespace Zen.Trunk.Storage
 		/// Reads the page data block from the specified buffer reader.
 		/// </summary>
 		/// <param name="streamManager">The stream manager.</param>
-		protected virtual void ReadData(BufferReaderWriter streamManager)
+		protected virtual void ReadData(SwitchingBinaryReader streamManager)
 		{
 		}
 
@@ -631,7 +631,7 @@ namespace Zen.Trunk.Storage
         {
             using (var stream = CreateDataStream(true))
             {
-                using (var streamManager = new BufferReaderWriter(stream))
+                using (var streamManager = new SwitchingBinaryReader(stream))
                 {
                     ReadData(streamManager);
                     streamManager.Close();
@@ -644,7 +644,7 @@ namespace Zen.Trunk.Storage
         {
             using (var stream = CreateDataStream(false))
             {
-                using (var streamManager = new BufferReaderWriter(stream))
+                using (var streamManager = new SwitchingBinaryWriter(stream))
                 {
                     WriteData(streamManager);
                     streamManager.Close();

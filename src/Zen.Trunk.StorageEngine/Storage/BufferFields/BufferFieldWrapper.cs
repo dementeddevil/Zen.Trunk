@@ -1,5 +1,5 @@
 using System.IO;
-using Zen.Trunk.Storage.IO;
+using Zen.Trunk.IO;
 
 namespace Zen.Trunk.Storage.BufferFields
 {
@@ -24,25 +24,25 @@ namespace Zen.Trunk.Storage.BufferFields
         /// Reads the specified stream manager.
         /// </summary>
         /// <param name="streamManager">The stream manager.</param>
-        public void Read(BufferReaderWriter streamManager)
+        public void Read(SwitchingBinaryReader streamManager)
         {
-            DoRead(streamManager);
+            OnRead(streamManager);
         }
 
         /// <summary>
         /// Writes the specified stream manager.
         /// </summary>
         /// <param name="streamManager">The stream manager.</param>
-        public void Write(BufferReaderWriter streamManager)
+        public void Write(SwitchingBinaryWriter streamManager)
         {
-            DoWrite(streamManager);
+            OnWrite(streamManager);
         }
         #endregion
 
         #region Internal Methods
         internal void ReadFrom(Stream stream)
         {
-            using (var streamManager = new BufferReaderWriter(stream))
+            using (var streamManager = new SwitchingBinaryReader(stream))
             {
                 Read(streamManager);
             }

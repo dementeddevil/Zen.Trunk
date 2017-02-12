@@ -2,30 +2,30 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Zen.Trunk.Storage.IO;
+using Zen.Trunk.IO;
 
 namespace Zen.Trunk.Storage.Data.Table
 {
     /// <summary>
     /// 
     /// </summary>
-    public class RowReaderWriter
+    public class TableRowReader
 	{
 		#region Private Fields
-		private readonly BufferReaderWriter _bufferReaderWriter;
+		private readonly SwitchingBinaryReader _bufferReader;
 		private readonly IList<TableColumnInfo> _rowDef;
 		private readonly object[] _rowValues;
-		#endregion
+        #endregion
 
-		#region Public Constructors
-		/// <summary>
-		/// Initializes a new instance of the <see cref="RowReaderWriter"/> class.
-		/// </summary>
-		/// <param name="stream">The stream.</param>
-		/// <param name="rowDef">The row definition.</param>
-		public RowReaderWriter(Stream stream, IList<TableColumnInfo> rowDef)
+        #region Public Constructors
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TableRowReader"/> class.
+        /// </summary>
+        /// <param name="stream">The stream.</param>
+        /// <param name="rowDef">The row definition.</param>
+        public TableRowReader(Stream stream, IList<TableColumnInfo> rowDef)
 		{
-			_bufferReaderWriter = new BufferReaderWriter(stream);
+			_bufferReader = new SwitchingBinaryReader(stream, true);
 			_rowDef = rowDef;
 			_rowValues = new object[_rowDef.Count];
 		}
@@ -47,15 +47,6 @@ namespace Zen.Trunk.Storage.Data.Table
 						nameof(index), index, "index out of range.");
 				}
 				return _rowValues[index];
-			}
-			set
-			{
-				if (index < 0 || index >= _rowValues.Length)
-				{
-					throw new ArgumentOutOfRangeException(
-						nameof(index), index, "index out of range.");
-				}
-				_rowValues[index] = value;
 			}
 		}
 
@@ -82,18 +73,7 @@ namespace Zen.Trunk.Storage.Data.Table
 		{
 			for (var index = 0; index < _rowDef.Count; ++index)
 			{
-				_rowValues[index] = _rowDef[index].ReadData(_bufferReaderWriter);
-			}
-		}
-
-		/// <summary>
-		/// Writes the row data in this instance to the underlying buffer writer.
-		/// </summary>
-		public void Write()
-		{
-			for (var index = 0; index < _rowDef.Count; ++index)
-			{
-				_rowDef[index].WriteData(_bufferReaderWriter, _rowValues[index]);
+				_rowValues[index] = _rowDef[index].ReadData(_bufferReader);
 			}
 		}
 		#endregion

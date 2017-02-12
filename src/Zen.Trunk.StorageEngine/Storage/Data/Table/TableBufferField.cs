@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections;
+using Zen.Trunk.IO;
 using Zen.Trunk.Storage.BufferFields;
-using Zen.Trunk.Storage.IO;
 
 namespace Zen.Trunk.Storage.Data.Table
 {
@@ -90,7 +90,7 @@ namespace Zen.Trunk.Storage.Data.Table
 		/// Writes the data.
 		/// </summary>
 		/// <param name="streamManager">The stream manager.</param>
-		public void WriteData(BufferReaderWriter streamManager)
+		public void WriteData(SwitchingBinaryWriter streamManager)
 		{
 			ColumnInfo.WriteData(streamManager, Value);
 		}
@@ -99,7 +99,7 @@ namespace Zen.Trunk.Storage.Data.Table
 		/// Reads the data.
 		/// </summary>
 		/// <param name="streamManager">The stream manager.</param>
-		public void ReadData(BufferReaderWriter streamManager)
+		public void ReadData(SwitchingBinaryReader streamManager)
 		{
 			Value = ColumnInfo.ReadData(streamManager);
 		}
@@ -183,7 +183,7 @@ namespace Zen.Trunk.Storage.Data.Table
 		/// <remarks>
 		/// Derived classes must provide an implementation for this method.
 		/// </remarks>
-		protected override void OnRead(BufferReaderWriter streamManager)
+		protected override void OnRead(SwitchingBinaryReader streamManager)
 		{
 			Value = ColumnInfo.ReadData(streamManager);
 		}
@@ -195,7 +195,7 @@ namespace Zen.Trunk.Storage.Data.Table
 		/// <remarks>
 		/// Derived classes must provide an implementation for this method.
 		/// </remarks>
-		protected override void OnWrite(BufferReaderWriter streamManager)
+		protected override void OnWrite(SwitchingBinaryWriter streamManager)
 		{
 			ColumnInfo.WriteData(streamManager, Value);
 		}
@@ -372,7 +372,7 @@ namespace Zen.Trunk.Storage.Data.Table
         /// Writes the data.
         /// </summary>
         /// <param name="streamManager">The stream manager.</param>
-        public void WriteData(BufferReaderWriter streamManager)
+        public void WriteData(SwitchingBinaryWriter streamManager)
 		{
 			CheckHasContext();
 			foreach (var column in _keys)
@@ -385,7 +385,7 @@ namespace Zen.Trunk.Storage.Data.Table
         /// Reads the data.
         /// </summary>
         /// <param name="streamManager">The stream manager.</param>
-        public void ReadData(BufferReaderWriter streamManager)
+        public void ReadData(SwitchingBinaryReader streamManager)
 		{
 			CheckHasContext();
 			foreach (var column in _keys)

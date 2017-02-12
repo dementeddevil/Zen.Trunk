@@ -6,8 +6,8 @@
 
 using System;
 using System.Collections.Generic;
+using Zen.Trunk.IO;
 using Zen.Trunk.Storage.BufferFields;
-using Zen.Trunk.Storage.IO;
 
 namespace Zen.Trunk.Storage.Log
 {
@@ -335,7 +335,7 @@ namespace Zen.Trunk.Storage.Log
         /// Writes the page header block to the specified buffer writer.
         /// </summary>
         /// <param name="streamManager">The stream manager.</param>
-        protected override void WriteHeader(BufferReaderWriter streamManager)
+        protected override void WriteHeader(SwitchingBinaryWriter streamManager)
 		{
 			_deviceCount.Value = (ushort)_devicesByIndex.Count;
 			base.WriteHeader(streamManager);
@@ -345,7 +345,7 @@ namespace Zen.Trunk.Storage.Log
         /// Writes the page data block to the specified buffer writer.
         /// </summary>
         /// <param name="streamManager">The stream manager.</param>
-        protected override void WriteData(BufferReaderWriter streamManager)
+        protected override void WriteData(SwitchingBinaryWriter streamManager)
 		{
 			base.WriteData(streamManager);
 
@@ -357,7 +357,8 @@ namespace Zen.Trunk.Storage.Log
 				{
 					_lastCheckPoint[index] = new CheckPointInfo();
 				}
-				_lastCheckPoint[index].Read(streamManager);
+
+                _lastCheckPoint[index].Write(streamManager);
 			}
 
 			// then device list
@@ -371,7 +372,7 @@ namespace Zen.Trunk.Storage.Log
         /// Reads the page data block from the specified buffer reader.
         /// </summary>
         /// <param name="streamManager">The stream manager.</param>
-        protected override void ReadData(BufferReaderWriter streamManager)
+        protected override void ReadData(SwitchingBinaryReader streamManager)
 		{
 			base.ReadData(streamManager);
 

@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using Autofac;
 using Xunit;
+using Zen.Trunk.IO;
 using Zen.Trunk.Storage.BufferFields;
 using Zen.Trunk.Storage.Data;
 using Zen.Trunk.Storage.Data.Index;
@@ -113,16 +114,16 @@ namespace Zen.Trunk.Storage
                 return result;
             }
 
-            protected override void DoRead(BufferReaderWriter streamManager)
+            protected override void OnRead(SwitchingBinaryReader streamManager)
             {
-                base.DoRead(streamManager);
+                base.OnRead(streamManager);
                 _firstKey.Read(streamManager);
                 _secondKey.Read(streamManager);
             }
 
-            protected override void DoWrite(BufferReaderWriter streamManager)
+            protected override void OnWrite(SwitchingBinaryWriter streamManager)
             {
-                base.DoWrite(streamManager);
+                base.OnWrite(streamManager);
                 _firstKey.Write(streamManager);
                 _secondKey.Write(streamManager);
             }

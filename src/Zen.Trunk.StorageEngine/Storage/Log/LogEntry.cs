@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Zen.Trunk.Extensions;
+using Zen.Trunk.IO;
 using Zen.Trunk.Storage.BufferFields;
 using Zen.Trunk.Storage.Data;
-using Zen.Trunk.Storage.IO;
 
 namespace Zen.Trunk.Storage.Log
 {
@@ -139,7 +139,7 @@ namespace Zen.Trunk.Storage.Log
         /// <param name="streamManager">The stream manager.</param>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException">Illegal log entry type detected.</exception>
-        public static LogEntry ReadEntry(BufferReaderWriter streamManager)
+        public static LogEntry ReadEntry(SwitchingBinaryReader streamManager)
 		{
 			LogEntry entry;
 			var logType = ReadLogType(streamManager);
@@ -225,16 +225,16 @@ namespace Zen.Trunk.Storage.Log
         /// <summary>
         /// Writes the field chain to the specified stream manager.
         /// </summary>
-        /// <param name="streamManager">A <see cref="T:BufferReaderWriter" /> object.</param>
-        protected override void DoWrite(BufferReaderWriter streamManager)
+        /// <param name="writer">A <see cref="T:BufferReaderWriter" /> object.</param>
+        protected override void OnWrite(SwitchingBinaryWriter writer)
 		{
-			streamManager.Write((byte)(int)_logType);
-			base.DoWrite(streamManager);
+			writer.Write((byte)(int)_logType);
+			base.OnWrite(writer);
 		}
 		#endregion
 
 		#region Private Methods
-		private static LogEntryType ReadLogType(BufferReaderWriter streamManager)
+		private static LogEntryType ReadLogType(SwitchingBinaryReader streamManager)
 		{
 			return (LogEntryType)streamManager.ReadByte();
 		}
@@ -473,34 +473,34 @@ namespace Zen.Trunk.Storage.Log
         /// <summary>
         /// Writes the field chain to the specified stream manager.
         /// </summary>
-        /// <param name="streamManager">A <see cref="T:BufferReaderWriter" /> object.</param>
-        protected override void DoWrite(BufferReaderWriter streamManager)
+        /// <param name="writer">A <see cref="T:BufferReaderWriter" /> object.</param>
+        protected override void OnWrite(SwitchingBinaryWriter writer)
 		{
-			base.DoWrite(streamManager);
+			base.OnWrite(writer);
 
-			streamManager.Write((ushort)TransactionCount);
+			writer.Write((ushort)TransactionCount);
 			for (var index = 0; index < TransactionCount; ++index)
 			{
-                _activeTransactions[index].Write(streamManager);
+                _activeTransactions[index].Write(writer);
 			}
 		}
 
         /// <summary>
         /// Reads the field chain from the specified stream manager.
         /// </summary>
-        /// <param name="streamManager">A <see cref="T:BufferReaderWriter" /> object.</param>
-        protected override void DoRead(BufferReaderWriter streamManager)
+        /// <param name="reader">A <see cref="T:BufferReaderWriter" /> object.</param>
+        protected override void OnRead(SwitchingBinaryReader reader)
 		{
-			base.DoRead(streamManager);
+			base.OnRead(reader);
 
-			var count = streamManager.ReadUInt16();
+			var count = reader.ReadUInt16();
 			if (count > 0)
 			{
 				_activeTransactions = new List<ActiveTransaction>();
 				for (var index = 0; index < count; ++index)
 				{
 				    var tran = new ActiveTransaction();
-                    tran.Read(streamManager);
+                    tran.Read(reader);
 					_activeTransactions.Add(tran);
 				}
 			}
@@ -813,21 +813,21 @@ namespace Zen.Trunk.Storage.Log
         /// <summary>
         /// Writes the field chain to the specified stream manager.
         /// </summary>
-        /// <param name="streamManager">A <see cref="T:BufferReaderWriter" /> object.</param>
-        protected override void DoWrite(BufferReaderWriter streamManager)
+        /// <param name="writer">A <see cref="T:BufferReaderWriter" /> object.</param>
+        protected override void OnWrite(SwitchingBinaryWriter writer)
 		{
-			base.DoWrite(streamManager);
-			streamManager.Write(_image);
+			base.OnWrite(writer);
+			writer.Write(_image);
 		}
 
         /// <summary>
         /// Reads the field chain from the specified stream manager.
         /// </summary>
-        /// <param name="streamManager">A <see cref="T:BufferReaderWriter" /> object.</param>
-        protected override void DoRead(BufferReaderWriter streamManager)
+        /// <param name="reader">A <see cref="T:BufferReaderWriter" /> object.</param>
+        protected override void OnRead(SwitchingBinaryReader reader)
 		{
-			base.DoRead(streamManager);
-			_image = streamManager.ReadBytes(8192);
+			base.OnRead(reader);
+			_image = reader.ReadBytes(8192);
 		}
 
         /// <summary>
@@ -946,27 +946,25 @@ namespace Zen.Trunk.Storage.Log
         /// <summary>
         /// Writes the field chain to the specified stream manager.
         /// </summary>
-        /// <param name="streamManager">A <see cref="T:BufferReaderWriter" /> object.</param>
-        protected override void DoWrite(BufferReaderWriter streamManager)
+        /// <param name="writer">A <see cref="T:BufferReaderWriter" /> object.</param>
+        protected override void OnWrite(SwitchingBinaryWriter writer)
 		{
-			base.DoWrite(streamManager);
-			streamManager.Write(_beforeImage);
-			streamManager.Write(_afterImage);
+			base.OnWrite(writer);
+			writer.Write(_beforeImage);
+			writer.Write(_afterImage);
 		}
 
         /// <summary>
         /// Reads the field chain from the specified stream manager.
         /// </summary>
-        /// <param name="streamManager">A <see cref="T:BufferReaderWriter" /> object.</param>
-        protected override void DoRead(BufferReaderWriter streamManager)
+        /// <param name="reader">A <see cref="T:BufferReaderWriter" /> object.</param>
+        protected override void OnRead(SwitchingBinaryReader reader)
 		{
-			base.DoRead(streamManager);
-			_beforeImage = streamManager.ReadBytes(8192);
-			_afterImage = streamManager.ReadBytes(8192);
+			base.OnRead(reader);
+			_beforeImage = reader.ReadBytes(8192);
+			_afterImage = reader.ReadBytes(8192);
 		}
-        #endregion
 
-        #region Protected Methods
         /// <summary>
         /// <b>OnUndoChanges</b> is called during recovery to undo DataBuffer
         /// changes to the given page object.
@@ -1067,21 +1065,21 @@ namespace Zen.Trunk.Storage.Log
         /// <summary>
         /// Writes the field chain to the specified stream manager.
         /// </summary>
-        /// <param name="streamManager">A <see cref="T:BufferReaderWriter" /> object.</param>
-        protected override void DoWrite(BufferReaderWriter streamManager)
+        /// <param name="writer">A <see cref="T:BufferReaderWriter" /> object.</param>
+        protected override void OnWrite(SwitchingBinaryWriter writer)
 		{
-			base.DoWrite(streamManager);
-			streamManager.Write(_image);
+			base.OnWrite(writer);
+			writer.Write(_image);
 		}
 
         /// <summary>
         /// Reads the field chain from the specified stream manager.
         /// </summary>
-        /// <param name="streamManager">A <see cref="T:BufferReaderWriter" /> object.</param>
-        protected override void DoRead(BufferReaderWriter streamManager)
+        /// <param name="reader">A <see cref="T:BufferReaderWriter" /> object.</param>
+        protected override void OnRead(SwitchingBinaryReader reader)
 		{
-			base.DoRead(streamManager);
-			_image = streamManager.ReadBytes(8192);
+			base.OnRead(reader);
+			_image = reader.ReadBytes(8192);
 		}
 
         /// <summary>

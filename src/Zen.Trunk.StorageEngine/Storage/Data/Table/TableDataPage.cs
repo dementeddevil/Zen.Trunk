@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+using Zen.Trunk.IO;
 using Zen.Trunk.Storage.BufferFields;
-using Zen.Trunk.Storage.IO;
 using Zen.Trunk.Storage.Locking;
 
 namespace Zen.Trunk.Storage.Data.Table
@@ -97,40 +97,56 @@ namespace Zen.Trunk.Storage.Data.Table
 		#endregion
 
 		#region Public Methods
-
 	    /// <summary>
 	    /// Returns a <see cref="T:RowReaderWriter"/> for accessing row data
 	    /// for the specified row.
 	    /// </summary>
 	    /// <param name="rowIndex">Zero based row index.</param>
 	    /// <param name="rowDef">Complete row column definition.</param>
-	    /// <param name="canWrite"></param>
 	    /// <returns><see cref="T:RowReaderWriter"/></returns>
-	    public RowReaderWriter GetRowReaderWriter(
-			uint rowIndex, IList<TableColumnInfo> rowDef, bool canWrite)
+	    public TableRowReader GetRowReader(
+			uint rowIndex, IList<TableColumnInfo> rowDef)
 		{
-			Stream rowStream = new MemoryStream(
+			var rowStream = new MemoryStream(
 				_pageData,
 				_rowInfo[(int)rowIndex].Offset,
 				_rowInfo[(int)rowIndex].Length,
-				canWrite);
-			return new RowReaderWriter(rowStream, rowDef);
+				false);
+			return new TableRowReader(rowStream, rowDef);
 		}
 
-		/// <summary>
-		/// Updates the row and deals with page-splitting if needed.
-		/// </summary>
-		/// <param name="table">The owner table manager.</param>
-		/// <param name="rowIndex">Index of the row to be updated.</param>
-		/// <param name="newRowData">The new row data.</param>
-		/// <param name="length">The length.</param>
-		/// <returns></returns>
-		/// <exception cref="System.InvalidOperationException">
-		/// Failed to add row to new page.
-		/// or
-		/// Split/update failed after creating new page.
-		/// </exception>
-		public async Task<Tuple<LogicalPageId, ushort>> UpdateRowAndSplitIfNeeded(
+        /// <summary>
+        /// Returns a <see cref="T:RowReaderWriter"/> for accessing row data
+        /// for the specified row.
+        /// </summary>
+        /// <param name="rowIndex">Zero based row index.</param>
+        /// <param name="rowDef">Complete row column definition.</param>
+        /// <returns><see cref="T:RowReaderWriter"/></returns>
+        public TableRowWriter GetRowWriter(
+            uint rowIndex, IList<TableColumnInfo> rowDef)
+        {
+            Stream rowStream = new MemoryStream(
+                _pageData,
+                _rowInfo[(int)rowIndex].Offset,
+                _rowInfo[(int)rowIndex].Length,
+                true);
+            return new TableRowWriter(rowStream, rowDef);
+        }
+
+        /// <summary>
+        /// Updates the row and deals with page-splitting if needed.
+        /// </summary>
+        /// <param name="table">The owner table manager.</param>
+        /// <param name="rowIndex">Index of the row to be updated.</param>
+        /// <param name="newRowData">The new row data.</param>
+        /// <param name="length">The length.</param>
+        /// <returns></returns>
+        /// <exception cref="System.InvalidOperationException">
+        /// Failed to add row to new page.
+        /// or
+        /// Split/update failed after creating new page.
+        /// </exception>
+        public async Task<Tuple<LogicalPageId, ushort>> UpdateRowAndSplitIfNeeded(
 			DatabaseTable table, ushort rowIndex, byte[] newRowData, ushort length)
 		{
 			// Attempt: #1
@@ -139,12 +155,11 @@ namespace Zen.Trunk.Storage.Data.Table
 			{
 				return new Tuple<LogicalPageId, ushort>(LogicalPageId, rowIndex);
 			}
-			else
-			{
-				// Can't update in-place; delete existing row and delegate to insert
-				DeleteRow(rowIndex);
-				return await InsertRowAndSplitIfNeeded(table, rowIndex, newRowData, length);
-			}
+
+            // Can't update in-place; delete existing row and delegate to insert
+			DeleteRow(rowIndex);
+			return await InsertRowAndSplitIfNeeded(table, rowIndex, newRowData, length)
+                .ConfigureAwait(false);
 		}
 
 		/// <summary>
@@ -647,7 +662,7 @@ namespace Zen.Trunk.Storage.Data.Table
         /// Reads the page data block from the specified buffer reader.
         /// </summary>
         /// <param name="streamManager">The stream manager.</param>
-        protected override void ReadData(BufferReaderWriter streamManager)
+        protected override void ReadData(SwitchingBinaryReader streamManager)
 		{
 			_pageData = streamManager.ReadBytes((int)DataSize);
 		}
@@ -679,7 +694,7 @@ namespace Zen.Trunk.Storage.Data.Table
         /// Writes the page data block to the specified buffer writer.
         /// </summary>
         /// <param name="streamManager">The stream manager.</param>
-        protected override void WriteData(BufferReaderWriter streamManager)
+        protected override void WriteData(SwitchingBinaryWriter streamManager)
 		{
 			if (_pageData != null)
 			{

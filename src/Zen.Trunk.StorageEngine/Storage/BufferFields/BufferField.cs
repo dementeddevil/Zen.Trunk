@@ -1,7 +1,5 @@
 using System;
-using Zen.Trunk.Storage.IO;
-
-// ReSharper disable MissingXmlDoc
+using Zen.Trunk.IO;
 
 namespace Zen.Trunk.Storage.BufferFields
 {
@@ -110,7 +108,7 @@ namespace Zen.Trunk.Storage.BufferFields
         /// Reads this instance from the specified steam manager.
         /// </summary>
         /// <param name="streamManager">A <see cref="T:BufferReaderWriter"/> object.</param>
-        public void Read(BufferReaderWriter streamManager)
+        public void Read(SwitchingBinaryReader streamManager)
         {
             OnRead(streamManager);
             if (NextField != null && NextField.CanContinue(true))
@@ -123,9 +121,9 @@ namespace Zen.Trunk.Storage.BufferFields
         /// Writes the specified stream manager.
         /// </summary>
         /// <param name="streamManager">A <see cref="T:BufferReaderWriter"/> object.</param>
-        public void Write(BufferReaderWriter streamManager)
+        public void Write(SwitchingBinaryWriter streamManager)
         {
-            streamManager.IsWritable = IsWriteable;
+            streamManager.WriteToUnderlyingStream = IsWriteable;
             OnWrite(streamManager);
             if (NextField != null && NextField.CanContinue(false))
             {
@@ -195,7 +193,7 @@ namespace Zen.Trunk.Storage.BufferFields
         /// <remarks>
         /// Derived classes must provide an implementation for this method.
         /// </remarks>
-        protected abstract void OnRead(BufferReaderWriter streamManager);
+        protected abstract void OnRead(SwitchingBinaryReader streamManager);
 
         /// <summary>
         /// Called when writing to the specified stream manager.
@@ -204,7 +202,7 @@ namespace Zen.Trunk.Storage.BufferFields
         /// <remarks>
         /// Derived classes must provide an implementation for this method.
         /// </remarks>
-        protected abstract void OnWrite(BufferReaderWriter streamManager);
+        protected abstract void OnWrite(SwitchingBinaryWriter streamManager);
         #endregion
 
         #region Private Methods

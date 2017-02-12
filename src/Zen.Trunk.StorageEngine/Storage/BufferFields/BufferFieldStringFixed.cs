@@ -1,5 +1,5 @@
 using System;
-using Zen.Trunk.Storage.IO;
+using Zen.Trunk.IO;
 
 namespace Zen.Trunk.Storage.BufferFields
 {
@@ -43,13 +43,13 @@ namespace Zen.Trunk.Storage.BufferFields
             return base.OnValueChanging(e);
         }
 
-        protected override void OnRead(BufferReaderWriter streamManager)
+        protected override void OnRead(SwitchingBinaryReader streamManager)
         {
             streamManager.UseUnicode = UseUnicode;
             Value = streamManager.ReadStringExact(MaxElements);
         }
 
-        protected override void OnWrite(BufferReaderWriter streamManager)
+        protected override void OnWrite(SwitchingBinaryWriter streamManager)
         {
             streamManager.UseUnicode = UseUnicode;
             streamManager.WriteStringExact(Value, MaxElements);

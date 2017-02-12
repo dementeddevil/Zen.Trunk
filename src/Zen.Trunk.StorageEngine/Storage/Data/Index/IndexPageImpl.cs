@@ -1,8 +1,8 @@
 ﻿using System.Threading.Tasks;
 using System;
 using System.Collections.Generic;
+using Zen.Trunk.IO;
 using Zen.Trunk.Storage.BufferFields;
-using Zen.Trunk.Storage.IO;
 using Zen.Trunk.Storage.Locking;
 
 namespace Zen.Trunk.Storage.Data.Index
@@ -155,7 +155,7 @@ namespace Zen.Trunk.Storage.Data.Index
 		/// Overridden. Writes the page header block to the specified buffer writer.
 		/// </summary>
 		/// <param name="streamManager">The stream manager.</param>
-		protected override void WriteHeader(BufferReaderWriter streamManager)
+		protected override void WriteHeader(SwitchingBinaryWriter streamManager)
 		{
 			// Save the current index entry count into the header field.
 			_indexEntryCount.Value = (ushort)_indexEntries.Count;
@@ -169,7 +169,7 @@ namespace Zen.Trunk.Storage.Data.Index
 		/// reader.
 		/// </summary>
 		/// <param name="streamManager">The stream manager.</param>
-		protected override void ReadData(BufferReaderWriter streamManager)
+		protected override void ReadData(SwitchingBinaryReader streamManager)
 		{
 			_indexEntries.Clear();
 			for (ushort index = 0; index < _indexEntryCount.Value; ++index)
@@ -185,7 +185,7 @@ namespace Zen.Trunk.Storage.Data.Index
 		/// writer.
 		/// </summary>
 		/// <param name="streamManager">The stream manager.</param>
-		protected override void WriteData(BufferReaderWriter streamManager)
+		protected override void WriteData(SwitchingBinaryWriter streamManager)
 		{
 			for (ushort index = 0; index < _indexEntryCount.Value; ++index)
 			{

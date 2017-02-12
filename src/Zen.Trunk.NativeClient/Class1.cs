@@ -12,7 +12,7 @@ namespace Zen.Trunk.NativeClient
     {
         public PackageInfo<string, byte[]> Filter(BufferList data, out int rest)
         {
-            data.
+            //data.
             throw new NotImplementedException();
         }
 
@@ -29,8 +29,8 @@ namespace Zen.Trunk.NativeClient
     {
         public void Initialise()
         {
-            var filter = new SuperSocket.ProtoBase.FixedHeaderReceiveFilter
-            base.Initialize();
+            //var filter = new SuperSocket.ProtoBase.FixedHeaderReceiveFilter
+            //base.Initialize();
         }
 
         public override void Initialize(IReceiveFilter<PackageInfo<string, byte[]>> receiveFilter)

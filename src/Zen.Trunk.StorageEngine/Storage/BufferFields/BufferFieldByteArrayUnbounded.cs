@@ -1,5 +1,5 @@
 using System;
-using Zen.Trunk.Storage.IO;
+using Zen.Trunk.IO;
 
 namespace Zen.Trunk.Storage.BufferFields
 {
@@ -55,7 +55,7 @@ namespace Zen.Trunk.Storage.BufferFields
             }
             return base.OnValueChanging(e);
         }
-        protected override void OnRead(BufferReaderWriter streamManager)
+        protected override void OnRead(SwitchingBinaryReader streamManager)
         {
             var length = streamManager.ReadByte();
             if (length > 0)
@@ -68,7 +68,7 @@ namespace Zen.Trunk.Storage.BufferFields
             }
         }
 
-        protected override void OnWrite(BufferReaderWriter streamManager)
+        protected override void OnWrite(SwitchingBinaryWriter streamManager)
         {
             streamManager.Write((byte)MaxElements);
             if (MaxElements > 0)

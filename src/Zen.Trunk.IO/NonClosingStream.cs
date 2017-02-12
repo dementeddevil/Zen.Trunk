@@ -1,21 +1,22 @@
 using System;
 using System.IO;
 
-namespace Zen.Trunk.Storage.IO
+namespace Zen.Trunk.IO
 {
     /// <summary>
-    /// 
+    /// <c>NonClosingStream</c> is a stream wrapper class that will always
+    /// leave the underlying stream open when disposed.
     /// </summary>
     /// <seealso cref="System.IO.Stream" />
     public class NonClosingStream : Stream
 	{
 		#region Private Fields
-		private readonly Stream _innerStream;
+		private Stream _innerStream;
         #endregion
 
         #region Public Constructors
         /// <summary>
-        /// Initializes a new instance of the <see cref="NonClosingStream"/> class.
+        /// Initializes a new instance of the <see cref="NonClosingStream" /> class.
         /// </summary>
         /// <param name="stream">The stream.</param>
         public NonClosingStream(Stream stream)
@@ -128,14 +129,11 @@ namespace Zen.Trunk.Storage.IO
 		/// <summary>
 		/// Overridden. Sets the length of this stream object.
 		/// </summary>
-		/// <remarks>
-		/// Since device streams cannot be resized, this method will
-		/// always throw an <see cref="System.InvalidOperationException"/>.
-		/// </remarks>
 		/// <param name="value"></param>
 		public override void SetLength(long value)
 		{
-			throw new InvalidOperationException("Wrapped stream objects cannot be resized.");
+            CheckDisposed();
+            _innerStream.SetLength(value);
 		}
 
 		/// <summary>
@@ -182,10 +180,18 @@ namespace Zen.Trunk.Storage.IO
 			CheckDisposed();
 			_innerStream.WriteByte(value);
 		}
-		#endregion
+        #endregion
 
-		#region Private Methods
-		private void CheckDisposed()
+	    #region Protected Methods
+	    protected override void Dispose(bool disposing)
+	    {
+	        base.Dispose(disposing);
+	        _innerStream = null;
+	    }
+	    #endregion
+
+        #region Private Methods
+        private void CheckDisposed()
 		{
 			if (_innerStream == null)
 			{

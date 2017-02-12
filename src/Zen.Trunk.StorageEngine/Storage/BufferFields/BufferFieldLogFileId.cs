@@ -1,4 +1,4 @@
-using Zen.Trunk.Storage.IO;
+using Zen.Trunk.IO;
 using Zen.Trunk.Storage.Log;
 
 namespace Zen.Trunk.Storage.BufferFields
@@ -29,12 +29,12 @@ namespace Zen.Trunk.Storage.BufferFields
         public override int DataSize => 4;
         #endregion
 
-        protected override void OnRead(BufferReaderWriter streamManager)
+        protected override void OnRead(SwitchingBinaryReader streamManager)
         {
             Value = new LogFileId(streamManager.ReadUInt32());
         }
 
-        protected override void OnWrite(BufferReaderWriter streamManager)
+        protected override void OnWrite(SwitchingBinaryWriter streamManager)
         {
             streamManager.Write(Value.FileId);
         }

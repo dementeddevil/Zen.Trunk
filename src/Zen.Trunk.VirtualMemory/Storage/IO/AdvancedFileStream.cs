@@ -1,19 +1,19 @@
+using System;
+using System.Diagnostics;
+using System.Globalization;
+using System.IO;
+using System.Runtime.InteropServices;
+using System.Security;
+using System.Security.AccessControl;
+using System.Security.Permissions;
+using System.Text;
+using System.Threading;
+using Microsoft.Win32.SafeHandles;
+
 // ReSharper disable InconsistentNaming
 // ReSharper disable UnusedMember.Local
 namespace Zen.Trunk.Storage.IO
 {
-    using System;
-    using System.Diagnostics;
-    using System.Globalization;
-    using System.IO;
-    using System.Runtime.InteropServices;
-    using System.Security;
-    using System.Security.AccessControl;
-    using System.Security.Permissions;
-    using System.Text;
-    using System.Threading;
-    using Microsoft.Win32.SafeHandles;
-
     /// <summary>
     /// <c>AdvancedFileStream</c> replaces <see cref="T:FileStream"/>
     /// by exposing Win32 Scatter/Gather I/O capabilities and incorporating

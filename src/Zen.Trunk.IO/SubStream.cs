@@ -1,7 +1,7 @@
 using System;
 using System.IO;
 
-namespace Zen.Trunk.Storage.IO
+namespace Zen.Trunk.IO
 {
     /// <summary>
     /// 
@@ -100,7 +100,7 @@ namespace Zen.Trunk.Storage.IO
                 }
                 if (!CanSeek)
                 {
-                    __Error.SeekNotSupported();
+                    throw new NotSupportedException("Seeking not supported.");
                 }
                 if (Position != value)
                 {

@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using System.Transactions;
 using Autofac;
 using Zen.Trunk.Extensions;
-using Zen.Trunk.Storage.IO;
+using Zen.Trunk.IO;
 
 namespace Zen.Trunk.Storage.Log
 {

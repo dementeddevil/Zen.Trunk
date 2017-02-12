@@ -4,9 +4,9 @@ using System.IO;
 using System.Threading.Tasks;
 using System.Transactions;
 using Zen.Trunk.CoordinationDataStructures;
+using Zen.Trunk.IO;
 using Zen.Trunk.Logging;
 using Zen.Trunk.Storage.BufferFields;
-using Zen.Trunk.Storage.IO;
 using Zen.Trunk.Storage.Locking;
 
 namespace Zen.Trunk.Storage.Data
@@ -597,7 +597,7 @@ namespace Zen.Trunk.Storage.Data
         {
             using (var tempStream = new MemoryStream((int)DataSize))
             {
-                using (var writer = new BufferReaderWriter(tempStream))
+                using (var writer = new SwitchingBinaryWriter(tempStream))
                 {
                     WriteData(writer);
 

@@ -2,8 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Zen.Trunk.IO;
 using Zen.Trunk.Storage.BufferFields;
-using Zen.Trunk.Storage.IO;
 using Zen.Trunk.Storage.Locking;
 using Zen.Trunk.Utils;
 
@@ -140,27 +140,27 @@ namespace Zen.Trunk.Storage.Data
                 }
             }
 
-            protected override void DoRead(BufferReaderWriter streamManager)
+            protected override void OnRead(SwitchingBinaryReader reader)
             {
                 // Base class will read the extent information
-                base.DoRead(streamManager);
+                base.OnRead(reader);
 
                 // We need to read the page info too
                 for (var index = 0; index < PagesPerExtent; ++index)
                 {
-                    _pageState[index].Read(streamManager);
+                    _pageState[index].Read(reader);
                 }
             }
 
-            protected override void DoWrite(BufferReaderWriter streamManager)
+            protected override void OnWrite(SwitchingBinaryWriter writer)
             {
                 // Base class will write the extent information
-                base.DoWrite(streamManager);
+                base.OnWrite(writer);
 
                 // We need to write the page info too
                 for (var index = 0; index < PagesPerExtent; ++index)
                 {
-                    _pageState[index].Write(streamManager);
+                    _pageState[index].Write(writer);
                 }
             }
         }
@@ -667,7 +667,7 @@ namespace Zen.Trunk.Storage.Data
         /// Writes the page data block to the specified buffer writer.
         /// </summary>
         /// <param name="streamManager">The stream manager.</param>
-        protected override void WriteData(BufferReaderWriter streamManager)
+        protected override void WriteData(SwitchingBinaryWriter streamManager)
         {
             // Save locked extents and page information unless this
             //	is a new page
@@ -676,11 +676,11 @@ namespace Zen.Trunk.Storage.Data
             {
                 if (_lockedExtents != null && !hasExclusiveLock)
                 {
-                    streamManager.IsWritable = _lockedExtents.Contains(index);
+                    streamManager.WriteToUnderlyingStream = _lockedExtents.Contains(index);
                 }
                 else
                 {
-                    streamManager.IsWritable = true;
+                    streamManager.WriteToUnderlyingStream = true;
                 }
                 _extents[index].Write(streamManager);
             }
@@ -690,7 +690,7 @@ namespace Zen.Trunk.Storage.Data
         /// Reads the page data block from the specified buffer reader.
         /// </summary>
         /// <param name="streamManager">The stream manager.</param>
-        protected override void ReadData(BufferReaderWriter streamManager)
+        protected override void ReadData(SwitchingBinaryReader streamManager)
         {
             for (var index = 0; index < ExtentTrackingCount; ++index)
             {
