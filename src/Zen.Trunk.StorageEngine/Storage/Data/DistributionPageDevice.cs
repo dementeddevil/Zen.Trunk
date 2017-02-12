@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Zen.Trunk.Logging;
 using Zen.Trunk.Storage.Locking;
 using Zen.Trunk.Utils;
+using Zen.Trunk.VirtualMemory;
 
 namespace Zen.Trunk.Storage.Data
 {

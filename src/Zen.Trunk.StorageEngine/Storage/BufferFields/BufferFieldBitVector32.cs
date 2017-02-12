@@ -57,14 +57,14 @@ namespace Zen.Trunk.Storage.BufferFields
             vector[section] = value;
         }
 
-        protected override void OnRead(SwitchingBinaryReader streamManager)
+        protected override void OnRead(SwitchingBinaryReader reader)
         {
-            Value = new BitVector32(streamManager.ReadInt32());
+            Value = new BitVector32(reader.ReadInt32());
         }
 
-        protected override void OnWrite(SwitchingBinaryWriter streamManager)
+        protected override void OnWrite(SwitchingBinaryWriter writer)
         {
-            streamManager.Write(Value.Data);
+            writer.Write(Value.Data);
         }
     }
 }

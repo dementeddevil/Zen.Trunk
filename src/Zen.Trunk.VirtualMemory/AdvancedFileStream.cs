@@ -12,7 +12,7 @@ using Microsoft.Win32.SafeHandles;
 
 // ReSharper disable InconsistentNaming
 // ReSharper disable UnusedMember.Local
-namespace Zen.Trunk.Storage.IO
+namespace Zen.Trunk.VirtualMemory
 {
     /// <summary>
     /// <c>AdvancedFileStream</c> replaces <see cref="T:FileStream"/>

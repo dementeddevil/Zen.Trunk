@@ -1,9 +1,9 @@
-﻿namespace Zen.Trunk.Storage.IO
+﻿namespace Zen.Trunk.VirtualMemory
 {
     /// <summary>
     /// 
     /// </summary>
-    /// <seealso cref="Zen.Trunk.Storage.IBufferDeviceFactory" />
+    /// <seealso cref="IBufferDeviceFactory" />
     public class BufferDeviceFactory : IBufferDeviceFactory
     {
         private readonly IVirtualBufferFactory _bufferFactory;

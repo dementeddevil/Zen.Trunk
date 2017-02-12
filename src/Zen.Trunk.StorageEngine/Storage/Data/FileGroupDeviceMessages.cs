@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Zen.Trunk.Storage.Data.Table;
+using Zen.Trunk.VirtualMemory;
 
 namespace Zen.Trunk.Storage.Data
 {

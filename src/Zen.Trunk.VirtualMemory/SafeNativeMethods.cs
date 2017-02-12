@@ -7,9 +7,10 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using Microsoft.Win32.SafeHandles;
+
 // ReSharper disable InconsistentNaming
 
-namespace Zen.Trunk.Storage.IO
+namespace Zen.Trunk.VirtualMemory
 {
 	internal static class SafeNativeMethods
 	{

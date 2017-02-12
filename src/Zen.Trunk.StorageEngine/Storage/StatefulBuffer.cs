@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using System.Diagnostics;
 using Zen.Trunk.Extensions;
 using Zen.Trunk.Storage.Data;
+using Zen.Trunk.VirtualMemory;
 
 namespace Zen.Trunk.Storage
 {

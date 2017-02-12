@@ -5,12 +5,12 @@ using System.Threading.Tasks;
 using Zen.Trunk.Extensions;
 using Zen.Trunk.Logging;
 
-namespace Zen.Trunk.Storage.IO
+namespace Zen.Trunk.VirtualMemory
 {
     /// <summary>
     /// 
     /// </summary>
-    /// <seealso cref="Zen.Trunk.Storage.IBufferDevice" />
+    /// <seealso cref="IBufferDevice" />
     public abstract class BufferDevice : IBufferDevice
 	{
 		#region Private Fields

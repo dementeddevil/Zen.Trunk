@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Zen.Trunk.Storage
+namespace Zen.Trunk.VirtualMemory
 {
     /// <summary>
     /// Simple value type which represents a Device Identifier.

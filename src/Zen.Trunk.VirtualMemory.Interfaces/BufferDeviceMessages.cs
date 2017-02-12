@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Zen.Trunk.Storage
+namespace Zen.Trunk.VirtualMemory
 {
     /// <summary>
     /// 
@@ -60,7 +60,7 @@ namespace Zen.Trunk.Storage
     /// <summary>
     /// 
     /// </summary>
-    /// <seealso cref="Zen.Trunk.Storage.FlushParameters" />
+    /// <seealso cref="FlushParameters" />
     [CLSCompliant(false)]
 	public class FlushDeviceParameters : FlushParameters
 	{
@@ -115,7 +115,7 @@ namespace Zen.Trunk.Storage
     /// <summary>
     /// 
     /// </summary>
-    /// <seealso cref="Zen.Trunk.Storage.FlushDeviceParameters" />
+    /// <seealso cref="FlushDeviceParameters" />
     [CLSCompliant(false)]
 	public class FlushCachingDeviceParameters : FlushDeviceParameters
 	{

@@ -1,9 +1,11 @@
-﻿namespace Zen.Trunk.Storage.Log
+﻿using Zen.Trunk.VirtualMemory;
+
+namespace Zen.Trunk.Storage.Log
 {
     /// <summary>
     /// 
     /// </summary>
-    /// <seealso cref="Zen.Trunk.Storage.AddDeviceParameters" />
+    /// <seealso cref="AddDeviceParameters" />
     public class AddLogDeviceParameters : AddDeviceParameters
 	{
 		#region Public Constructors
@@ -54,7 +56,7 @@
     /// <summary>
     /// 
     /// </summary>
-    /// <seealso cref="Zen.Trunk.Storage.RemoveDeviceParameters" />
+    /// <seealso cref="RemoveDeviceParameters" />
     public class RemoveLogDeviceParameters : RemoveDeviceParameters
 	{
         /// <summary>

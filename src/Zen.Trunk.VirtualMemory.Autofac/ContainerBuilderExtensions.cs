@@ -1,7 +1,6 @@
 ﻿using Autofac;
-using Zen.Trunk.Storage.IO;
 
-namespace Zen.Trunk.Storage
+namespace Zen.Trunk.VirtualMemory
 {
     /// <summary>
     /// 

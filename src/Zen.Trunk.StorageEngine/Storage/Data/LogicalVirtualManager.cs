@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 using Zen.Trunk.Utils;
+using Zen.Trunk.VirtualMemory;
 
 namespace Zen.Trunk.Storage.Data
 {

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 
-namespace Zen.Trunk.Storage
+namespace Zen.Trunk.VirtualMemory
 {
     /// <summary>
     /// <c>IVirtualBuffer</c> defines the contract for virtual buffer objects.

@@ -55,12 +55,12 @@ namespace Zen.Trunk.Storage.BufferFields
             }
             return base.OnValueChanging(e);
         }
-        protected override void OnRead(SwitchingBinaryReader streamManager)
+        protected override void OnRead(SwitchingBinaryReader reader)
         {
-            var length = streamManager.ReadByte();
+            var length = reader.ReadByte();
             if (length > 0)
             {
-                Value = streamManager.ReadBytes(length);
+                Value = reader.ReadBytes(length);
             }
             else
             {
@@ -68,12 +68,12 @@ namespace Zen.Trunk.Storage.BufferFields
             }
         }
 
-        protected override void OnWrite(SwitchingBinaryWriter streamManager)
+        protected override void OnWrite(SwitchingBinaryWriter writer)
         {
-            streamManager.Write((byte)MaxElements);
+            writer.Write((byte)MaxElements);
             if (MaxElements > 0)
             {
-                streamManager.Write(Value);
+                writer.Write(Value);
             }
         }
     }

@@ -1,4 +1,5 @@
 using System;
+using Zen.Trunk.VirtualMemory;
 
 namespace Zen.Trunk.Storage.Log
 {

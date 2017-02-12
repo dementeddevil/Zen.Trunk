@@ -7,6 +7,7 @@ using Zen.Trunk.Extensions;
 using Zen.Trunk.Logging;
 using Zen.Trunk.Storage.Locking;
 using Zen.Trunk.Storage.Log;
+using Zen.Trunk.VirtualMemory;
 
 namespace Zen.Trunk.Storage.Data
 {

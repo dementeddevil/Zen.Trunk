@@ -5,6 +5,7 @@ using Zen.Trunk.Extensions;
 using Zen.Trunk.IO;
 using Zen.Trunk.Storage.BufferFields;
 using Zen.Trunk.Storage.Data;
+using Zen.Trunk.VirtualMemory;
 
 namespace Zen.Trunk.Storage.Log
 {

@@ -5,7 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Zen.Trunk.Logging;
 
-namespace Zen.Trunk.Storage.IO
+namespace Zen.Trunk.VirtualMemory
 {
     /// <summary>
     /// <c>ScatterGatherRequestArray</c> encapsulates a number of scatter/gather

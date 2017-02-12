@@ -1,12 +1,12 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace Zen.Trunk.Storage
+namespace Zen.Trunk.VirtualMemory
 {
     /// <summary>
     /// <c>IMultipleBufferDevice</c> represents a page device mapped to multiple files.
     /// </summary>
-    /// <seealso cref="Zen.Trunk.Storage.IBufferDevice" />
+    /// <seealso cref="IBufferDevice" />
     public interface IMultipleBufferDevice : IBufferDevice
 	{
 		/// <summary>

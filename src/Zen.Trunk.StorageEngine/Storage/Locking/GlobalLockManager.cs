@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using Zen.Trunk.VirtualMemory;
 
 namespace Zen.Trunk.Storage.Locking
 {

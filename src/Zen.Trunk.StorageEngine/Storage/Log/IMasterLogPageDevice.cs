@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Zen.Trunk.VirtualMemory;
 
 namespace Zen.Trunk.Storage.Log
 {

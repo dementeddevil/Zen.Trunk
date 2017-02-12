@@ -1,8 +1,8 @@
-namespace Zen.Trunk.Storage.IO
-{
-	using System.Threading;
+using System.Threading;
 
-	internal class VirtualBufferCache
+namespace Zen.Trunk.VirtualMemory
+{
+    internal class VirtualBufferCache
 	{
 		#region Private Fields
 		private static int _nextCacheId;

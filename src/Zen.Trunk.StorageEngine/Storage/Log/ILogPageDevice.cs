@@ -1,3 +1,5 @@
+using Zen.Trunk.VirtualMemory;
+
 namespace Zen.Trunk.Storage.Log
 {
     /// <summary>

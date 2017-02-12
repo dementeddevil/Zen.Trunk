@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using Zen.Trunk.Logging;
 
-namespace Zen.Trunk.Storage.IO
+namespace Zen.Trunk.VirtualMemory
 {
 	/// <summary>
 	/// <c>VirtualBufferFactory</c> manages the heap-space allocated

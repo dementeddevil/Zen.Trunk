@@ -30,16 +30,16 @@ namespace Zen.Trunk.Storage.BufferFields
 
         #endregion
 
-        protected override void OnRead(SwitchingBinaryReader streamManager)
+        protected override void OnRead(SwitchingBinaryReader reader)
         {
-            streamManager.UseUnicode = UseUnicode;
-            Value = streamManager.ReadString();
+            reader.UseUnicode = UseUnicode;
+            Value = reader.ReadString();
         }
 
-        protected override void OnWrite(SwitchingBinaryWriter streamManager)
+        protected override void OnWrite(SwitchingBinaryWriter writer)
         {
-            streamManager.UseUnicode = UseUnicode;
-            streamManager.Write(Value);
+            writer.UseUnicode = UseUnicode;
+            writer.Write(Value);
         }
     }
 }

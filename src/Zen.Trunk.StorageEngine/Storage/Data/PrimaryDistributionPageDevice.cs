@@ -1,4 +1,6 @@
-﻿namespace Zen.Trunk.Storage.Data
+﻿using Zen.Trunk.VirtualMemory;
+
+namespace Zen.Trunk.Storage.Data
 {
     /// <summary>
     /// 

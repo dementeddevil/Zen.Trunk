@@ -43,16 +43,16 @@ namespace Zen.Trunk.Storage.BufferFields
             return base.OnValueChanging(e);
         }
 
-        protected override void OnRead(SwitchingBinaryReader streamManager)
+        protected override void OnRead(SwitchingBinaryReader reader)
         {
-            streamManager.UseUnicode = UseUnicode;
-            Value = streamManager.ReadStringExact(MaxElements);
+            reader.UseUnicode = UseUnicode;
+            Value = reader.ReadStringExact(MaxElements);
         }
 
-        protected override void OnWrite(SwitchingBinaryWriter streamManager)
+        protected override void OnWrite(SwitchingBinaryWriter writer)
         {
-            streamManager.UseUnicode = UseUnicode;
-            streamManager.WriteStringExact(Value, MaxElements);
+            writer.UseUnicode = UseUnicode;
+            writer.WriteStringExact(Value, MaxElements);
         }
         #endregion
     }

@@ -3,13 +3,13 @@ using System.IO;
 using System.Threading.Tasks;
 using Zen.Trunk.Extensions;
 
-namespace Zen.Trunk.Storage.IO
+namespace Zen.Trunk.VirtualMemory
 {
     /// <summary>
     /// 
     /// </summary>
-    /// <seealso cref="Zen.Trunk.Storage.IO.BufferDevice" />
-    /// <seealso cref="Zen.Trunk.Storage.ISingleBufferDevice" />
+    /// <seealso cref="BufferDevice" />
+    /// <seealso cref="ISingleBufferDevice" />
     [CLSCompliant(false)]
     public class SingleBufferDevice : BufferDevice, ISingleBufferDevice
     {

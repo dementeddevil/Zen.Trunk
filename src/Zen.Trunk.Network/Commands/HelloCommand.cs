@@ -3,7 +3,6 @@ using SuperSocket.SocketBase;
 using SuperSocket.SocketBase.Protocol;
 using Zen.Trunk.IO;
 using Zen.Trunk.Storage.BufferFields;
-using Zen.Trunk.Storage.IO;
 
 namespace Zen.Trunk.Network.Commands
 {

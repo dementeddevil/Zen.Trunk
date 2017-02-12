@@ -29,14 +29,14 @@ namespace Zen.Trunk.Storage.BufferFields
 
         #endregion
 
-        protected override void OnRead(SwitchingBinaryReader streamManager)
+        protected override void OnRead(SwitchingBinaryReader reader)
         {
-            Value = new ObjectId(streamManager.ReadUInt32());
+            Value = new ObjectId(reader.ReadUInt32());
         }
 
-        protected override void OnWrite(SwitchingBinaryWriter streamManager)
+        protected override void OnWrite(SwitchingBinaryWriter writer)
         {
-            streamManager.Write(Value.Value);
+            writer.Write(Value.Value);
         }
     }
 }

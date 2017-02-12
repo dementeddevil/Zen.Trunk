@@ -107,27 +107,27 @@ namespace Zen.Trunk.Storage.BufferFields
         /// <summary>
         /// Reads this instance from the specified steam manager.
         /// </summary>
-        /// <param name="streamManager">A <see cref="T:BufferReaderWriter"/> object.</param>
-        public void Read(SwitchingBinaryReader streamManager)
+        /// <param name="reader">A <see cref="T:SwitchingBinaryReader"/> object.</param>
+        public void Read(SwitchingBinaryReader reader)
         {
-            OnRead(streamManager);
+            OnRead(reader);
             if (NextField != null && NextField.CanContinue(true))
             {
-                NextField.Read(streamManager);
+                NextField.Read(reader);
             }
         }
 
         /// <summary>
         /// Writes the specified stream manager.
         /// </summary>
-        /// <param name="streamManager">A <see cref="T:BufferReaderWriter"/> object.</param>
-        public void Write(SwitchingBinaryWriter streamManager)
+        /// <param name="writer">A <see cref="T:SwitchingBinaryWriter"/> object.</param>
+        public void Write(SwitchingBinaryWriter writer)
         {
-            streamManager.WriteToUnderlyingStream = IsWriteable;
-            OnWrite(streamManager);
+            writer.WriteToUnderlyingStream = IsWriteable;
+            OnWrite(writer);
             if (NextField != null && NextField.CanContinue(false))
             {
-                NextField.Write(streamManager);
+                NextField.Write(writer);
             }
         }
         #endregion
@@ -189,20 +189,20 @@ namespace Zen.Trunk.Storage.BufferFields
         /// <summary>
         /// Called when reading from the specified stream manager.
         /// </summary>
-        /// <param name="streamManager">A <see cref="T:BufferReaderWriter"/> object.</param>
+        /// <param name="reader">A <see cref="T:SwitchingBinaryReader"/> object.</param>
         /// <remarks>
         /// Derived classes must provide an implementation for this method.
         /// </remarks>
-        protected abstract void OnRead(SwitchingBinaryReader streamManager);
+        protected abstract void OnRead(SwitchingBinaryReader reader);
 
         /// <summary>
         /// Called when writing to the specified stream manager.
         /// </summary>
-        /// <param name="streamManager">A <see cref="T:BufferReaderWriter"/> object.</param>
+        /// <param name="writer">A <see cref="T:SwitchingBinaryWriter"/> object.</param>
         /// <remarks>
         /// Derived classes must provide an implementation for this method.
         /// </remarks>
-        protected abstract void OnWrite(SwitchingBinaryWriter streamManager);
+        protected abstract void OnWrite(SwitchingBinaryWriter writer);
         #endregion
 
         #region Private Methods

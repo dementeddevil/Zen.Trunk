@@ -8,7 +8,7 @@
     <ProjectGuid>{837F9DBD-7E29-4237-ADD9-1BD32FEF965C}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Zen.Trunk</RootNamespace>
+    <RootNamespace>Zen.Trunk.VirtualMemory</RootNamespace>
     <AssemblyName>Zen.Trunk.VirtualMemory.Interfaces</AssemblyName>
     <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
@@ -81,19 +81,19 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Storage\IBufferDeviceInfo.cs" />
-    <Compile Include="Storage\BufferDeviceMessages.cs" />
-    <Compile Include="Storage\BufferDeviceShuttingDownException.cs" />
-    <Compile Include="Storage\DeviceId.cs" />
-    <Compile Include="Storage\IBufferDeviceFactory.cs" />
-    <Compile Include="Storage\IVirtualBuffer.cs" />
-    <Compile Include="Storage\VirtualPageId.cs" />
-    <Compile Include="Storage\IBufferDevice.cs" />
-    <Compile Include="Storage\IMultipleBufferDevice.cs" />
+    <Compile Include="IBufferDeviceInfo.cs" />
+    <Compile Include="BufferDeviceMessages.cs" />
+    <Compile Include="BufferDeviceShuttingDownException.cs" />
+    <Compile Include="DeviceId.cs" />
+    <Compile Include="IBufferDeviceFactory.cs" />
+    <Compile Include="IVirtualBuffer.cs" />
+    <Compile Include="VirtualPageId.cs" />
+    <Compile Include="IBufferDevice.cs" />
+    <Compile Include="IMultipleBufferDevice.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Storage\ISingleBufferDevice.cs" />
-    <Compile Include="Storage\IVirtualBufferFactory.cs" />
-    <Compile Include="Storage\MountableDeviceState.cs" />
+    <Compile Include="ISingleBufferDevice.cs" />
+    <Compile Include="IVirtualBufferFactory.cs" />
+    <Compile Include="MountableDeviceState.cs" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.0">
@@ -122,6 +122,9 @@
       <Project>{f7ed3f65-bfe8-4949-8bde-494f12cc30c6}</Project>
       <Name>Zen.Trunk.Utilities</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Storage\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

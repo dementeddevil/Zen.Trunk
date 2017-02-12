@@ -1,11 +1,11 @@
 ﻿using System.Threading.Tasks;
 
-namespace Zen.Trunk.Storage
+namespace Zen.Trunk.VirtualMemory
 {
     /// <summary>
     /// <c>ISingleBufferDevice</c> represents a page device mapped to a single file.
     /// </summary>
-    /// <seealso cref="Zen.Trunk.Storage.IBufferDevice" />
+    /// <seealso cref="IBufferDevice" />
     public interface ISingleBufferDevice : IBufferDevice
 	{
         /// <summary>

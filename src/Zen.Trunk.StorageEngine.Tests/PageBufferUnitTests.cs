@@ -3,6 +3,7 @@ using Autofac;
 using Xunit;
 using Zen.Trunk.Storage.Data;
 using Zen.Trunk.Storage.Locking;
+using Zen.Trunk.VirtualMemory;
 
 namespace Zen.Trunk.Storage
 {

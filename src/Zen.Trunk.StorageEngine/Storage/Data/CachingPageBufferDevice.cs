@@ -9,6 +9,7 @@ using Zen.Trunk.CoordinationDataStructures;
 using Zen.Trunk.Logging;
 using Zen.Trunk.Partitioners;
 using Zen.Trunk.Utils;
+using Zen.Trunk.VirtualMemory;
 
 namespace Zen.Trunk.Storage.Data
 {

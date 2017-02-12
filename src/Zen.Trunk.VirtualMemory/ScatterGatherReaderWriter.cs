@@ -4,7 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Zen.Trunk.Utils;
 
-namespace Zen.Trunk.Storage.IO
+namespace Zen.Trunk.VirtualMemory
 {
 	/// <summary>
 	/// <c>ScatterGatherReaderWriter</c> optimises buffer persistence by

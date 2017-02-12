@@ -1,9 +1,8 @@
-﻿using Zen.Trunk.Utils;
+﻿using System;
+using Zen.Trunk.Utils;
 
-namespace Zen.Trunk.Storage.IO
+namespace Zen.Trunk.VirtualMemory
 {
-	using System;
-
     /// <summary>
     /// 
     /// </summary>

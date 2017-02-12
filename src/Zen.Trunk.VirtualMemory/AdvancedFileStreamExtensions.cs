@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 
-namespace Zen.Trunk.Storage.IO
+namespace Zen.Trunk.VirtualMemory
 {
     /// <summary>
     /// 

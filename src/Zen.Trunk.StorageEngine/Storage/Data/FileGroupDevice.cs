@@ -10,6 +10,7 @@ using Zen.Trunk.Storage.Configuration;
 using Zen.Trunk.Storage.Data.Table;
 using Zen.Trunk.Storage.Locking;
 using Zen.Trunk.Utils;
+using Zen.Trunk.VirtualMemory;
 
 namespace Zen.Trunk.Storage.Data
 {

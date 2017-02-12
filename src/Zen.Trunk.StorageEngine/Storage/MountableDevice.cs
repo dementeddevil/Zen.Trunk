@@ -8,6 +8,7 @@ using Autofac.Core;
 using Zen.Trunk.Extensions;
 using Zen.Trunk.Logging;
 using Zen.Trunk.Storage.Locking;
+using Zen.Trunk.VirtualMemory;
 
 namespace Zen.Trunk.Storage
 {

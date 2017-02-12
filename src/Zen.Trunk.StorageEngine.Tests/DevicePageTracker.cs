@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Autofac;
 using Zen.Trunk.Storage.Data;
+using Zen.Trunk.VirtualMemory;
 
 namespace Zen.Trunk.Storage
 {

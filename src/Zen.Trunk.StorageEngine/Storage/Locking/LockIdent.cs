@@ -4,6 +4,8 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+using Zen.Trunk.VirtualMemory;
+
 namespace Zen.Trunk.Storage.Locking
 {
 	/// <summary>

@@ -59,25 +59,25 @@ namespace Zen.Trunk.Storage.BufferFields
         /// <summary>
         /// Called when reading from the specified stream manager.
         /// </summary>
-        /// <param name="streamManager">A <see cref="T:BufferReaderWriter" /> object.</param>
+        /// <param name="reader">A <see cref="T:BufferReaderWriter" /> object.</param>
         /// <remarks>
         /// Derived classes must provide an implementation for this method.
         /// </remarks>
-        protected override void OnRead(SwitchingBinaryReader streamManager)
+        protected override void OnRead(SwitchingBinaryReader reader)
         {
-            Value = streamManager.ReadByte();
+            Value = reader.ReadByte();
         }
 
         /// <summary>
         /// Called when writing to the specified stream manager.
         /// </summary>
-        /// <param name="streamManager">A <see cref="T:BufferReaderWriter" /> object.</param>
+        /// <param name="writer">A <see cref="T:BufferReaderWriter" /> object.</param>
         /// <remarks>
         /// Derived classes must provide an implementation for this method.
         /// </remarks>
-        protected override void OnWrite(SwitchingBinaryWriter streamManager)
+        protected override void OnWrite(SwitchingBinaryWriter writer)
         {
-            streamManager.Write(Value);
+            writer.Write(Value);
         } 
         #endregion
     }

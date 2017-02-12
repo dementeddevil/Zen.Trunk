@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using Zen.Trunk.IO;
 
-namespace Zen.Trunk.Storage.IO
+namespace Zen.Trunk.VirtualMemory
 {
     /// <summary>
 	/// <c>VirtualBuffer</c> is a low-level unmanaged memory object

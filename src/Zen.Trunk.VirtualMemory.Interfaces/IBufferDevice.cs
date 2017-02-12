@@ -1,8 +1,8 @@
-﻿namespace Zen.Trunk.Storage
-{
-	using System;
-	using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 
+namespace Zen.Trunk.VirtualMemory
+{
     /// <summary>
     /// 
     /// </summary>

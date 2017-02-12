@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Zen.Trunk.IO;
 using Zen.Trunk.Storage.BufferFields;
+using Zen.Trunk.VirtualMemory;
 
 namespace Zen.Trunk.Storage.Log
 {

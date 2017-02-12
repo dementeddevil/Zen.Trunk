@@ -1,5 +1,6 @@
 ﻿using Zen.Trunk.Storage.Data;
 using Zen.Trunk.Storage.Data.Table;
+using Zen.Trunk.VirtualMemory;
 
 namespace Zen.Trunk.Storage
 {

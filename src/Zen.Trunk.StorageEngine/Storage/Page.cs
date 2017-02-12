@@ -7,6 +7,7 @@ using Autofac;
 using Zen.Trunk.IO;
 using Zen.Trunk.Logging;
 using Zen.Trunk.Storage.BufferFields;
+using Zen.Trunk.VirtualMemory;
 
 namespace Zen.Trunk.Storage
 {
@@ -47,11 +48,11 @@ namespace Zen.Trunk.Storage
 				return true;
 			}
 
-			protected override void OnRead(SwitchingBinaryReader streamManager)
+			protected override void OnRead(SwitchingBinaryReader reader)
 			{
 			}
 
-			protected override void OnWrite(SwitchingBinaryWriter streamManager)
+			protected override void OnWrite(SwitchingBinaryWriter writer)
 			{
 			}
 		}

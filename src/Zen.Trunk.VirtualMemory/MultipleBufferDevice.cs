@@ -5,13 +5,13 @@ using System.Threading.Tasks;
 using Zen.Trunk.Extensions;
 using Zen.Trunk.Utils;
 
-namespace Zen.Trunk.Storage.IO
+namespace Zen.Trunk.VirtualMemory
 {
     /// <summary>
     /// 
     /// </summary>
-    /// <seealso cref="Zen.Trunk.Storage.IO.BufferDevice" />
-    /// <seealso cref="Zen.Trunk.Storage.IMultipleBufferDevice" />
+    /// <seealso cref="BufferDevice" />
+    /// <seealso cref="IMultipleBufferDevice" />
     public class MultipleBufferDevice : BufferDevice, IMultipleBufferDevice
 	{
 		#region Private Types

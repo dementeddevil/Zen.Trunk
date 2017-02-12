@@ -1,6 +1,7 @@
 using System;
 using System.Runtime.Serialization;
-    
+using Zen.Trunk.VirtualMemory;
+
 namespace Zen.Trunk.Storage
 {
     /// <summary>

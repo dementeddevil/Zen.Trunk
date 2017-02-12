@@ -8,7 +8,7 @@
     <ProjectGuid>{837F9DBD-7E29-4237-ADD9-1BD32FEF964A}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Zen.Trunk</RootNamespace>
+    <RootNamespace>Zen.Trunk.VirtualMemory</RootNamespace>
     <AssemblyName>Zen.Trunk.VirtualMemory</AssemblyName>
     <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
@@ -81,21 +81,21 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Storage\IO\BufferDevice.cs" />
-    <Compile Include="Storage\IO\BufferDeviceFactory.cs" />
-    <Compile Include="Storage\IO\AdvancedFileStream.cs" />
-    <Compile Include="Storage\IO\AdvancedFileStreamExtensions.cs" />
-    <Compile Include="Storage\IO\ScatterGatherReaderWriter.cs" />
-    <Compile Include="Storage\IO\ScatterGatherRequest.cs" />
-    <Compile Include="Storage\IO\ScatterGatherRequestArray.cs" />
-    <Compile Include="Storage\IO\StreamScatterGatherHelper.cs" />
-    <Compile Include="Storage\IO\VirtualBuffer.cs" />
-    <Compile Include="Storage\IO\VirtualBufferCache.cs" />
-    <Compile Include="Storage\IO\VirtualBufferFactory.cs" />
-    <Compile Include="Storage\IO\SafeNativeMethods.cs" />
+    <Compile Include="BufferDevice.cs" />
+    <Compile Include="BufferDeviceFactory.cs" />
+    <Compile Include="AdvancedFileStream.cs" />
+    <Compile Include="AdvancedFileStreamExtensions.cs" />
+    <Compile Include="ScatterGatherReaderWriter.cs" />
+    <Compile Include="ScatterGatherRequest.cs" />
+    <Compile Include="ScatterGatherRequestArray.cs" />
+    <Compile Include="StreamScatterGatherHelper.cs" />
+    <Compile Include="VirtualBuffer.cs" />
+    <Compile Include="VirtualBufferCache.cs" />
+    <Compile Include="VirtualBufferFactory.cs" />
+    <Compile Include="SafeNativeMethods.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Storage\IO\MultipleBufferDevice.cs" />
-    <Compile Include="Storage\IO\SingleBufferDevice.cs" />
+    <Compile Include="MultipleBufferDevice.cs" />
+    <Compile Include="SingleBufferDevice.cs" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.0">
@@ -139,6 +139,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Storage\IO\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

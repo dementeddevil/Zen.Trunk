@@ -179,25 +179,25 @@ namespace Zen.Trunk.Storage.Data.Table
 		/// <summary>
 		/// Called when reading from the specified stream manager.
 		/// </summary>
-		/// <param name="streamManager"></param>
+		/// <param name="reader"></param>
 		/// <remarks>
 		/// Derived classes must provide an implementation for this method.
 		/// </remarks>
-		protected override void OnRead(SwitchingBinaryReader streamManager)
+		protected override void OnRead(SwitchingBinaryReader reader)
 		{
-			Value = ColumnInfo.ReadData(streamManager);
+			Value = ColumnInfo.ReadData(reader);
 		}
 
 		/// <summary>
 		/// Called when writing to the specified stream manager.
 		/// </summary>
-		/// <param name="streamManager"></param>
+		/// <param name="writer"></param>
 		/// <remarks>
 		/// Derived classes must provide an implementation for this method.
 		/// </remarks>
-		protected override void OnWrite(SwitchingBinaryWriter streamManager)
+		protected override void OnWrite(SwitchingBinaryWriter writer)
 		{
-			ColumnInfo.WriteData(streamManager, Value);
+			ColumnInfo.WriteData(writer, Value);
 		}
 		#endregion
 	}

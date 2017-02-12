@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Threading.Tasks;
 using Zen.Trunk.Extensions;
+using Zen.Trunk.VirtualMemory;
 
 namespace Zen.Trunk.Storage.Log
 {
