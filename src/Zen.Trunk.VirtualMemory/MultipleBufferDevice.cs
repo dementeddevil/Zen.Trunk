@@ -37,9 +37,7 @@ namespace Zen.Trunk.VirtualMemory
 		private readonly bool _scatterGatherIoEnabled;
 		private readonly ConcurrentDictionary<DeviceId, ISingleBufferDevice> _devices =
 			new ConcurrentDictionary<DeviceId, ISingleBufferDevice>();
-
 	    private readonly IBufferDeviceFactory _bufferDeviceFactory;
-
 	    #endregion
 
 		#region Public Constructors
@@ -62,11 +60,9 @@ namespace Zen.Trunk.VirtualMemory
 		/// The buffer factory.
 		/// </value>
 		public override IVirtualBufferFactory BufferFactory => _bufferFactory;
-
         #endregion
 
         #region Public Methods
-
         /// <summary>
         /// Adds a new child single buffer device to this instance.
         /// </summary>

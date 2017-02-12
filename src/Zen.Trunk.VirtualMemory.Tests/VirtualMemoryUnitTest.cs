@@ -64,7 +64,7 @@ Then scatter/gather I/O operations occur as appropriate")]
                 {
                     stream.SetLength(8192 * 16);
 
-                    using (var transfer = new ScatterGatherReaderWriter(stream))
+                    using (var transfer = new ScatterGatherRequestQueue(stream))
                     {
                         await transfer.WriteBufferAsync(0, BufferFactory.AllocateAndFill(0)).ConfigureAwait(true);
                         await transfer.WriteBufferAsync(1, BufferFactory.AllocateAndFill(1)).ConfigureAwait(true);

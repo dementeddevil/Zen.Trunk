@@ -157,9 +157,11 @@ namespace Zen.Trunk.VirtualMemory
         /// <param name="path">The path.</param>
         /// <param name="mode">The mode.</param>
         public AdvancedFileStream(string path, FileMode mode)
-            : this(path, mode,
-            mode == FileMode.Append ? FileAccess.Write : FileAccess.ReadWrite,
-            FileShare.Read, DefaultBufferSize, FileOptions.None, false)
+            : this(
+                path,
+                mode,
+                mode == FileMode.Append ? FileAccess.Write : FileAccess.ReadWrite,
+                FileShare.Read)
         {
         }
 
@@ -170,47 +172,7 @@ namespace Zen.Trunk.VirtualMemory
         /// <param name="mode">The mode.</param>
         /// <param name="access">The access.</param>
         public AdvancedFileStream(string path, FileMode mode, FileAccess access)
-            : this(path, mode, access, FileShare.Read, DefaultBufferSize, FileOptions.None, false)
-        {
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="AdvancedFileStream"/> class.
-        /// </summary>
-        /// <param name="path">The path.</param>
-        /// <param name="mode">The mode.</param>
-        /// <param name="access">The access.</param>
-        /// <param name="share">The share.</param>
-        public AdvancedFileStream(string path, FileMode mode, FileAccess access, FileShare share)
-            : this(path, mode, access, share, DefaultBufferSize, FileOptions.None, false)
-        {
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="AdvancedFileStream"/> class.
-        /// </summary>
-        /// <param name="path">The path.</param>
-        /// <param name="mode">The mode.</param>
-        /// <param name="access">The access.</param>
-        /// <param name="share">The share.</param>
-        /// <param name="bufferSize">Size of the buffer.</param>
-        public AdvancedFileStream(string path, FileMode mode, FileAccess access, FileShare share, int bufferSize)
-            : this(path, mode, access, share, bufferSize, FileOptions.None, false)
-        {
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="AdvancedFileStream"/> class.
-        /// </summary>
-        /// <param name="path">The path.</param>
-        /// <param name="mode">The mode.</param>
-        /// <param name="access">The access.</param>
-        /// <param name="share">The share.</param>
-        /// <param name="bufferSize">Size of the buffer.</param>
-        /// <param name="options">The options.</param>
-        public AdvancedFileStream(string path, FileMode mode, FileAccess access,
-            FileShare share, int bufferSize, FileOptions options)
-            : this(path, mode, access, share, bufferSize, options, false)
+            : this(path, mode, access, FileShare.Read)
         {
         }
 
@@ -224,8 +186,14 @@ namespace Zen.Trunk.VirtualMemory
         /// <param name="bufferSize">Size of the buffer.</param>
         /// <param name="options">The options.</param>
         /// <param name="enableScatterGather">if set to <c>true</c> [enable scatter gather].</param>
-        public AdvancedFileStream(string path, FileMode mode, FileAccess access,
-            FileShare share, int bufferSize, FileOptions options, bool enableScatterGather)
+        public AdvancedFileStream(
+            string path,
+            FileMode mode,
+            FileAccess access,
+            FileShare share,
+            int bufferSize = DefaultBufferSize,
+            FileOptions options = FileOptions.None,
+            bool enableScatterGather = false)
         {
             var secAttrs = GetSecAttrs(share);
             Init(path, mode, access, 0, false, share, bufferSize, options,
@@ -243,9 +211,15 @@ namespace Zen.Trunk.VirtualMemory
         /// <param name="options">The options.</param>
         /// <param name="enableScatterGather">if set to <c>true</c> [enable scatter gather].</param>
         /// <param name="fileSecurity">The file security.</param>
-        public AdvancedFileStream(string path, FileMode mode, FileAccess access,
-            FileShare share, int bufferSize, FileOptions options,
-            bool enableScatterGather, FileSecurity fileSecurity)
+        public AdvancedFileStream(
+            string path,
+            FileMode mode,
+            FileAccess access,
+            FileShare share,
+            int bufferSize,
+            FileOptions options,
+            bool enableScatterGather,
+            FileSecurity fileSecurity)
         {
             object pinningHandle;
             var secAttrs = GetSecAttrs(
@@ -333,8 +307,8 @@ namespace Zen.Trunk.VirtualMemory
                     __Error.SeekNotSupported();
                 }
 
-                int highSize, fileSize;
-                fileSize = SafeNativeMethods.GetFileSize(_handle, out highSize);
+                int highSize;
+                var fileSize = SafeNativeMethods.GetFileSize(_handle, out highSize);
                 if (fileSize == -1)
                 {
                     var errorCode = Marshal.GetLastWin32Error();
@@ -2564,371 +2538,5 @@ namespace Zen.Trunk.VirtualMemory
             return 0;
         }
         #endregion
-    }
-
-    internal sealed class AdvancedStreamAsyncResult : IAsyncResult
-    {
-        #region Internal Fields
-        internal bool _completedSynchronously;
-        internal int _EndXxxCalled;
-        internal int _errorCode;
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1823:AvoidUnusedPrivateFields")]
-        internal SafeFileHandle _handle;
-        internal bool _isComplete;
-        internal bool _isWrite;
-        internal bool _isScatterGather;
-        internal int _numBufferedBytes;
-        internal int _numBytes;
-        internal unsafe NativeOverlapped* _overlapped;
-        internal AsyncCallback _userCallback;
-        internal object _userStateObject;
-        internal ManualResetEvent _waitHandle;
-        internal GCHandle[] _pinnedBuffers;
-        #endregion
-
-        #region Public Properties
-        // Properties
-        /// <summary>
-        /// Gets a user-defined object that qualifies or contains information about an asynchronous operation.
-        /// </summary>
-        /// <returns>A user-defined object that qualifies or contains information about an asynchronous operation.</returns>
-        public object AsyncState => _userStateObject;
-
-        /// <summary>
-        /// Gets a <see cref="T:System.Threading.WaitHandle" /> that is used to wait for an asynchronous operation to complete.
-        /// </summary>
-        /// <returns>A <see cref="T:System.Threading.WaitHandle" /> that is used to wait for an asynchronous operation to complete.</returns>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope",
-            Justification = "Wait handle is stored and returned to the caller.")]
-        public WaitHandle AsyncWaitHandle
-        {
-            get
-            {
-                if (_waitHandle == null)
-                {
-                    var event2 = new ManualResetEvent(false);
-                    unsafe
-                    {
-                        if ((_overlapped != null) && (_overlapped->EventHandle != IntPtr.Zero))
-                        {
-                            event2.SafeWaitHandle = new SafeWaitHandle(_overlapped->EventHandle, true);
-                        }
-                    }
-                    if (_isComplete)
-                    {
-                        event2.Set();
-                    }
-                    _waitHandle = event2;
-                }
-                return _waitHandle;
-            }
-        }
-
-        /// <summary>
-        /// Gets a value that indicates whether the asynchronous operation completed synchronously.
-        /// </summary>
-        /// <returns>true if the asynchronous operation completed synchronously; otherwise, false.</returns>
-        public bool CompletedSynchronously => _completedSynchronously;
-
-        /// <summary>
-        /// Gets a value that indicates whether the asynchronous operation has completed.
-        /// </summary>
-        /// <returns>true if the operation is complete; otherwise, false.</returns>
-        public bool IsCompleted => _isComplete;
-
-        #endregion
-
-        #region Internal Methods
-        internal static AdvancedStreamAsyncResult CreateBufferedReadResult(int numBufferedBytes, AsyncCallback userCallback, object userStateObject)
-        {
-            var result = new AdvancedStreamAsyncResult();
-            result._userCallback = userCallback;
-            result._userStateObject = userStateObject;
-            result._isWrite = false;
-            result._numBufferedBytes = numBufferedBytes;
-            return result;
-        }
-
-        internal void CallUserCallback()
-        {
-            // Will be safe to unpin buffers now
-            if (_pinnedBuffers != null)
-            {
-                foreach (var handle in _pinnedBuffers)
-                {
-                    handle.Free();
-                }
-                _pinnedBuffers = null;
-            }
-
-            if (_userCallback != null)
-            {
-                _completedSynchronously = false;
-                ThreadPool.QueueUserWorkItem(CallUserCallbackWorker);
-            }
-            else
-            {
-                _isComplete = true;
-                if (_waitHandle != null)
-                {
-                    _waitHandle.Set();
-                }
-            }
-        }
-        #endregion
-
-        #region Private Methods
-        private void CallUserCallbackWorker(object callbackState)
-        {
-            _isComplete = true;
-            if (_waitHandle != null)
-            {
-                _waitHandle.Set();
-            }
-            _userCallback(this);
-        }
-        #endregion
-    }
-
-    internal static class __Error
-    {
-        // Fields
-        internal const int ERROR_ACCESS_DENIED = 5;
-        internal const int ERROR_FILE_NOT_FOUND = 2;
-        internal const int ERROR_INVALID_PARAMETER = 0x57;
-        internal const int ERROR_PATH_NOT_FOUND = 3;
-
-        // Methods
-        internal static void EndOfFile()
-        {
-            throw new EndOfStreamException("Beyond EOF.");
-        }
-
-        internal static void EndReadCalledTwice()
-        {
-            throw new ArgumentException("EndRead called twice!");
-        }
-
-        internal static void EndWriteCalledTwice()
-        {
-            throw new ArgumentException("EndWrite called twice!");
-        }
-
-        internal static void FileNotOpen()
-        {
-            throw new ObjectDisposedException(null, "File not open - stream disposed.");
-        }
-
-        internal static string GetDisplayablePath(string path, bool isInvalidPath)
-        {
-            if (!string.IsNullOrEmpty(path))
-            {
-                var flag = false;
-                if (path.Length < 2)
-                {
-                    return path;
-                }
-                if (path[0] == Path.DirectorySeparatorChar &&
-                    path[1] == Path.DirectorySeparatorChar)
-                {
-                    flag = true;
-                }
-                else if (path[1] == Path.VolumeSeparatorChar)
-                {
-                    flag = true;
-                }
-                if (!flag && !isInvalidPath)
-                {
-                    return path;
-                }
-                var flag2 = false;
-                try
-                {
-                    if (!isInvalidPath)
-                    {
-                        new FileIOPermission(FileIOPermissionAccess.PathDiscovery, new[] { path }).Demand();
-                        flag2 = true;
-                    }
-                }
-                catch (ArgumentException)
-                {
-                }
-                catch (NotSupportedException)
-                {
-                }
-                catch (SecurityException)
-                {
-                }
-                if (flag2)
-                {
-                    return path;
-                }
-                if (path[path.Length - 1] == Path.DirectorySeparatorChar)
-                {
-                    path = "no permission for directory name.";
-                    return path;
-                }
-                path = Path.GetFileName(path);
-            }
-            return path;
-        }
-
-        internal static void MemoryStreamNotExpandable()
-        {
-            throw new NotSupportedException("Stream not expandable.");
-        }
-
-        internal static void ReaderClosed()
-        {
-            throw new ObjectDisposedException(null, "Reader closed.");
-        }
-
-        internal static void ReadNotSupported()
-        {
-            throw new NotSupportedException("Reading not support.");
-        }
-
-        internal static void SeekNotSupported()
-        {
-            throw new NotSupportedException("Seeking not supported.");
-        }
-
-        internal static void StreamIsClosed()
-        {
-            throw new ObjectDisposedException(null, "Stream is closed.");
-        }
-
-        internal static void WinIODriveError(string driveName)
-        {
-            var errorCode = Marshal.GetLastWin32Error();
-            WinIODriveError(driveName, errorCode);
-        }
-
-        internal static void WinIODriveError(string driveName, int errorCode)
-        {
-            switch (errorCode)
-            {
-                case 3:
-                case 15:
-                    throw new DriveNotFoundException(string.Format(
-                        CultureInfo.InvariantCulture,
-                        "Drive {0} not found", new object[] { driveName }));
-            }
-            WinIOError(errorCode, driveName);
-        }
-
-        internal static void WinIOError()
-        {
-            WinIOError(Marshal.GetLastWin32Error(), string.Empty);
-        }
-
-        internal static void WinIOError(int errorCode, string maybeFullPath)
-        {
-            var isInvalidPath = (errorCode == 0x7b) || (errorCode == 0xa1);
-            var fileName = GetDisplayablePath(maybeFullPath, isInvalidPath);
-            switch (errorCode)
-            {
-                case 0x20:
-                    if (fileName.Length == 0)
-                    {
-                        throw new IOException("No filename",
-                            SafeNativeMethods.MakeHRFromErrorCode(errorCode));
-                    }
-                    throw new IOException(string.Format(
-                        "Sharing violation on {0}", new object[] { fileName }),
-                        SafeNativeMethods.MakeHRFromErrorCode(errorCode));
-
-                case 80:
-                    if (fileName.Length != 0)
-                    {
-                        throw new IOException(string.Format(
-                            CultureInfo.InvariantCulture, "File exists {0}",
-                            new object[] { fileName }),
-                            SafeNativeMethods.MakeHRFromErrorCode(errorCode));
-                    }
-                    break;
-
-                case 2:
-                    if (fileName.Length == 0)
-                    {
-                        throw new FileNotFoundException("IO.FileNotFound");
-                    }
-                    throw new FileNotFoundException(string.Format(
-                        CultureInfo.InvariantCulture, "File not found {0}", new object[] { fileName }),
-                        fileName);
-
-                case 3:
-                    if (fileName.Length == 0)
-                    {
-                        throw new DirectoryNotFoundException("No path name");
-                    }
-                    throw new DirectoryNotFoundException(string.Format(
-                        CultureInfo.InvariantCulture,
-                        "Path not found {0}.", new object[] { fileName }));
-
-                case 5:
-                    if (fileName.Length == 0)
-                    {
-                        throw new UnauthorizedAccessException("No path name - access denied.");
-                    }
-                    throw new UnauthorizedAccessException(string.Format(
-                        CultureInfo.InvariantCulture,
-                        "Unauthorised access {0}.", new object[] { fileName }));
-
-                case 15:
-                    throw new DriveNotFoundException(string.Format(
-                        CultureInfo.InvariantCulture,
-                        "Drive not found {0}", new object[] { fileName }));
-
-                case ERROR_INVALID_PARAMETER:
-                    throw new IOException(
-                        SafeNativeMethods.GetMessage(errorCode),
-                        SafeNativeMethods.MakeHRFromErrorCode(errorCode));
-
-                case 0xb7:
-                    if (fileName.Length != 0)
-                    {
-                        throw new IOException(string.Format(
-                            CultureInfo.InvariantCulture,
-                            "File already exists {0}.", new object[] { fileName }),
-                            SafeNativeMethods.MakeHRFromErrorCode(errorCode));
-                    }
-                    break;
-
-                case 0xce:
-                    throw new PathTooLongException("IO.PathTooLong");
-
-                case 0x3e3:
-                    throw new OperationCanceledException();
-            }
-            throw new IOException(
-                SafeNativeMethods.GetMessage(errorCode),
-                SafeNativeMethods.MakeHRFromErrorCode(errorCode));
-        }
-
-        internal static void WriteNotSupported()
-        {
-            throw new NotSupportedException("NotSupported_UnwritableStream");
-        }
-
-        internal static void WriterClosed()
-        {
-            throw new ObjectDisposedException(null, "ObjectDisposed_WriterClosed");
-        }
-
-        internal static void WrongAsyncResult()
-        {
-            throw new ArgumentException("Arg_WrongAsyncResult");
-        }
-
-        internal static void ScatterGatherNotEnabled()
-        {
-            throw new NotSupportedException("Scatter/gather IO not enabled.");
-        }
-
-        internal static void NotAllowedWhenSystemBufferDisabled()
-        {
-            throw new InvalidOperationException("Cannot use this entry-point when system buffering has been disabled.");
-        }
     }
 }

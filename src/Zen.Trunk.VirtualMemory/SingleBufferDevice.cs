@@ -17,7 +17,7 @@ namespace Zen.Trunk.VirtualMemory
         private readonly IVirtualBufferFactory _bufferFactory;
         private FileStream _fileStream;
         private AdvancedFileStream _scatterGatherStream;
-        private ScatterGatherReaderWriter _scatterGatherHelper;
+        private ScatterGatherRequestQueue _requestQueue;
         #endregion
 
         #region Public Constructors
@@ -129,7 +129,7 @@ namespace Zen.Trunk.VirtualMemory
         {
             if (IsScatterGatherIoEnabled)
             {
-                await _scatterGatherHelper
+                await _requestQueue
                     .ReadBufferAsync(physicalPageId, buffer)
                     .ConfigureAwait(false);
             }
@@ -163,7 +163,7 @@ namespace Zen.Trunk.VirtualMemory
         {
             if (IsScatterGatherIoEnabled)
             {
-                await _scatterGatherHelper
+                await _requestQueue
                     .WriteBufferAsync(physicalPageId, buffer)
                     .ConfigureAwait(false);
             }
@@ -198,7 +198,7 @@ namespace Zen.Trunk.VirtualMemory
         {
             if (IsScatterGatherIoEnabled)
             {
-                await _scatterGatherHelper
+                await _requestQueue
                     .Flush(flushReads, flushWrites)
                     .ConfigureAwait(false);
             }
@@ -236,10 +236,10 @@ namespace Zen.Trunk.VirtualMemory
         /// <param name="disposing"><c>true</c> to release both managed and unmanaged resources; <c>false</c> to release only unmanaged resources.</param>
         protected override void Dispose(bool disposing)
         {
-            if (_scatterGatherHelper != null)
+            if (_requestQueue != null)
             {
-                _scatterGatherHelper.Dispose();
-                _scatterGatherHelper = null;
+                _requestQueue.Dispose();
+                _requestQueue = null;
             }
 
             if (_scatterGatherStream != null)
@@ -276,7 +276,7 @@ namespace Zen.Trunk.VirtualMemory
                     FileOptions.RandomAccess |
                     FileOptions.WriteThrough,
                     true);
-                _scatterGatherHelper = new ScatterGatherReaderWriter(_scatterGatherStream);
+                _requestQueue = new ScatterGatherRequestQueue(_scatterGatherStream);
 
                 if (RequiresCreate)
                 {
@@ -319,7 +319,7 @@ namespace Zen.Trunk.VirtualMemory
         {
             if (IsScatterGatherIoEnabled)
             {
-                await _scatterGatherHelper.Flush().ConfigureAwait(false);
+                await _requestQueue.Flush().ConfigureAwait(false);
                 _scatterGatherStream.Flush();
                 _scatterGatherStream.Close();
                 _scatterGatherStream = null;
