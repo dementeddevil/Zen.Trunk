@@ -48,7 +48,7 @@ using System.Diagnostics.CodeAnalysis;
 #if LIBLOG_PROVIDERS_ONLY
 namespace Zen.Trunk.Logging.LibLog
 #else
-namespace Zen.Trunk.Logging.Logging
+namespace Zen.Trunk.Logging
 #endif
 {
     using System.Collections.Generic;
@@ -56,7 +56,7 @@ namespace Zen.Trunk.Logging.Logging
 #if LIBLOG_PROVIDERS_ONLY
     using Zen.Trunk.Logging.LibLog.LogProviders;
 #else
-    using Zen.Trunk.Logging.Logging.LogProviders;
+    using Zen.Trunk.Logging.LogProviders;
 #endif
     using System;
 #if !LIBLOG_PROVIDERS_ONLY
@@ -716,7 +716,7 @@ namespace Zen.Trunk.Logging.Logging
 #if LIBLOG_PROVIDERS_ONLY
 namespace Zen.Trunk.Logging.LibLog.LogProviders
 #else
-namespace Zen.Trunk.Logging.Logging.LogProviders
+namespace Zen.Trunk.Logging.LogProviders
 #endif
 {
     using System;
