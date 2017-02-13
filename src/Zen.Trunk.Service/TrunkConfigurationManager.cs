@@ -12,9 +12,10 @@ namespace Zen.Trunk.Service
         private const string GlobalRootRegistryKeyPathBase = "Software\\Zen Design Software\\Trunk";
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="TrunkConfigurationManager"/> class.
+        /// Initializes a new instance of the <see cref="TrunkConfigurationManager" /> class.
         /// </summary>
         /// <param name="serviceName">Name of the service.</param>
+        /// <param name="writable">if set to <c>true</c> [writable].</param>
         public TrunkConfigurationManager(string serviceName, bool writable)
         {
             var globalMachineKeyRoot = Registry.LocalMachine.OpenSubKey(
