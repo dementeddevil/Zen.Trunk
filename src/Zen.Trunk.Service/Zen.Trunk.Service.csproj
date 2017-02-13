@@ -108,6 +108,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CommandLineArgument.cs" />
+    <Compile Include="CommandLineServiceBase.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="InstanceServiceBase.cs">
       <SubType>Component</SubType>
     </Compile>

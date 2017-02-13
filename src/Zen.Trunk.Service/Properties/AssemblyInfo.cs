@@ -4,12 +4,12 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("Zen.Trunk.StorageEngine.Service")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyTitle("Zen Trunk Storage Engine Service")]
+[assembly: AssemblyDescription("Windows service hosting the trunk storage engine")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("Zen.Trunk.StorageEngine.Service")]
-[assembly: AssemblyCopyright("Copyright ©  2016")]
+[assembly: AssemblyCompany("Zen Design Software")]
+[assembly: AssemblyProduct("Zen Trunk")]
+[assembly: AssemblyCopyright("Copyright © Zen Design Software 2016")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
