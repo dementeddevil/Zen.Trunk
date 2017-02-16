@@ -271,11 +271,11 @@ namespace Zen.Trunk.Service
             builder.RegisterInstance(configurationManager).As<ITrunkConfigurationManager>();
 
             // Register virtual memory and buffer device support
+            var reservationInMegaBytes = configurationManager
+                .Root[ConfigurationNames.VirtualMemory.Section]
+                .GetValue(ConfigurationNames.VirtualMemory.ReservationInMegaBytes, 1024);
             builder
-                .WithVirtualBufferFactory(
-                    8192,
-                    configurationManager.Root[ConfigurationNames.VirtualMemory.Section]
-                        .GetValue(ConfigurationNames.VirtualMemory.ReservationInMegaBytes, 1024))
+                .WithVirtualBufferFactory(8192, reservationInMegaBytes)
                 .WithBufferDeviceFactory();
 
             // Register master database device
