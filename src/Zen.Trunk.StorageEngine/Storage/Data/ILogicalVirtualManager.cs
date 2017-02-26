@@ -14,9 +14,11 @@ namespace Zen.Trunk.Storage.Data
         /// Gets a new logical page identifier.
         /// </summary>
         /// <returns>
-        /// A <see cref="LogicalPageId"/> object representing the new logical id.
+        /// A <see cref="Task"/> representing the asynchronous operation which
+        /// once successfully resolved will return a <see cref="LogicalPageId"/>
+        /// representing the new logical page identifier.
         /// </returns>
-        Task<LogicalPageId> GetNewLogicalAsync();
+        Task<LogicalPageId> GetNewLogicalPageIdAsync();
 
         /// <summary>
         /// Adds a lookup between the specified virtual page id and logical page id.
@@ -37,7 +39,9 @@ namespace Zen.Trunk.Storage.Data
         /// </summary>
         /// <param name="virtualPageId"></param>
         /// <returns>
-        /// A <see cref="LogicalPageId"/> object representing the logical id.
+        /// A <see cref="Task"/> representing the asynchronous operation which
+        /// once successfully resolved will return a <see cref="LogicalPageId"/>
+        /// representing the logical page identifier.
         /// </returns>
         Task<LogicalPageId> GetLogicalAsync(VirtualPageId virtualPageId);
 
@@ -48,7 +52,9 @@ namespace Zen.Trunk.Storage.Data
         /// A <see cref="LogicalPageId"/> representing the logical page identifier.
         /// </param>
         /// <returns>
-        /// A <see cref="VirtualPageId"/> representing the virtual page identifier.
+        /// A <see cref="Task"/> representing the asynchronous operation which
+        /// once successfully resolved will return a <see cref="VirtualPageId"/>
+        /// representing the virtual page identifier.
         /// </returns>
         Task<VirtualPageId> GetVirtualAsync(LogicalPageId logicalPageId);
     }

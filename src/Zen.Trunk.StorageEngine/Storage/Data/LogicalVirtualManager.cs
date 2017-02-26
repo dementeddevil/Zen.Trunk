@@ -20,13 +20,13 @@ namespace Zen.Trunk.Storage.Data
 
 		private class AddLookupRequest : TaskRequest<bool>
 		{
-			public AddLookupRequest(VirtualPageId pageId, LogicalPageId logicalId)
+			public AddLookupRequest(VirtualPageId virtualPageId, LogicalPageId logicalPageId)
 			{
-				PageId = pageId;
-				LogicalPageId = logicalId;
+				VirtualPageId = virtualPageId;
+				LogicalPageId = logicalPageId;
 			}
 
-			public VirtualPageId PageId
+			public VirtualPageId VirtualPageId
 			{
 				get;
 			}
@@ -39,19 +39,19 @@ namespace Zen.Trunk.Storage.Data
 
 		private class GetLogicalRequest : TaskRequest<LogicalPageId>
 		{
-			public GetLogicalRequest(VirtualPageId pageId)
+			public GetLogicalRequest(VirtualPageId virtualPageId)
 			{
-				PageId = pageId;
+				VirtualPageId = virtualPageId;
 			}
 
-			public VirtualPageId PageId { get; }
+			public VirtualPageId VirtualPageId { get; }
 		}
 
 		private class GetVirtualRequest : TaskRequest<VirtualPageId>
 		{
-			public GetVirtualRequest(LogicalPageId logicalId)
+			public GetVirtualRequest(LogicalPageId logicalPageId)
 			{
-				LogicalPageId = logicalId;
+				LogicalPageId = logicalPageId;
 			}
 
 			public LogicalPageId LogicalPageId { get; }
@@ -85,8 +85,13 @@ namespace Zen.Trunk.Storage.Data
 				{
 					try
 					{
+                        // Get the next free logical page identifier
 						var nextLogicalPageId = _nextLogicalPageId;
+
+                        // Incremement the logical page identifier
 						_nextLogicalPageId++;
+
+                        // Complete the request
 						request.TrySetResult(new LogicalPageId(nextLogicalPageId));
 					}
 					catch (Exception e)
@@ -106,16 +111,19 @@ namespace Zen.Trunk.Storage.Data
 				{
 					try
 					{
-						var logicalId = request.LogicalPageId;
-						if (_virtualToLogical.ContainsKey(request.PageId) ||
+                        // Sanity check this is a unique mapping
+						if (_virtualToLogical.ContainsKey(request.VirtualPageId) ||
 							_logicalToVirtual.ContainsKey(request.LogicalPageId))
 						{
 							throw new ArgumentException("Mapping already exists.");
 						}
 
-						_virtualToLogical.Add(request.PageId, request.LogicalPageId);
-						_logicalToVirtual.Add(request.LogicalPageId, request.PageId);
-						_nextLogicalPageId = Math.Max(_nextLogicalPageId, 1 + logicalId.Value);
+                        // Add mapping
+						_virtualToLogical.Add(request.VirtualPageId, request.LogicalPageId);
+						_logicalToVirtual.Add(request.LogicalPageId, request.VirtualPageId);
+
+                        // Update next free logical page identifier as necessary
+						_nextLogicalPageId = Math.Max(_nextLogicalPageId, 1 + request.LogicalPageId.Value);
 						request.TrySetResult(true);
 					}
 					catch (Exception e)
@@ -136,9 +144,9 @@ namespace Zen.Trunk.Storage.Data
 					try
 					{
                         LogicalPageId logicalId;
-						if (!_virtualToLogical.TryGetValue(request.PageId, out logicalId))
+						if (!_virtualToLogical.TryGetValue(request.VirtualPageId, out logicalId))
 						{
-							throw new ArgumentException("Page id not found.");
+							throw new ArgumentException("Virtual page identifier not found.");
 						}
 						request.TrySetResult(logicalId);
 					}
@@ -162,9 +170,7 @@ namespace Zen.Trunk.Storage.Data
 						VirtualPageId pageId;
 						if (!_logicalToVirtual.TryGetValue(request.LogicalPageId, out pageId))
 						{
-							throw new ArgumentException("Logical id not found.");
-							//throw new DeviceInvalidPageException(
-							//	0, request.LogicalPageId, false);
+							throw new ArgumentException("Logical page identifier not found.");
 						}
 						request.TrySetResult(pageId);
 					}
@@ -199,7 +205,7 @@ namespace Zen.Trunk.Storage.Data
         /// A <see cref="LogicalPageId" /> object representing the new logical id.
         /// </returns>
         /// <exception cref="BufferDeviceShuttingDownException"></exception>
-        public Task<LogicalPageId> GetNewLogicalAsync()
+        public Task<LogicalPageId> GetNewLogicalPageIdAsync()
 		{
 			var request = new GetNewLogicalRequest();
 			if (!_getNewLogicalPort.Post(request))

@@ -109,10 +109,10 @@ namespace Zen.Trunk.Storage.Data
             #endregion
         }
 
-        private class ImportDistributionPageRequest : TransactionContextTaskRequest<DistributionPage, bool>
+        private class ProcessDistributionPageRequest : TransactionContextTaskRequest<DistributionPage, bool>
         {
             #region Public Constructors
-            public ImportDistributionPageRequest(DistributionPage page)
+            public ProcessDistributionPageRequest(DistributionPage page)
                 : base(page)
             {
             }
@@ -237,8 +237,8 @@ namespace Zen.Trunk.Storage.Data
                 {
                     TaskScheduler = taskInterleave.ConcurrentScheduler
                 });
-            ImportDistributionPagePort = new TransactionContextActionBlock<ImportDistributionPageRequest, bool>(
-                request => ImportDistributionPageHandlerAsync(request),
+            ProcessDistributionPagePort = new TransactionContextActionBlock<ProcessDistributionPageRequest, bool>(
+                request => ProcessDistributionPageHandlerAsync(request),
                 new ExecutionDataflowBlockOptions
                 {
                     TaskScheduler = taskInterleave.ConcurrentScheduler
@@ -374,10 +374,10 @@ namespace Zen.Trunk.Storage.Data
         private ITargetBlock<DeallocateDataPageRequest> DeallocateDataPagePort { get; }
 
         /// <summary>
-        /// Gets the import distribution page port.
+        /// Gets the process distribution page port.
         /// </summary>
         /// <value>The import distribution page.</value>
-        private ITargetBlock<ImportDistributionPageRequest> ImportDistributionPagePort { get; }
+        private ITargetBlock<ProcessDistributionPageRequest> ProcessDistributionPagePort { get; }
 
         /// <summary>
         /// Gets the create object reference port.
@@ -540,15 +540,15 @@ namespace Zen.Trunk.Storage.Data
         }
 
         /// <summary>
-        /// Imports the distribution page.
+        /// Process the distribution page.
         /// </summary>
         /// <param name="page">The page.</param>
         /// <returns></returns>
         /// <exception cref="BufferDeviceShuttingDownException"></exception>
-        public Task ImportDistributionPageAsync(DistributionPage page)
+        public Task ProcessDistributionPageAsync(DistributionPage page)
         {
-            var request = new ImportDistributionPageRequest(page);
-            if (!ImportDistributionPagePort.Post(request))
+            var request = new ProcessDistributionPageRequest(page);
+            if (!ProcessDistributionPagePort.Post(request))
             {
                 throw new BufferDeviceShuttingDownException();
             }
@@ -982,7 +982,7 @@ namespace Zen.Trunk.Storage.Data
             if (logicalPage != null && request.Message.GenerateLogicalPageId)
             {
                 // Get next logical id from the logical/virtual manager
-                logicalPage.LogicalPageId = await LogicalVirtualManager.GetNewLogicalAsync().ConfigureAwait(false);
+                logicalPage.LogicalPageId = await LogicalVirtualManager.GetNewLogicalPageIdAsync().ConfigureAwait(false);
             }
 
             // Stage #2: Assign virtual id
@@ -1020,8 +1020,7 @@ namespace Zen.Trunk.Storage.Data
 
             // Stage #3: Initialise page object passed in request
             HookupPageSite(request.Message.Page);
-            var pageBufferDevice =
-                GetService<CachingPageBufferDevice>();
+            var pageBufferDevice = GetService<CachingPageBufferDevice>();
             request.Message.Page.PreInitInternal();
             using (var scope = new StatefulBufferScope<PageBuffer>(
                 await pageBufferDevice.InitPageAsync(pageId).ConfigureAwait(false)))
@@ -1051,37 +1050,34 @@ namespace Zen.Trunk.Storage.Data
             // Setup page file-group id
             request.Message.Page.FileGroupId = FileGroupId;
 
-            // Setup virtual and logical defaults
-            var pageId = request.Message.Page.VirtualPageId;
-
-            // Stage #1: Determine virtual id if we only have logical id.
+            // Stage #1: Determine virtual page id
+            var virtualPageId = request.Message.Page.VirtualPageId;
             var logicalPage = request.Message.Page as LogicalPage;
             if (!request.Message.VirtualPageIdValid && request.Message.LogicalPageIdValid)
             {
+                // Sanity check: If logical page id is valid then page must be derived from LogicalPage
                 if (logicalPage == null)
                 {
-                    throw new InvalidOperationException("Logical id can only be read from LogicalPage derived page objects.");
+                    throw new InvalidOperationException("Logical page id can only be read from LogicalPage derived page objects.");
                 }
 
                 // Map from logical page to virtual page
-                pageId = await LogicalVirtualManager.GetVirtualAsync(logicalPage.LogicalPageId).ConfigureAwait(false);
-                request.Message.Page.VirtualPageId = pageId;
+                virtualPageId = await LogicalVirtualManager.GetVirtualAsync(logicalPage.LogicalPageId).ConfigureAwait(false);
+
+                // Update the request page and update the virtual page identifier
+                request.Message.Page.VirtualPageId = virtualPageId;
             }
 
             // Stage #2: Load the buffer from the underlying cache
             HookupPageSite(request.Message.Page);
-            var pageBufferDevice =
-                GetService<CachingPageBufferDevice>();
+            var pageBufferDevice = GetService<CachingPageBufferDevice>();
             request.Message.Page.PreLoadInternal();
-            using (var scope =
-                new StatefulBufferScope<PageBuffer>(
-                    await pageBufferDevice.LoadPageAsync(pageId)
-                        .ConfigureAwait(false)))
+            using (var scope = new StatefulBufferScope<PageBuffer>(
+                await pageBufferDevice.LoadPageAsync(virtualPageId).ConfigureAwait(false)))
             {
-                // Setup logical id in page buffer as required
+                // Setup logical page identifier in page buffer as necessary
                 if (logicalPage != null)
                 {
-                    // Assign the buffer logical Id then assign buffer to page
                     scope.Buffer.LogicalPageId = logicalPage.LogicalPageId;
                 }
 
@@ -1093,9 +1089,9 @@ namespace Zen.Trunk.Storage.Data
             return true;
         }
 
-        private async Task<bool> ImportDistributionPageHandlerAsync(ImportDistributionPageRequest request)
+        private async Task<bool> ProcessDistributionPageHandlerAsync(ProcessDistributionPageRequest request)
         {
-            await request.Message.Import(LogicalVirtualManager).ConfigureAwait(false);
+            await request.Message.ExportPageMappingTo(LogicalVirtualManager).ConfigureAwait(false);
             return true;
         }
 

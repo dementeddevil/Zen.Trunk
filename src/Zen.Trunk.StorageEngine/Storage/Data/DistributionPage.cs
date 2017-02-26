@@ -235,9 +235,12 @@ namespace Zen.Trunk.Storage.Data
             }
 
             /// <summary>
-            /// Allocation Status
+            /// Gets or sets a value indicating whether this instance is allocated.
             /// </summary>
-            internal bool AllocationStatus
+            /// <value>
+            /// <c>true</c> if this instance is allocated; otherwise, <c>false</c>.
+            /// </value>
+            internal bool IsAllocated
             {
                 get
                 {
@@ -440,9 +443,9 @@ namespace Zen.Trunk.Storage.Data
             var virtPageId = new VirtualPageId(0);
             for (uint index = 0; index < PagesPerExtent; ++index)
             {
-                if (!info.Pages[index].AllocationStatus)
+                if (!info.Pages[index].IsAllocated)
                 {
-                    info.Pages[index].AllocationStatus = true;
+                    info.Pages[index].IsAllocated = true;
                     info.Pages[index].LogicalPageId = allocParams.LogicalPageId;
                     info.Pages[index].ObjectId = allocParams.ObjectId;
                     info.Pages[index].ObjectType = allocParams.ObjectType;
@@ -455,7 +458,7 @@ namespace Zen.Trunk.Storage.Data
             }
 
             // Update extent full state
-            info.IsFull = info.Pages.All(p => p.AllocationStatus);
+            info.IsFull = info.Pages.All(p => p.IsAllocated);
 
             // Mark this instance as dirty and force save to underlying page buffer
             SetDirty();
@@ -483,7 +486,7 @@ namespace Zen.Trunk.Storage.Data
             // Determine extent and page index
             var extentIndex = pageIndex / PagesPerExtent;
             var pageIndexInExtent = pageIndex % PagesPerExtent;
-            if (_extents[extentIndex].Pages[pageIndexInExtent].AllocationStatus)
+            if (_extents[extentIndex].Pages[pageIndexInExtent].IsAllocated)
             {
                 // We need extent lock before we can free page
                 if (DistributionLock != ObjectLockType.IntentExclusive &&
@@ -499,14 +502,14 @@ namespace Zen.Trunk.Storage.Data
                 }
 
                 // Update page information
-                _extents[extentIndex].Pages[pageIndexInExtent].AllocationStatus = false;
+                _extents[extentIndex].Pages[pageIndexInExtent].IsAllocated = false;
                 _extents[extentIndex].Pages[pageIndexInExtent].ObjectId = ObjectId.Zero;
                 _extents[extentIndex].Pages[pageIndexInExtent].LogicalPageId = LogicalPageId.Zero;
                 _extents[extentIndex].Pages[pageIndexInExtent].ObjectType = ObjectType.Unknown;
 
                 // Update extent information
                 _extents[extentIndex].IsFull = false;
-                if (!_extents[extentIndex].Pages.Any(pi => pi.AllocationStatus))
+                if (!_extents[extentIndex].Pages.Any(pi => pi.IsAllocated))
                 {
                     _extents[extentIndex].IsMixedExtent = false;
                     _extents[extentIndex].ObjectId = ObjectId.Zero;
@@ -519,11 +522,11 @@ namespace Zen.Trunk.Storage.Data
         }
 
         /// <summary>
-        /// Imports the specified logical virtual manager.
+        /// Exports page mapping information to the specified logical virtual manager.
         /// </summary>
         /// <param name="logicalVirtualManager">The logical virtual manager.</param>
         /// <returns></returns>
-        public Task Import(ILogicalVirtualManager logicalVirtualManager)
+        public Task ExportPageMappingTo(ILogicalVirtualManager logicalVirtualManager)
         {
             var startPageId = VirtualPageId.NextPage;
 
@@ -531,26 +534,28 @@ namespace Zen.Trunk.Storage.Data
             //	lookups where we have allocated pages.
             var addTasks = new List<Task>();
 
-            for (uint extentIndex = 0; extentIndex < ExtentTrackingCount; ++extentIndex)
+            // Walk list of usable extents
+            for (uint extentIndex = 0; extentIndex < ExtentTrackingCount && _extents[extentIndex].IsUsable; ++extentIndex)
             {
-                // Check extent is usable
-                if (!_extents[extentIndex].IsUsable)
-                {
-                    break;
-                }
-
-                // Only process allocated pages...
+                // Walk list of pages in the extent
                 for (uint pageIndex = 0; pageIndex < PagesPerExtent; ++pageIndex)
                 {
-                    if (_extents[extentIndex].Pages[pageIndex].AllocationStatus)
+                    // Only concern ourselves with allocated pages
+                    if (_extents[extentIndex].Pages[pageIndex].IsAllocated)
                     {
+                        // Determine the page offset
                         var pageOffset = extentIndex * PagesPerExtent + pageIndex;
-                        var pageId = new VirtualPageId(
+
+                        // Determine the virtual page identifier for the corresponding page
+                        var virtualPageId = new VirtualPageId(
                             startPageId.DeviceId,
                             startPageId.PhysicalPageId + pageOffset);
 
-                        addTasks.Add(logicalVirtualManager.AddLookupAsync(
-                            pageId, _extents[extentIndex].Pages[pageIndex].LogicalPageId));
+                        // Pull out the logical page identifier from the page information
+                        var logicalPageId = _extents[extentIndex].Pages[pageIndex].LogicalPageId;
+
+                        // Add mapping to the logical/virtual manager
+                        addTasks.Add(logicalVirtualManager.AddLookupAsync(virtualPageId, logicalPageId));
                     }
                 }
             }
@@ -731,7 +736,7 @@ namespace Zen.Trunk.Storage.Data
                 _extents[index].ObjectId = ObjectId.Zero;
                 foreach (var page in _extents[index].Pages)
                 {
-                    page.AllocationStatus = false;
+                    page.IsAllocated = false;
                     page.ObjectType = ObjectType.Unknown;
                     page.ObjectId = ObjectId.Zero;
                     page.LogicalPageId = LogicalPageId.Zero;

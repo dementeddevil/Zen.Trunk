@@ -433,7 +433,7 @@ namespace Zen.Trunk.Storage.Data
 		private async Task LoadDistributionPageAndImport(uint distPageIndex, DistributionPage page)
 		{
 			await LoadDistributionPage(page, distPageIndex).ConfigureAwait(false);
-		    await FileGroupDevice.ImportDistributionPageAsync(page).ConfigureAwait(false);
+		    await FileGroupDevice.ProcessDistributionPageAsync(page).ConfigureAwait(false);
 		}
 		#endregion
 	}
