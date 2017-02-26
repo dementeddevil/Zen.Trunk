@@ -18,7 +18,7 @@ namespace Zen.Trunk.Storage.Data
 		{
 		}
 
-		private class AddLookupRequest : TaskRequest<LogicalPageId>
+		private class AddLookupRequest : TaskRequest<bool>
 		{
 			public AddLookupRequest(VirtualPageId pageId, LogicalPageId logicalId)
 			{
@@ -116,7 +116,7 @@ namespace Zen.Trunk.Storage.Data
 						_virtualToLogical.Add(request.PageId, request.LogicalPageId);
 						_logicalToVirtual.Add(request.LogicalPageId, request.PageId);
 						_nextLogicalPageId = Math.Max(_nextLogicalPageId, 1 + logicalId.Value);
-						request.TrySetResult(logicalId);
+						request.TrySetResult(true);
 					}
 					catch (Exception e)
 					{
@@ -215,10 +215,10 @@ namespace Zen.Trunk.Storage.Data
         /// <param name="virtualPageId">A <see cref="VirtualPageId" /> representing the virtual page identifier.</param>
         /// <param name="logicalPageId">A <see cref="LogicalPageId" /> representing the logical page identifier.</param>
         /// <returns>
-        /// A <see cref="LogicalPageId" /> object representing the logical id.
+        /// A <see cref="Task"/> representing the asynchronous operation.
         /// </returns>
         /// <exception cref="BufferDeviceShuttingDownException"></exception>
-        public Task<LogicalPageId> AddLookupAsync(VirtualPageId virtualPageId, LogicalPageId logicalPageId)
+        public Task AddLookupAsync(VirtualPageId virtualPageId, LogicalPageId logicalPageId)
 		{
 			var request = new AddLookupRequest(virtualPageId, logicalPageId);
 			if (!_addLookupPort.Post(request))

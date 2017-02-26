@@ -105,14 +105,14 @@ namespace Zen.Trunk.Storage.Data
         /// <param name="page">The page.</param>
         /// <param name="assignVirtualPageId">if set to <c>true</c> [assign virtual unique identifier].</param>
         /// <param name="assignLogicalPageId">if set to <c>true</c> [assign logical unique identifier].</param>
-        /// <param name="assignAutomaticLogicalPageId">if set to <c>true</c> [assign automatic logical unique identifier].</param>
+        /// <param name="generateLogicalPageId">if set to <c>true</c> [assign automatic logical unique identifier].</param>
         /// <param name="isNewObject">if set to <c>true</c> [is new object].</param>
-        public InitDataPageParameters(DataPage page, bool assignVirtualPageId = false, bool assignLogicalPageId = false, bool assignAutomaticLogicalPageId = false, bool isNewObject = false)
+        public InitDataPageParameters(DataPage page, bool assignVirtualPageId = false, bool assignLogicalPageId = false, bool generateLogicalPageId = false, bool isNewObject = false)
         {
             Page = page;
             AssignVirtualPageId = assignVirtualPageId;
             AssignLogicalPageId = assignLogicalPageId;
-            AssignAutomaticLogicalPageId = assignAutomaticLogicalPageId;
+            GenerateLogicalPageId = generateLogicalPageId;
             IsNewObject = isNewObject;
         }
         #endregion
@@ -131,11 +131,20 @@ namespace Zen.Trunk.Storage.Data
         }
 
         /// <summary>
-        /// Gets a value indicating whether [assign virtual unique identifier].
+        /// Gets a value indicating whether to assign virtual unique identifier.
+        /// This value controls whether an entry will be placed in a distribution
+        /// page.
         /// </summary>
         /// <value>
-        /// <c>true</c> if [assign virtual unique identifier]; otherwise, <c>false</c>.
+        /// <c>true</c> the virtual page will be determined by checking all 
+        /// associated distribution pages and allocating a free page; otherwise, 
+        /// <c>false</c> and the virtual page identifier associated with the page
+        /// will be used.
         /// </value>
+        /// <remarks>
+        /// Set this value to <c>true</c> for all pages except root pages and
+        /// distribution pages.
+        /// </remarks>
         public bool AssignVirtualPageId
         {
             get;
@@ -155,12 +164,12 @@ namespace Zen.Trunk.Storage.Data
         }
 
         /// <summary>
-        /// Gets a value indicating whether [assign automatic logical unique identifier].
+        /// Gets a value indicating whether to generate a logical page identifier.
         /// </summary>
         /// <value>
-        /// <c>true</c> if [assign automatic logical unique identifier]; otherwise, <c>false</c>.
+        /// <c>true</c> a new logical page identifier will be generated for the page; otherwise, <c>false</c>.
         /// </value>
-        public bool AssignAutomaticLogicalPageId
+        public bool GenerateLogicalPageId
         {
             get;
             private set;

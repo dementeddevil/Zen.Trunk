@@ -979,7 +979,7 @@ namespace Zen.Trunk.Storage.Data
 
             // Stage #1: Assign logical id
             var logicalPage = request.Message.Page as LogicalPage;
-            if (logicalPage != null && request.Message.AssignAutomaticLogicalPageId)
+            if (logicalPage != null && request.Message.GenerateLogicalPageId)
             {
                 // Get next logical id from the logical/virtual manager
                 logicalPage.LogicalPageId = await LogicalVirtualManager.GetNewLogicalAsync().ConfigureAwait(false);
@@ -1009,17 +1009,13 @@ namespace Zen.Trunk.Storage.Data
             }
 
             // Stage #3: Add virtual/logical mapping
+            // NOTE: We don't need to do this if a logical mapping does not make sense
+            //  which typically only means root and distribution pages
             if (logicalPage != null &&
-                (request.Message.AssignLogicalPageId || request.Message.AssignAutomaticLogicalPageId))
+                (request.Message.AssignLogicalPageId || request.Message.GenerateLogicalPageId))
             {
                 // Post request to logical/virtual manager
-                var logicalId = await LogicalVirtualManager.AddLookupAsync(pageId, logicalPage.LogicalPageId).ConfigureAwait(false);
-
-                // Update page with new logical id as necessary
-                if (!request.Message.AssignAutomaticLogicalPageId)
-                {
-                    logicalPage.LogicalPageId = logicalId;
-                }
+                await LogicalVirtualManager.AddLookupAsync(pageId, logicalPage.LogicalPageId).ConfigureAwait(false);
             }
 
             // Stage #3: Initialise page object passed in request
@@ -1027,10 +1023,8 @@ namespace Zen.Trunk.Storage.Data
             var pageBufferDevice =
                 GetService<CachingPageBufferDevice>();
             request.Message.Page.PreInitInternal();
-            using (var scope =
-                new StatefulBufferScope<PageBuffer>(
-                    await pageBufferDevice.InitPageAsync(pageId)
-                        .ConfigureAwait(false)))
+            using (var scope = new StatefulBufferScope<PageBuffer>(
+                await pageBufferDevice.InitPageAsync(pageId).ConfigureAwait(false)))
             {
                 // Stage #4: Setup logical id in page buffer as required
                 if (logicalPage != null)

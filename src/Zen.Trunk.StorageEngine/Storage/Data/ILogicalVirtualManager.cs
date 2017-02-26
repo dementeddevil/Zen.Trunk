@@ -28,9 +28,9 @@ namespace Zen.Trunk.Storage.Data
         /// A <see cref="LogicalPageId"/> representing the logical page identifier.
         /// </param>
         /// <returns>
-        /// A <see cref="LogicalPageId"/> object representing the logical id.
+        /// A <see cref="Task"/> representing the asynchronous operation.
         /// </returns>
-        Task<LogicalPageId> AddLookupAsync(VirtualPageId virtualPageId, LogicalPageId logicalPageId);
+        Task AddLookupAsync(VirtualPageId virtualPageId, LogicalPageId logicalPageId);
 
         /// <summary>
         /// Gets the logical page identifier that corresponds to the specified virtual page id.

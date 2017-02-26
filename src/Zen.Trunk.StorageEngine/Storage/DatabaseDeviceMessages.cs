@@ -106,11 +106,11 @@ namespace Zen.Trunk.Storage
         /// <param name="page">The page.</param>
         /// <param name="assignVirtualPageId">if set to <c>true</c> [assign virtual page identifier].</param>
         /// <param name="assignLogicalPageId">if set to <c>true</c> [assign logical page identifier].</param>
-        /// <param name="assignAutomaticLogicalPageId">if set to <c>true</c> [assign automatic logical page identifier].</param>
+        /// <param name="generateLogicalPageId">if set to <c>true</c> [assign automatic logical page identifier].</param>
         /// <param name="isNewObject">if set to <c>true</c> [is new object].</param>
         public InitFileGroupPageParameters(
-            string fileGroupName, DataPage page, bool assignVirtualPageId = false, bool assignLogicalPageId = false, bool assignAutomaticLogicalPageId = false, bool isNewObject = false)
-            : base(page, assignVirtualPageId, assignLogicalPageId, assignAutomaticLogicalPageId, isNewObject)
+            string fileGroupName, DataPage page, bool assignVirtualPageId = false, bool assignLogicalPageId = false, bool generateLogicalPageId = false, bool isNewObject = false)
+            : base(page, assignVirtualPageId, assignLogicalPageId, generateLogicalPageId, isNewObject)
         {
             FileGroupId = page.FileGroupId;
             FileGroupName = fileGroupName;
