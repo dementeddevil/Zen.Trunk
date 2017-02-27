@@ -5,148 +5,151 @@ using Zen.Trunk.CoordinationDataStructures;
 
 namespace Zen.Trunk.Storage.Locking
 {
-	/// <summary>
-	/// Implements a lock handler object.
-	/// </summary>
-	/// <typeparam name="TLockClass"></typeparam>
-	/// <typeparam name="TLockTypeEnum"></typeparam>
-	/// <remarks>
-	/// <para>
-	/// The lock handler tracks active locks by their lock key string.
-	/// When locks are freed they are added to a free-lock pool to increase
-	/// performance when new locks are requested. Currently the size of the
-	/// free-lock pool is fixed.
-	/// </para>
-	/// <para>
-	/// Methods to be added to allow free-pool to be managed by LockManager.
-	/// </para>
-	/// </remarks>
-	internal class LockHandler<TLockClass, TLockTypeEnum> : ILockHandler
-		where TLockTypeEnum : struct, IComparable, IConvertible, IFormattable // enum
-		where TLockClass : TransactionLock<TLockTypeEnum>, new()
-	{
-		#region Private Fields
-		private int _maxFreeLocks;
-		private readonly SpinLockClass _syncLocks = new SpinLockClass();
-		private readonly Dictionary<string, TLockClass> _activeLocks = new Dictionary<string, TLockClass>();
-		private readonly ObjectPool<TLockClass> _freeLocks;
-		#endregion
+    /// <summary>
+    /// Implements a lock handler object.
+    /// </summary>
+    /// <typeparam name="TLockClass"></typeparam>
+    /// <typeparam name="TLockTypeEnum"></typeparam>
+    /// <remarks>
+    /// <para>
+    /// The lock handler tracks active locks by their lock key string.
+    /// When locks are freed they are added to a free-lock pool to increase
+    /// performance when new locks are requested. Currently the size of the
+    /// free-lock pool is fixed.
+    /// </para>
+    /// <para>
+    /// Methods to be added to allow free-pool to be managed by LockManager.
+    /// </para>
+    /// </remarks>
+    internal class LockHandler<TLockClass, TLockTypeEnum> : ILockHandler
+        where TLockTypeEnum : struct, IComparable, IConvertible, IFormattable // enum
+        where TLockClass : TransactionLock<TLockTypeEnum>, new()
+    {
+        #region Private Fields
+        private int _maxFreeLocks;
+        private readonly SpinLockClass _syncLocks = new SpinLockClass();
+        private readonly Dictionary<string, TLockClass> _activeLocks = new Dictionary<string, TLockClass>();
+        private readonly ObjectPool<TLockClass> _freeLocks;
+        #endregion
 
-		#region Public Constructors
-		/// <summary>
-		/// Initializes a new instance of the <see cref="LockHandler&lt;TLockClass, TLockTypeEnum&gt;"/> class.
-		/// </summary>
-		public LockHandler()
-			: this(100)
-		{
-		}
+        #region Public Constructors
+        /// <summary>
+        /// Initializes a new instance of the <see cref="LockHandler&lt;TLockClass, TLockTypeEnum&gt;"/> class.
+        /// </summary>
+        public LockHandler()
+            : this(100)
+        {
+        }
 
-		/// <summary>
-		/// Initializes a new instance of the <see cref="LockHandler&lt;TLockClass, TLockTypeEnum&gt;"/> class.
-		/// </summary>
-		public LockHandler(int maxFreeLocks)
-		{
-			_maxFreeLocks = maxFreeLocks;
-			_freeLocks = new ObjectPool<TLockClass>(CreateLock);
-		}
-		#endregion
+        /// <summary>
+        /// Initializes a new instance of the <see cref="LockHandler&lt;TLockClass, TLockTypeEnum&gt;"/> class.
+        /// </summary>
+        public LockHandler(int maxFreeLocks)
+        {
+            _maxFreeLocks = maxFreeLocks;
+            _freeLocks = new ObjectPool<TLockClass>(CreateLock);
+        }
+        #endregion
 
-		#region Public Methods
-		/// <summary>
-		/// Gets a lock object represented by the key.
-		/// </summary>
-		/// <param name="lockKey"></param>
-		/// <returns>Lock object associated with key.</returns>
-		/// <remarks>
-		/// The lock object is add ref'ed before it is returned to ensure
-		/// stability of lock manager.
-		/// </remarks>
-		public TLockClass GetOrCreateLock(string lockKey)
-		{
-			// Sanity check
-			if (string.IsNullOrEmpty(lockKey))
-			{
-				throw new ArgumentNullException(nameof(lockKey));
-			}
+        #region Public Methods
+        /// <summary>
+        /// Gets a lock object represented by the key.
+        /// </summary>
+        /// <param name="lockKey"></param>
+        /// <returns>Lock object associated with key.</returns>
+        /// <remarks>
+        /// The lock object is add ref'ed before it is returned to ensure
+        /// stability of lock manager.
+        /// </remarks>
+        public TLockClass GetOrCreateLock(string lockKey)
+        {
+            // Sanity check
+            if (string.IsNullOrEmpty(lockKey))
+            {
+                throw new ArgumentNullException(nameof(lockKey));
+            }
 
-			// Lookup/create page lock
-			TLockClass lockObject = null;
-			_syncLocks.Execute(
-				() =>
-				{
-					if (_activeLocks.ContainsKey(lockKey))
-					{
-						lockObject = _activeLocks[lockKey];
-					}
-					else
-					{
-						lockObject = _freeLocks.GetObject();
-						lockObject.Id = lockKey;
-						_activeLocks.Add(lockKey, lockObject);
-					}
-					lockObject.AddRefLock();
-				});
-			return lockObject;
-		}
-		#endregion
+            // Lookup/create page lock
+            TLockClass lockObject = null;
+            _syncLocks.Execute(
+                () =>
+                {
+                    // Attempt to obtain the lock with the specified identifier
+                    //  from our active lock cache
+                    if (!_activeLocks.TryGetValue(lockKey, out lockObject))
+                    {
+                        // Get lock from free lock pool and update identifier
+                        lockObject = _freeLocks.GetObject();
+                        lockObject.Id = lockKey;
 
-		#region Private Methods
-		private TLockClass CreateLock()
-		{
-			var lockObject = new TLockClass();
-			lockObject.Initialise();
-			lockObject.FinalRelease += Lock_FinalRelease;
-			return lockObject;
-		}
+                        // Add lock to the active lock cache
+                        _activeLocks.Add(lockKey, lockObject);
+                    }
 
-		private void Lock_FinalRelease(object sender, EventArgs e)
-		{
-			var lockObject = (TLockClass)sender;
-			_syncLocks.Execute(
-				() =>
-				{
-					if (!string.IsNullOrEmpty(lockObject.Id))
-					{
-						_activeLocks.Remove(lockObject.Id);
-						lockObject.Id = string.Empty;
-						if (_freeLocks.Count < _maxFreeLocks)
-						{
-							_freeLocks.PutObject(lockObject);
-						}
-					}
-				});
-		}
-		#endregion
+                    // Update lock reference count inside the sync zone
+                    lockObject.AddRefLock();
+                });
+            return lockObject;
+        }
+        #endregion
 
-		#region ILockHandler Members
-		int ILockHandler.MaxFreeLocks
-		{
-			get
-			{
-				return _maxFreeLocks;
-			}
-			set
-			{
-				Interlocked.Exchange(ref _maxFreeLocks, value);
-			}
-		}
+        #region Private Methods
+        private TLockClass CreateLock()
+        {
+            var lockObject = new TLockClass();
+            lockObject.Initialise();
+            lockObject.FinalRelease += Lock_FinalRelease;
+            return lockObject;
+        }
 
-		int ILockHandler.ActiveLockCount => _activeLocks.Count;
+        private void Lock_FinalRelease(object sender, EventArgs e)
+        {
+            var lockObject = (TLockClass)sender;
+            _syncLocks.Execute(
+                () =>
+                {
+                    if (!string.IsNullOrEmpty(lockObject.Id))
+                    {
+                        _activeLocks.Remove(lockObject.Id);
+                        lockObject.Id = string.Empty;
+                        if (_freeLocks.Count < _maxFreeLocks)
+                        {
+                            _freeLocks.PutObject(lockObject);
+                        }
+                    }
+                });
+        }
+        #endregion
 
-	    int ILockHandler.FreeLockCount => _freeLocks.Count;
+        #region ILockHandler Members
+        int ILockHandler.MaxFreeLocks
+        {
+            get
+            {
+                return _maxFreeLocks;
+            }
+            set
+            {
+                Interlocked.Exchange(ref _maxFreeLocks, value);
+            }
+        }
 
-	    void ILockHandler.PopulateFreeLockPool(int maxLocks)
-		{
-			_syncLocks.Execute(
-				() =>
-				{
-					while ((_freeLocks.Count < _maxFreeLocks) && (maxLocks > 0))
-					{
-						_freeLocks.PutObject(CreateLock());
-						--maxLocks;
-					}
-				});
-		}
-		#endregion
-	}
+        int ILockHandler.ActiveLockCount => _activeLocks.Count;
+
+        int ILockHandler.FreeLockCount => _freeLocks.Count;
+
+        void ILockHandler.PopulateFreeLockPool(int maxLocks)
+        {
+            _syncLocks.Execute(
+                () =>
+                {
+                    while ((_freeLocks.Count < _maxFreeLocks) && (maxLocks > 0))
+                    {
+                        _freeLocks.PutObject(CreateLock());
+                        --maxLocks;
+                    }
+                });
+        }
+        #endregion
+    }
 }
