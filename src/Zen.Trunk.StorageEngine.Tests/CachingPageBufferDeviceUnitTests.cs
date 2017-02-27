@@ -10,6 +10,7 @@ using Zen.Trunk.VirtualMemory;
 
 namespace Zen.Trunk.Storage
 {
+    [Trait("Subsystem", "Storage Engine")]
     public class CachingPageBufferDeviceUnitTests : AutofacStorageEngineUnitTests
     {
         private readonly List<IVirtualBuffer> _primaryDeviceBuffers = new List<IVirtualBuffer>();

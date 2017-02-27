@@ -4,11 +4,11 @@ using System.Threading.Tasks;
 namespace Zen.Trunk.Storage.Locking
 {
     /// <summary>
-    /// <c>IAmbientSession</c> defines core information used by session
+    /// <c>ITrunkSession</c> defines core information used by session
     /// manager and available on every thread.
     /// </summary>
     /// <seealso cref="System.IDisposable" />
-    public interface IAmbientSession : IDisposable
+    public interface ITrunkSession : IDisposable
     {
         /// <summary>
         /// Gets the session identifier.

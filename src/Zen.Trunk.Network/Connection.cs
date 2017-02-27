@@ -14,7 +14,7 @@ namespace Zen.Trunk.Network
     {
         private QueryExecutionContext _executionContext;
         private ISession _session;
-        private IAmbientSession _ambientSession;
+        private ITrunkSession _trunkSession;
         private bool _isDisposed;
 
         /// <summary>
@@ -27,7 +27,7 @@ namespace Zen.Trunk.Network
             _executionContext = new QueryExecutionContext(masterDatabase);
             _session = session;
 
-            _ambientSession = new AmbientSession(_session.SessionId, TimeSpan.FromSeconds(10));
+            _trunkSession = new TrunkSession(_session.SessionId, TimeSpan.FromSeconds(10));
         }
 
         /// <summary>
@@ -62,7 +62,7 @@ namespace Zen.Trunk.Network
         {
             await EnsureActiveDatabaseOnExecutionContextAsync().ConfigureAwait(false);
 
-            using (AmbientSessionContext.SwitchSessionContext(_ambientSession))
+            using (TrunkSessionContext.SwitchSessionContext(_trunkSession))
             {
                 await action(_executionContext).ConfigureAwait(false);
             }
@@ -81,7 +81,7 @@ namespace Zen.Trunk.Network
         {
             await EnsureActiveDatabaseOnExecutionContextAsync().ConfigureAwait(false);
 
-            using (AmbientSessionContext.SwitchSessionContext(_ambientSession))
+            using (TrunkSessionContext.SwitchSessionContext(_trunkSession))
             {
                 return await action(_executionContext).ConfigureAwait(false);
             }
@@ -112,12 +112,12 @@ namespace Zen.Trunk.Network
                     _executionContext.SetActiveDatabaseAsync(null).Wait();
                 }
 
-                _ambientSession?.Dispose();
+                _trunkSession?.Dispose();
                 _session?.Dispose();
             }
 
             _executionContext = null;
-            _ambientSession = null;
+            _trunkSession = null;
             _session = null;
         }
 

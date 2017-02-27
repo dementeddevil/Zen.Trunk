@@ -15,8 +15,8 @@ namespace Zen.Trunk.Storage
 
         public AutofacStorageEngineUnitTests()
         {
-            _ambientSessionScope = AmbientSessionContext.SwitchSessionContext(
-                new AmbientSession(new SessionId(11002), TimeSpan.FromSeconds(60)));
+            _ambientSessionScope = TrunkSessionContext.SwitchSessionContext(
+                new TrunkSession(new SessionId(11002), TimeSpan.FromSeconds(60)));
         }
 
         public CachingPageBufferDeviceSettings CachingPageBufferDeviceSettings { get; } =

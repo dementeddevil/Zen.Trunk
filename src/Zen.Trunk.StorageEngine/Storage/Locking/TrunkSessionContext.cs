@@ -7,14 +7,24 @@ using Zen.Trunk.Extensions;
 
 namespace Zen.Trunk.Storage.Locking
 {
-    public static class AmbientSessionContext
+    /// <summary>
+    /// <c>TrunkSessionContext</c> is an object that tracks the current
+    /// session for the current execution context.
+    /// </summary>
+	/// <remarks>
+	/// <para>
+	/// This object makes it possible for any method in a call chain to update
+	/// the transaction with dirty pages.
+	/// </para>
+	/// </remarks>
+    public static class TrunkSessionContext
     {
-        private class AmbientSessionScope : IDisposable
+        private class TrunkSessionScope : IDisposable
         {
-            private IAmbientSession _oldContext;
+            private ITrunkSession _oldContext;
             private bool _disposed;
 
-            public AmbientSessionScope(IAmbientSession newContext)
+            public TrunkSessionScope(ITrunkSession newContext)
             {
                 _oldContext = Current;
                 Current = newContext;
@@ -42,7 +52,7 @@ namespace Zen.Trunk.Storage.Locking
                 _oldContext = null;
             }
 
-            private void TraceSession(string action, IAmbientSession prev, IAmbientSession next)
+            private void TraceSession(string action, ITrunkSession prev, ITrunkSession next)
             {
                 var threadId = Thread.CurrentThread.ManagedThreadId;
                 var prevSessionId = prev?.SessionId.ToString() ?? "N/A";
@@ -52,7 +62,7 @@ namespace Zen.Trunk.Storage.Locking
             }
         }
 
-        private const string LogicalContextName = "TrunkAmbientProperties";
+        private const string LogicalContextName = "TrunkSessionContext";
         private static readonly TimeSpan DefaultProcessTransactionTimeout = TimeSpan.FromSeconds(30);
 
         /// <summary>
@@ -62,11 +72,11 @@ namespace Zen.Trunk.Storage.Locking
         /// An instance of <see cref="ITrunkTransaction"/> representing the current transaction;
         /// otherwise <c>null</c> if no transaction is in progress.
         /// </value>
-        public static IAmbientSession Current
+        public static ITrunkSession Current
         {
             get
             {
-                return (IAmbientSession)CallContext.LogicalGetData(LogicalContextName);
+                return (ITrunkSession)CallContext.LogicalGetData(LogicalContextName);
             }
             private set
             {
@@ -88,7 +98,7 @@ namespace Zen.Trunk.Storage.Locking
         /// <param name="defaultTransactionTimeout">The default transaction timeout.</param>
         public static void BeginSession(SessionId sessionId, TimeSpan? defaultTransactionTimeout)
         {
-            BeginAmbientSession(new AmbientSession(
+            BeginSession(new TrunkSession(
                 sessionId,
                 defaultTransactionTimeout ?? DefaultProcessTransactionTimeout));
         }
@@ -97,9 +107,9 @@ namespace Zen.Trunk.Storage.Locking
         /// Commits the session.
         /// </summary>
         /// <returns></returns>
-        public static async Task CommitSessionAsync()
+        public static async Task CommitAsync()
         {
-            var session = Current as IAmbientSessionPrivate;
+            var session = Current as ITrunkSessionPrivate;
             if (session != null)
             {
                 var result = await session
@@ -117,9 +127,9 @@ namespace Zen.Trunk.Storage.Locking
         /// Rollbacks the session.
         /// </summary>
         /// <returns></returns>
-        public static async Task RollbackSessionAsync()
+        public static async Task RollbackAsync()
         {
-            var session = Current as IAmbientSessionPrivate;
+            var session = Current as ITrunkSessionPrivate;
             if (session != null)
             {
                 var result = await session
@@ -133,12 +143,12 @@ namespace Zen.Trunk.Storage.Locking
             }
         }
 
-        internal static IDisposable SwitchSessionContext(IAmbientSession newSession)
+        internal static IDisposable SwitchSessionContext(ITrunkSession newSession)
         {
-            return new AmbientSessionScope(newSession);
+            return new TrunkSessionScope(newSession);
         }
 
-        private static void BeginAmbientSession(IAmbientSession session)
+        private static void BeginSession(ITrunkSession session)
         {
             if (Current != null)
             {

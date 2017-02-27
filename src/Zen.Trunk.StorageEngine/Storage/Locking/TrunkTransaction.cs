@@ -185,8 +185,11 @@ namespace Zen.Trunk.Storage.Locking
 
         #region Public Properties
         /// <summary>
-        /// Gets the database transaction ID for this transaction.
+        /// Gets the transaction identifier.
         /// </summary>
+        /// <value>
+        /// The transaction identifier.
+        /// </value>
         public TransactionId TransactionId => _transactionId;
 
         /// <summary>
@@ -201,6 +204,12 @@ namespace Zen.Trunk.Storage.Locking
         /// <value>The timeout.</value>
         public TimeSpan Timeout => _options.Timeout;
 
+        /// <summary>
+        /// Gets a value indicating whether this instance is completed.
+        /// </summary>
+        /// <value>
+        /// <c>true</c> if this instance is completed; otherwise, <c>false</c>.
+        /// </value>
         public bool IsCompleted => _isCompleted;
         #endregion
 

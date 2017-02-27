@@ -9,7 +9,7 @@ namespace Zen.Trunk.Storage.Data
         public static TResult ExecuteActionWithContext<TRequest, TResult>(this TRequest request, Func<TRequest, TResult> action)
             where TRequest : ITransactionContextTaskRequest
         {
-            using (AmbientSessionContext.SwitchSessionContext(request.SessionContext))
+            using (TrunkSessionContext.SwitchSessionContext(request.SessionContext))
             {
                 using (TrunkTransactionContext.SwitchTransactionContext(request.TransactionContext))
                 {
@@ -21,7 +21,7 @@ namespace Zen.Trunk.Storage.Data
         public static async Task<TResult> ExecuteActionWithContextAsync<TRequest, TResult>(this TRequest request, Func<TRequest, Task<TResult>> action)
             where TRequest : ITransactionContextTaskRequest
         {
-            using (AmbientSessionContext.SwitchSessionContext(request.SessionContext))
+            using (TrunkSessionContext.SwitchSessionContext(request.SessionContext))
             {
                 using (TrunkTransactionContext.SwitchTransactionContext(request.TransactionContext))
                 {

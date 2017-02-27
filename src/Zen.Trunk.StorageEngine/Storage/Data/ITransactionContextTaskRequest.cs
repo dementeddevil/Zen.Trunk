@@ -5,8 +5,8 @@ namespace Zen.Trunk.Storage.Data
 {
     /// <summary>
     /// <c>ITransactionContextTaskRequest</c> defines a contract implemented
-    /// by a <see cref="TaskRequest{TResult}"/> to support capturing the
-    /// session and transaction contexts.
+    /// by <see cref="TransactionContextTaskRequest{TResult}"/> to support
+    /// capturing the session and transaction contexts.
     /// </summary>
     public interface ITransactionContextTaskRequest
     {
@@ -16,7 +16,7 @@ namespace Zen.Trunk.Storage.Data
         /// <value>
         /// The session context.
         /// </value>
-        IAmbientSession SessionContext { get; set; }
+        ITrunkSession SessionContext { get; set; }
 
         /// <summary>
         /// Gets or sets the transaction context.

@@ -9,7 +9,6 @@ namespace Zen.Trunk.Storage.Locking
     {
 		#region Private Fields
 		private int _maxFreeLocks = 100;
-		//private SpinLockClass syncLocks = new SpinLockClass();
 		private readonly ConcurrentDictionary<string, RLock> _activeLocks =
 			new ConcurrentDictionary<string, RLock>();
 		private readonly ObjectPool<RLock> _freeLocks =

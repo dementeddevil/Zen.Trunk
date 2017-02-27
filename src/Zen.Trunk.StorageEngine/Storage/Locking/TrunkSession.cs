@@ -5,29 +5,50 @@ using Zen.Trunk.Logging;
 
 namespace Zen.Trunk.Storage.Locking
 {
-    // ReSharper disable once ClassWithVirtualMembersNeverInherited.Global
-    internal class AmbientSession : MarshalByRefObject, IAmbientSessionPrivate
+    // ReSharper disable once ClassWithVirtualMembersNeverInherited.Global    
+    /// <summary>
+    /// <c>TrunkSession</c> object maintains the context of a session within the
+    /// database.
+    /// </summary>
+    /// <seealso cref="System.MarshalByRefObject" />
+    /// <seealso cref="Zen.Trunk.Storage.Locking.ITrunkSessionPrivate" />
+    internal class TrunkSession : MarshalByRefObject, ITrunkSessionPrivate
     {
         private static readonly ILog Logger = LogProvider.For<TrunkTransaction>();
         private readonly Dictionary<DatabaseId, TransactionLockOwnerBlock> _transactionLockOwnerBlocks = new Dictionary<DatabaseId, TransactionLockOwnerBlock>();
         private bool _isCompleting;
         private bool _isCompleted;
 
-        public AmbientSession(SessionId sessionId, TimeSpan defaultTransactionTimeout)
+        public TrunkSession(SessionId sessionId, TimeSpan defaultTransactionTimeout)
         {
             SessionId = sessionId;
             DefaultTransactionTimeout = defaultTransactionTimeout;
         }
 
+        /// <summary>
+        /// Gets the session identifier.
+        /// </summary>
+        /// <value>
+        /// The session identifier.
+        /// </value>
+        public SessionId SessionId { get; }
+
+        /// <summary>
+        /// Gets the default transaction timeout.
+        /// </summary>
+        /// <value>
+        /// The default transaction timeout.
+        /// </value>
+        public TimeSpan DefaultTransactionTimeout { get; }
+
+        /// <summary>
+        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
+        /// </summary>
         public void Dispose()
         {
             Dispose(true);
             GC.SuppressFinalize(this);
         }
-
-        public SessionId SessionId { get; }
-
-        public TimeSpan DefaultTransactionTimeout { get; }
 
         /// <summary>
         /// Gets the transaction lock owner block associated with the given lock manager.

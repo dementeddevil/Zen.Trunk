@@ -18,13 +18,6 @@ namespace Zen.Trunk.Storage.Locking
 	/// This object makes it possible for any method in a call chain to update
 	/// the transaction with dirty pages.
 	/// </para>
-	/// <para>
-	/// Unfortunately since this object alters the Execution Context this will
-	/// make all async work performed slower as the TPL is optimised for scenarios
-	/// where the execution context is not modified. We will need to consider
-	/// whether it is worthwhile pursuing an alternative strategy for tracking
-	/// the current transaction...
-	/// </para>
 	/// </remarks>
 	public static class TrunkTransactionContext
 	{
@@ -85,14 +78,11 @@ namespace Zen.Trunk.Storage.Locking
 			get
 			{
 				var transaction = (ITrunkTransaction)CallContext.LogicalGetData(LogicalContextName);
-				if (transaction != null)
+				var priv = transaction as ITrunkTransactionPrivate;
+				if (priv != null && priv.IsCompleted)
 				{
-					var priv = transaction as ITrunkTransactionPrivate;
-					if (priv != null && priv.IsCompleted)
-					{
-						CallContext.FreeNamedDataSlot(LogicalContextName);
-						return null;
-					}
+					CallContext.FreeNamedDataSlot(LogicalContextName);
+					return null;
 				}
 				return transaction;
 			}
@@ -156,7 +146,7 @@ namespace Zen.Trunk.Storage.Locking
 		}
 
         /// <summary>
-        /// Commits the current transaction.
+        /// Commits the transaction.
         /// </summary>
         /// <returns></returns>
         public static async Task CommitAsync()
@@ -164,7 +154,9 @@ namespace Zen.Trunk.Storage.Locking
 			var txn = Current as ITrunkTransactionPrivate;
 			if (txn != null)
 			{
-				var result = await txn.CommitAsync().WithTimeout(txn.Timeout).ConfigureAwait(false);
+				var result = await txn.CommitAsync()
+                    .WithTimeout(txn.Timeout)
+                    .ConfigureAwait(false);
 				if (result)
 				{
 					Current = null;
@@ -173,15 +165,18 @@ namespace Zen.Trunk.Storage.Locking
 		}
 
         /// <summary>
-        /// Rollbacks the current transaction.
+        /// Rollbacks the transaction.
         /// </summary>
         /// <returns></returns>
         public static async Task RollbackAsync()
 		{
-			var txn = Current as ITrunkTransactionPrivate;
-			if (txn != null)
+			var transaction = Current as ITrunkTransactionPrivate;
+			if (transaction != null)
 			{
-				var result = await txn.RollbackAsync().WithTimeout(txn.Timeout).ConfigureAwait(false);
+				var result = await transaction
+                    .RollbackAsync()
+                    .WithTimeout(transaction.Timeout)
+                    .ConfigureAwait(false);
 				if (result)
 				{
 					Current = null;

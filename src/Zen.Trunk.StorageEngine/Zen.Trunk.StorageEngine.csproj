@@ -129,10 +129,10 @@
     <Compile Include="Storage\FileSpec.cs" />
     <Compile Include="Storage\ISession.cs" />
     <Compile Include="Storage\ISessionManager.cs" />
-    <Compile Include="Storage\Locking\AmbientSession.cs" />
-    <Compile Include="Storage\Locking\AmbientSessionContext.cs" />
-    <Compile Include="Storage\Locking\IAmbientSession.cs" />
-    <Compile Include="Storage\Locking\IAmbientSessionPrivate.cs" />
+    <Compile Include="Storage\Locking\TrunkSession.cs" />
+    <Compile Include="Storage\Locking\TrunkSessionContext.cs" />
+    <Compile Include="Storage\Locking\ITrunkSession.cs" />
+    <Compile Include="Storage\Locking\ITrunkSessionPrivate.cs" />
     <Compile Include="Storage\Locking\ITrunkTransactionPrivate.cs" />
     <Compile Include="Storage\Locking\LockOwnerIdent.cs" />
     <Compile Include="Storage\Log\ILogPageDevice.cs" />

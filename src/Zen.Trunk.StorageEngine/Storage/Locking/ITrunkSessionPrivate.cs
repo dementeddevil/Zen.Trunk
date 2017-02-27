@@ -2,7 +2,7 @@ using System.Threading.Tasks;
 
 namespace Zen.Trunk.Storage.Locking
 {
-    internal interface IAmbientSessionPrivate : IAmbientSession
+    internal interface ITrunkSessionPrivate : ITrunkSession
     {
         TransactionLockOwnerBlock GetTransactionLockOwnerBlock(IDatabaseLockManager lockManager);
 

@@ -300,8 +300,8 @@ namespace Zen.Trunk.Storage
         [Fact(DisplayName = "Verify USE DATABASE statement creates shared database lock.")]
         public async Task UseDatabaseLockTest()
         {
-            using (AmbientSessionContext.SwitchSessionContext(
-                new AmbientSession(new SessionId(1), TimeSpan.FromSeconds(60))))
+            using (TrunkSessionContext.SwitchSessionContext(
+                new TrunkSession(new SessionId(1), TimeSpan.FromSeconds(60))))
             {
                 using (var tracker = new TempFileTracker())
                 {

@@ -406,10 +406,11 @@ namespace Zen.Trunk.Storage.Locking
 					}
 					catch
 					{
-						// Ignore error - we will attempt escalation on next lock
-					}
+                        // Ignore error - we will attempt escalation on next lock
+                        Logger.Debug("Lock owner block SHARED lock escalation failed");
+                    }
 
-					if (hasEscalatedLock)
+                    if (hasEscalatedLock)
 					{
 						// We get this far then we can release the existing read locks
 						foreach (var lockPair in _readLocks.ToArray())
@@ -460,14 +461,10 @@ namespace Zen.Trunk.Storage.Locking
 			// Check whether we have an existing read lock
 			if (_readLocks.ContainsKey(key))
 			{
-				// Reuse the lock object if we still have it otherwise renew it
-				lockObj = _readLocks[key];
-				if (lockObj == null)
-				{
-					// We must have escalated read locks earlier
-					//	so get distinct lock object from manager
-					lockObj = GetItemLock(key);
-				}
+                // Reuse the lock object if we still have it otherwise renew it
+                // NOTE: If the readLock value is null then we must have escalated
+                //  read locks earlier so get distinct lock object from manager
+				lockObj = _readLocks[key] ?? GetItemLock(key);
 
 				// Attempt to upgrade the lock for this resource and remove
 				//	read lock reference
@@ -477,12 +474,14 @@ namespace Zen.Trunk.Storage.Locking
 			}
 			else
 			{
-				// Ever access this resource so get a new lock and attempt to
+				// Never accessed this resource so get a new lock and attempt to
 				//	acquire the update lock requested
 				lockObj = GetItemLock(key);
 
 				// TODO: Do we need to get a shared lock first?
 				//lockObj.Lock(DataLockType.Shared, timeout);
+
+                // Acquire update lock
 				await lockObj.LockAsync(DataLockType.Update, timeout).ConfigureAwait(false);
 				_ownerLockCount++;
 			}
@@ -530,13 +529,9 @@ namespace Zen.Trunk.Storage.Locking
 			}
 			else if (_readLocks.ContainsKey(key))
 			{
-				lockObj = _readLocks[key];
-				if (lockObj == null)
-				{
-					// We must have escalated read locks earlier
-					//	so get distinct lock object from manager
-					lockObj = GetItemLock(key);
-				}
+				// We must have escalated read locks earlier
+				//	so get distinct lock object from manager
+				lockObj = _readLocks[key] ?? GetItemLock(key);
 				await lockObj.LockAsync(DataLockType.Exclusive, timeout).ConfigureAwait(false);
 				_readLocks.Remove(key);
 			}
@@ -565,10 +560,11 @@ namespace Zen.Trunk.Storage.Locking
 				}
 				catch
 				{
-					// Ignore error - we will attempt escalation on next lock
-				}
+                    // Ignore error - we will attempt escalation on next lock
+                    Logger.Debug("Lock owner block EXCLUSIVE lock escalation failed");
+                }
 
-				if (hasEscalated)
+                if (hasEscalated)
 				{
 					// We get this far then we can release ALL existing locks
 					foreach (var lockPair in _readLocks.ToArray())

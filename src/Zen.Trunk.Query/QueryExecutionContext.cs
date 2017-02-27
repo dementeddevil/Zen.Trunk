@@ -62,7 +62,7 @@ namespace Zen.Trunk.Storage.Query
         /// </exception>
         public async Task SetActiveDatabaseAsync(DatabaseDevice newActiveDatabase)
         {
-            var ambientSession = AmbientSessionContext.Current;
+            var ambientSession = TrunkSessionContext.Current;
             if (ambientSession != null)
             {
                 await ambientSession

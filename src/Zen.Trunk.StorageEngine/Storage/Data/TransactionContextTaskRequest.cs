@@ -8,10 +8,13 @@ using Zen.Trunk.Utils;
 namespace Zen.Trunk.Storage.Data
 {
     /// <summary>
-    /// TransactionContextTaskRequest is a specialisation of TaskRequest that
-    /// flows the active transaction context with the request.
+    /// TransactionContextTaskRequest is a specialisation of
+    /// <see cref="TaskRequest{TResult}" /> that flows the active transaction
+    /// and session context with the request.
     /// </summary>
-    /// <typeparam name="TResult"></typeparam>
+    /// <typeparam name="TResult">The type of the result.</typeparam>
+    /// <seealso cref="Zen.Trunk.Utils.TaskRequest{TResult}" />
+    /// <seealso cref="Zen.Trunk.Storage.Data.ITransactionContextTaskRequest" />
     [DebuggerStepThrough]
     public class TransactionContextTaskRequest<TResult> :
         TaskRequest<TResult>,
@@ -22,7 +25,7 @@ namespace Zen.Trunk.Storage.Data
         /// </summary>
         public TransactionContextTaskRequest()
         {
-            SessionContext = AmbientSessionContext.Current;
+            SessionContext = TrunkSessionContext.Current;
             TransactionContext = TrunkTransactionContext.Current;
         }
 
@@ -32,7 +35,7 @@ namespace Zen.Trunk.Storage.Data
         /// <value>
         /// The session context.
         /// </value>
-        public IAmbientSession SessionContext { get; set; }
+        public ITrunkSession SessionContext { get; set; }
 
         /// <summary>
         /// Gets or sets the transaction context.
@@ -44,9 +47,14 @@ namespace Zen.Trunk.Storage.Data
     }
 
     /// <summary>
-    /// TransactionContextTaskRequest is a specialisation of TaskRequest that
-    /// flows the active transaction context with the request.
+    /// TransactionContextTaskRequest is a specialisation of
+    /// <see cref="TaskRequest{TMessage, TResult}" /> that flows the active
+    /// transaction and session context with the request.
     /// </summary>
+    /// <typeparam name="TMessage">The type of the message.</typeparam>
+    /// <typeparam name="TResult">The type of the result.</typeparam>
+    /// <seealso cref="Zen.Trunk.Utils.TaskRequest{TResult}" />
+    /// <seealso cref="Zen.Trunk.Storage.Data.ITransactionContextTaskRequest" />
     [DebuggerStepThrough]
     public class TransactionContextTaskRequest<TMessage, TResult> :
         TaskRequest<TMessage, TResult>,
@@ -57,7 +65,7 @@ namespace Zen.Trunk.Storage.Data
         /// </summary>
         public TransactionContextTaskRequest()
         {
-            SessionContext = AmbientSessionContext.Current;
+            SessionContext = TrunkSessionContext.Current;
             TransactionContext = TrunkTransactionContext.Current;
         }
 
@@ -68,7 +76,7 @@ namespace Zen.Trunk.Storage.Data
         public TransactionContextTaskRequest(TMessage message)
             : base(message)
         {
-            SessionContext = AmbientSessionContext.Current;
+            SessionContext = TrunkSessionContext.Current;
             TransactionContext = TrunkTransactionContext.Current;
         }
 
@@ -78,7 +86,7 @@ namespace Zen.Trunk.Storage.Data
         /// <value>
         /// The session context.
         /// </value>
-        public IAmbientSession SessionContext { get; set; }
+        public ITrunkSession SessionContext { get; set; }
 
         /// <summary>
         /// Gets or sets the transaction context.
@@ -90,7 +98,8 @@ namespace Zen.Trunk.Storage.Data
     }
 
     /// <summary>
-    /// 
+    /// TransactionContextActionBlock extends <see cref="TaskRequestActionBlock{TRequest,TResult}"/>
+    /// to flow transaction and session context into the action handler.
     /// </summary>
     /// <typeparam name="TRequest">The type of the request.</typeparam>
     /// <typeparam name="TResult">The type of the result.</typeparam>
@@ -164,7 +173,7 @@ namespace Zen.Trunk.Storage.Data
 
         private void EnsureCapturedContext(TRequest value)
         {
-            var sessionContext = AmbientSessionContext.Current;
+            var sessionContext = TrunkSessionContext.Current;
             if (value.SessionContext == null && sessionContext != null)
             {
                 value.SessionContext = sessionContext;
@@ -179,7 +188,8 @@ namespace Zen.Trunk.Storage.Data
     }
 
     /// <summary>
-    /// 
+    /// TransactionContextActionBlock extends <see cref="TaskRequestActionBlock{TRequest,TResult}"/>
+    /// to flow transaction and session context into the action handler.
     /// </summary>
     /// <typeparam name="TRequest">The type of the request.</typeparam>
     /// <typeparam name="TMessage">The type of the message.</typeparam>
@@ -254,7 +264,7 @@ namespace Zen.Trunk.Storage.Data
 
         private void EnsureCapturedContext(TRequest value)
         {
-            var sessionContext = AmbientSessionContext.Current;
+            var sessionContext = TrunkSessionContext.Current;
             if (value.SessionContext == null && sessionContext != null)
             {
                 value.SessionContext = sessionContext;

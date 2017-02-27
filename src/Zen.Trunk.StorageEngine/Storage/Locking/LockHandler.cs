@@ -47,7 +47,7 @@ namespace Zen.Trunk.Storage.Locking
 		public LockHandler(int maxFreeLocks)
 		{
 			_maxFreeLocks = maxFreeLocks;
-			_freeLocks = new ObjectPool<TLockClass>(() => CreateLock());
+			_freeLocks = new ObjectPool<TLockClass>(CreateLock);
 		}
 		#endregion
 

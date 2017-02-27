@@ -674,9 +674,9 @@ namespace Zen.Trunk.Storage.Locking
 		{
 		    var sessionId = SessionId.Zero;
 			var transactionId = TransactionId.Zero;
-		    if (AmbientSessionContext.Current != null)
+		    if (TrunkSessionContext.Current != null)
 		    {
-		        sessionId = AmbientSessionContext.Current.SessionId;
+		        sessionId = TrunkSessionContext.Current.SessionId;
 		    }
 			if (TrunkTransactionContext.Current != null)
 			{
