@@ -11,8 +11,7 @@ namespace Zen.Trunk.Network
         /// <summary>
         /// Initializes a new instance of the <see cref="TrunkReceiveFilter"/> class.
         /// </summary>
-        public TrunkReceiveFilter() : 
-            base(headerSize: 6)
+        public TrunkReceiveFilter() : base(headerSize: 6)
         {
         }
 

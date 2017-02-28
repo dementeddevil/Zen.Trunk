@@ -25,7 +25,7 @@ namespace Zen.Trunk.Network.Commands
         /// </returns>
         protected override async Task OnExecuteCommandAsync(TrunkSocketAppSession session, BinaryRequestInfo requestInfo)
         {
-            await session.ResetAsync(false);
+            await session.ResetAsync().ConfigureAwait(false);
             session.CloseAndReleaseLocks();
         }
     }

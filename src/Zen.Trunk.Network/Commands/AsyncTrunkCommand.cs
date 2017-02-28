@@ -19,7 +19,7 @@ namespace Zen.Trunk.Network.Commands
         {
             try
             {
-                await OnExecuteCommandAsync(session, requestInfo);
+                await OnExecuteCommandAsync(session, requestInfo).ConfigureAwait(false);
                 session.Send("OK");
             }
             catch (Exception exception)
