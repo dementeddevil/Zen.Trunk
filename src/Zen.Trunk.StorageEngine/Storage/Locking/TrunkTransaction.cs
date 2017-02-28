@@ -447,20 +447,20 @@ namespace Zen.Trunk.Storage.Locking
                         var tracker = new HashSet<VirtualPageId>();
                         foreach (var sub in commitList)
                         {
-                            // We only track page buffers
+                            // We only process untracked page buffers
                             var page = sub as PageBuffer;
-                            if (page != null)
+                            if (page == null || tracker.Contains(page.PageId))
                             {
-                                if (tracker.Contains(page.PageId))
-                                {
-                                    continue;
-                                }
-
-                                tracker.Add(page.PageId);
-                                var notifyInfo = new DbNotify();
-                                commitTasks.Add(notifyInfo.Task);
-                                sub.Commit(notifyInfo);
+                                continue;
                             }
+
+                            // Consider page tracked...
+                            tracker.Add(page.PageId);
+
+                            // Attempt asynchronous commit
+                            var notifyInfo = new DbNotify();
+                            commitTasks.Add(notifyInfo.Task);
+                            sub.Commit(notifyInfo);
                         }
 
                         // Wait for commit operations to complete
@@ -506,16 +506,8 @@ namespace Zen.Trunk.Storage.Locking
                 await WriteEndXact(performCommit).ConfigureAwait(false);
 
                 // Notify candidates that transaction has completed
-                var completeList =
-                    new List<IPageEnlistmentNotification>();
-                if (commitList.Count > 0)
-                {
-                    completeList.AddRange(commitList);
-                }
-                else
-                {
-                    completeList.AddRange(_subEnlistments);
-                }
+                var completeList = new List<IPageEnlistmentNotification>(
+                    commitList.Count > 0 ? commitList : _subEnlistments);
                 foreach (var rb in completeList)
                 {
                     try
@@ -575,7 +567,7 @@ namespace Zen.Trunk.Storage.Locking
             }
 
             // If we haven't written the start transaction mark then exit
-            //	since we haven't done any transactable work
+            //	since we haven't done any transactionable work
             if (!_isBeginLogWritten && _subEnlistments.Count == 0)
             {
                 return true;

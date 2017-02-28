@@ -1,11 +1,10 @@
+using System;
 using System.Threading.Tasks;
 using Zen.Trunk.Storage.BufferFields;
+using Zen.Trunk.Storage.Locking;
 
 namespace Zen.Trunk.Storage.Data
 {
-	using System;
-	using Locking;
-
 	/// <summary>
 	/// Represents an owned database page.
 	/// </summary>

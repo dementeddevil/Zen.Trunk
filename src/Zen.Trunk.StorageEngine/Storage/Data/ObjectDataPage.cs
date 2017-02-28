@@ -100,12 +100,10 @@ namespace Zen.Trunk.Storage.Data
 						_mustHoldLock = true;
 						break;
 					case IsolationLevel.Serializable:
-						// TODO: This implementation is not correct
-
 						// Ensure we have the correct type of object lock
 						if (ObjectLock == ObjectLockType.None)
 						{
-							// This will block any other serialzable transaction
+							// This will block any other serializable transaction
 							//	from the owner object.
 							await SetObjectLockAsync(ObjectLockType.SharedIntentExclusive).ConfigureAwait(false);
 						}

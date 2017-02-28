@@ -11,16 +11,16 @@ namespace Zen.Trunk.Storage.Locking
 	/// </summary>
 	/// <remarks>
 	/// <para>
-	/// This object actually maintains a dictionary of <see cref="DataLockOwnerBlock"/> 
-	/// keyed against the Object ID of the owner.
+	/// This object maintains dictionaries of root locks, object schema locks,
+	/// distribution lock owner blocks and data lock owner blocks.
 	/// </para>
 	/// <para>
-	/// This class must become the single entrypoint for acquiring page locks
-	/// so that these can all be released in a coordinated fashion during
+	/// This class is the single entrypoint for acquiring page locks so that
+	/// these can all be released in a coordinated fashion during transaction
 	/// commit and rollback operations.
-	/// This means that the implementation in the LockManager should call methods
-	/// in this class and this class should call methods in the GlobalLockManager
-	/// (via LockOwnerBlock derived classes as necessary)
+	/// Lock acquisition methods here are typically called by Page classes and
+	/// make calls to the Database Lock Manager which in turn calls the Global
+	/// Lock Manager.
 	/// </para>
 	/// </remarks>
 	internal class TransactionLockOwnerBlock
@@ -81,7 +81,7 @@ namespace Zen.Trunk.Storage.Locking
 		/// <param name="virtualId">The virtual unique identifier.</param>
 		/// <param name="maxExtentLocks">The maximum extent locks.</param>
 		/// <returns>
-		/// Lock Owner Block
+		/// A <see cref="DistributionLockOwnerBlock"/> for the distribution page.
 		/// </returns>
 		public DistributionLockOwnerBlock GetOrCreateDistributionLockOwnerBlock(VirtualPageId virtualId, uint maxExtentLocks = 10)
 		{
@@ -97,7 +97,7 @@ namespace Zen.Trunk.Storage.Locking
 		/// <param name="objectId">Object ID</param>
 		/// <param name="maxPageLocks">The maximum page locks.</param>
 		/// <returns>
-		/// Lock Owner Block
+		/// A <see cref="DataLockOwnerBlock"/> for the object.
 		/// </returns>
 		public DataLockOwnerBlock GetOrCreateDataLockOwnerBlock(ObjectId objectId, uint maxPageLocks = 100)
 		{
@@ -107,8 +107,7 @@ namespace Zen.Trunk.Storage.Locking
 		}
 
 		/// <summary>
-		/// Releases all locks held by all <see cref="DataLockOwnerBlock"/> and
-		/// <see cref="DistributionLockOwnerBlock"/> objects.
+		/// Releases all locks held by this instance.
 		/// </summary>
 		/// <remarks>
 		/// This method is called by transaction cleanup code after all buffers
