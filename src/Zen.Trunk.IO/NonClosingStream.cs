@@ -1,203 +1,43 @@
-using System;
+﻿// --------------------------------------------------------------------------------------------------------------------
+// <copyright file="NonClosingStream.cs" company="Zen Design Software">
+//   © Zen Design Software 2015
+// </copyright>
+// <summary>
+// </summary>
+// --------------------------------------------------------------------------------------------------------------------
+
 using System.IO;
 
 namespace Zen.Trunk.IO
 {
     /// <summary>
-    /// <c>NonClosingStream</c> is a stream wrapper class that will always
-    /// leave the underlying stream open when disposed.
+    /// <c>NonClosingStream</c> is a wrapper stream that never closes or
+    /// disposes of the underlying stream.
     /// </summary>
-    /// <seealso cref="System.IO.Stream" />
-    public class NonClosingStream : Stream
-	{
-		#region Private Fields
-		private Stream _innerStream;
-        #endregion
-
-        #region Public Constructors
+    public class NonClosingStream : DelegatingStream
+    {
         /// <summary>
-        /// Initializes a new instance of the <see cref="NonClosingStream" /> class.
+        /// Initialises a new instance of the <see cref="NonClosingStream" /> class.
         /// </summary>
-        /// <param name="stream">The stream.</param>
-        public NonClosingStream(Stream stream)
-		{
-			_innerStream = stream;
-		}
-        #endregion
-
-        #region Public Properties
-        /// <summary>
-        /// When overridden in a derived class, gets a value indicating whether the current stream supports reading.
-        /// </summary>
-        public override bool CanRead
-		{
-			get
-			{
-				CheckDisposed();
-				return _innerStream.CanRead;
-			}
-		}
+        /// <param name="innerStream">The inner stream.</param>
+        public NonClosingStream(Stream innerStream)
+            : base(innerStream)
+        {
+        }
 
         /// <summary>
-        /// When overridden in a derived class, gets a value indicating whether the current stream supports seeking.
+        /// Releases the unmanaged resources used by the
+        /// <see cref="T:System.IO.Stream" /> and optionally releases the managed
+        /// resources.
         /// </summary>
-        public override bool CanSeek
-		{
-			get
-			{
-				CheckDisposed();
-				return _innerStream.CanSeek;
-			}
-		}
-
-        /// <summary>
-        /// When overridden in a derived class, gets a value indicating whether the current stream supports writing.
-        /// </summary>
-        public override bool CanWrite
-		{
-			get
-			{
-				CheckDisposed();
-				return _innerStream.CanWrite;
-			}
-		}
-
-        /// <summary>
-        /// Gets a value that determines whether the current stream can time out.
-        /// </summary>
-        public override bool CanTimeout
-		{
-			get
-			{
-				CheckDisposed();
-				return _innerStream.CanTimeout;
-			}
-		}
-
-        /// <summary>
-        /// When overridden in a derived class, clears all buffers for this stream and causes any buffered data to be written to the underlying device.
-        /// </summary>
-        public override void Flush()
-		{
-			CheckDisposed();
-			_innerStream.Flush();
-		}
-
-        /// <summary>
-        /// When overridden in a derived class, gets the length in bytes of the stream.
-        /// </summary>
-        public override long Length
-		{
-			get
-			{
-				CheckDisposed();
-				return _innerStream.Length;
-			}
-		}
-
-        /// <summary>
-        /// When overridden in a derived class, gets or sets the position within the current stream.
-        /// </summary>
-        public override long Position
-		{
-			get
-			{
-				CheckDisposed();
-				return _innerStream.Position;
-			}
-			set
-			{
-				CheckDisposed();
-				_innerStream.Position = value;
-			}
-		}
-		#endregion
-
-		#region Public Methods
-		/// <summary>
-		/// Overridden. Performs the seek operation on the underlying stream.
-		/// </summary>
-		/// <param name="offset"></param>
-		/// <param name="origin"></param>
-		/// <returns></returns>
-		public override long Seek(long offset, SeekOrigin origin)
-		{
-			CheckDisposed();
-			return _innerStream.Seek(offset, origin);
-		}
-
-		/// <summary>
-		/// Overridden. Sets the length of this stream object.
-		/// </summary>
-		/// <param name="value"></param>
-		public override void SetLength(long value)
-		{
-            CheckDisposed();
-            _innerStream.SetLength(value);
-		}
-
-		/// <summary>
-		/// Overridden. Reads from the underlying stream.
-		/// </summary>
-		/// <param name="buffer"></param>
-		/// <param name="offset"></param>
-		/// <param name="count"></param>
-		/// <returns></returns>
-		public override int Read(byte[] buffer, int offset, int count)
-		{
-			CheckDisposed();
-			return _innerStream.Read(buffer, offset, count);
-		}
-
-		/// <summary>
-		/// Overridden. Writes to the underlying stream.
-		/// </summary>
-		/// <param name="buffer"></param>
-		/// <param name="offset"></param>
-		/// <param name="count"></param>
-		public override void Write(byte[] buffer, int offset, int count)
-		{
-			CheckDisposed();
-			_innerStream.Write(buffer, offset, count);
-		}
-
-		/// <summary>
-		/// Overridden. Reads a byte from the underlying stream.
-		/// </summary>
-		/// <returns></returns>
-		public override int ReadByte()
-		{
-			CheckDisposed();
-			return _innerStream.ReadByte();
-		}
-
-		/// <summary>
-		/// Overridden. Writes a byte to the underlying stream.
-		/// </summary>
-		/// <param name="value"></param>
-		public override void WriteByte(byte value)
-		{
-			CheckDisposed();
-			_innerStream.WriteByte(value);
-		}
-        #endregion
-
-	    #region Protected Methods
-	    protected override void Dispose(bool disposing)
-	    {
-	        base.Dispose(disposing);
-	        _innerStream = null;
-	    }
-	    #endregion
-
-        #region Private Methods
-        private void CheckDisposed()
-		{
-			if (_innerStream == null)
-			{
-				throw new ObjectDisposedException("DeviceBuffer.DeviceStream");
-			}
-		}
-		#endregion
-	}
+        /// <param name="disposing">
+        /// true to release both managed and unmanaged resources;
+        /// false to release only unmanaged resources.
+        /// </param>
+        protected override void Dispose(bool disposing)
+        {
+            InvalidateInnerStream();
+            base.Dispose(disposing);
+        }
+    }
 }

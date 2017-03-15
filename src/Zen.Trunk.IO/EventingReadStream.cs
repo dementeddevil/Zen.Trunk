@@ -9,7 +9,7 @@
 using System;
 using System.IO;
 
-namespace Zen.Streaming
+namespace Zen.Trunk.IO
 {
     /// <summary>
     /// <c>EventingReadStream</c> is an abstract class that raises events as

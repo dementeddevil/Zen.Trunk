@@ -6,10 +6,10 @@
 // </summary>
 // --------------------------------------------------------------------------------------------------------------------
 
-namespace Zen.Streaming
-{
-    using System;
+using System;
 
+namespace Zen.Trunk.IO
+{
     /// <summary>
     /// <c>IProvideReadStreamEvents</c> interface exposes stream events.
     /// </summary>

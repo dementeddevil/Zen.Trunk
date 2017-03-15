@@ -11,7 +11,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Zen.Streaming
+namespace Zen.Trunk.IO
 {
     /// <summary>
     /// <c>DelegatingStream</c> is a wrapper stream object.

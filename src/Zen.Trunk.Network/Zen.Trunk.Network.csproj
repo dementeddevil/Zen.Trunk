@@ -104,10 +104,6 @@
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
-    <ProjectReference Include="..\Zen.Streaming\Zen.Streaming.csproj">
-      <Project>{624d44ff-86f8-46d3-b682-61f7ef691d7c}</Project>
-      <Name>Zen.Streaming</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Zen.Trunk.IO\Zen.Trunk.IO.csproj">
       <Project>{6abdfb09-8e8c-47f1-a0b5-a5541eaad61b}</Project>
       <Name>Zen.Trunk.IO</Name>

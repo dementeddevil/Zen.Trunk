@@ -11,7 +11,7 @@ using System.IO;
 using System.Runtime.Remoting.Messaging;
 using System.Threading;
 
-namespace Zen.Streaming
+namespace Zen.Trunk.IO
 {
     /// <summary>
     /// <c>StreamManager</c> is a class designed to allow multiple threads to

@@ -8,7 +8,7 @@
 
 using System.IO;
 
-namespace Zen.Streaming
+namespace Zen.Trunk.IO
 {
     /// <summary>
     /// </summary>

@@ -6,11 +6,11 @@
 // </summary>
 // --------------------------------------------------------------------------------------------------------------------
 
-namespace Zen.Streaming
-{
-    using System;
-    using System.IO;
+using System;
+using System.IO;
 
+namespace Zen.Trunk.IO
+{
     /// <summary>
     /// </summary>
     public static class StreamExtensions
