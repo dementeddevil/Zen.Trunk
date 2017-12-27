@@ -162,8 +162,7 @@ namespace Zen.Trunk.VirtualMemory
         /// <returns></returns>
         public async Task RemoveDeviceAsync(DeviceId deviceId)
 		{
-			ISingleBufferDevice childDevice;
-			if (_devices.TryRemove(deviceId, out childDevice))
+		    if (_devices.TryRemove(deviceId, out var childDevice))
 			{
 				if (DeviceState == MountableDeviceState.Open)
 				{
@@ -349,8 +348,7 @@ namespace Zen.Trunk.VirtualMemory
 		{
 			CheckDisposed();
 
-			ISingleBufferDevice device;
-			if (!_devices.TryGetValue(deviceId, out device))
+		    if (!_devices.TryGetValue(deviceId, out var device))
 			{
 				throw new ArgumentException("Device not found", nameof(deviceId));
 			}

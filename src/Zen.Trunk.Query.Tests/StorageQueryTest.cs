@@ -39,7 +39,7 @@ namespace Zen.Trunk.Storage
 
                     manager.BeginTransaction(TimeSpan.FromMinutes(15));
                     //await executive.ExecuteAsync(batch.ToString()).ConfigureAwait(true);
-                    //await manager.OpenAsync(true).ConfigureAwait(true);
+                    await manager.OpenAsync(true).ConfigureAwait(true);
                     await TrunkTransactionContext.CommitAsync().ConfigureAwait(true);
 
                     await manager.CloseAsync().ConfigureAwait(true);

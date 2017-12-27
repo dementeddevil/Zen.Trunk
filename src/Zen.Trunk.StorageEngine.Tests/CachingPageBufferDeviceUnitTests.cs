@@ -15,7 +15,7 @@ namespace Zen.Trunk.Storage
     {
         private readonly List<IVirtualBuffer> _primaryDeviceBuffers = new List<IVirtualBuffer>();
         private readonly List<IVirtualBuffer> _secondaryDeviceBuffers = new List<IVirtualBuffer>();
-        private CachingPageBufferDevice _pageBufferDevice;
+        private ICachingPageBufferDevice _pageBufferDevice;
 
         public CachingPageBufferDeviceUnitTests()
         {
@@ -26,68 +26,84 @@ namespace Zen.Trunk.Storage
                 _secondaryDeviceBuffers.Add(bufferFactory.AllocateBuffer());
             }
 
-            MockedMultipleBufferDevice
-                .SetupGet(mbd => mbd.BufferFactory)
-                .Returns(bufferFactory);
+            MockedMultipleBufferDevice = MultipleBufferDeviceBuilder.New()
+                .UsingBufferFactory(bufferFactory)
+                .AddKnownDevice(TestCases.PrimaryDeviceId, TestCases.PrimarayDeviceName)
+                .AddKnownDevice(TestCases.SecondaryDeviceId, TestCases.SecondaryDeviceName)
+                .AddDeviceBuffers(TestCases.PrimaryDeviceId, _primaryDeviceBuffers)
+                .AddDeviceBuffers(TestCases.SecondaryDeviceId, _secondaryDeviceBuffers)
+                .Build();
 
-            MockedMultipleBufferDevice
-                .Setup(mbd => mbd.AddDeviceAsync(
-                    TestCases.PrimarayDeviceName, It.IsAny<string>(), It.IsAny<DeviceId>(), It.IsAny<uint>()))
-                .ReturnsAsync(TestCases.PrimaryDeviceId);
-            MockedMultipleBufferDevice
-                .Setup(mbd => mbd.AddDeviceAsync(
-                    TestCases.SecondaryDeviceName, It.IsAny<string>(), It.IsAny<DeviceId>(), It.IsAny<uint>()))
-                .ReturnsAsync(TestCases.SecondaryDeviceId);
-            MockedMultipleBufferDevice
-                .Setup(mbd => mbd.LoadBufferAsync(
-                    It.IsAny<VirtualPageId>(), It.IsAny<IVirtualBuffer>()))
-                .Callback<VirtualPageId, IVirtualBuffer>(
-                    (vid, buffer) =>
-                    {
-                        if (vid.DeviceId == TestCases.PrimaryDeviceId && vid.PhysicalPageId < _primaryDeviceBuffers.Count)
-                        {
-                            _primaryDeviceBuffers[(int)vid.PhysicalPageId].CopyTo(buffer);
-                        }
-                        else if (vid.DeviceId == TestCases.SecondaryDeviceId && vid.PhysicalPageId < _secondaryDeviceBuffers.Count)
-                        {
-                            _secondaryDeviceBuffers[(int)vid.PhysicalPageId].CopyTo(buffer);
-                        }
-                    })
-                .Returns(Task.FromResult(true));
-            MockedMultipleBufferDevice
-                .Setup(mbd => mbd.SaveBufferAsync(
-                    It.IsAny<VirtualPageId>(), It.IsAny<IVirtualBuffer>()))
-                .Callback<VirtualPageId, IVirtualBuffer>(
-                    (vid, buffer) =>
-                    {
-                        if (vid.DeviceId == TestCases.PrimaryDeviceId && vid.PhysicalPageId < _primaryDeviceBuffers.Count)
-                        {
-                            buffer.CopyTo(_primaryDeviceBuffers[(int)vid.PhysicalPageId]);
-                        }
-                        else if (vid.DeviceId == TestCases.SecondaryDeviceId && vid.PhysicalPageId < _secondaryDeviceBuffers.Count)
-                        {
-                            buffer.CopyTo(_secondaryDeviceBuffers[(int)vid.PhysicalPageId]);
-                        }
-                    })
-                .Returns(Task.FromResult(true));
+            //MockedMultipleBufferDevice
+            //    .SetupGet(mbd => mbd.BufferFactory)
+            //    .Returns(bufferFactory);
+
+            //MockedMultipleBufferDevice
+            //    .Setup(mbd => mbd.AddDeviceAsync(
+            //        TestCases.PrimarayDeviceName, It.IsAny<string>(), It.IsAny<DeviceId>(), It.IsAny<uint>()))
+            //    .ReturnsAsync(TestCases.PrimaryDeviceId);
+            //MockedMultipleBufferDevice
+            //    .Setup(mbd => mbd.AddDeviceAsync(
+            //        TestCases.SecondaryDeviceName, It.IsAny<string>(), It.IsAny<DeviceId>(), It.IsAny<uint>()))
+            //    .ReturnsAsync(TestCases.SecondaryDeviceId);
+            //MockedMultipleBufferDevice
+            //    .Setup(mbd => mbd.LoadBufferAsync(
+            //        It.IsAny<VirtualPageId>(), It.IsAny<IVirtualBuffer>()))
+            //    .Callback<VirtualPageId, IVirtualBuffer>(
+            //        (vid, buffer) =>
+            //        {
+            //            if (vid.DeviceId == TestCases.PrimaryDeviceId && vid.PhysicalPageId < _primaryDeviceBuffers.Count)
+            //            {
+            //                _primaryDeviceBuffers[(int)vid.PhysicalPageId].CopyTo(buffer);
+            //            }
+            //            else if (vid.DeviceId == TestCases.SecondaryDeviceId && vid.PhysicalPageId < _secondaryDeviceBuffers.Count)
+            //            {
+            //                _secondaryDeviceBuffers[(int)vid.PhysicalPageId].CopyTo(buffer);
+            //            }
+            //        })
+            //    .Returns(Task.FromResult(true));
+            //MockedMultipleBufferDevice
+            //    .Setup(mbd => mbd.SaveBufferAsync(
+            //        It.IsAny<VirtualPageId>(), It.IsAny<IVirtualBuffer>()))
+            //    .Callback<VirtualPageId, IVirtualBuffer>(
+            //        (vid, buffer) =>
+            //        {
+            //            if (vid.DeviceId == TestCases.PrimaryDeviceId && vid.PhysicalPageId < _primaryDeviceBuffers.Count)
+            //            {
+            //                buffer.CopyTo(_primaryDeviceBuffers[(int)vid.PhysicalPageId]);
+            //            }
+            //            else if (vid.DeviceId == TestCases.SecondaryDeviceId && vid.PhysicalPageId < _secondaryDeviceBuffers.Count)
+            //            {
+            //                buffer.CopyTo(_secondaryDeviceBuffers[(int)vid.PhysicalPageId]);
+            //            }
+            //        })
+            //    .Returns(Task.FromResult(true));
         }
 
-        private Mock<IMultipleBufferDevice> MockedMultipleBufferDevice { get; } = new Mock<IMultipleBufferDevice>();
+        private Mock<IMultipleBufferDevice> MockedMultipleBufferDevice { get; }
 
-        private CachingPageBufferDevice Sut
+        private ICachingPageBufferDevice Sut
         {
             get
             {
                 if (_pageBufferDevice == null)
                 {
-                    _pageBufferDevice = new CachingPageBufferDevice(
-                        MockedMultipleBufferDevice.Object,
-                        new CachingPageBufferDeviceSettings
-                        {
-                        });
+                    _pageBufferDevice = Scope.Resolve<ICachingPageBufferDevice>();
                 }
                 return _pageBufferDevice;
             }
+        }
+
+        protected override void InitializeContainerBuilder(ContainerBuilder builder)
+        {
+            base.InitializeContainerBuilder(builder);
+            builder
+                .Register(scope =>
+                    new CachingPageBufferDevice(
+                        MockedMultipleBufferDevice.Object,
+                        scope.Resolve<CachingPageBufferDeviceSettings>()))
+                .As<ICachingPageBufferDevice>()
+                .SingleInstance();
         }
 
         [Theory(DisplayName = "Given a valid load request, when flush is called, then the load method on MBD is called.")]

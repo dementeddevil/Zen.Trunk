@@ -4,7 +4,8 @@ using Zen.Trunk.Utils;
 namespace Zen.Trunk.VirtualMemory
 {
     /// <summary>
-    /// 
+    /// <c>ScatterGatherRequest</c> encapsulates a single scatter or gather 
+    /// request sent to a single buffer device.
     /// </summary>
     /// <seealso cref="TaskRequest{Object}" />
     [CLSCompliant(false)]
@@ -28,11 +29,7 @@ namespace Zen.Trunk.VirtualMemory
         /// <value>
         /// The physical page identifier.
         /// </value>
-        public uint PhysicalPageId
-		{
-			get;
-			private set;
-		}
+        public uint PhysicalPageId { get; }
 
         /// <summary>
         /// Gets the buffer.
@@ -40,10 +37,6 @@ namespace Zen.Trunk.VirtualMemory
         /// <value>
         /// The buffer.
         /// </value>
-        public IVirtualBuffer Buffer
-		{
-			get;
-			private set;
-		}
-	}
+        public IVirtualBuffer Buffer { get; }
+    }
 }

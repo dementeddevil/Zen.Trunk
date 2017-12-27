@@ -24,7 +24,7 @@ namespace Zen.Trunk.Storage.Data
 	public sealed class PageBuffer : StatefulBuffer, IPageEnlistmentNotification
 	{
         /// <summary>
-        /// 
+        /// Tracks the state of a page-buffer within the page-buffer lifecycle
         /// </summary>
         public enum PageBufferStateType
 		{
@@ -455,14 +455,11 @@ namespace Zen.Trunk.Storage.Data
 			{
 				_triggers = triggers;
 				_task = new TaskCompletionSource<object>(state);
-				Id = Guid.NewGuid();
 			}
 
-			public Guid Id
-			{
-				get; }
+			public Guid Id { get; } = Guid.NewGuid();
 
-			public Task Task => _task.Task;
+		    public Task Task => _task.Task;
 
 		    public bool CompleteTrigger(PageBufferStateType state)
 			{
@@ -577,15 +574,9 @@ namespace Zen.Trunk.Storage.Data
         /// </value>
         public long Timestamp
 		{
-			get
-			{
-				return _timestamp;
-			}
-			set
-			{
-				_timestamp = value;
-			}
-		}
+			get => _timestamp;
+            set => _timestamp = value;
+        }
 
         /// <summary>
         /// Gets the current page buffer state type.

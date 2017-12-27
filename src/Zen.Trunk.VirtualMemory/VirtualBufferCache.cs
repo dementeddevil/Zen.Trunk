@@ -5,12 +5,9 @@ namespace Zen.Trunk.VirtualMemory
     internal class VirtualBufferCache
 	{
 		#region Private Fields
-		private static int _nextCacheId;
+		private static int _nextCacheId = 1;
 
-		private readonly int _cacheId;
-		private readonly SafeCommitableMemoryHandle _baseAddress;
-		private readonly SafeCommitableMemoryHandle _nextAddress;
-		private readonly int _bufferCacheSize;
+	    private readonly int _bufferCacheSize;
 		private readonly VirtualBuffer[] _buffers;
 		private int _usedBuffers;
 		#endregion
@@ -24,8 +21,8 @@ namespace Zen.Trunk.VirtualMemory
 		/// <param name="bufferSlots">The buffer slots.</param>
 		public VirtualBufferCache(SafeCommitableMemoryHandle baseAddress, int bufferSize, int bufferSlots)
 		{
-			_cacheId = Interlocked.Increment(ref _nextCacheId);
-			_baseAddress = baseAddress;
+			CacheId = Interlocked.Increment(ref _nextCacheId);
+			BaseAddress = baseAddress;
 			_bufferCacheSize = bufferSlots;
 
 			_buffers = new VirtualBuffer[_bufferCacheSize];
@@ -35,12 +32,12 @@ namespace Zen.Trunk.VirtualMemory
 				_buffers[index] = buffer;
 				baseAddress = SafeNativeMethods.GetCommitableMemoryHandle(baseAddress, bufferSize, bufferSize);
 			}
-			_nextAddress = baseAddress;
+			NextBaseAddress = baseAddress;
 		}
 		#endregion
 
 		#region Internal Properties
-		internal int CacheId => _cacheId;
+		internal int CacheId { get; }
 
 	    internal bool IsHalfFull => UsedSpace > 50;
 
@@ -50,10 +47,9 @@ namespace Zen.Trunk.VirtualMemory
 
 	    internal int UsedSpace => (_usedBuffers * 100) / _bufferCacheSize;
 
-	    internal SafeCommitableMemoryHandle BaseAddress => _baseAddress;
+	    internal SafeCommitableMemoryHandle BaseAddress { get; }
 
-	    internal SafeCommitableMemoryHandle NextBaseAddress => _nextAddress;
-
+	    internal SafeCommitableMemoryHandle NextBaseAddress { get; }
 	    #endregion
 
 		public VirtualBuffer AllocateBuffer()

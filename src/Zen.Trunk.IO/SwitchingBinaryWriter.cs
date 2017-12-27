@@ -36,7 +36,7 @@ namespace Zen.Trunk.IO
             {
                 if (!(stream is NonClosingStream))
                 {
-                    stream = new NonClosingStream(stream);
+                    _stream = new NonClosingStream(stream);
                 }
                 else
                 {

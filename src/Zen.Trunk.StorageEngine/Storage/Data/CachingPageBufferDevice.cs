@@ -469,8 +469,7 @@ namespace Zen.Trunk.Storage.Data
                     () =>
                     {
                         // Attempt to retrieve buffer from cache
-                        BufferCacheInfo cacheInfo;
-                        if (_bufferLookup.TryGetValue(request.PageId, out cacheInfo))
+                        if (_bufferLookup.TryGetValue(request.PageId, out var cacheInfo))
                         {
                             // Retrieve cached buffer
                             // NOTE: Buffer is addref'ed here
@@ -691,14 +690,13 @@ namespace Zen.Trunk.Storage.Data
             FlushPageBufferState blockState)
         {
             // Retrieve entry from cache - skip if no longer present
-            BufferCacheInfo cacheInfo;
-            if (_bufferLookup.TryGetValue(pageId, out cacheInfo))
+            if (_bufferLookup.TryGetValue(pageId, out var cacheInfo))
             {
                 // Process pages we can load
                 if (blockState.Params.FlushReads && cacheInfo.IsReadPending)
                 {
                     // Create async task to load the cache info and add to list
-                    blockState.LoadTasks.Add(LoadCacheInfo(cacheInfo));
+                    blockState.LoadTasks.Add(LoadBufferCacheInfoAsync(cacheInfo));
 
                     // Signal device has pending load
                     blockState.MarkDeviceAsAccessedForLoad(pageId.DeviceId);
@@ -709,7 +707,7 @@ namespace Zen.Trunk.Storage.Data
                 {
                     // This may throw if another thread changes the
                     //	buffer state before it begins the write operation
-                    blockState.SaveTasks.Add(cacheInfo.BufferInternal.SaveAsync());
+                    blockState.SaveTasks.Add(SaveBufferCacheInfoAsync(cacheInfo));
 
                     // Signal device has pending save
                     blockState.MarkDeviceAsAccessedForSave(pageId.DeviceId);
@@ -783,7 +781,7 @@ namespace Zen.Trunk.Storage.Data
         /// </summary>
         /// <param name="cacheInfo">The cache information.</param>
         /// <returns></returns>
-        private async Task LoadCacheInfo(BufferCacheInfo cacheInfo)
+        private async Task LoadBufferCacheInfoAsync(BufferCacheInfo cacheInfo)
         {
             try
             {
@@ -802,28 +800,46 @@ namespace Zen.Trunk.Storage.Data
             NotifyWaitersLoadOrInitTaskCompleted(cacheInfo.PageId, cacheInfo.PageBuffer);
         }
 
-        private void NotifyWaitersLoadOrInitTaskCompleted(VirtualPageId pageId, PageBuffer buffer)
+        private async Task SaveBufferCacheInfoAsync(BufferCacheInfo cacheInfo)
+        {
+            try
+            {
+                await cacheInfo.BufferInternal.SaveAsync().ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+            }
+            catch (Exception exception)
+            {
+            }
+        }
+
+        private void NotifyWaitersLoadOrInitTaskCompleted(
+            VirtualPageId pageId, PageBuffer buffer)
         {
             RemovePendingLoadOrInitTaskAndNotifyWaiters(
                 pageId, ct => ct.TrySetResult(buffer));
         }
 
-        private void NotifyWaitersLoadOrInitTaskFailed(VirtualPageId pageId, Exception error)
+        private void NotifyWaitersLoadOrInitTaskFailed(
+            VirtualPageId pageId, Exception error)
         {
             RemovePendingLoadOrInitTaskAndNotifyWaiters(
                 pageId, ct => ct.TrySetException(error));
         }
 
-        private void NotifyWaitersLoadOrInitTaskCancelled(VirtualPageId pageId)
+        private void NotifyWaitersLoadOrInitTaskCancelled(
+            VirtualPageId pageId)
         {
             RemovePendingLoadOrInitTaskAndNotifyWaiters(
                 pageId, ct => ct.TrySetCanceled());
         }
 
-        private void RemovePendingLoadOrInitTaskAndNotifyWaiters(VirtualPageId pageId, Action<TaskCompletionSource<PageBuffer>> completionAction)
+        private void RemovePendingLoadOrInitTaskAndNotifyWaiters(
+            VirtualPageId pageId,
+            Action<TaskCompletionSource<PageBuffer>> completionAction)
         {
-            TaskCompletionSource<PageBuffer> task;
-            if (_pendingLoadOrInit.TryRemove(pageId, out task))
+            if (_pendingLoadOrInit.TryRemove(pageId, out var task))
             {
                 completionAction(task);
             }

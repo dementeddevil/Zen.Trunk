@@ -99,6 +99,7 @@
     <Compile Include="AutofacStorageEngineUnitTests.cs" />
     <Compile Include="ContainerBuilderExtensions.cs" />
     <Compile Include="DevicePageTracker.cs" />
+    <Compile Include="MultipleBufferDeviceBuilder.cs" />
     <Compile Include="TransactionLockBlockUnitTest.cs" />
     <Compile Include="PageUnitTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -82,5 +82,17 @@ Then scatter/gather I/O operations occur as appropriate")]
                 }
             }
         }
+
+        [Fact(DisplayName = "Given buffer, when GetBufferStream is called and released, then no exception is thrown")]
+        public void VirtualBufferGetAndReleaseStream()
+        {
+            using (var buffer = BufferFactory.AllocateBuffer())
+            {
+                using (var stream = buffer.GetBufferStream(0, 1024, true))
+                {
+                    stream.WriteByte(10);
+                }
+            }
+        }
     }
 }

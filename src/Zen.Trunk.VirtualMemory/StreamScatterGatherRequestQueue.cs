@@ -123,7 +123,7 @@ namespace Zen.Trunk.VirtualMemory
 		/// <returns></returns>
 		/// <remarks>
 		/// The helper stores all received requests in arrays and will try to
-		/// create longer block chains before issueing the scatter/gather call
+		/// create longer block chains before issuing the scatter/gather call
 		/// to transfer data.
 		/// This method should be called periodically to ensure timely handling
 		/// of requests

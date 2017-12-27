@@ -19,17 +19,7 @@ namespace Zen.Trunk.VirtualMemory.Tests
 
         protected ILifetimeScope Scope { get; private set; }
 
-        protected TempFileTracker GlobalTracker
-        {
-            get
-            {
-                if (_globalTracker == null)
-                {
-                    _globalTracker = new TempFileTracker();
-                }
-                return _globalTracker;
-            }
-        }
+        protected TempFileTracker GlobalTracker => _globalTracker ?? (_globalTracker = new TempFileTracker());
 
         public void Dispose()
         {
