@@ -25,11 +25,8 @@ namespace Zen.Trunk.Storage.Locking
 		/// <value>The parent.</value>
 		public TParentLockType Parent
 		{
-			get
-			{
-				return _parentLock;
-			}
-			set
+			get => _parentLock;
+		    set
 			{
 				if (_parentLock != value)
 				{

@@ -11,11 +11,12 @@ namespace Zen.Trunk.VirtualMemory.Tests
     [Trait("Class", "Single Device")]
     public class SingleDeviceUnitTest : AutofacVirtualMemoryUnitTests
     {
-        [Fact(DisplayName = @"
+        [Theory(DisplayName = @"
 Given a newly created single-device
-When 7 buffers are written and then read into separate buffers
+When 128 buffers are written and then read into separate buffers
 Then the buffer contents are the same")]
-        public async Task SingleDeviceBufferWriteThenReadTest()
+        [InlineData(128)]
+        public async Task SingleDeviceBufferWriteThenReadTest(uint pageCount)
         {
             using (var tracker = new TempFileTracker())
             {
@@ -23,12 +24,12 @@ Then the buffer contents are the same")]
                 var initBuffers = new List<IVirtualBuffer>();
                 var loadBuffers = new List<IVirtualBuffer>();
                 var testFile = tracker.Get("sdt.bin");
-                using (var device = BufferDeviceFactory.CreateSingleBufferDevice("test", testFile, 8, true))
+                using (var device = BufferDeviceFactory.CreateSingleBufferDevice("test", testFile, pageCount, true))
                 {
                     await device.OpenAsync().ConfigureAwait(true);
 
                     var subTasks = new List<Task>();
-                    for (var index = 0; index < 7; ++index)
+                    for (var index = 0; index < pageCount; ++index)
                     {
                         var buffer = BufferFactory.AllocateAndFill((byte)index);
                         initBuffers.Add(buffer);
@@ -38,7 +39,7 @@ Then the buffer contents are the same")]
                     await Task.WhenAll(subTasks.ToArray()).ConfigureAwait(true);
 
                     subTasks.Clear();
-                    for (var index = 0; index < 7; ++index)
+                    for (var index = 0; index < pageCount; ++index)
                     {
                         var buffer = BufferFactory.AllocateBuffer();
                         loadBuffers.Add(buffer);
@@ -51,7 +52,7 @@ Then the buffer contents are the same")]
                 }
 
                 // Walk buffers and check contents are the same
-                for (var index = 0; index < 7; ++index)
+                for (var index = 0; index < pageCount; ++index)
                 {
                     var lhs = initBuffers[index];
                     var rhs = loadBuffers[index];

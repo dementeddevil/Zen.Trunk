@@ -12,9 +12,9 @@ namespace Zen.Trunk.Storage.Locking
     /// </summary>
     /// <typeparam name="TLockTypeEnum"></typeparam>
     public abstract class TransactionLock<TLockTypeEnum> :
-		TransactionLockBase, IReferenceLock
-		where TLockTypeEnum : struct, IComparable, IConvertible, IFormattable // enum
-	{
+        TransactionLockBase, IReferenceLock
+        where TLockTypeEnum : struct, IComparable, IConvertible, IFormattable // enum
+    {
         #region Lock Messages
         /// <summary>
         /// <c>LockRequestBase</c> defines the base class for all lock request messages.
@@ -22,21 +22,21 @@ namespace Zen.Trunk.Storage.Locking
         /// <seealso cref="Zen.Trunk.Storage.Locking.TransactionLockBase" />
         /// <seealso cref="Zen.Trunk.Storage.Locking.IReferenceLock" />
         protected class LockRequestBase : TaskCompletionSource<bool>
-		{
-			#region Internal Constructors
-			internal LockRequestBase(TLockTypeEnum lockType, LockOwnerIdent lockOwner)
-			{
-				Lock = lockType;
-			    LockOwner = lockOwner;
-			}
-			#endregion
+        {
+            #region Internal Constructors
+            internal LockRequestBase(TLockTypeEnum lockType, LockOwnerIdent lockOwner)
+            {
+                Lock = lockType;
+                LockOwner = lockOwner;
+            }
+            #endregion
 
-			#region Internal Properties
-			internal TLockTypeEnum Lock { get; set; }
+            #region Internal Properties
+            internal TLockTypeEnum Lock { get; set; }
 
-			internal LockOwnerIdent LockOwner { get; }
-			#endregion
-		}
+            internal LockOwnerIdent LockOwner { get; }
+            #endregion
+        }
 
         /// <summary>
         /// <c>AcquireLock</c> is a message sent when acquiring a lock.
@@ -44,14 +44,14 @@ namespace Zen.Trunk.Storage.Locking
         /// <seealso cref="Zen.Trunk.Storage.Locking.TransactionLockBase" />
         /// <seealso cref="Zen.Trunk.Storage.Locking.IReferenceLock" />
         protected class AcquireLock : LockRequestBase
-		{
-			#region Internal Constructors
-			internal AcquireLock(TLockTypeEnum lockType, LockOwnerIdent lockOwner)
-				: base(lockType, lockOwner)
-			{
-			}
-			#endregion
-		}
+        {
+            #region Internal Constructors
+            internal AcquireLock(TLockTypeEnum lockType, LockOwnerIdent lockOwner)
+                : base(lockType, lockOwner)
+            {
+            }
+            #endregion
+        }
 
         /// <summary>
         /// <c>ReleaseLock</c> is a message sent when releasing a lock.
@@ -59,14 +59,14 @@ namespace Zen.Trunk.Storage.Locking
         /// <seealso cref="Zen.Trunk.Storage.Locking.TransactionLockBase" />
         /// <seealso cref="Zen.Trunk.Storage.Locking.IReferenceLock" />
         protected class ReleaseLock : LockRequestBase
-		{
-			#region Internal Constructors
-			internal ReleaseLock(TLockTypeEnum lockType, LockOwnerIdent lockOwner)
-				: base(lockType, lockOwner)
-			{
-			}
-			#endregion
-		}
+        {
+            #region Internal Constructors
+            internal ReleaseLock(TLockTypeEnum lockType, LockOwnerIdent lockOwner)
+                : base(lockType, lockOwner)
+            {
+            }
+            #endregion
+        }
 
         /// <summary>
         /// <c>QueryLock</c> is a message sent when querying lock state.
@@ -74,14 +74,14 @@ namespace Zen.Trunk.Storage.Locking
         /// <seealso cref="Zen.Trunk.Storage.Locking.TransactionLockBase" />
         /// <seealso cref="Zen.Trunk.Storage.Locking.IReferenceLock" />
         protected class QueryLock : LockRequestBase
-		{
-			#region Internal Constructors
-			internal QueryLock(TLockTypeEnum lockType, LockOwnerIdent lockOwner)
-				: base(lockType, lockOwner)
-			{
-			}
-			#endregion
-		}
+        {
+            #region Internal Constructors
+            internal QueryLock(TLockTypeEnum lockType, LockOwnerIdent lockOwner)
+                : base(lockType, lockOwner)
+            {
+            }
+            #endregion
+        }
         #endregion
 
         #region Lock State
@@ -91,141 +91,141 @@ namespace Zen.Trunk.Storage.Locking
         /// <seealso cref="Zen.Trunk.Storage.Locking.TransactionLockBase" />
         /// <seealso cref="Zen.Trunk.Storage.Locking.IReferenceLock" />
         protected abstract class State
-		{
-			/// <summary>
-			/// Gets the lock type that this state represents.
-			/// </summary>
-			/// <value>The lock.</value>
-			public abstract TLockTypeEnum Lock
-			{
-				get;
-			}
+        {
+            /// <summary>
+            /// Gets the lock type that this state represents.
+            /// </summary>
+            /// <value>The lock.</value>
+            public abstract TLockTypeEnum Lock
+            {
+                get;
+            }
 
-			/// <summary>
-			/// Gets an array of lock types that this state is compatable with.
-			/// </summary>
-			/// <value>The compatable locks.</value>
-			public abstract TLockTypeEnum[] CompatableLocks
-			{
-				get;
-			}
+            /// <summary>
+            /// Gets an array of lock types that this state is compatable with.
+            /// </summary>
+            /// <value>The compatable locks.</value>
+            public abstract TLockTypeEnum[] CompatableLocks
+            {
+                get;
+            }
 
-			/// <summary>
-			/// Gets a boolean value indicating whether an exclusive lock can
-			/// be acquired from this state.
-			/// </summary>
-			/// <value>
-			/// <c>true</c> if an exclusive lock can be acquired from this
-			/// state; otherwise, <c>false</c>. The default is <c>false</c>.
-			/// </value>
-			public virtual bool CanEnterExclusiveLock => false;
+            /// <summary>
+            /// Gets a boolean value indicating whether an exclusive lock can
+            /// be acquired from this state.
+            /// </summary>
+            /// <value>
+            /// <c>true</c> if an exclusive lock can be acquired from this
+            /// state; otherwise, <c>false</c>. The default is <c>false</c>.
+            /// </value>
+            public virtual bool CanEnterExclusiveLock => false;
 
-		    /// <summary>
-			/// Determines whether the specified lock type is equivalent to an
-			/// exclusive lock.
-			/// </summary>
-			/// <param name="lockType">Type of the lock.</param>
-			/// <returns>
-			/// <c>true</c> if the lock type is an exclusive lock; otherwise,
-			/// <c>false</c>.
-			/// </returns>
-			public abstract bool IsExclusiveLock(TLockTypeEnum lockType);
+            /// <summary>
+            /// Determines whether the specified lock type is equivalent to an
+            /// exclusive lock.
+            /// </summary>
+            /// <param name="lockType">Type of the lock.</param>
+            /// <returns>
+            /// <c>true</c> if the lock type is an exclusive lock; otherwise,
+            /// <c>false</c>.
+            /// </returns>
+            public abstract bool IsExclusiveLock(TLockTypeEnum lockType);
 
-			/// <summary>
-			/// Called when this state is entered.
-			/// </summary>
-			/// <param name="owner">The owner.</param>
-			/// <param name="oldState">The old state.</param>
-			public virtual void OnEnterState(TransactionLock<TLockTypeEnum> owner, State oldState)
-			{
-			}
+            /// <summary>
+            /// Called when this state is entered.
+            /// </summary>
+            /// <param name="owner">The owner.</param>
+            /// <param name="oldState">The old state.</param>
+            public virtual void OnEnterState(TransactionLock<TLockTypeEnum> owner, State oldState)
+            {
+            }
 
-			/// <summary>
-			/// Called when this state is exited.
-			/// </summary>
-			/// <param name="owner">The owner.</param>
-			/// <param name="newState">The new state.</param>
-			public virtual void OnExitState(TransactionLock<TLockTypeEnum> owner, State newState)
-			{
-			}
+            /// <summary>
+            /// Called when this state is exited.
+            /// </summary>
+            /// <param name="owner">The owner.</param>
+            /// <param name="newState">The new state.</param>
+            public virtual void OnExitState(TransactionLock<TLockTypeEnum> owner, State newState)
+            {
+            }
 
-			/// <summary>
-			/// Determines whether the specified request can acquire the lock.
-			/// </summary>
-			/// <param name="owner">The owner.</param>
-			/// <param name="request">The request.</param>
-			/// <returns>
-			/// <c>true</c> if the request can acquire lock; otherwise,
-			/// <c>false</c>.
-			/// </returns>
-			public virtual bool CanAcquireLock(TransactionLock<TLockTypeEnum> owner, AcquireLock request)
-			{
-				// We can acquire the lock if any of the following are true;
-				//	1. Active request count is zero
-				//	2. Active request count is one, the transaction id matches
-				//		the request and the requested lock is different to that
-				//		currently held.
-				//	3. The requested lock is compatable and there are no other
-				//		pending requests.
-				//	4. The requested lock is an exclusive lock, we can enter an
-				//		exclusive lock, the this transaction id is the only
-				//		active transaction on the lock
-				if ((owner._activeRequests.Count == 0) ||
-					/*(owner._activeRequests.Count == 1 &&
+            /// <summary>
+            /// Determines whether the specified request can acquire the lock.
+            /// </summary>
+            /// <param name="owner">The owner.</param>
+            /// <param name="request">The request.</param>
+            /// <returns>
+            /// <c>true</c> if the request can acquire lock; otherwise,
+            /// <c>false</c>.
+            /// </returns>
+            public virtual bool CanAcquireLock(TransactionLock<TLockTypeEnum> owner, AcquireLock request)
+            {
+                // We can acquire the lock if any of the following are true;
+                //	1. Active request count is zero
+                //	2. Active request count is one, the transaction id matches
+                //		the request and the requested lock is different to that
+                //		currently held.
+                //	3. The requested lock is compatable and there are no other
+                //		pending requests.
+                //	4. The requested lock is an exclusive lock, we can enter an
+                //		exclusive lock, the this transaction id is the only
+                //		active transaction on the lock
+                if ((owner._activeRequests.Count == 0) ||
+                    /*(owner._activeRequests.Count == 1 &&
 					owner._activeRequests.ContainsKey(request.TransactionId) &&
 					!owner.IsEquivalentLock(owner._activeRequests[request.TransactionId].Lock, request.Lock)) ||*/
-					(owner._pendingRequests.Count == 0 && IsLockCompatable(request)) ||
-					(owner._activeRequests.Count == 1 && owner._activeRequests.ContainsKey(request.LockOwner) && CanEnterExclusiveLock && IsExclusiveLock(request.Lock)))
-				{
-					return true;
-				}
+                    (owner._pendingRequests.Count == 0 && IsLockCompatable(request)) ||
+                    (owner._activeRequests.Count == 1 && owner._activeRequests.ContainsKey(request.LockOwner) && CanEnterExclusiveLock && IsExclusiveLock(request.Lock)))
+                {
+                    return true;
+                }
 
-				return false;
-			}
+                return false;
+            }
 
-			/// <summary>
-			/// Determines whether the lock type specified in the request is
-			/// compatable with this lock state.
-			/// </summary>
-			/// <param name="request">The request.</param>
-			/// <returns>
-			/// <c>true</c> if the specified request is compatable; otherwise,
-			/// <c>false</c>.
-			/// </returns>
-			public bool IsLockCompatable(AcquireLock request)
-			{
-				if (CompatableLocks.Length > 0)
-				{
-					foreach (var lockType in CompatableLocks)
-					{
-						if (Convert.ToInt32(lockType) == Convert.ToInt32(request.Lock))
-						{
-							return true;
-						}
-					}
-				}
-				return false;
-			}
-		}
+            /// <summary>
+            /// Determines whether the lock type specified in the request is
+            /// compatable with this lock state.
+            /// </summary>
+            /// <param name="request">The request.</param>
+            /// <returns>
+            /// <c>true</c> if the specified request is compatable; otherwise,
+            /// <c>false</c>.
+            /// </returns>
+            public bool IsLockCompatable(AcquireLock request)
+            {
+                if (CompatableLocks.Length > 0)
+                {
+                    foreach (var lockType in CompatableLocks)
+                    {
+                        if (Convert.ToInt32(lockType) == Convert.ToInt32(request.Lock))
+                        {
+                            return true;
+                        }
+                    }
+                }
+                return false;
+            }
+        }
         #endregion
 
         #region Private Fields
         private readonly ActionBlock<AcquireLock> _acquireLockAction;
-		private readonly ActionBlock<ReleaseLock> _releaseLockAction;
-		private readonly ActionBlock<QueryLock> _queryLockAction;
-		private readonly Dictionary<LockOwnerIdent, AcquireLock> _activeRequests = new Dictionary<LockOwnerIdent, AcquireLock>();
-		private readonly Queue<AcquireLock> _pendingRequests = new Queue<AcquireLock>();
-	    private int _referenceCount;
-		private bool _initialised;
-		private AcquireLock _pendingExclusiveRequest;
-		private State _currentState;
-		#endregion
+        private readonly ActionBlock<ReleaseLock> _releaseLockAction;
+        private readonly ActionBlock<QueryLock> _queryLockAction;
+        private readonly Dictionary<LockOwnerIdent, AcquireLock> _activeRequests = new Dictionary<LockOwnerIdent, AcquireLock>();
+        private readonly Queue<AcquireLock> _pendingRequests = new Queue<AcquireLock>();
+        private int _referenceCount;
+        private bool _initialised;
+        private AcquireLock _pendingExclusiveRequest;
+        private State _currentState;
+        #endregion
 
-		#region Public Events
-		/// <summary>
-		/// Fired prior to the final disposal of the transaction lock.
-		/// </summary>
-		public event EventHandler FinalRelease;
+        #region Public Events
+        /// <summary>
+        /// Fired prior to the final disposal of the transaction lock.
+        /// </summary>
+        public event EventHandler FinalRelease;
         #endregion
 
         #region Protected Constructors
@@ -233,7 +233,7 @@ namespace Zen.Trunk.Storage.Locking
         /// Initializes a new instance of the <see cref="TransactionLock{TLockTypeEnum}"/> class.
         /// </summary>
         protected TransactionLock()
-	    {
+        {
             // Initialise receiver arbiters
             var taskInterleave = new ConcurrentExclusiveSchedulerPair(TaskScheduler.Default);
             _acquireLockAction = new ActionBlock<AcquireLock>(
@@ -273,155 +273,162 @@ namespace Zen.Trunk.Storage.Locking
         public string Id { get; set; }
         #endregion
 
-		#region Protected Properties
-		/// <summary>
-		/// Gets enumeration value for the lock representing the "none" lock.
-		/// </summary>
-		/// <value>The type of the none lock.</value>
-		protected abstract TLockTypeEnum NoneLockType { get; }
-		#endregion
+        #region Protected Properties
+        /// <summary>
+        /// Gets enumeration value for the lock representing the "none" lock.
+        /// </summary>
+        /// <value>The type of the none lock.</value>
+        protected abstract TLockTypeEnum NoneLockType { get; }
+        #endregion
 
-		#region Public Methods
-		/// <summary>
-		/// Initialises the lock object.
-		/// </summary>
-		public void Initialise()
-		{
-			if (_initialised)
-			{
-				throw new InvalidOperationException("Lock already initialised.");
-			}
+        #region Public Methods
+        /// <summary>
+        /// Initialises the lock object.
+        /// </summary>
+        public void Initialise()
+        {
+            if (_initialised)
+            {
+                throw new InvalidOperationException("Lock already initialised.");
+            }
 
-			// Setup initial state object
-			_currentState = GetStateFromType(NoneLockType);
-			_currentState.OnEnterState(this, null);
-			_initialised = true;
-			TraceVerbose("Initialized");
-		}
+            // Setup initial state object
+            _currentState = GetStateFromType(NoneLockType);
+            _currentState.OnEnterState(this, null);
+            _initialised = true;
+            TraceVerbose("Initialized");
+        }
 
-		/// <summary>
-		/// Increases the reference count on this lock object.
-		/// </summary>
-		public void AddRefLock()
-		{
-			Interlocked.Increment(ref _referenceCount);
-		}
+        /// <summary>
+        /// Increases the reference count on this lock object.
+        /// </summary>
+        public void AddRefLock()
+        {
+            Interlocked.Increment(ref _referenceCount);
+        }
 
-		/// <summary>
-		/// Decreases the reference count on this lock object.
-		/// </summary>
-		/// <returns>Returns true if this is the final release.</returns>
-		public void ReleaseRefLock()
-		{
-			if (Interlocked.Decrement(ref _referenceCount) == 0)
-			{
-				OnFinalRelease();
-			}
-		}
+        /// <summary>
+        /// Decreases the reference count on this lock object.
+        /// </summary>
+        /// <returns>Returns true if this is the final release.</returns>
+        public void ReleaseRefLock()
+        {
+            if (Interlocked.Decrement(ref _referenceCount) == 0)
+            {
+                OnFinalRelease();
+            }
+        }
 
-		/// <summary>
-		/// Determines whether the current transaction has the given lock type.
-		/// </summary>
-		/// <param name="lockType"></param>
-		/// <returns>Boolean. True indicates lock is held.</returns>
-		/// <remarks>
-		/// This method will throw if the current thread does not have a
-		/// transaction context.
-		/// </remarks>
-		public Task<bool> HasLockAsync(TLockTypeEnum lockType)
-		{
-			// Retrieve connection id and create request object.
-			// Will throw if no connection information is available for the
-			//  calling thread.
-			var lockOwnerIdent = GetThreadLockOwnerIdent(true);
-			return HasLockAsync(lockOwnerIdent, lockType);
-		}
+        /// <summary>
+        /// Determines whether the current transaction has the given lock type.
+        /// </summary>
+        /// <param name="lockType"></param>
+        /// <returns>Boolean. True indicates lock is held.</returns>
+        /// <remarks>
+        /// This method will throw if the current thread does not have a
+        /// transaction context.
+        /// </remarks>
+        public Task<bool> HasLockAsync(TLockTypeEnum lockType)
+        {
+            // Retrieve connection id and create request object.
+            // Will throw if no connection information is available for the
+            //  calling thread.
+            var lockOwnerIdent = GetThreadLockOwnerIdent(true);
+            return HasLockAsync(lockOwnerIdent, lockType);
+        }
 
-		/// <summary>
-		/// Acquires the specified lock type.
-		/// </summary>
-		/// <param name="lockType"></param>
-		/// <param name="timeout"></param>
-		/// <remarks>
-		/// <para>
-		/// This method will throw if the current thread does not have a
-		/// transaction context.
-		/// </para>
-		/// <para>
-		/// This method will throw if the lock is not acquired within the
-		/// specified timeout period.
-		/// </para>
-		/// </remarks>
-		public Task LockAsync(TLockTypeEnum lockType, TimeSpan timeout)
-		{
-			// Retrieve connection id and create request object.
-			// Will throw if no connection information is available for the
-			//  calling thread.
-			var lockOwner = GetThreadLockOwnerIdent(true);
-			return LockAsync(lockOwner, lockType, timeout);
-		}
+        /// <summary>
+        /// Acquires the specified lock type.
+        /// </summary>
+        /// <param name="lockType"></param>
+        /// <param name="timeout"></param>
+        /// <remarks>
+        /// <para>
+        /// This method will throw if the current thread does not have a
+        /// transaction context.
+        /// </para>
+        /// <para>
+        /// This method will throw if the lock is not acquired within the
+        /// specified timeout period.
+        /// </para>
+        /// </remarks>
+        public Task LockAsync(TLockTypeEnum lockType, TimeSpan timeout)
+        {
+            // Retrieve connection id and create request object.
+            // Will throw if no connection information is available for the
+            //  calling thread.
+            var lockOwner = GetThreadLockOwnerIdent(true);
+            return LockAsync(lockOwner, lockType, timeout);
+        }
 
-		/// <summary>
-		/// Releases the lock by downgrading to the none lock state
-		/// </summary>
-		public Task UnlockAsync()
-		{
-			return UnlockAsync(NoneLockType);
-		}
+        /// <summary>
+        /// Releases the lock by downgrading to the none lock state
+        /// </summary>
+        public Task UnlockAsync()
+        {
+            return UnlockAsync(NoneLockType);
+        }
 
-		/// <summary>
-		/// Releases the lock by downgrading to the given lock type.
-		/// </summary>
-		/// <param name="newLockType"></param>
-		/// <remarks>
-		/// The new lock type should be of a lower state than the
-		/// current lock type or this method may throw an exception.
-		/// The lock timeout period is fixed at 10 seconds so get it
-		/// right!
-		/// </remarks>
-		public Task UnlockAsync(TLockTypeEnum newLockType)
-		{
-			// Retrieve connection id and create request object.
-			// Will throw if no connection information is available for the
-			//  calling thread.
-			var lockOwner = GetThreadLockOwnerIdent(true);
-			return UnlockAsync(lockOwner, newLockType);
-		}
-		#endregion
+        /// <summary>
+        /// Releases the lock by downgrading to the given lock type.
+        /// </summary>
+        /// <param name="newLockType"></param>
+        /// <remarks>
+        /// The new lock type should be of a lower state than the
+        /// current lock type or this method may throw an exception.
+        /// The lock timeout period is fixed at 10 seconds so get it
+        /// right!
+        /// </remarks>
+        public Task UnlockAsync(TLockTypeEnum newLockType)
+        {
+            // Retrieve connection id and create request object.
+            // Will throw if no connection information is available for the
+            //  calling thread.
+            var lockOwner = GetThreadLockOwnerIdent(true);
+            return UnlockAsync(lockOwner, newLockType);
+        }
+        #endregion
 
-		#region Internal Methods
-		internal async Task LockAsync(LockOwnerIdent lockOwner, TLockTypeEnum lockType, TimeSpan timeout)
-		{
-			// Post lock acquisition message
-			var request = new AcquireLock(lockType, lockOwner);
-			_acquireLockAction.Post(request);
-
-            // Wait for task to complete
-		    try
-		    {
-		        await request.Task.WithTimeout(timeout).ConfigureAwait(false);
-		    }
-		    catch (OperationCanceledException)
-		    {
-		        throw new TimeoutException("Lock timeout occurred.");
-		    }
-
-			// Increment reference count on lock
-			AddRefLock();
-		}
-
-		internal async Task UnlockAsync(LockOwnerIdent lockOwner, TLockTypeEnum newLockType)
-		{
-			// Post lock acquisition message
-			var request = new ReleaseLock(newLockType, lockOwner);
-			_releaseLockAction.Post(request);
+        #region Internal Methods
+        internal async Task LockAsync(LockOwnerIdent lockOwner, TLockTypeEnum lockType, TimeSpan timeout)
+        {
+            // Post lock acquisition message
+            var request = new AcquireLock(lockType, lockOwner);
+            _acquireLockAction.Post(request);
 
             // Wait for task to complete
-            await request.Task.ConfigureAwait(false);
+            var addRefLock = false;
+            try
+            {
+                addRefLock = await request.Task.WithTimeout(timeout).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+                throw new TimeoutException("Lock timeout occurred.");
+            }
 
-			// Release reference count on lock
-			ReleaseRefLock();
-		}
+            // Increment reference count on lock
+            if (addRefLock)
+            {
+                AddRefLock();
+            }
+        }
+
+        internal async Task UnlockAsync(LockOwnerIdent lockOwner, TLockTypeEnum newLockType)
+        {
+            // Post lock acquisition message
+            var request = new ReleaseLock(newLockType, lockOwner);
+            _releaseLockAction.Post(request);
+
+            // Wait for task to complete
+            var releaseLock = await request.Task.ConfigureAwait(false);
+
+            // Release reference count on lock
+            if (releaseLock)
+            {
+                ReleaseRefLock();
+            }
+        }
         #endregion
 
         #region Protected Methods
@@ -431,9 +438,9 @@ namespace Zen.Trunk.Storage.Locking
         /// </summary>
         /// <returns></returns>
         protected override string GetTracePrefix()
-		{
-			return $"{base.GetTracePrefix()} ID: {Id} Rc: {_referenceCount} Txn:{GetThreadLockOwnerIdent(false)}";
-		}
+        {
+            return $"{base.GetTracePrefix()} ID: {Id} Rc: {_referenceCount} Txn:{GetThreadLockOwnerIdent(false)}";
+        }
 #endif
 
         /// <summary>
@@ -446,52 +453,62 @@ namespace Zen.Trunk.Storage.Locking
         ///   <c>true</c> if the specified transaction identifier has lock; otherwise, <c>false</c>.
         /// </returns>
         protected internal Task<bool> HasLockAsync(LockOwnerIdent lockOwner, TLockTypeEnum lockType)
-		{
-			// Post lock acquisition message
-			var request = new QueryLock(lockType, lockOwner);
-			_queryLockAction.Post(request);
+        {
+            // Post lock acquisition message
+            var request = new QueryLock(lockType, lockOwner);
+            _queryLockAction.Post(request);
             return request.Task;
-		}
+        }
 
-		/// <summary>
-		/// When overridden by derived class, gets the state object from
-		/// the specified state type.
-		/// </summary>
-		/// <param name="lockType">Type of the lock.</param>
-		/// <returns></returns>
-		protected abstract State GetStateFromType(TLockTypeEnum lockType);
+        /// <summary>
+        /// When overridden by derived class, gets the state object from
+        /// the specified state type.
+        /// </summary>
+        /// <param name="lockType">Type of the lock.</param>
+        /// <returns></returns>
+        protected abstract State GetStateFromType(TLockTypeEnum lockType);
 
-		/// <summary>
-		/// Called when last reference to the lock is released.
-		/// </summary>
-		protected virtual void OnFinalRelease()
-		{
-		    FinalRelease?.Invoke(this, new EventArgs());
-		}
+        /// <summary>
+        /// Called when last reference to the lock is released.
+        /// </summary>
+        protected virtual void OnFinalRelease()
+        {
+            FinalRelease?.Invoke(this, new EventArgs());
+        }
 
-		/// <summary>
-		/// Called to determine whether the lock can be acquired by the
-		/// specified <see cref="T:AcquireLock"/> request.
-		/// </summary>
-		/// <param name="request">The request.</param>
-		/// <returns></returns>
-		protected bool CanAcquireLock(AcquireLock request)
-		{
-			return _currentState.CanAcquireLock(this, request);
-		}
+        /// <summary>
+        /// Called to determine whether the lock can be acquired by the
+        /// specified <see cref="T:AcquireLock"/> request.
+        /// </summary>
+        /// <param name="request">The request.</param>
+        /// <returns></returns>
+        protected bool CanAcquireLock(AcquireLock request)
+        {
+            return _currentState.CanAcquireLock(this, request);
+        }
 
         /// <summary>
         /// Sets the active request.
         /// </summary>
         /// <param name="request">The request.</param>
         protected void SetActiveRequest(AcquireLock request)
-		{
-			_activeRequests.Add(request.LockOwner, request);
-			if (!request.TrySetResult(true))
-			{
-				_activeRequests.Remove(request.LockOwner);
-			}
-		}
+        {
+            var activeLockOwner = GetActiveLockOwner(request.LockOwner);
+            var addRefLock = false;
+            if (activeLockOwner != null)
+            {
+                _activeRequests[activeLockOwner.Value] = request;
+            }
+            else
+            {
+                _activeRequests.Add(request.LockOwner, request);
+                addRefLock = true;
+            }
+            if (!request.TrySetResult(addRefLock))
+            {
+                _activeRequests.Remove(request.LockOwner);
+            }
+        }
         #endregion
 
         #region Private Methods
@@ -584,6 +601,8 @@ namespace Zen.Trunk.Storage.Locking
         {
             try
             {
+                var releaseLock = false;
+
                 var activeLockOwner = GetActiveLockOwner(request.LockOwner);
                 if (activeLockOwner == null)
                 {
@@ -599,6 +618,8 @@ namespace Zen.Trunk.Storage.Locking
                         {
                             UpdateActiveLockState();
                         }
+
+                        releaseLock = true;
                     }
                     else if (!IsDowngradedLock(_activeRequests[activeLockOwner.Value].Lock, request.Lock))
                     {
@@ -610,7 +631,8 @@ namespace Zen.Trunk.Storage.Locking
                         _activeRequests[activeLockOwner.Value].Lock = request.Lock;
                     }
                 }
-                request.TrySetResult(true);
+
+                request.TrySetResult(releaseLock);
             }
             catch (Exception e)
             {
@@ -671,40 +693,40 @@ namespace Zen.Trunk.Storage.Locking
         /// </exception>
         // ReSharper disable once UnusedParameter.Local
         private LockOwnerIdent GetThreadLockOwnerIdent(bool throwIfMissing)
-		{
-		    var sessionId = SessionId.Zero;
-			var transactionId = TransactionId.Zero;
-		    if (TrunkSessionContext.Current != null)
-		    {
-		        sessionId = TrunkSessionContext.Current.SessionId;
-		    }
-			if (TrunkTransactionContext.Current != null)
-			{
-				transactionId = TrunkTransactionContext.Current.TransactionId;
-			}
+        {
+            var sessionId = SessionId.Zero;
+            var transactionId = TransactionId.Zero;
+            if (TrunkSessionContext.Current != null)
+            {
+                sessionId = TrunkSessionContext.Current.SessionId;
+            }
+            if (TrunkTransactionContext.Current != null)
+            {
+                transactionId = TrunkTransactionContext.Current.TransactionId;
+            }
 
             if (throwIfMissing && sessionId == SessionId.Zero && transactionId == TransactionId.Zero)
-			{
-				throw new LockException("Current thread has no transaction context!");
-			}
-			return new LockOwnerIdent(sessionId, transactionId);
-		}
+            {
+                throw new LockException("Current thread has no transaction context!");
+            }
+            return new LockOwnerIdent(sessionId, transactionId);
+        }
 
-	    private LockOwnerIdent? GetActiveLockOwner(LockOwnerIdent lockOwner)
-	    {
-	        if (_activeRequests.ContainsKey(lockOwner))
-	        {
-	            return lockOwner;
-	        }
-
-	        lockOwner = lockOwner.SessionOnlyLockOwner;
+        private LockOwnerIdent? GetActiveLockOwner(LockOwnerIdent lockOwner)
+        {
             if (_activeRequests.ContainsKey(lockOwner))
             {
                 return lockOwner;
             }
 
-	        return null;
-	    }
+            lockOwner = lockOwner.SessionOnlyLockOwner;
+            if (_activeRequests.ContainsKey(lockOwner))
+            {
+                return lockOwner;
+            }
+
+            return null;
+        }
 
         /// <summary>
         /// Gets the current <typeparamref name="TLockTypeEnum"/> that
@@ -729,92 +751,92 @@ namespace Zen.Trunk.Storage.Locking
         }
 
         private void UpdateActiveLockState()
-		{
-			var lockType = GetActiveLockType();
-			var newState = GetStateFromType(lockType);
-			if (_currentState != newState)
-			{
-				var oldState = _currentState;
-			    oldState?.OnExitState(this, newState);
-			    _currentState = newState;
-			    newState?.OnEnterState(this, oldState);
-			}
-		}
+        {
+            var lockType = GetActiveLockType();
+            var newState = GetStateFromType(lockType);
+            if (_currentState != newState)
+            {
+                var oldState = _currentState;
+                oldState?.OnExitState(this, newState);
+                _currentState = newState;
+                newState?.OnEnterState(this, oldState);
+            }
+        }
 
-		private void ReleaseWaitingRequests()
-		{
-			UpdateActiveLockState();
+        private void ReleaseWaitingRequests()
+        {
+            UpdateActiveLockState();
 
-			if (_pendingExclusiveRequest != null)
-			{
-				if (!ReleaseWaitingRequest(_pendingExclusiveRequest))
-				{
-					return;
-				}
+            if (_pendingExclusiveRequest != null)
+            {
+                if (!ReleaseWaitingRequest(_pendingExclusiveRequest))
+                {
+                    return;
+                }
 
-				// Discard exclusive request and update state
-				_pendingExclusiveRequest = null;
-				UpdateActiveLockState();
-			}
+                // Discard exclusive request and update state
+                _pendingExclusiveRequest = null;
+                UpdateActiveLockState();
+            }
 
-			while (_pendingRequests.Count > 0)
-			{
-				// Attempt to release the next request from the queue
-				var queuedRequest = _pendingRequests.Peek();
-				if (!ReleaseWaitingRequest(queuedRequest))
-				{
-					break;
-				}
+            while (_pendingRequests.Count > 0)
+            {
+                // Attempt to release the next request from the queue
+                var queuedRequest = _pendingRequests.Peek();
+                if (!ReleaseWaitingRequest(queuedRequest))
+                {
+                    break;
+                }
 
-				// Remove element from queue and update active lock state
-				_pendingRequests.Dequeue();
-				UpdateActiveLockState();
-			}
-		}
+                // Remove element from queue and update active lock state
+                _pendingRequests.Dequeue();
+                UpdateActiveLockState();
+            }
+        }
 
-		private bool ReleaseWaitingRequest(AcquireLock request)
-		{
-			// Skip aborted requests
-			if (request.Task.IsCanceled ||
-				request.Task.IsCompleted ||
-				request.Task.IsFaulted)
-			{
-				return true;
-			}
+        private bool ReleaseWaitingRequest(AcquireLock request)
+        {
+            // Skip aborted requests
+            if (request.Task.IsCanceled ||
+                request.Task.IsCompleted ||
+                request.Task.IsFaulted)
+            {
+                return true;
+            }
 
-			// If this lock is compatable then add to active list
-			//	and release waiting request.
-			if (_currentState.CanAcquireLock(this, request))
-			{
-				SetActiveRequest(request);
-				return true;
-			}
+            // If this lock is compatable then add to active list
+            //	and release waiting request.
+            if (_currentState.CanAcquireLock(this, request))
+            {
+                SetActiveRequest(request);
+                return true;
+            }
 
-			// Incompatable lock.
-			return false;
-		}
+            // Incompatable lock.
+            return false;
+        }
 
-		private bool IsDowngradedLock(TLockTypeEnum currentLock, TLockTypeEnum newLock)
-		{
-			return (Convert.ToInt32(currentLock) > Convert.ToInt32(newLock));
-		}
+        private bool IsDowngradedLock(TLockTypeEnum currentLock, TLockTypeEnum newLock)
+        {
+            return (Convert.ToInt32(currentLock) > Convert.ToInt32(newLock));
+        }
 
-		private bool IsEquivalentLock(TLockTypeEnum currentLock, TLockTypeEnum newLock)
-		{
-			return (Convert.ToInt32(currentLock) == Convert.ToInt32(newLock));
-		}
-		#endregion
+        private bool IsEquivalentLock(TLockTypeEnum currentLock, TLockTypeEnum newLock)
+        {
+            return (Convert.ToInt32(currentLock) == Convert.ToInt32(newLock));
+        }
+        #endregion
 
-		#region IReferenceLock Members
-		void IReferenceLock.AddRefLock()
-		{
-			AddRefLock();
-		}
+        #region IReferenceLock Members
+        void IReferenceLock.AddRefLock()
+        {
+            AddRefLock();
+        }
 
-		void IReferenceLock.ReleaseLock()
-		{
-			ReleaseRefLock();
-		}
-		#endregion
-	}
+        void IReferenceLock.ReleaseLock()
+        {
+            ReleaseRefLock();
+        }
+        #endregion
+    }
 }

@@ -4,7 +4,6 @@ using Xunit;
 
 namespace Zen.Trunk.VirtualMemory.Tests
 {
-
     /// <summary>
     /// Summary description for Multiple Device Unit Test suite
     /// </summary>
@@ -12,11 +11,12 @@ namespace Zen.Trunk.VirtualMemory.Tests
     [Trait("Class", "Multiple Device")]
     public class MultipleDeviceUnitTest : AutofacVirtualMemoryUnitTests
     {
-        [Fact(DisplayName = @"
-Given a newly created multi-device with 4 sub-files
-When 7 buffers are written to each sub-file and then read into separate buffers
+        [Theory(DisplayName = @"
+Given a newly created multi-device with 16 sub-files
+When 128 buffers are written to each sub-file and then read into separate buffers
 Then the buffer contents are the same")]
-        public async Task CreateMultipleDeviceTest()
+        [InlineData(16, 128)]
+        public async Task CreateMultipleDeviceTest(int deviceCount, uint pagesPerDevice)
         {
             using (var tracker = new TempFileTracker())
             {
@@ -25,10 +25,14 @@ Then the buffer contents are the same")]
                 using (var device = BufferDeviceFactory.CreateMultipleBufferDevice(true))
                 {
                     var deviceIds = new List<DeviceId>();
-                    foreach (var filename in GetChildDeviceList())
+                    for (int deviceIndex = 0; deviceIndex < deviceCount; ++deviceIndex)
                     {
+                        var filename = $"mdt{deviceIndex}.bin";
                         var pathName = tracker.Get(filename);
-                        deviceIds.Add(await device.AddDeviceAsync(filename, pathName, DeviceId.Zero, 128).ConfigureAwait(true));
+                        var deviceId = await device
+                            .AddDeviceAsync(filename, pathName, DeviceId.Zero, pagesPerDevice)
+                            .ConfigureAwait(true);
+                        deviceIds.Add(deviceId);
                     }
                    
                     await device.OpenAsync().ConfigureAwait(true);
@@ -37,7 +41,7 @@ Then the buffer contents are the same")]
                     var subTasks = new List<Task>();
                     foreach (var deviceId in deviceIds)
                     {
-                        for (var index = 0; index < 7; ++index)
+                        for (var index = 0; index < pagesPerDevice; ++index)
                         {
                             var buffer = BufferFactory.AllocateAndFill((byte)index);
                             saveBuffers.Add(buffer);
@@ -51,7 +55,7 @@ Then the buffer contents are the same")]
                     subTasks.Clear();
                     foreach (var deviceId in deviceIds)
                     {
-                        for (var index = 0; index < 7; ++index)
+                        for (var index = 0; index < pagesPerDevice; ++index)
                         {
                             var buffer = BufferFactory.AllocateBuffer();
                             loadBuffers.Add(buffer);
@@ -85,17 +89,6 @@ Then the buffer contents are the same")]
             {
                 buffer.Dispose();
             }
-        }
-
-        private string[] GetChildDeviceList()
-        {
-            return new[]
-                {
-                    "Device1.bin",
-                    "Device2.bin",
-                    "Device3.bin",
-                    "Device4.bin",
-                };
         }
     }
 }
