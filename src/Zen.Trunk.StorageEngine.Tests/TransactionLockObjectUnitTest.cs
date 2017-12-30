@@ -98,58 +98,73 @@ namespace Zen.Trunk.Storage
         public async Task TransactionObjectLockTest()
         {
             // Setup lock hierarchy
-            var databaseLock = new DatabaseLock();
-            databaseLock.Id = "DBL:01";
-            databaseLock.Initialise();
-
-            var objectLock = new ObjectLock();
-            objectLock.Id = "OBL:01";
-            objectLock.Parent = databaseLock;
-            objectLock.Initialise();
-
-            var dataLock = new DataLock();
-            dataLock.Id = "DL:01";
-            dataLock.Parent = objectLock;
-            dataLock.Initialise();
-
-            // Now we spoof transactions so we can test this madness
-            var firstLockOwner = new LockOwnerIdent(
-                SessionId.Zero,
-                new TransactionId(5));
-            var secondLockOwner = new LockOwnerIdent(
-                SessionId.Zero,
-                new TransactionId(6));
-
-            // Acquire shared database locks for both transactions
-            await databaseLock.LockAsync(firstLockOwner, DatabaseLockType.Shared, TimeSpan.FromSeconds(30)).ConfigureAwait(true);
-            Assert.True(
-                await databaseLock.HasLockAsync(firstLockOwner, DatabaseLockType.Shared).ConfigureAwait(true),
-                "Transaction #1 cannot gain shared database lock.");
-            await databaseLock.LockAsync(secondLockOwner, DatabaseLockType.Shared, TimeSpan.FromSeconds(30)).ConfigureAwait(true);
-            Assert.True(
-                await databaseLock.HasLockAsync(secondLockOwner, DatabaseLockType.Shared).ConfigureAwait(true),
-                "Transaction #2 cannot gain shared database lock.");
-
-            // Acquire shared object lock and escalate to exclusive
-            await objectLock.LockAsync(firstLockOwner, ObjectLockType.Exclusive, TimeSpan.FromSeconds(30)).ConfigureAwait(true);
-            Assert.True(
-                await objectLock.HasLockAsync(firstLockOwner, ObjectLockType.Exclusive).ConfigureAwait(true),
-                "Transaction #1 cannot gain exclusive object lock.");
-
-            try
+            var builder = new TransactionLockHierarchyBuilder();
+            builder.WithRootLock()
+                .WithDatabaseLock("DBL:01")
+                .WithObjectLock("OBL:01")
+                .WithDataLock("DL:01");
+            ITransactionLockHierarchy lockHierarchy;
+            using (lockHierarchy = builder.Build())
             {
-                await objectLock.LockAsync(secondLockOwner, ObjectLockType.Shared, TimeSpan.FromSeconds(5)).ConfigureAwait(true);
-                Assert.True(false, "Second transaction should not be able to gain shared object lock.");
-            }
-            catch
-            {
+                var databaseLock = lockHierarchy.DatabaseLocks["DBL:01"];
+                var objectLock = lockHierarchy.ObjectLocks["OBL:01"];
+                var dataLock = lockHierarchy.DataLocks["DL:01"];
+
+                // Now we spoof transactions so we can test this madness
+                var firstLockOwner = new LockOwnerIdent(
+                    SessionId.Zero,
+                    new TransactionId(5));
+                var secondLockOwner = new LockOwnerIdent(
+                    SessionId.Zero,
+                    new TransactionId(6));
+
+                // Acquire shared database locks for both transactions
+                await databaseLock.LockAsync(firstLockOwner, DatabaseLockType.Shared, TimeSpan.FromSeconds(30)).ConfigureAwait(true);
+                Assert.True(
+                    await databaseLock.HasLockAsync(firstLockOwner, DatabaseLockType.Shared).ConfigureAwait(true),
+                    "Transaction #1 cannot gain shared database lock.");
+                await databaseLock.LockAsync(secondLockOwner, DatabaseLockType.Shared, TimeSpan.FromSeconds(30)).ConfigureAwait(true);
+                Assert.True(
+                    await databaseLock.HasLockAsync(secondLockOwner, DatabaseLockType.Shared).ConfigureAwait(true),
+                    "Transaction #2 cannot gain shared database lock.");
+
+                // Acquire shared object lock and escalate to exclusive
+                await objectLock.LockAsync(firstLockOwner, ObjectLockType.Exclusive, TimeSpan.FromSeconds(30)).ConfigureAwait(true);
+                Assert.True(
+                    await objectLock.HasLockAsync(firstLockOwner, ObjectLockType.Exclusive).ConfigureAwait(true),
+                    "Transaction #1 cannot gain exclusive object lock.");
+
+                try
+                {
+                    await objectLock.LockAsync(secondLockOwner, ObjectLockType.Shared, TimeSpan.FromSeconds(5)).ConfigureAwait(true);
+                    Assert.True(false, "Second transaction should not be able to gain shared object lock.");
+                }
+                catch
+                {
+                }
+
+                // First transaction should already have an exclusive lock on data
+                await dataLock.LockAsync(firstLockOwner, DataLockType.Exclusive, TimeSpan.FromSeconds(30)).ConfigureAwait(true);
+                Assert.True(
+                    await dataLock.HasLockAsync(firstLockOwner, DataLockType.Exclusive).ConfigureAwait(true),
+                    "Transaction #1 does not have exclusive data lock.");
+
+                await dataLock.UnlockAsync(firstLockOwner, DataLockType.None).ConfigureAwait(true);
+                Assert.False(await dataLock.HasLockAsync(firstLockOwner, DataLockType.None).ConfigureAwait(true));
+
+                await objectLock.UnlockAsync(firstLockOwner, ObjectLockType.None).ConfigureAwait(true);
+                Assert.False(await objectLock.HasLockAsync(firstLockOwner, ObjectLockType.None).ConfigureAwait(true));
+
+                await databaseLock.UnlockAsync(firstLockOwner, DatabaseLockType.None).ConfigureAwait(true);
+                Assert.False(await databaseLock.HasLockAsync(firstLockOwner, DatabaseLockType.None).ConfigureAwait(true));
+
+                await databaseLock.UnlockAsync(secondLockOwner, DatabaseLockType.None).ConfigureAwait(true);
+                Assert.False(await databaseLock.HasLockAsync(secondLockOwner, DatabaseLockType.None).ConfigureAwait(true));
             }
 
-            // First transaction should already have an exclusive lock on data
-            await dataLock.LockAsync(firstLockOwner, DataLockType.Exclusive, TimeSpan.FromSeconds(30)).ConfigureAwait(true);
-            Assert.True(
-                await dataLock.HasLockAsync(firstLockOwner, DataLockType.Exclusive).ConfigureAwait(true),
-                "Transaction #1 does not have exclusive data lock.");
+            Assert.Equal(
+                lockHierarchy.ExpectedFinalReleaseCount,
+                lockHierarchy.ActualFinalReleaseCount);
         }
     }
 }
