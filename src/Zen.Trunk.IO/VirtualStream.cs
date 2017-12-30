@@ -15,13 +15,16 @@ namespace Zen.Trunk.IO
     /// </summary>
     public class VirtualStream : Stream
     {
+        #region Private Fields
         private readonly int _bufferSize = 4096;
         private Stream _fileBackingStore;
         private bool _isDisposed;
         private Stream _memoryBackingStore;
         private readonly VirtualStreamMemoryFlag _memoryFlag = VirtualStreamMemoryFlag.AutoOverflowToDisk;
         private readonly int _thresholdSize = 16384;
+        #endregion
 
+        #region Public Constructors
         /// <summary>
         /// Initialises a new instance of the <see cref="VirtualStream" /> class.
         /// </summary>
@@ -78,7 +81,9 @@ namespace Zen.Trunk.IO
             _bufferSize = bufferSize;
             _memoryFlag = memoryFlag;
         }
+        #endregion
 
+        #region Public Properties
         /// <summary>
         /// When overridden in a derived class, gets a value indicating whether the
         /// current stream supports reading.
@@ -113,14 +118,8 @@ namespace Zen.Trunk.IO
         /// <returns>The current position within the stream.</returns>
         public override long Position
         {
-            get
-            {
-                return UnderlyingStream.Position;
-            }
-            set
-            {
-                UnderlyingStream.Position = value;
-            }
+            get => UnderlyingStream.Position;
+            set => UnderlyingStream.Position = value;
         }
 
         /// <summary>
@@ -138,7 +137,9 @@ namespace Zen.Trunk.IO
                 return _memoryBackingStore ?? _fileBackingStore;
             }
         }
+        #endregion
 
+        #region Public Methods
         /// <summary>
         /// When overridden in a derived class, clears all buffers for this stream and
         /// causes any buffered data to be written to the underlying device.
@@ -237,7 +238,9 @@ namespace Zen.Trunk.IO
 
             UnderlyingStream.SetLength(value);
         }
+        #endregion
 
+        #region Protected Methods
         /// <summary>
         /// Releases the unmanaged resources used by the
         /// <see cref="T:System.IO.Stream" /> and optionally releases the managed
@@ -258,6 +261,7 @@ namespace Zen.Trunk.IO
                     _memoryBackingStore.Dispose();
                     _memoryBackingStore = null;
                 }
+
                 if (_fileBackingStore != null)
                 {
                     _fileBackingStore.Flush();
@@ -271,7 +275,9 @@ namespace Zen.Trunk.IO
 
             base.Dispose(disposing);
         }
+        #endregion
 
+        #region Private Methods
         private void CheckNotDisposed()
         {
             if (_isDisposed)
@@ -288,8 +294,8 @@ namespace Zen.Trunk.IO
             }
             else
             {
-                if (_memoryFlag == VirtualStreamMemoryFlag.OnlyInMemory
-                    || _memoryFlag == VirtualStreamMemoryFlag.AutoOverflowToDisk)
+                if (_memoryFlag == VirtualStreamMemoryFlag.OnlyInMemory ||
+                    _memoryFlag == VirtualStreamMemoryFlag.AutoOverflowToDisk)
                 {
                     _memoryBackingStore = new MemoryStream();
                 }
@@ -309,8 +315,9 @@ namespace Zen.Trunk.IO
 
         private void UpgradeStreamIfNeeded(bool force = false)
         {
-            if (_memoryFlag == VirtualStreamMemoryFlag.AutoOverflowToDisk && _memoryBackingStore != null
-                && _memoryBackingStore.Length > _thresholdSize)
+            if (_memoryFlag == VirtualStreamMemoryFlag.AutoOverflowToDisk &&
+                _memoryBackingStore != null &&
+                _memoryBackingStore.Length > _thresholdSize)
             {
                 // Create file-based storage
                 _fileBackingStore =
@@ -338,7 +345,8 @@ namespace Zen.Trunk.IO
                 // Restore position in file-based stream
                 _fileBackingStore.Position = cachedPosition;
             }
-        }
+        } 
+        #endregion
     }
 
     /// <summary>

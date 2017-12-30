@@ -207,7 +207,7 @@ namespace Zen.Trunk.IO
         {
             if (_innerStream == null)
             {
-                throw new ObjectDisposedException("DeviceBuffer.DeviceStream");
+                throw new ObjectDisposedException(GetType().FullName);
             }
         }
         #endregion

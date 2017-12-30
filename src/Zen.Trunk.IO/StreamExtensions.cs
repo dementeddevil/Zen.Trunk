@@ -21,26 +21,26 @@ namespace Zen.Trunk.IO
         /// <param name="stream">The stream.</param>
         /// <param name="bufferSize">Size of the buffer.</param>
         /// <param name="useVirtualStreamAsBackingStore">
-        /// if set to <c>true</c> then a <see cref="VirtualStream" /> stream is
-        /// used as the backing store to minimise memory usage for large streams.
-        /// If data needs to be buffered to support seeking then the data will first be
-        /// stored in-memory and, if necessary, promoted to disk storage if the
-        /// supplied threshold is exceeded.
-        /// if set to <c>false</c> then a temporary disk-file is used as
+        /// If set to <c>true</c> then a <see cref="VirtualStream" /> stream
+        /// is used as the backing store to minimise memory usage for large
+        /// streams.
+        /// If data needs to be buffered to support seeking then the data will
+        /// first be stored in-memory and, if necessary, promoted to disk storage
+        /// if the supplied threshold is exceeded.
+        /// If set to <c>false</c> then a temporary disk-file is used as
         /// the backing store.
         /// </param>
         /// <param name="overflowToDiskThresholdBytes">
-        /// The overflow automatic disk
-        /// threshold bytes.
+        /// The overflow automatic disk threshold bytes.
         /// </param>
         /// <returns>
         /// A <see cref="Stream" /> that is read-only and seekable.
-        /// If the original stream already has seek capability then it is returned
-        /// unwrapped.
+        /// If the original stream already has seek capability then it is
+        /// returned unwrapped.
         /// </returns>
         /// <remarks>
-        /// This method is useful in situations where a forward-only stream must
-        /// be manipulated by client code.
+        /// This method is useful in situations where a forward-only stream
+        /// must be manipulated by client code.
         /// </remarks>
         public static Stream AsReadOnlySeekableStream(
             this Stream stream,
@@ -52,11 +52,13 @@ namespace Zen.Trunk.IO
             {
                 return stream;
             }
+
             if (!useVirtualStreamAsBackingStore)
             {
                 return new ReadOnlySeekableStream(stream, bufferSize);
             }
-            Stream backingStore = new VirtualStream(bufferSize, overflowToDiskThresholdBytes);
+            
+            var backingStore = new VirtualStream(bufferSize, overflowToDiskThresholdBytes);
             return new ReadOnlySeekableStream(stream, backingStore, bufferSize);
         }
 
@@ -72,7 +74,7 @@ namespace Zen.Trunk.IO
             return new FixedLengthStream(stream, fixedStreamLength);
         }
 
-        /*/// <summary>
+        /// <summary>
         /// Returns a wrapped stream capable of readonly seek operations that
         /// is sharable across multiple threads.
         /// </summary>
@@ -81,7 +83,7 @@ namespace Zen.Trunk.IO
         public static Stream AsMTAReadOnlySeekableStream(this Stream stream)
         {
             return new MultiThreadAccessReadOnlySeekableStream(stream);
-        }*/
+        }
 
         /// <summary>
         /// Returns a wrapped stream that will execute the specified action

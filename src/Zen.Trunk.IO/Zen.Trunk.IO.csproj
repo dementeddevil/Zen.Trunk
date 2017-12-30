@@ -43,6 +43,7 @@
   <ItemGroup>
     <Compile Include="BufferedReaderStream.cs" />
     <Compile Include="DelegatingStream.cs" />
+    <Compile Include="BaseEventingReadStream.cs" />
     <Compile Include="EventingReadStream.cs" />
     <Compile Include="FixedLengthStream.cs" />
     <Compile Include="ForwardOnlyEventingReadStream.cs" />

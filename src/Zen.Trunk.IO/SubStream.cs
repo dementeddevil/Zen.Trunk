@@ -4,7 +4,8 @@ using System.IO;
 namespace Zen.Trunk.IO
 {
     /// <summary>
-    /// 
+    /// <c>SubStream</c> is a stream that represents a sub-section of an
+    /// owner stream.
     /// </summary>
     /// <seealso cref="System.IO.Stream" />
     public class SubStream : Stream
@@ -21,6 +22,12 @@ namespace Zen.Trunk.IO
         /// <summary>
         /// Initialises an instance of <see cref="T:SubStream" />.
         /// </summary>
+        /// <paramref name="innerStream">Inner stream</paramref>
+        /// <paramref name="length">Length of the sub-stream</paramref>
+        /// <remarks>
+        /// The sub-stream will be positioned at the current underlying stream position
+        /// and will have a length as specified.1
+        /// </remarks>
         public SubStream(Stream innerStream, long length)
         {
             _innerStream = innerStream;
@@ -32,6 +39,19 @@ namespace Zen.Trunk.IO
         /// <summary>
         /// Initialises an instance of <see cref="T:SubStream" />.
         /// </summary>
+        /// <paramref name="innerStream">Inner stream</paramref>
+        /// <paramref name="startOffset">Position in underlying stream to start sub-stream</paramref>
+        /// <paramref name="length">Length of the sub-stream</paramref>
+        /// <paramref name="leaveUnderlyingStreamAtEofOnClose">
+        /// <c>true</c> then underlying stream is left at the logical position
+        /// matching the end of the sub-stream when the sub-stream is closed.
+        /// <c>false</c> then underlying stream is closed when the sub-stream is
+        /// closed.
+        /// </paramref>
+        /// <remarks>
+        /// The sub-stream will be positioned at the current underlying stream position
+        /// and will have a length as specified.1
+        /// </remarks>
         public SubStream(Stream innerStream, long startOffset, long length, bool leaveUnderlyingStreamAtEofOnClose = false)
         {
             _innerStream = innerStream;

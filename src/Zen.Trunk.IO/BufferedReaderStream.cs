@@ -42,14 +42,7 @@ namespace Zen.Trunk.IO
         /// <param name="outputStream">The output stream.</param>
         protected BufferedReaderStream(MemoryStream outputStream)
         {
-            if (outputStream != null)
-            {
-                _outputStream = outputStream;
-            }
-            else
-            {
-                _outputStream = new MemoryStream();
-            }
+            _outputStream = outputStream ?? new MemoryStream();
         }
         #endregion
 
@@ -68,7 +61,6 @@ namespace Zen.Trunk.IO
         /// </summary>
         /// <returns>The current position within the stream.</returns>
         public override long Position => _position;
-
         #endregion
 
         #region Protected Properties
@@ -79,7 +71,6 @@ namespace Zen.Trunk.IO
         /// The output stream.
         /// </value>
         protected Stream OutputStream => _outputStream;
-
         #endregion
 
         #region Protected Methods
@@ -106,22 +97,13 @@ namespace Zen.Trunk.IO
         /// </remarks>
         protected override int ReadInternal(byte[] buffer, int offset, int count)
         {
-            int bytesToRead;
             var totalBytesRead = 0;
             if (_bufferCount > 0)
             {
                 var outputBuffer = _outputStream.GetBuffer();
-
-                if (_bufferCount < count)
-                {
-                    bytesToRead = _bufferCount;
-                }
-                else
-                {
-                    bytesToRead = count;
-                }
-
+                var bytesToRead = _bufferCount < count ? _bufferCount : count;
                 Array.Copy(outputBuffer, _bufferPos, buffer, offset, bytesToRead);
+
                 _bufferCount = _bufferCount - bytesToRead;
                 _bufferPos = _bufferPos + bytesToRead;
                 _position = _position + bytesToRead;
@@ -159,6 +141,7 @@ namespace Zen.Trunk.IO
                 _position += count;
                 totalBytesRead += count;
             }
+
             return totalBytesRead;
         }
         #endregion

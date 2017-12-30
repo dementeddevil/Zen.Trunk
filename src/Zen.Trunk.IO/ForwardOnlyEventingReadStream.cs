@@ -13,10 +13,10 @@ namespace Zen.Trunk.IO
 {
     /// <summary>
     /// <c>ForwardOnlyEventingReadStream</c> extends
-    /// <see cref="EventingReadStream" />
+    /// <see cref="BaseEventingReadStream" />
     /// to limit seeking ability.
     /// </summary>
-    public abstract class ForwardOnlyEventingReadStream : EventingReadStream
+    public abstract class ForwardOnlyEventingReadStream : BaseEventingReadStream
     {
         #region Public Properties
         /// <summary>

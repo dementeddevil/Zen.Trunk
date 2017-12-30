@@ -14,8 +14,8 @@ using System.Threading;
 namespace Zen.Trunk.IO
 {
     /// <summary>
-    /// <c>StreamManager</c> is a class designed to allow multiple threads to
-    /// read from a single stream.
+    /// <c>MultiThreadAccessReadOnlySeekableStream</c> is a class designed to
+    /// allow multiple threads to read from a single stream.
     /// </summary>
     public class MultiThreadAccessReadOnlySeekableStream : Stream
     {
@@ -125,12 +125,12 @@ namespace Zen.Trunk.IO
         /// <see cref="MultiThreadAccessReadOnlySeekableStream" /> class.
         /// </summary>
         /// <param name="sourceStream">The source stream.</param>
-        /// <exception cref="System.ArgumentException">Source stream is not seekable.</exception>
+        /// <exception cref="System.ArgumentException">Source stream is not readable.</exception>
         public MultiThreadAccessReadOnlySeekableStream(Stream sourceStream)
         {
             if (!sourceStream.CanRead)
             {
-                throw new ArgumentException("Source stream is not seekable.");
+                throw new ArgumentException("Source stream is not readable.");
             }
 
             if (sourceStream.CanSeek)
@@ -320,7 +320,6 @@ namespace Zen.Trunk.IO
         #endregion
 
         #region Protected Methods
-
         protected override void Dispose(bool disposing)
         {
             var decrementReferenceCount = false;
@@ -352,7 +351,6 @@ namespace Zen.Trunk.IO
                 base.Dispose(disposing);
             }
         }
-
         #endregion
 
         #region Private Methods
