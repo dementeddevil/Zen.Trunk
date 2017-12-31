@@ -2,8 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
-using System.Transactions;
-using Autofac;
 using Zen.Trunk.Extensions;
 using Zen.Trunk.IO;
 using Zen.Trunk.VirtualMemory;

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Transactions;
 using Autofac;
@@ -37,14 +36,14 @@ Then the attempt to gain an exclusive lock fails.")]
             // Locking semantics use transaction id held on current thread each lock/unlock needs scope
 
             // Lock for shared read on txn 1
-            using (var disp = TrunkTransactionContext.SwitchTransactionContext(firstTransaction))
+            using (TrunkTransactionContext.SwitchTransactionContext(firstTransaction))
             {
                 var dlob = firstTransactionLob.GetOrCreateDataLockOwnerBlock(new ObjectId(1), 5);
                 await dlob.LockItemAsync(new LogicalPageId(1), DataLockType.Shared, TimeSpan.FromSeconds(5)).ConfigureAwait(true);
             }
 
             // Lock for shared read on txn 2
-            using (var disp = TrunkTransactionContext.SwitchTransactionContext(secondTransaction))
+            using (TrunkTransactionContext.SwitchTransactionContext(secondTransaction))
             {
                 var dlob = secondTransactionLob.GetOrCreateDataLockOwnerBlock(new ObjectId(1), 5);
                 await dlob.LockItemAsync(new LogicalPageId(1), DataLockType.Shared, TimeSpan.FromSeconds(5)).ConfigureAwait(true);
@@ -55,7 +54,7 @@ Then the attempt to gain an exclusive lock fails.")]
                     async () =>
                     {
                         // Attempt to get exclusive lock on txn 2 (update succeeds but exclusive fails)
-                        using (var disp = TrunkTransactionContext.SwitchTransactionContext(secondTransaction))
+                        using (TrunkTransactionContext.SwitchTransactionContext(secondTransaction))
                         {
                             var dlob = secondTransactionLob.GetOrCreateDataLockOwnerBlock(new ObjectId(1), 5);
                             await dlob.LockItemAsync(new LogicalPageId(1), DataLockType.Update, TimeSpan.FromSeconds(5)).ConfigureAwait(true);
@@ -86,7 +85,7 @@ Then the attempt to gain an exclusive lock fails.")]
             // Locking semantics use transaction id held on current thread each lock/unlock needs scope
 
             // Lock for shared read on txn 1
-            using (var disp = TrunkTransactionContext.SwitchTransactionContext(firstTransaction))
+            using (TrunkTransactionContext.SwitchTransactionContext(firstTransaction))
             {
                 var dlob = firstTransactionLob.GetOrCreateDataLockOwnerBlock(new ObjectId(1), 5);
                 for (ulong logicalId = 0; logicalId < 5; ++logicalId)
@@ -104,7 +103,7 @@ Then the attempt to gain an exclusive lock fails.")]
             }
 
             // Lock for shared read on txn 2
-            using (var disp = TrunkTransactionContext.SwitchTransactionContext(secondTransaction))
+            using (TrunkTransactionContext.SwitchTransactionContext(secondTransaction))
             {
                 var dlob = secondTransactionLob.GetOrCreateDataLockOwnerBlock(new ObjectId(1), 5);
                 await dlob.LockItemAsync(new LogicalPageId(1), DataLockType.Shared, TimeSpan.FromSeconds(5)).ConfigureAwait(true);
@@ -117,7 +116,7 @@ Then the attempt to gain an exclusive lock fails.")]
             //	both fail because the original lock on txn 1 was escalated to a full object lock
             //	the update lock would succeed only if the original locks on txn 1 did not cause
             //	an object-level escalation.
-            using (var disp = TrunkTransactionContext.SwitchTransactionContext(secondTransaction))
+            using (TrunkTransactionContext.SwitchTransactionContext(secondTransaction))
             {
                 var dlob = secondTransactionLob.GetOrCreateDataLockOwnerBlock(new ObjectId(1), 5);
                 await Assert

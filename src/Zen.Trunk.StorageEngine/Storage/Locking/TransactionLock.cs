@@ -397,7 +397,7 @@ namespace Zen.Trunk.Storage.Locking
             _acquireLockAction.Post(request);
 
             // Wait for task to complete
-            var addRefLock = false;
+            bool addRefLock;
             try
             {
                 addRefLock = await request.Task.WithTimeout(timeout).ConfigureAwait(false);
@@ -692,6 +692,7 @@ namespace Zen.Trunk.Storage.Locking
         /// Thrown if no lock owner can be determined for the calling thread.
         /// </exception>
         // ReSharper disable once UnusedParameter.Local
+        // ReSharper disable once ParameterOnlyUsedForPreconditionCheck.Local
         private LockOwnerIdent GetThreadLockOwnerIdent(bool throwIfMissing)
         {
             var sessionId = SessionId.Zero;

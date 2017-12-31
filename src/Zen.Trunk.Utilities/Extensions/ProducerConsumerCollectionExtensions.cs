@@ -21,8 +21,7 @@ namespace Zen.Trunk.Extensions
 		/// <param name="collection">The collection to be cleared.</param>
 		public static void Clear<T>(this IProducerConsumerCollection<T> collection)
 		{
-			T ignored;
-			while (collection.TryTake(out ignored))
+			while (collection.TryTake(out var ignored))
 			{
 			}
 		}
@@ -34,8 +33,7 @@ namespace Zen.Trunk.Extensions
 		public static IEnumerable<T> GetConsumingEnumerable<T>(
 			this IProducerConsumerCollection<T> collection)
 		{
-			T item;
-			while (collection.TryTake(out item))
+		    while (collection.TryTake(out var item))
 			{
 				yield return item;
 			}

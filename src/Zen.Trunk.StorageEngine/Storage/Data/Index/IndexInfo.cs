@@ -3,16 +3,14 @@ using Zen.Trunk.Storage.BufferFields;
 
 namespace Zen.Trunk.Storage.Data.Index
 {
+#pragma warning disable 660, 661
+#pragma warning disable CS0659 // Type overrides Object.Equals(object o) but does not override Object.GetHashCode()
     /// <summary>
     /// 
     /// </summary>
     /// <seealso cref="BufferFieldWrapper" />
     /// <seealso cref="System.IComparable" />
-#pragma warning disable 660, 661
-#pragma warning disable CS0659 // Type overrides Object.Equals(object o) but does not override Object.GetHashCode()
     public class IndexInfo : BufferFieldWrapper, IComparable
-#pragma warning restore CS0659 // Type overrides Object.Equals(object o) but does not override Object.GetHashCode()
-#pragma warning restore 660, 661
     {
 		#region Public Operators
 		/// <summary>
@@ -107,10 +105,8 @@ namespace Zen.Trunk.Storage.Data.Index
 			{
 				return (CompareTo(rhs) == 0);
 			}
-			else
-			{
-				return base.Equals(obj);
-			}
+
+		    return false;
 		}
 
         /// <summary>
@@ -167,4 +163,6 @@ namespace Zen.Trunk.Storage.Data.Index
 		}
 		#endregion
 	}
+#pragma warning restore CS0659 // Type overrides Object.Equals(object o) but does not override Object.GetHashCode()
+#pragma warning restore 660, 661
 }

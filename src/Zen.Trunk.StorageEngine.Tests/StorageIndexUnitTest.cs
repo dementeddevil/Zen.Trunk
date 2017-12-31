@@ -4,7 +4,6 @@ using Autofac;
 using Xunit;
 using Zen.Trunk.IO;
 using Zen.Trunk.Storage.BufferFields;
-using Zen.Trunk.Storage.Data;
 using Zen.Trunk.Storage.Data.Index;
 using Zen.Trunk.Storage.Locking;
 using Zen.Trunk.Storage.Log;

@@ -478,10 +478,9 @@ namespace Zen.Trunk.VirtualMemory
             var root = Path.GetPathRoot(pathName);
             var volumeName = new StringBuilder(255);
             var fileSystemName = new StringBuilder(255);
-            int volumeSerialNumber, maxFileNameLength, fileSystemFlags;
             SafeNativeMethods.GetVolumeInformation(root, volumeName, 255,
-                out volumeSerialNumber, out maxFileNameLength,
-                out fileSystemFlags, fileSystemName, 255);
+                out var volumeSerialNumber, out var maxFileNameLength,
+                out var fileSystemFlags, fileSystemName, 255);
             return ((fileSystemFlags & 0x40) != 0);
         }
 
@@ -499,11 +498,12 @@ namespace Zen.Trunk.VirtualMemory
             if (IsSparseSupported && _isSparse)
             {
                 var zeroInfo =
-                    new Win32.FILE_ZERO_DATA_INFORMATION();
-                zeroInfo.FileOffset = offset;
-                zeroInfo.BeyondFinalZero = offset + count;
-                int bytesReturned;
-                Win32.SetZeroData(_handle, zeroInfo, out bytesReturned);
+                    new Win32.FILE_ZERO_DATA_INFORMATION
+                    {
+                        FileOffset = offset,
+                        BeyondFinalZero = offset + count
+                    };
+                Win32.SetZeroData(_handle, zeroInfo, out var bytesReturned);
             }
         }
 
@@ -1823,8 +1823,7 @@ namespace Zen.Trunk.VirtualMemory
             if (CanWrite)
             {
                 // Enable sparse files
-                int bytesReturned;
-                _isSparse = Win32.SetSparse(SafeFileHandle, out bytesReturned);
+                _isSparse = Win32.SetSparse(SafeFileHandle, out var bytesReturned);
 
                 // TODO: Derived classes must walk the file in a manner deemed
                 //	appropriate and mark the zero-length regions.
@@ -2391,11 +2390,12 @@ namespace Zen.Trunk.VirtualMemory
                     {
                         // Set increased file region as sparse area.
                         var zeroInfo =
-                            new Win32.FILE_ZERO_DATA_INFORMATION();
-                        zeroInfo.FileOffset = offset;
-                        zeroInfo.BeyondFinalZero = value;
-                        int bytesReturned;
-                        Win32.SetZeroData(_handle, zeroInfo, out bytesReturned);
+                            new Win32.FILE_ZERO_DATA_INFORMATION
+                            {
+                                FileOffset = offset,
+                                BeyondFinalZero = value
+                            };
+                        Win32.SetZeroData(_handle, zeroInfo, out var bytesReturned);
                     }
                 }
                 else

@@ -145,8 +145,7 @@ namespace Zen.Trunk.CoordinationDataStructures
 
         bool ICollection<KeyValuePair<TKey, TValue>>.Remove(KeyValuePair<TKey, TValue> item)
         {
-            TValue temp;
-            return TryRemoveWithNotification(item.Key, out temp);
+            return TryRemoveWithNotification(item.Key, out var temp);
         }
         #endregion
 
@@ -199,8 +198,7 @@ namespace Zen.Trunk.CoordinationDataStructures
         /// </returns>
         public bool Remove(TKey key)
         {
-            TValue temp;
-            return TryRemoveWithNotification(key, out temp);
+            return TryRemoveWithNotification(key, out var temp);
         }
 
         /// <summary>

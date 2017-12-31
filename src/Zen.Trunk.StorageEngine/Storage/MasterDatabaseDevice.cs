@@ -6,7 +6,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Autofac;
@@ -277,8 +276,7 @@ namespace Zen.Trunk.Storage
             }
 
             // Locate user database
-            DatabaseDevice device;
-            if (!_userDatabases.TryGetValue(name, out device))
+            if (!_userDatabases.TryGetValue(name, out var device))
             {
                 throw new ArgumentException("Database not found.");
             }

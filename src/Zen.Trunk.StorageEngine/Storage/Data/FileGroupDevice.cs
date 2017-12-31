@@ -1195,7 +1195,6 @@ namespace Zen.Trunk.Storage.Data
                     {
                         rootPage.Dispose();
                     }
-                    rootPage = null;
                 }
 
                 // Walk sorted list of devices

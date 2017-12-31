@@ -1,5 +1,4 @@
 ﻿using System.Threading.Tasks;
-using SuperSocket.SocketBase.Command;
 using SuperSocket.SocketBase.Protocol;
 
 namespace Zen.Trunk.Network.Commands

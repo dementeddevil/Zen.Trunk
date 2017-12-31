@@ -174,9 +174,9 @@ namespace Zen.Trunk.Storage.Data.Index
 			_indexEntries.Clear();
 			for (ushort index = 0; index < _indexEntryCount.Value; ++index)
 			{
-				IndexInfo info = CreateIndexEntry();
+				var info = CreateIndexEntry();
 				info.Read(streamManager);
-				_indexEntries.Add((TIndexClass)info);
+				_indexEntries.Add(info);
 			}
 		}
 
@@ -189,7 +189,7 @@ namespace Zen.Trunk.Storage.Data.Index
 		{
 			for (ushort index = 0; index < _indexEntryCount.Value; ++index)
 			{
-				IndexInfo info = IndexEntries[index];
+				var info = IndexEntries[index];
 				info.Write(streamManager);
 			}
 		}

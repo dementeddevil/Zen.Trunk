@@ -809,7 +809,7 @@ namespace Zen.Trunk.Storage.Data
             catch (OperationCanceledException)
             {
             }
-            catch (Exception exception)
+            catch (Exception)
             {
             }
         }

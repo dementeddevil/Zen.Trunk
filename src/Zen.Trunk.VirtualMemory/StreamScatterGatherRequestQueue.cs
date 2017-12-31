@@ -88,6 +88,7 @@ namespace Zen.Trunk.VirtualMemory
 		{
 			// Obtain the completion objects to be flushed
 			List<ScatterGatherRequestArray> arrayList = null;
+		    // ReSharper disable once InconsistentlySynchronizedField
 			if (_requests.Count > 0)
 			{
 				lock (_syncCallback)
@@ -150,6 +151,7 @@ namespace Zen.Trunk.VirtualMemory
 		private async Task FlushIfNeeded()
 		{
 			List<ScatterGatherRequestArray> candidates = null;
+		    // ReSharper disable once InconsistentlySynchronizedField
 			while (_requests.Count > _maximumNumberOfArrays)
 			{
 				lock (_syncCallback)
@@ -191,6 +193,7 @@ namespace Zen.Trunk.VirtualMemory
 
 		private void CoalesceRequests()
 		{
+		    // ReSharper disable once InconsistentlySynchronizedField
 			if (_requests.Count > 1)
 			{
 				lock (_syncCallback)

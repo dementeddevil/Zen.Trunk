@@ -76,7 +76,7 @@ namespace Zen.Trunk.VirtualMemory
 	    /// <summary>
 		/// Gets/sets the virtual page ID.
 		/// </summary>
-		public ulong Value => (((ulong)DeviceId.Value) << 32) | (ulong)PhysicalPageId;
+		public ulong Value => (((ulong)DeviceId.Value) << 32) | PhysicalPageId;
 
 	    /// <summary>
 		/// Gets a <see cref="T:VirtualPageId"/> representing the previous page.

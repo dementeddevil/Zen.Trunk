@@ -422,7 +422,7 @@ namespace Zen.Trunk.VirtualMemory
 		[ReliabilityContract(Consistency.WillNotCorruptState, Cer.MayFail),
 		DllImport("kernel32.dll", EntryPoint = "VirtualProtect", SetLastError = true)]
 		[return: MarshalAs(UnmanagedType.Bool)]
-		private static extern unsafe bool VirtualProtectInternal(
+		private static extern bool VirtualProtectInternal(
 			IntPtr address,
 			long numBytes,
 			int newPageProtectionMode,

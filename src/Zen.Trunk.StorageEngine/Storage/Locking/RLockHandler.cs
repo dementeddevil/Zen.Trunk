@@ -48,8 +48,7 @@ namespace Zen.Trunk.Storage.Locking
 				lockObject.Unlock(writable) &&
 				lockObject.LockCount == 0)
 			{
-				RLock temp;
-				_activeLocks.TryRemove(resource, out temp);
+				_activeLocks.TryRemove(resource, out var temp);
 				if (_freeLocks.Count < _maxFreeLocks)
 				{
 					_freeLocks.PutObject(lockObject);

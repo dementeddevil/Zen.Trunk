@@ -4,6 +4,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Security;
 using System.Security.Permissions;
+// ReSharper disable InconsistentNaming
 
 namespace Zen.Trunk.VirtualMemory
 {

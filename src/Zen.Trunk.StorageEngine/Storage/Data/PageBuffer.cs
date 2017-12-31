@@ -821,8 +821,7 @@ namespace Zen.Trunk.Storage.Data
 			{
 				if (trigger.CompleteTrigger(state))
 				{
-					StateChangeTrigger temp;
-					_triggers.TryRemove(trigger.Id, out temp);
+					_triggers.TryRemove(trigger.Id, out var temp);
 				}
 			}
 		}

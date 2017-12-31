@@ -19,7 +19,6 @@ namespace Zen.Trunk.IO
         /// Initializes a new instance of the <see cref="NonClosingStream" /> class.
         /// </summary>
         /// <param name="stream">The stream.</param>
-        /// <param name="canResize">if set to <c>true</c> then stream can be resized.</param>
         public NonResizeableStream(Stream stream)
         {
             _innerStream = stream;
