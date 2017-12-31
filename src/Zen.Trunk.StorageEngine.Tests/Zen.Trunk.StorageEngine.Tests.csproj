@@ -115,6 +115,7 @@
     <Compile Include="IRootLockBuilder.cs" />
     <Compile Include="ITransactionLockHierarchy.cs" />
     <Compile Include="MultipleBufferDeviceBuilder.cs" />
+    <Compile Include="TableRowPersistenceUnitTest.cs" />
     <Compile Include="TransactionLockBlockUnitTest.cs" />
     <Compile Include="PageUnitTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
