@@ -132,6 +132,7 @@
     <Compile Include="Storage\FileSpec.cs" />
     <Compile Include="Storage\ISession.cs" />
     <Compile Include="Storage\ISessionManager.cs" />
+    <Compile Include="Storage\Locking\FileGroupLock.cs" />
     <Compile Include="Storage\Locking\TrunkSession.cs" />
     <Compile Include="Storage\Locking\TrunkSessionContext.cs" />
     <Compile Include="Storage\Locking\ITrunkSession.cs" />
@@ -228,7 +229,6 @@
     <Compile Include="Storage\Locking\PreparingPageEnlistment.cs" />
     <Compile Include="Storage\Locking\RLock.cs" />
     <Compile Include="Storage\Locking\RLockHandler.cs" />
-    <Compile Include="Storage\Locking\RootPageLock.cs" />
     <Compile Include="Storage\Locking\SchemaLock.cs" />
     <Compile Include="Storage\Locking\TransactionLock.cs" />
     <Compile Include="Storage\Locking\TransactionLockBase.cs" />

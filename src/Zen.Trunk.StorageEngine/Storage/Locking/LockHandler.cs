@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using Zen.Trunk.CoordinationDataStructures;
+using Zen.Trunk.Logging;
 
 namespace Zen.Trunk.Storage.Locking
 {
@@ -26,6 +27,8 @@ namespace Zen.Trunk.Storage.Locking
         where TLockClass : TransactionLock<TLockTypeEnum>, new()
     {
         #region Private Fields
+        private static readonly ILog Logger = LogProvider.For<LockHandler<TLockClass, TLockTypeEnum>>();
+
         private int _maxFreeLocks;
         private readonly SpinLockClass _syncLocks = new SpinLockClass();
         private readonly Dictionary<string, TLockClass> _activeLocks = new Dictionary<string, TLockClass>();
@@ -108,6 +111,8 @@ namespace Zen.Trunk.Storage.Locking
             _syncLocks.Execute(
                 () =>
                 {
+                    Logger.DebugFormat("Lock final release: {0}", lockObject.Id);
+
                     if (!string.IsNullOrEmpty(lockObject.Id))
                     {
                         _activeLocks.Remove(lockObject.Id);
@@ -124,14 +129,8 @@ namespace Zen.Trunk.Storage.Locking
         #region ILockHandler Members
         int ILockHandler.MaxFreeLocks
         {
-            get
-            {
-                return _maxFreeLocks;
-            }
-            set
-            {
-                Interlocked.Exchange(ref _maxFreeLocks, value);
-            }
+            get => _maxFreeLocks;
+            set => Interlocked.Exchange(ref _maxFreeLocks, value);
         }
 
         int ILockHandler.ActiveLockCount => _activeLocks.Count;
@@ -143,7 +142,7 @@ namespace Zen.Trunk.Storage.Locking
             _syncLocks.Execute(
                 () =>
                 {
-                    while ((_freeLocks.Count < _maxFreeLocks) && (maxLocks > 0))
+                    while (_freeLocks.Count < _maxFreeLocks && maxLocks > 0)
                     {
                         _freeLocks.PutObject(CreateLock());
                         --maxLocks;

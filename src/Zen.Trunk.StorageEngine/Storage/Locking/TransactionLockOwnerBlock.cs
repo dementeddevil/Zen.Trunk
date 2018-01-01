@@ -27,7 +27,7 @@ namespace Zen.Trunk.Storage.Locking
 	{
 		#region Private Fields
 		private readonly IDatabaseLockManager _lockManager;
-		private readonly ConcurrentDictionary<FileGroupId, RootLock> _rootLocks;
+		private readonly ConcurrentDictionary<FileGroupId, FileGroupLock> _rootLocks;
 		private readonly ConcurrentDictionary<ObjectId, SchemaLock> _schemaLocks;
 		private readonly ConcurrentDictionary<VirtualPageId, DistributionLockOwnerBlock> _distributionOwnerBlocks;
 		private readonly ConcurrentDictionary<ObjectId, DataLockOwnerBlock> _dataOwnerBlocks;
@@ -42,7 +42,7 @@ namespace Zen.Trunk.Storage.Locking
 		public TransactionLockOwnerBlock(IDatabaseLockManager lockManager)
 		{
 			_lockManager = lockManager;
-			_rootLocks = new ConcurrentDictionary<FileGroupId, RootLock>();
+			_rootLocks = new ConcurrentDictionary<FileGroupId, FileGroupLock>();
 			_schemaLocks = new ConcurrentDictionary<ObjectId, SchemaLock>();
 			_distributionOwnerBlocks = new ConcurrentDictionary<VirtualPageId, DistributionLockOwnerBlock>();
 			_dataOwnerBlocks = new ConcurrentDictionary<ObjectId, DataLockOwnerBlock>();
@@ -55,11 +55,11 @@ namespace Zen.Trunk.Storage.Locking
 		/// </summary>
 		/// <param name="fileGroupId">The file group unique identifier.</param>
 		/// <returns></returns>
-		public RootLock GetOrCreateRootLock(FileGroupId fileGroupId)
+		public FileGroupLock GetOrCreateRootLock(FileGroupId fileGroupId)
 		{
 			return _rootLocks.GetOrAdd(
 				fileGroupId,
-				id => _lockManager.GetRootLock(id));
+				id => _lockManager.GetFileGroupLock(id));
 		}
 
 		/// <summary>
@@ -117,7 +117,7 @@ namespace Zen.Trunk.Storage.Locking
 		{
 			while (_rootLocks.Count > 0)
 			{
-				RootLock lockObject;
+				FileGroupLock lockObject;
 				if (_rootLocks.TryRemove(_rootLocks.Keys.First(), out lockObject))
 				{
 					await lockObject.UnlockAsync().ConfigureAwait(false);

@@ -401,11 +401,18 @@ namespace Zen.Trunk.Storage.Data
                 // Escalate the extent lock if necessary
                 if (DistributionLock != ObjectLockType.Exclusive)
                 {
-                    var extentLock = LockManager.GetExtentLock(VirtualPageId, result.Extent);
-                    if (!await extentLock.HasLockAsync(DataLockType.Exclusive).ConfigureAwait(false))
+                    var extentLock = LockManager.GetDistributionExtentLock(VirtualPageId, result.Extent);
+                    try
                     {
-                        await LockExtentAsync(result.Extent, DataLockType.Update).ConfigureAwait(false);
-                        await LockExtentAsync(result.Extent, DataLockType.Exclusive).ConfigureAwait(false);
+                        if (!await extentLock.HasLockAsync(DataLockType.Exclusive).ConfigureAwait(false))
+                        {
+                            await LockExtentAsync(result.Extent, DataLockType.Update).ConfigureAwait(false);
+                            await LockExtentAsync(result.Extent, DataLockType.Exclusive).ConfigureAwait(false);
+                        }
+                    }
+                    finally
+                    {
+                        extentLock.ReleaseRefLock();
                     }
                 }
             }
@@ -934,8 +941,15 @@ namespace Zen.Trunk.Storage.Data
             if (!alreadyHasLock)
             {
                 // NOTE: We only need to check for exclusive lock
-                var extentLock = LockManager.GetExtentLock(VirtualPageId, extentIndex);
-                alreadyHasLock = await extentLock.HasLockAsync(DataLockType.Exclusive).ConfigureAwait(false);
+                var extentLock = LockManager.GetDistributionExtentLock(VirtualPageId, extentIndex);
+                try
+                {
+                    alreadyHasLock = await extentLock.HasLockAsync(DataLockType.Exclusive).ConfigureAwait(false);
+                }
+                finally
+                {
+                    extentLock.ReleaseRefLock();
+                }
             }
 
             // Gain extent lock

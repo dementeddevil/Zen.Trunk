@@ -40,7 +40,7 @@ namespace Zen.Trunk.Storage.Locking
         DatabaseLock GetDatabaseLock(DatabaseId dbId);
 
         /// <summary>
-        /// Locks the root.
+        /// Locks the file-group.
         /// </summary>
         /// <param name="dbId">The database identifier.</param>
         /// <param name="fileGroupId">The file group identifier.</param>
@@ -49,27 +49,27 @@ namespace Zen.Trunk.Storage.Locking
         /// <returns>
         /// A <see cref="Task"/> representing the asynchronous operation.
         /// </returns>
-        Task LockRootAsync(DatabaseId dbId, FileGroupId fileGroupId, RootLockType lockType, TimeSpan timeout);
+        Task LockFileGroupAsync(DatabaseId dbId, FileGroupId fileGroupId, FileGroupLockType lockType, TimeSpan timeout);
 
         /// <summary>
-        /// Unlocks the root.
+        /// Unlocks the file-group.
         /// </summary>
         /// <param name="dbId">The database identifier.</param>
         /// <param name="fileGroupId">The file group identifier.</param>
         /// <returns>
         /// A <see cref="Task"/> representing the asynchronous operation.
         /// </returns>
-        Task UnlockRootAsync(DatabaseId dbId, FileGroupId fileGroupId);
+        Task UnlockFileGroupAsync(DatabaseId dbId, FileGroupId fileGroupId);
 
         /// <summary>
-        /// Gets the root lock.
+        /// Gets the file-group lock.
         /// </summary>
         /// <param name="dbId">The database identifier.</param>
         /// <param name="fileGroupId">The file group identifier.</param>
         /// <returns>
-        /// A <see cref="RootLock"/> instance.
+        /// A <see cref="FileGroupLock"/> instance.
         /// </returns>
-        RootLock GetRootLock(DatabaseId dbId, FileGroupId fileGroupId);
+        FileGroupLock GetFileGroupLock(DatabaseId dbId, FileGroupId fileGroupId);
 
         /// <summary>
         /// Locks the distribution page.
@@ -144,7 +144,7 @@ namespace Zen.Trunk.Storage.Locking
         ObjectLock GetDistributionLock(DatabaseId dbId, VirtualPageId virtualPageId);
 
         /// <summary>
-        /// Gets the extent lock.
+        /// Gets the distribution extent lock.
         /// </summary>
         /// <param name="dbId">The database identifier.</param>
         /// <param name="virtualPageId">The virtual page identifier.</param>
@@ -152,7 +152,7 @@ namespace Zen.Trunk.Storage.Locking
         /// <returns>
         /// A <see cref="DataLock"/> instance.
         /// </returns>
-        DataLock GetExtentLock(DatabaseId dbId, VirtualPageId virtualPageId, uint extentIndex);
+        DataLock GetDistributionExtentLock(DatabaseId dbId, VirtualPageId virtualPageId, uint extentIndex);
 
         /// <summary>
         /// Locks the object.

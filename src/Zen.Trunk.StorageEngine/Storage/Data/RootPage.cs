@@ -63,7 +63,7 @@ namespace Zen.Trunk.Storage.Data
 	    /// Gets or sets the type of the lock.
 	    /// </summary>
 	    /// <value>The type of the lock.</value>
-	    public RootLockType RootLock { get; private set; }
+	    public FileGroupLockType FileGroupLock { get; private set; }
 
 	    /// <summary>
 		/// Overridden. Gets/sets the page status.
@@ -262,7 +262,7 @@ namespace Zen.Trunk.Storage.Data
         #region Private Properties
         private IDatabaseLockManager LockManager => _lockManager ?? (_lockManager = GetService<IDatabaseLockManager>());
 
-        private RootLock TrackedLock
+        private FileGroupLock TrackedLock
         {
             get
             {
@@ -284,19 +284,19 @@ namespace Zen.Trunk.Storage.Data
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns></returns>
-        public async Task SetRootLockAsync(RootLockType value)
+        public async Task SetRootLockAsync(FileGroupLockType value)
         {
-            if (RootLock != value)
+            if (FileGroupLock != value)
             {
-                var oldLock = RootLock;
+                var oldLock = FileGroupLock;
                 try
                 {
-                    RootLock = value;
+                    FileGroupLock = value;
                     await LockPageAsync().ConfigureAwait(false);
                 }
                 catch
                 {
-                    RootLock = oldLock;
+                    FileGroupLock = oldLock;
                     throw;
                 }
             }
@@ -318,7 +318,7 @@ namespace Zen.Trunk.Storage.Data
         /// </remarks>
         protected override async Task OnPreInitAsync(EventArgs e)
 		{
-			await SetRootLockAsync(RootLockType.Exclusive).ConfigureAwait(false);
+			await SetRootLockAsync(FileGroupLockType.Exclusive).ConfigureAwait(false);
 			await base.OnPreInitAsync(e).ConfigureAwait(false);
 		}
 
@@ -337,9 +337,9 @@ namespace Zen.Trunk.Storage.Data
 		/// </remarks>
 		protected override async Task OnPreLoadAsync(EventArgs e)
 		{
-			if (RootLock == RootLockType.None)
+			if (FileGroupLock == FileGroupLockType.None)
 			{
-				await SetRootLockAsync(RootLockType.Shared).ConfigureAwait(false);
+				await SetRootLockAsync(FileGroupLockType.Shared).ConfigureAwait(false);
 			}
 			await base.OnPreLoadAsync(e).ConfigureAwait(false);
 		}
@@ -395,7 +395,7 @@ namespace Zen.Trunk.Storage.Data
 			await base.OnLockPageAsync(lockManager).ConfigureAwait(false);
 			try
 			{
-				await TrackedLock.LockAsync(RootLock, LockTimeout).ConfigureAwait(false);
+				await TrackedLock.LockAsync(FileGroupLock, LockTimeout).ConfigureAwait(false);
 			}
 			catch
 			{

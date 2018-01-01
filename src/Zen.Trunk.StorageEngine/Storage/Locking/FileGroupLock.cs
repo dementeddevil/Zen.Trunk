@@ -1,11 +1,11 @@
+using System;
+
 namespace Zen.Trunk.Storage.Locking
 {
-    using System;
-
     /// <summary>
-    /// Defines locking primatives which apply to root pages.
+    /// Defines locking primatives which apply to file-group root pages.
     /// </summary>
-    public enum RootLockType
+    public enum FileGroupLockType
     {
         /// <summary>
         /// No locking required (illegal)
@@ -13,7 +13,7 @@ namespace Zen.Trunk.Storage.Locking
         None = 0,
 
         /// <summary>
-        /// Shared read access to root page
+        /// Shared read access to file-group root page
         /// </summary>
         Shared = 1,
 
@@ -23,7 +23,7 @@ namespace Zen.Trunk.Storage.Locking
         Update = 2,
 
         /// <summary>
-        /// Exclusive read/write access to root page
+        /// Exclusive read/write access to file-group page
         /// </summary>
         Exclusive = 3
     }
@@ -32,21 +32,21 @@ namespace Zen.Trunk.Storage.Locking
     /// Implements a schema lock for locking table schema and 
     /// sample wave format blocks.
     /// </summary>
-    public class RootLock : ChildTransactionLock<RootLockType, DatabaseLock>
+    public class FileGroupLock : ChildTransactionLock<FileGroupLockType, DatabaseLock>
     {
         #region Private Fields
-        private static readonly NoneState NoneStateObject = new NoneState();
-        private static readonly RootSharedState SharedStateObject = new RootSharedState();
-        private static readonly RootUpdateState UpdateStateObject = new RootUpdateState();
-        private static readonly RootExclusiveState ExclusiveStateObject = new RootExclusiveState();
+        private static readonly FileGroupNoneState NoneStateObject = new FileGroupNoneState();
+        private static readonly FileGroupSharedState SharedStateObject = new FileGroupSharedState();
+        private static readonly FileGroupUpdateState UpdateStateObject = new FileGroupUpdateState();
+        private static readonly FileGroupExclusiveState ExclusiveStateObject = new FileGroupExclusiveState();
         #endregion
 
-        #region Root Lock State
+        #region File-Group Lock State
         /// <summary>
         /// 
         /// </summary>
-        /// <seealso cref="TransactionLock{RootLockType}.State" />
-        protected abstract class RootLockState : State
+        /// <seealso cref="TransactionLock{FileGroupLockType}.State" />
+        protected abstract class FileGroupLockState : State
         {
             /// <summary>
             /// Determines whether the specified lock type is equivalent to an
@@ -57,17 +57,17 @@ namespace Zen.Trunk.Storage.Locking
             /// <c>true</c> if the lock type is an exclusive lock; otherwise,
             /// <c>false</c>.
             /// </returns>
-            public override bool IsExclusiveLock(RootLockType lockType)
+            public override bool IsExclusiveLock(FileGroupLockType lockType)
             {
-                return lockType == RootLockType.Exclusive;
+                return lockType == FileGroupLockType.Exclusive;
             }
         }
 
         /// <summary>
         /// 
         /// </summary>
-        /// <seealso cref="RootLockState" />
-        protected class NoneState : RootLockState
+        /// <seealso cref="FileGroupLockState" />
+        protected class FileGroupNoneState : FileGroupLockState
         {
             /// <summary>
             /// Gets the lock type that this state represents.
@@ -75,7 +75,7 @@ namespace Zen.Trunk.Storage.Locking
             /// <value>
             /// The lock.
             /// </value>
-            public override RootLockType Lock => RootLockType.None;
+            public override FileGroupLockType Lock => FileGroupLockType.None;
 
             /// <summary>
             /// Gets an array of lock types that this state is compatable with.
@@ -83,20 +83,20 @@ namespace Zen.Trunk.Storage.Locking
             /// <value>
             /// The compatable locks.
             /// </value>
-            public override RootLockType[] CompatableLocks =>
+            public override FileGroupLockType[] CompatableLocks =>
                 new[]
                 {
-                    RootLockType.Shared,
-                    RootLockType.Update,
-                    RootLockType.Exclusive,
+                    FileGroupLockType.Shared,
+                    FileGroupLockType.Update,
+                    FileGroupLockType.Exclusive,
                 };
         }
 
         /// <summary>
         /// 
         /// </summary>
-        /// <seealso cref="RootLockState" />
-        protected class RootSharedState : RootLockState
+        /// <seealso cref="FileGroupLockState" />
+        protected class FileGroupSharedState : FileGroupLockState
         {
             /// <summary>
             /// Gets the lock type that this state represents.
@@ -104,7 +104,7 @@ namespace Zen.Trunk.Storage.Locking
             /// <value>
             /// The lock.
             /// </value>
-            public override RootLockType Lock => RootLockType.Shared;
+            public override FileGroupLockType Lock => FileGroupLockType.Shared;
 
             /// <summary>
             /// Gets an array of lock types that this state is compatable with.
@@ -112,19 +112,19 @@ namespace Zen.Trunk.Storage.Locking
             /// <value>
             /// The compatable locks.
             /// </value>
-            public override RootLockType[] CompatableLocks =>
+            public override FileGroupLockType[] CompatableLocks =>
                 new[]
                 {
-                    RootLockType.Shared,
-                    RootLockType.Update,
+                    FileGroupLockType.Shared,
+                    FileGroupLockType.Update,
                 };
         }
 
         /// <summary>
         /// 
         /// </summary>
-        /// <seealso cref="RootLockState" />
-        protected class RootUpdateState : RootLockState
+        /// <seealso cref="FileGroupLockState" />
+        protected class FileGroupUpdateState : FileGroupLockState
         {
             /// <summary>
             /// Gets the lock type that this state represents.
@@ -132,7 +132,7 @@ namespace Zen.Trunk.Storage.Locking
             /// <value>
             /// The lock.
             /// </value>
-            public override RootLockType Lock => RootLockType.Update;
+            public override FileGroupLockType Lock => FileGroupLockType.Update;
 
             /// <summary>
             /// Gets an array of lock types that this state is compatable with.
@@ -140,10 +140,10 @@ namespace Zen.Trunk.Storage.Locking
             /// <value>
             /// The compatable locks.
             /// </value>
-            public override RootLockType[] CompatableLocks =>
+            public override FileGroupLockType[] CompatableLocks =>
                 new[]
                 {
-                    RootLockType.Shared,
+                    FileGroupLockType.Shared,
                 };
 
             /// <summary>
@@ -160,8 +160,8 @@ namespace Zen.Trunk.Storage.Locking
         /// <summary>
         /// 
         /// </summary>
-        /// <seealso cref="RootLockState" />
-        protected class RootExclusiveState : RootLockState
+        /// <seealso cref="FileGroupLockState" />
+        protected class FileGroupExclusiveState : FileGroupLockState
         {
             /// <summary>
             /// Gets the lock type that this state represents.
@@ -169,7 +169,7 @@ namespace Zen.Trunk.Storage.Locking
             /// <value>
             /// The lock.
             /// </value>
-            public override RootLockType Lock => RootLockType.Exclusive;
+            public override FileGroupLockType Lock => FileGroupLockType.Exclusive;
 
             /// <summary>
             /// Gets an array of lock types that this state is compatable with.
@@ -177,8 +177,8 @@ namespace Zen.Trunk.Storage.Locking
             /// <value>
             /// The compatable locks.
             /// </value>
-            public override RootLockType[] CompatableLocks =>
-                new RootLockType[0];
+            public override FileGroupLockType[] CompatableLocks =>
+                new FileGroupLockType[0];
 
             /// <summary>
             /// Gets a boolean value indicating whether an exclusive lock can
@@ -190,9 +190,6 @@ namespace Zen.Trunk.Storage.Locking
             /// </value>
             public override bool CanEnterExclusiveLock => true;
         }
-        #endregion
-
-        #region Public Properties
         #endregion
 
         #region Protected Properties
@@ -202,8 +199,7 @@ namespace Zen.Trunk.Storage.Locking
         /// <value>
         /// The type of the none lock.
         /// </value>
-        protected override RootLockType NoneLockType => RootLockType.None;
-
+        protected override FileGroupLockType NoneLockType => FileGroupLockType.None;
         #endregion
 
         #region Protected Methods
@@ -214,20 +210,20 @@ namespace Zen.Trunk.Storage.Locking
         /// <param name="lockType">Type of the lock.</param>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
-        protected override State GetStateFromType(RootLockType lockType)
+        protected override State GetStateFromType(FileGroupLockType lockType)
         {
             switch (lockType)
             {
-                case RootLockType.None:
+                case FileGroupLockType.None:
                     return NoneStateObject;
 
-                case RootLockType.Shared:
+                case FileGroupLockType.Shared:
                     return SharedStateObject;
 
-                case RootLockType.Update:
+                case FileGroupLockType.Update:
                     return UpdateStateObject;
 
-                case RootLockType.Exclusive:
+                case FileGroupLockType.Exclusive:
                     return ExclusiveStateObject;
 
                 default:

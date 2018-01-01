@@ -176,7 +176,7 @@ namespace Zen.Trunk.Storage.Data
 				// Load device root page
 				using (var rootPage = await LoadOrCreateRootPageAsync().ConfigureAwait(false))
 				{
-					await rootPage.SetRootLockAsync(RootLockType.Shared).ConfigureAwait(false);
+					await rootPage.SetRootLockAsync(FileGroupLockType.Shared).ConfigureAwait(false);
 
 					// On this device, loop through all distribution pages
 					var maxDistPage =

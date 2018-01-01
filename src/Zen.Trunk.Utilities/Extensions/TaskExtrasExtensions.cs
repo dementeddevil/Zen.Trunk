@@ -86,10 +86,7 @@ namespace Zen.Trunk.Extensions
             task.ContinueWith(_ =>
             {
                 tcs.SetFromTask(task);
-                if (callback != null)
-                {
-                    callback(tcs.Task);
-                }
+                callback?.Invoke(tcs.Task);
             });
             return tcs.Task;
         }
@@ -113,10 +110,7 @@ namespace Zen.Trunk.Extensions
             task.ContinueWith(_ =>
             {
                 tcs.SetFromTask(task);
-                if (callback != null)
-                {
-                    callback(tcs.Task);
-                }
+                callback?.Invoke(tcs.Task);
             });
             return tcs.Task;
         }
@@ -201,7 +195,9 @@ namespace Zen.Trunk.Extensions
         #endregion
 
         #region Observables
-        /// <summary>Creates an IObservable that represents the completion of a Task.</summary>
+        /// <summary>
+        /// Creates an IObservable that represents the completion of a Task.
+        /// </summary>
         /// <typeparam name="TResult">Specifies the type of data returned by the Task.</typeparam>
         /// <param name="task">The Task to be represented as an IObservable.</param>
         /// <returns>An IObservable that represents the completion of the Task.</returns>
@@ -233,25 +229,27 @@ namespace Zen.Trunk.Extensions
                 var cts = new CancellationTokenSource();
 
                 // Create a continuation to pass data along to the observer
-                Task.ContinueWith(t =>
-                {
-                    switch (t.Status)
+                Task.ContinueWith(
+                    t =>
                     {
-                        case TaskStatus.RanToCompletion:
-                            observer.OnNext(Task.Result);
-                            observer.OnCompleted();
-                            break;
+                        switch (t.Status)
+                        {
+                            case TaskStatus.RanToCompletion:
+                                observer.OnNext(Task.Result);
+                                observer.OnCompleted();
+                                break;
 
-                        case TaskStatus.Faulted:
-                            // ReSharper disable once AssignNullToNotNullAttribute
-                            observer.OnError(Task.Exception);
-                            break;
+                            case TaskStatus.Faulted:
+                                // ReSharper disable once AssignNullToNotNullAttribute
+                                observer.OnError(Task.Exception);
+                                break;
 
-                        case TaskStatus.Canceled:
-                            observer.OnError(new TaskCanceledException(t));
-                            break;
-                    }
-                }, cts.Token);
+                            case TaskStatus.Canceled:
+                                observer.OnError(new TaskCanceledException(t));
+                                break;
+                        }
+                    },
+                    cts.Token);
 
                 // Support unsubscribe simply by canceling the continuation if it hasn't yet run
                 return new CancelOnDispose { Source = cts };
@@ -267,23 +265,35 @@ namespace Zen.Trunk.Extensions
         #endregion
 
         #region Timeouts
-        /// <summary>Creates a new Task that mirrors the supplied task but that will be canceled after the specified timeout.</summary>
+        /// <summary>
+        /// Creates a new Task that mirrors the supplied task but that will be
+        /// canceled after the specified timeout.
+        /// </summary>
         /// <param name="task">The task.</param>
         /// <param name="timeout">The timeout.</param>
         /// <returns>The new Task that may time out.</returns>
         public static Task WithTimeout(this Task task, TimeSpan timeout)
         {
             var result = new TaskCompletionSource<object>(task.AsyncState);
-            var timer = new Timer(state => ((TaskCompletionSource<object>)state).TrySetCanceled(), result, timeout, TimeSpan.FromMilliseconds(-1));
-            task.ContinueWith(t =>
-            {
-                timer.Dispose();
-                result.TrySetFromTask(t);
-            }, TaskContinuationOptions.ExecuteSynchronously);
+            var timer = new Timer(
+                state => ((TaskCompletionSource<object>)state).TrySetCanceled(),
+                result,
+                timeout,
+                TimeSpan.FromMilliseconds(-1));
+            task.ContinueWith(
+                t =>
+                {
+                    timer.Dispose();
+                    result.TrySetFromTask(t);
+                },
+                TaskContinuationOptions.ExecuteSynchronously);
             return result.Task;
         }
 
-        /// <summary>Creates a new Task that mirrors the supplied task but that will be canceled after the specified timeout.</summary>
+        /// <summary>
+        /// Creates a new Task that mirrors the supplied task but that will be
+        /// canceled after the specified timeout.
+        /// </summary>
         /// <typeparam name="TResult">Specifies the type of data contained in the task.</typeparam>
         /// <param name="task">The task.</param>
         /// <param name="timeout">The timeout.</param>
@@ -291,12 +301,18 @@ namespace Zen.Trunk.Extensions
         public static Task<TResult> WithTimeout<TResult>(this Task<TResult> task, TimeSpan timeout)
         {
             var result = new TaskCompletionSource<TResult>(task.AsyncState);
-            var timer = new Timer(state => ((TaskCompletionSource<TResult>)state).TrySetCanceled(), result, timeout, TimeSpan.FromMilliseconds(-1));
-            task.ContinueWith(t =>
-            {
-                timer.Dispose();
-                result.TrySetFromTask(t);
-            }, TaskContinuationOptions.ExecuteSynchronously);
+            var timer = new Timer(
+                state => ((TaskCompletionSource<TResult>)state).TrySetCanceled(),
+                result,
+                timeout,
+                TimeSpan.FromMilliseconds(-1));
+            task.ContinueWith(
+                t =>
+                {
+                    timer.Dispose();
+                    result.TrySetFromTask(t);
+                },
+                TaskContinuationOptions.ExecuteSynchronously);
             return result.Task;
         }
         #endregion
@@ -315,9 +331,12 @@ namespace Zen.Trunk.Extensions
                 throw new ArgumentNullException(nameof(task));
             }
 
-            task.ContinueWith(t => t.Wait(), CancellationToken.None,
+            task.ContinueWith(
+                t => t.Wait(),
+                CancellationToken.None,
                 TaskContinuationOptions.AttachedToParent |
-                TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
+                TaskContinuationOptions.ExecuteSynchronously,
+                TaskScheduler.Default);
         }
         #endregion
 
@@ -334,10 +353,16 @@ namespace Zen.Trunk.Extensions
             task.Wait();
         }*/
 
-        /// <summary>Waits for the task to complete execution, returning the task's final status.</summary>
+        /// <summary>
+        /// Waits for the task to complete execution, returning the task's
+        /// final status.
+        /// </summary>
         /// <param name="task">The task for which to wait.</param>
         /// <returns>The completion status of the task.</returns>
-        /// <remarks>Unlike Wait, this method will not throw an exception if the task ends in the Faulted or Canceled state.</remarks>
+        /// <remarks>
+        /// Unlike Wait, this method will not throw an exception if the task
+        /// ends in the Faulted or Canceled state.
+        /// </remarks>
         public static TaskStatus WaitForCompletionStatus(this Task task)
         {
             if (task == null)

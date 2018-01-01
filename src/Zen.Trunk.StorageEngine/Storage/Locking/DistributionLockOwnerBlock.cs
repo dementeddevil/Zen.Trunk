@@ -58,7 +58,7 @@ namespace Zen.Trunk.Storage.Locking
 		/// <returns></returns>
 		protected override DataLock GetItemLock(uint key)
 		{
-			return LockManager.GetExtentLock(_virtualPageId, key);
+			return LockManager.GetDistributionExtentLock(_virtualPageId, key);
 		}
 		#endregion
 	}

@@ -230,7 +230,7 @@ namespace Zen.Trunk.Storage
                 // Load the master database primary file-group root page
                 var masterRootPage =
                     new MasterDatabasePrimaryFileGroupRootPage();
-                await masterRootPage.SetRootLockAsync(RootLockType.Shared).ConfigureAwait(false);
+                await masterRootPage.SetRootLockAsync(FileGroupLockType.Shared).ConfigureAwait(false);
 
                 // Load page from root device
                 await LoadFileGroupPageAsync(
@@ -238,8 +238,8 @@ namespace Zen.Trunk.Storage
 
                 // Add this database information to the database list
                 masterRootPage.ReadOnly = false;
-                await masterRootPage.SetRootLockAsync(RootLockType.Update).ConfigureAwait(false);
-                await masterRootPage.SetRootLockAsync(RootLockType.Exclusive).ConfigureAwait(false);
+                await masterRootPage.SetRootLockAsync(FileGroupLockType.Update).ConfigureAwait(false);
+                await masterRootPage.SetRootLockAsync(FileGroupLockType.Exclusive).ConfigureAwait(false);
                 masterRootPage.AddDatabase(request.Name, primaryName, primaryDataPathName, primaryLogPathName);
                 masterRootPage.Save();
 
@@ -387,7 +387,7 @@ namespace Zen.Trunk.Storage
             {
                 // Load the master database primary file-group root page
                 var masterRootPage = new MasterDatabasePrimaryFileGroupRootPage();
-                await masterRootPage.SetRootLockAsync(RootLockType.Shared).ConfigureAwait(false);
+                await masterRootPage.SetRootLockAsync(FileGroupLockType.Shared).ConfigureAwait(false);
 
                 // Load page from root device
                 await LoadFileGroupPageAsync(

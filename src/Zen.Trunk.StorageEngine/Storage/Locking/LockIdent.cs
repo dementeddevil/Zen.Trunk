@@ -53,7 +53,7 @@ namespace Zen.Trunk.Storage.Locking
 		/// <param name="virtualPageId">The virtual page id.</param>
 		/// <param name="extentIndex">Index of the extent.</param>
 		/// <returns></returns>
-		public static string GetExtentLockKey(DatabaseId dbId, VirtualPageId virtualPageId, uint extentIndex)
+		public static string GetDistributionExtentLockKey(DatabaseId dbId, VirtualPageId virtualPageId, uint extentIndex)
 		{
 			return $"ELK:{dbId.Value:X4}${virtualPageId.Value:X16}${extentIndex}";
 		}

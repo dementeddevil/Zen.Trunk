@@ -13,7 +13,7 @@ namespace Zen.Trunk.Storage.Locking
     {
         #region Private Fields
         private readonly LockHandler<DatabaseLock, DatabaseLockType> _databaseLocks;
-        private readonly LockHandler<RootLock, RootLockType> _rootLocks;
+        private readonly LockHandler<FileGroupLock, FileGroupLockType> _rootLocks;
         private readonly LockHandler<ObjectLock, ObjectLockType> _objectLocks;
         private readonly LockHandler<SchemaLock, SchemaLockType> _schemaLocks;
         private readonly LockHandler<DataLock, DataLockType> _dataLocks;
@@ -27,7 +27,7 @@ namespace Zen.Trunk.Storage.Locking
         public GlobalLockManager()
         {
             _databaseLocks = new LockHandler<DatabaseLock, DatabaseLockType>(0);
-            _rootLocks = new LockHandler<RootLock, RootLockType>();
+            _rootLocks = new LockHandler<FileGroupLock, FileGroupLockType>();
             _objectLocks = new LockHandler<ObjectLock, ObjectLockType>();
             _schemaLocks = new LockHandler<SchemaLock, SchemaLockType>();
             _dataLocks = new LockHandler<DataLock, DataLockType>();
@@ -90,7 +90,7 @@ namespace Zen.Trunk.Storage.Locking
 
         #region Root Lock/Unlock
         /// <summary>
-        /// Locks the root.
+        /// Locks the file-group root page.
         /// </summary>
         /// <param name="dbId">The database identifier.</param>
         /// <param name="fileGroupId">The file group identifier.</param>
@@ -99,9 +99,9 @@ namespace Zen.Trunk.Storage.Locking
         /// <returns>
         /// A <see cref="Task" /> representing the asynchronous operation.
         /// </returns>
-        public async Task LockRootAsync(DatabaseId dbId, FileGroupId fileGroupId, RootLockType lockType, TimeSpan timeout)
+        public async Task LockFileGroupAsync(DatabaseId dbId, FileGroupId fileGroupId, FileGroupLockType lockType, TimeSpan timeout)
         {
-            var rootLock = GetRootLock(dbId, fileGroupId);
+            var rootLock = GetFileGroupLock(dbId, fileGroupId);
             try
             {
                 await rootLock.LockAsync(lockType, timeout).ConfigureAwait(false);
@@ -113,16 +113,16 @@ namespace Zen.Trunk.Storage.Locking
         }
 
         /// <summary>
-        /// Unlocks the root.
+        /// Unlocks the file-group root page.
         /// </summary>
         /// <param name="dbId">The database identifier.</param>
         /// <param name="fileGroupId">The file group identifier.</param>
         /// <returns>
         /// A <see cref="Task" /> representing the asynchronous operation.
         /// </returns>
-        public async Task UnlockRootAsync(DatabaseId dbId, FileGroupId fileGroupId)
+        public async Task UnlockFileGroupAsync(DatabaseId dbId, FileGroupId fileGroupId)
         {
-            var rootLock = GetRootLock(dbId, fileGroupId);
+            var rootLock = GetFileGroupLock(dbId, fileGroupId);
             try
             {
                 await rootLock.UnlockAsync().ConfigureAwait(false);
@@ -134,14 +134,14 @@ namespace Zen.Trunk.Storage.Locking
         }
 
         /// <summary>
-        /// Gets the root lock.
+        /// Gets the file-group root lock.
         /// </summary>
         /// <param name="dbId">The database identifier.</param>
         /// <param name="fileGroupId">The file group identifier.</param>
         /// <returns>
-        /// A <see cref="RootLock" /> instance.
+        /// A <see cref="FileGroupLock" /> instance.
         /// </returns>
-        public RootLock GetRootLock(DatabaseId dbId, FileGroupId fileGroupId)
+        public FileGroupLock GetFileGroupLock(DatabaseId dbId, FileGroupId fileGroupId)
         {
             var key = LockIdent.GetFileGroupRootKey(dbId, fileGroupId);
             var lockObject = _rootLocks.GetOrCreateLock(key);
@@ -153,6 +153,7 @@ namespace Zen.Trunk.Storage.Locking
                 lockObject.Parent = parentLockObject; // assign to parent will addref
                 parentLockObject.ReleaseRefLock();
             }
+
             return lockObject;
         }
         #endregion
@@ -217,7 +218,7 @@ namespace Zen.Trunk.Storage.Locking
         public async Task LockDistributionExtentAsync(DatabaseId dbId, VirtualPageId virtualPageId, uint extentIndex,
             ObjectLockType distLockType, DataLockType extentLockType, TimeSpan timeout)
         {
-            var extentLock = GetExtentLock(dbId, virtualPageId, extentIndex);
+            var extentLock = GetDistributionExtentLock(dbId, virtualPageId, extentIndex);
             var distLock = extentLock.Parent;
             try
             {
@@ -242,7 +243,7 @@ namespace Zen.Trunk.Storage.Locking
         /// </returns>
         public async Task UnlockDistributionExtentAsync(DatabaseId dbId, VirtualPageId virtualPageId, uint extentIndex)
         {
-            var extentLock = GetExtentLock(dbId, virtualPageId, extentIndex);
+            var extentLock = GetDistributionExtentLock(dbId, virtualPageId, extentIndex);
             var distLock = extentLock.Parent;
             try
             {
@@ -293,12 +294,14 @@ namespace Zen.Trunk.Storage.Locking
         {
             var key = LockIdent.GetDistributionKey(dbId, virtualPageId);
             var lockObject = _objectLocks.GetOrCreateLock(key);
+
             if (lockObject.Parent == null)
             {
                 var parentLockObject = GetDatabaseLock(dbId);
                 lockObject.Parent = parentLockObject; // assign to parent will addref
                 parentLockObject.ReleaseRefLock();
             }
+
             return lockObject;
         }
 
@@ -311,16 +314,18 @@ namespace Zen.Trunk.Storage.Locking
         /// <returns>
         /// A <see cref="DataLock" /> instance.
         /// </returns>
-        public DataLock GetExtentLock(DatabaseId dbId, VirtualPageId virtualPageId, uint extentIndex)
+        public DataLock GetDistributionExtentLock(DatabaseId dbId, VirtualPageId virtualPageId, uint extentIndex)
         {
-            var key = LockIdent.GetExtentLockKey(dbId, virtualPageId, extentIndex);
+            var key = LockIdent.GetDistributionExtentLockKey(dbId, virtualPageId, extentIndex);
             var lockObject = _dataLocks.GetOrCreateLock(key);
+
             if (lockObject.Parent == null)
             {
                 var parentLockObject = GetDistributionLock(dbId, virtualPageId);
                 lockObject.Parent = parentLockObject; // assign to parent will addref
                 parentLockObject.ReleaseRefLock();
             }
+
             return lockObject;
         }
         #endregion
@@ -384,6 +389,7 @@ namespace Zen.Trunk.Storage.Locking
                 lockObject.Parent = parentLockObject; // assign to parent will addref
                 parentLockObject.ReleaseRefLock();
             }
+
             return lockObject;
         }
         #endregion
@@ -440,12 +446,14 @@ namespace Zen.Trunk.Storage.Locking
             // Get schema lock
             var key = LockIdent.GetSchemaLockKey(dbId, objectId);
             var lockObject = _schemaLocks.GetOrCreateLock(key);
+
             if (lockObject.Parent == null)
             {
                 var parentLockObject = GetObjectLock(dbId, objectId);
                 lockObject.Parent = parentLockObject; // assign to parent will addref
                 parentLockObject.ReleaseRefLock();
             }
+
             return lockObject;
         }
         #endregion
@@ -591,12 +599,14 @@ namespace Zen.Trunk.Storage.Locking
         {
             var key = LockIdent.GetDataLockKey(dbId, objectId, logicalId);
             var lockObject = _dataLocks.GetOrCreateLock(key);
+
             if (lockObject.Parent == null)
             {
                 var parentLockObject = GetObjectLock(dbId, objectId);
                 lockObject.Parent = parentLockObject; // assign to parent will addref
                 parentLockObject.ReleaseRefLock();
             }
+
             return lockObject;
         }
         #endregion

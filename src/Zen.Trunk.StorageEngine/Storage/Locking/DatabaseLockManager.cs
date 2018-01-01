@@ -81,7 +81,7 @@ namespace Zen.Trunk.Storage.Locking
 	    }
         #endregion
 
-        #region Root Lock/Unlock
+        #region File-Group Root Lock/Unlock
         /// <summary>
         /// Locks the root.
         /// </summary>
@@ -89,9 +89,9 @@ namespace Zen.Trunk.Storage.Locking
         /// <param name="lockType">Type of the lock.</param>
         /// <param name="timeout">The timeout.</param>
         /// <returns></returns>
-        public Task LockRootAsync(FileGroupId fileGroupId, RootLockType lockType, TimeSpan timeout)
+        public Task LockFileGroupAsync(FileGroupId fileGroupId, FileGroupLockType lockType, TimeSpan timeout)
 		{
-			return _globalLockManager.LockRootAsync(DatabaseId, fileGroupId, lockType, timeout);
+			return _globalLockManager.LockFileGroupAsync(DatabaseId, fileGroupId, lockType, timeout);
 		}
 
         /// <summary>
@@ -99,9 +99,9 @@ namespace Zen.Trunk.Storage.Locking
         /// </summary>
         /// <param name="fileGroupId">The file group identifier.</param>
         /// <returns></returns>
-        public Task UnlockRootAsync(FileGroupId fileGroupId)
+        public Task UnlockFileGroupAsync(FileGroupId fileGroupId)
 		{
-			return _globalLockManager.UnlockRootAsync(DatabaseId, fileGroupId);
+			return _globalLockManager.UnlockFileGroupAsync(DatabaseId, fileGroupId);
 		}
 
         /// <summary>
@@ -109,9 +109,9 @@ namespace Zen.Trunk.Storage.Locking
         /// </summary>
         /// <param name="fileGroupId">The file group identifier.</param>
         /// <returns></returns>
-        public RootLock GetRootLock(FileGroupId fileGroupId)
+        public FileGroupLock GetFileGroupLock(FileGroupId fileGroupId)
 		{
-			return _globalLockManager.GetRootLock(DatabaseId, fileGroupId);
+			return _globalLockManager.GetFileGroupLock(DatabaseId, fileGroupId);
 		}
         #endregion
 
@@ -199,9 +199,9 @@ namespace Zen.Trunk.Storage.Locking
         /// <param name="virtualPageId">The virtual page identifier.</param>
         /// <param name="extentIndex">Index of the extent.</param>
         /// <returns></returns>
-        public DataLock GetExtentLock(VirtualPageId virtualPageId, uint extentIndex)
+        public DataLock GetDistributionExtentLock(VirtualPageId virtualPageId, uint extentIndex)
 		{
-			return _globalLockManager.GetExtentLock(DatabaseId, virtualPageId, extentIndex);
+			return _globalLockManager.GetDistributionExtentLock(DatabaseId, virtualPageId, extentIndex);
 		}
         #endregion
 

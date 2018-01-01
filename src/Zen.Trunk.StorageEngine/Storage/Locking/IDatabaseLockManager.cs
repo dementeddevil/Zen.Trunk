@@ -40,29 +40,29 @@ namespace Zen.Trunk.Storage.Locking
         DatabaseLock GetDatabaseLock();
         #endregion
 
-        #region Root Lock/Unlock
+        #region File-Group Lock/Unlock
         /// <summary>
-        /// Locks the root.
+        /// Locks the file-group root.
         /// </summary>
         /// <param name="fileGroupId">The file group identifier.</param>
         /// <param name="lockType">Type of the lock.</param>
         /// <param name="timeout">The timeout.</param>
         /// <returns></returns>
-        Task LockRootAsync(FileGroupId fileGroupId, RootLockType lockType, TimeSpan timeout);
+        Task LockFileGroupAsync(FileGroupId fileGroupId, FileGroupLockType lockType, TimeSpan timeout);
 
         /// <summary>
-        /// Unlocks the root.
+        /// Unlocks the file-group root.
         /// </summary>
         /// <param name="fileGroupId">The file group identifier.</param>
         /// <returns></returns>
-        Task UnlockRootAsync(FileGroupId fileGroupId);
+        Task UnlockFileGroupAsync(FileGroupId fileGroupId);
 
         /// <summary>
-        /// Gets the root lock.
+        /// Gets the file-group root lock.
         /// </summary>
         /// <param name="fileGroupId">The file group identifier.</param>
         /// <returns></returns>
-        RootLock GetRootLock(FileGroupId fileGroupId);
+        FileGroupLock GetFileGroupLock(FileGroupId fileGroupId);
         #endregion
 
         #region Distribution Page Locks
@@ -122,12 +122,12 @@ namespace Zen.Trunk.Storage.Locking
         ObjectLock GetDistributionLock(VirtualPageId virtualPageId);
 
         /// <summary>
-        /// Gets the extent lock.
+        /// Gets the distribution extent lock.
         /// </summary>
         /// <param name="virtualPageId">The virtual page identifier.</param>
         /// <param name="extentIndex">Index of the extent.</param>
         /// <returns></returns>
-        DataLock GetExtentLock(VirtualPageId virtualPageId, uint extentIndex);
+        DataLock GetDistributionExtentLock(VirtualPageId virtualPageId, uint extentIndex);
         #endregion
 
         #region Object Lock/Unlock

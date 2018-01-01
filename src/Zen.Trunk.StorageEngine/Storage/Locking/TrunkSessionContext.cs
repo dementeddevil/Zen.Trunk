@@ -54,6 +54,11 @@ namespace Zen.Trunk.Storage.Locking
 
             private void TraceSession(string action, ITrunkSession prev, ITrunkSession next)
             {
+                if (prev?.SessionId == next?.SessionId)
+                {
+                    return;
+                }
+
                 var threadId = Thread.CurrentThread.ManagedThreadId;
                 var prevSessionId = prev?.SessionId.ToString() ?? "N/A";
                 var nextSessionId = next?.SessionId.ToString() ?? "N/A";
