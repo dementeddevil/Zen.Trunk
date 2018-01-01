@@ -35,9 +35,9 @@ namespace Zen.Trunk.Storage.Data
     /// </para>
     /// <para>
     /// A device can only be shrunk if the extents covering the range being
-    /// removed are all marked as free (which implied to fully shrink a device
-    /// some page rewriting may be required in order to free up space at the
-    /// end of each associated device.)
+    /// removed are all marked as free (which implies that to fully shrink a
+    /// device, some page rewriting may be required in order to free up space
+    /// at the end of each associated device.)
     /// </para>
     /// </remarks>
     public class DistributionPage : DataPage
@@ -945,11 +945,13 @@ namespace Zen.Trunk.Storage.Data
                 hasAcquiredLock = true;
             }
 
+            // Pull extent information from the extent information block
             var info = _extents[extentIndex];
 
-            // Re-read extent information as it may have changed but do not
-            // do so if we already held the lock as we will overwrite previous
-            //  changes unless lock was acquired from a different page object...
+            // Re-read extent information as it may have been changed by 
+            //  another transaction/session but do not do so if we already
+            //  held the lock as this would overwrite previous changes unless
+            //  lock was acquired from a different page object...
             if (!alreadyHasLock ||
                 _lockedExtents == null ||
                 !_lockedExtents.Contains(extentIndex))
@@ -965,14 +967,16 @@ namespace Zen.Trunk.Storage.Data
             {
                 throw new ArgumentOutOfRangeException(
                     nameof(offset), offset,
-                    "Page ID out of range (0-" +
-                    (PageTrackingCount - 1).ToString() + ").");
+                    $"Page ID out of range (0-{PageTrackingCount - 1}) inclusive");
             }
         }
 
         private async Task LockExtentAsync(uint extentIndex, DataLockType lockType)
         {
-            await LockBlock.LockItemAsync(extentIndex, lockType, LockTimeout).ConfigureAwait(false);
+            await LockBlock
+                .LockItemAsync(extentIndex, lockType, LockTimeout)
+                .ConfigureAwait(false);
+
             if (_lockedExtents == null)
             {
                 _lockedExtents = new List<uint>();
@@ -987,7 +991,9 @@ namespace Zen.Trunk.Storage.Data
         {
             try
             {
-                await LockBlock.UnlockItemAsync(extentIndex).ConfigureAwait(false);
+                await LockBlock
+                    .UnlockItemAsync(extentIndex)
+                    .ConfigureAwait(false);
             }
             finally
             {
