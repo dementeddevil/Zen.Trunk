@@ -75,8 +75,9 @@ namespace Zen.Trunk.Storage.Locking
         /// Gets the current trunk transaction.
         /// </summary>
         /// <value>
-        /// An instance of <see cref="ITrunkTransaction"/> representing the current transaction;
-        /// otherwise <c>null</c> if no transaction is in progress.
+        /// An instance of <see cref="ITrunkTransaction"/> representing the
+        /// current transaction; otherwise <c>null</c> if no transaction is
+        /// in progress.
         /// </value>
         public static ITrunkTransaction Current
         {
@@ -102,12 +103,6 @@ namespace Zen.Trunk.Storage.Locking
                     CallContext.FreeNamedDataSlot(LogicalContextName);
                 }
             }
-        }
-
-        internal static TransactionLockOwnerBlock GetTransactionLockOwnerBlock(IDatabaseLockManager lockManager)
-        {
-            var privTxn = Current as ITrunkTransactionPrivate;
-            return privTxn?.GetTransactionLockOwnerBlock(lockManager);
         }
 
         /// <summary>
@@ -187,6 +182,12 @@ namespace Zen.Trunk.Storage.Locking
                     Current = null;
                 }
             }
+        }
+
+        internal static TransactionLockOwnerBlock GetTransactionLockOwnerBlock(IDatabaseLockManager lockManager)
+        {
+            var privTxn = Current as ITrunkTransactionPrivate;
+            return privTxn?.GetTransactionLockOwnerBlock(lockManager);
         }
 
         internal static IDisposable SwitchTransactionContext(ITrunkTransaction newContext)
