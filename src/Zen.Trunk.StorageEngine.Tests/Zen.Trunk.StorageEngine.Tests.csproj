@@ -72,6 +72,15 @@
     <Reference Include="Moq, Version=4.8.0.0, Culture=neutral, PublicKeyToken=69f491c39445e920, processorArchitecture=MSIL">
       <HintPath>..\packages\Moq.4.8.0\lib\net45\Moq.dll</HintPath>
     </Reference>
+    <Reference Include="Serilog, Version=2.0.0.0, Culture=neutral, PublicKeyToken=24c2f752a8e58a10, processorArchitecture=MSIL">
+      <HintPath>..\packages\Serilog.2.6.0\lib\net46\Serilog.dll</HintPath>
+    </Reference>
+    <Reference Include="Serilog.Enrichers.Thread, Version=2.0.0.0, Culture=neutral, PublicKeyToken=24c2f752a8e58a10, processorArchitecture=MSIL">
+      <HintPath>..\packages\Serilog.Enrichers.Thread.3.0.0\lib\net45\Serilog.Enrichers.Thread.dll</HintPath>
+    </Reference>
+    <Reference Include="Serilog.Sinks.Debug, Version=1.0.0.0, Culture=neutral, PublicKeyToken=24c2f752a8e58a10, processorArchitecture=MSIL">
+      <HintPath>..\packages\Serilog.Sinks.Debug.1.0.0\lib\netstandard1.0\Serilog.Sinks.Debug.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Core">
@@ -131,6 +140,10 @@
     <ProjectReference Include="..\Zen.Trunk.IO\Zen.Trunk.IO.csproj">
       <Project>{6abdfb09-8e8c-47f1-a0b5-a5541eaad61b}</Project>
       <Name>Zen.Trunk.IO</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Zen.Trunk.Logging\Zen.Trunk.Logging.csproj">
+      <Project>{e7e84aa7-daf9-4285-9f66-1ee692676b60}</Project>
+      <Name>Zen.Trunk.Logging</Name>
     </ProjectReference>
     <ProjectReference Include="..\Zen.Trunk.StorageEngine\Zen.Trunk.StorageEngine.csproj">
       <Project>{2f2a3e61-960a-4da0-a087-d45c89b33099}</Project>

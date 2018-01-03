@@ -244,8 +244,7 @@ namespace Zen.Trunk.Storage.Locking
         /// <returns></returns>
         public TransactionLockOwnerBlock GetTransactionLockOwnerBlock(IDatabaseLockManager lockManager)
         {
-            TransactionLockOwnerBlock block;
-            if (!_transactionLockOwnerBlocks.TryGetValue(lockManager.DatabaseId, out block))
+            if (!_transactionLockOwnerBlocks.TryGetValue(lockManager.DatabaseId, out var block))
             {
                 block = new TransactionLockOwnerBlock(lockManager);
                 _transactionLockOwnerBlocks.Add(lockManager.DatabaseId, block);
@@ -530,14 +529,15 @@ namespace Zen.Trunk.Storage.Locking
             }
             finally
             {
+                // Release other objects
+                await ReleaseAsync().ConfigureAwait(false);
+
                 // We need to reset the transaction id so unlocking pages will work
                 if (needToResetTransactionId)
                 {
                     _transactionId = TransactionId.Zero;
                 }
 
-                // Release other objects
-                await ReleaseAsync().ConfigureAwait(false);
             }
             return true;
         }

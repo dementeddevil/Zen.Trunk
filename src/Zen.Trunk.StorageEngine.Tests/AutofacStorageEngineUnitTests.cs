@@ -1,9 +1,13 @@
 ﻿using System;
 using Autofac;
+using Serilog;
+using Serilog.Enrichers;
 using Zen.Trunk.Storage.Data;
 using Zen.Trunk.Storage.Locking;
 using Zen.Trunk.VirtualMemory;
 using Zen.Trunk.VirtualMemory.Tests;
+using Zen.Trunk.Logging;
+using Zen.Trunk.Logging.LogProviders;
 
 namespace Zen.Trunk.Storage
 {
@@ -15,6 +19,12 @@ namespace Zen.Trunk.Storage
 
         public AutofacStorageEngineUnitTests()
         {
+            var config = new LoggerConfiguration();
+            Serilog.Log.Logger = config
+                .Enrich.With<ThreadIdEnricher>()
+                .MinimumLevel.Verbose()
+                .WriteTo.Debug()
+                .CreateLogger();
             _ambientSessionScope = TrunkSessionContext.SwitchSessionContext(
                 new TrunkSession(new SessionId(11002), TimeSpan.FromSeconds(60)));
         }
