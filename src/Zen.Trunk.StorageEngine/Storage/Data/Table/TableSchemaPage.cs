@@ -219,26 +219,28 @@ namespace Zen.Trunk.Storage.Data.Table
         /// <param name="streamManager">The stream manager.</param>
         protected override void ReadData(SwitchingBinaryReader streamManager)
 		{
-			_columns.Clear();
+			_columns?.Clear();
 			for (byte index = 0; index < _columnCount.Value; ++index)
 			{
 				var column = new TableColumnInfo();
 				column.Read(streamManager);
-				_columns.Add(column);
+				Columns.Add(column);
 			}
-			_constraints.Clear();
+
+			_constraints?.Clear();
 			for (byte index = 0; index < _constraintCount.Value; ++index)
 			{
 				var constraint = new RowConstraint();
 				constraint.Read(streamManager);
-				_constraints.Add(constraint);
+				Constraints.Add(constraint);
 			}
-			_indices.Clear();
+
+			_indices?.Clear();
 			for (byte index = 0; index < _indexCount.Value; ++index)
 			{
 				var rootIndex = new RootTableIndexInfo();
 				rootIndex.Read(streamManager);
-				_indices.Add(rootIndex);
+				Indices.Add(rootIndex);
 			}
 		}
 
@@ -255,6 +257,7 @@ namespace Zen.Trunk.Storage.Data.Table
 					column.Write(streamManager);
 				}
 			}
+
 			if (_constraints != null)
 			{
 				foreach (var constraint in _constraints)
@@ -262,7 +265,8 @@ namespace Zen.Trunk.Storage.Data.Table
 					constraint.Write(streamManager);
 				}
 			}
-			if (_indices != null)
+
+		    if (_indices != null)
 			{
 				foreach (var index in _indices)
 				{

@@ -631,10 +631,11 @@ namespace Zen.Trunk.Storage.Data.Table
         /// </summary>
         /// <param name="firstLogicalPageId">The first logical id.</param>
         /// <returns></returns>
-        public async Task LoadAsync(LogicalPageId firstLogicalPageId)
+        public async Task LoadSchemaAsync(LogicalPageId firstLogicalPageId)
         {
             SchemaFirstLogicalPageId = firstLogicalPageId;
             IsLoading = true;
+            BeginColumnUpdate();
             try
             {
                 // Assume this is a heap table
@@ -677,6 +678,7 @@ namespace Zen.Trunk.Storage.Data.Table
             }
             finally
             {
+                await EndColumnUpdate().ConfigureAwait(false);
                 IsLoading = false;
             }
         }
@@ -880,10 +882,9 @@ namespace Zen.Trunk.Storage.Data.Table
             {
                 if (_columns != null)
                 {
-                    var needToRewriteTableData = false;
-
                     // Check whether columns or constraints have changed (probably)
                     // Check whether we need to rewrite table data pages (probably)
+                    var needToRewriteTableData = false;
                     if ((_columns == null && _updatedColumns != null) ||
                         (_columns.Count != _updatedColumns.Count))
                     {
@@ -1264,6 +1265,12 @@ namespace Zen.Trunk.Storage.Data.Table
                     _updatedColumns.SkipInsertChecks = false;
                 }
 
+                // Process constraints
+                foreach (var constraint in page.Constraints)
+                {
+                    _updatedConstraints.Add(constraint);
+                }
+
                 // Look for clustered index
                 var clusteredIndex = page.Indices.FirstOrDefault(item => item.IndexSubType == TableIndexSubType.Clustered);
                 if (clusteredIndex != null)
@@ -1292,7 +1299,7 @@ namespace Zen.Trunk.Storage.Data.Table
 
             var columnIndex = 0;
             var constraintIndex = 0;
-            var indexIndex = 0;
+            //var indexIndex = 0;
             TableSchemaPage currentPage = null;
             var needNewPage = true;
             var complete = false;

@@ -171,6 +171,8 @@ namespace Zen.Trunk.Storage.Data
             new Dictionary<DeviceId, SecondaryDistributionPageDevice>();
 
         private ObjectId _nextObjectId = new ObjectId(1);
+        private readonly Dictionary<ObjectId, ObjectRefInfo> _objects =
+            new Dictionary<ObjectId, ObjectRefInfo>();
 
         // Logical id mapping
         private ILogicalVirtualManager _logicalVirtual;
@@ -753,15 +755,10 @@ namespace Zen.Trunk.Storage.Data
         /// <returns></returns>
         protected virtual async Task ProcessPrimaryRootPageAsync(PrimaryFileGroupRootPage rootPage)
         {
-            // TODO: Master database device on primary filegroup must enumerate
-            //  list of databases and handle mounting the primary data/log devices
-            // This means we need to refactor the contents of this while loop so
-            //  it is in a protected virtual function that can be overridden to
-            //  deal with this somewhat special case.
-
             // We need to adjust our "next object identifier" so we skip over existing object ids
             foreach (var objRef in rootPage.Objects)
             {
+                _objects.Add(objRef.ObjectId, objRef);
                 if (objRef.ObjectId > _nextObjectId)
                 {
                     _nextObjectId = new ObjectId(objRef.ObjectId.Value + 1);
@@ -771,9 +768,12 @@ namespace Zen.Trunk.Storage.Data
             // Walk the list of devices recorded in the root page
             foreach (var deviceInfo in rootPage.Devices)
             {
-                await
-                    AddDataDeviceAsync(new AddDataDeviceParameters(deviceInfo.Name, deviceInfo.PathName, deviceInfo.Id))
-                        .ConfigureAwait(false);
+                await AddDataDeviceAsync(
+                    new AddDataDeviceParameters(
+                        deviceInfo.Name,
+                        deviceInfo.PathName,
+                        deviceInfo.Id))
+                    .ConfigureAwait(false);
             }
         }
 
@@ -1350,6 +1350,8 @@ namespace Zen.Trunk.Storage.Data
                 rootPage = nextRootPage;
             }
 
+            // Add new object to our list
+            _objects.Add(objectId, objectRef);
             return objectId;
         }
 
@@ -1385,17 +1387,16 @@ namespace Zen.Trunk.Storage.Data
 
         private async Task<IndexId> AddTableIndexHandlerAsync(AddTableIndexRequest request)
         {
-            // TODO: Determine the first logical page of the table schema
-            // Need to walk the root pages to find the object id and the first logical id
-            //  this likely needs it's own helper method and messages to support it
-            LogicalPageId firstLogicalPageId = LogicalPageId.Zero;
+            // Determine first logical page identifier for the table schema
+            var objRef = _objects[request.Message.ObjectId];
+            var firstLogicalPageId = objRef.FirstLogicalPageId;
 
-            // Get table wrapper
+            // Load table schema
             var table = GetService<DatabaseTable>();
             table.FileGroupId = FileGroupId;
             table.ObjectId = request.Message.ObjectId;
             table.IsNewTable = false;
-            await table.LoadAsync(firstLogicalPageId).ConfigureAwait(false);
+            await table.LoadSchemaAsync(firstLogicalPageId).ConfigureAwait(false);
 
             // Translate member column names into column identifiers
             var members = new List<Tuple<ushort, TableIndexSortDirection>>();

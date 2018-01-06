@@ -124,7 +124,6 @@ namespace Zen.Trunk.Storage.Data
 			{
 				// Lock schema
 				await TrackedLock.LockAsync(SchemaLock, LockTimeout).ConfigureAwait(false);
-				//lockManager.LockSchema(ObjectId, SchemaLock, LockTimeout);
 			}
 			catch
 			{
@@ -144,7 +143,6 @@ namespace Zen.Trunk.Storage.Data
 			try
 			{
 				await TrackedLock.UnlockAsync().ConfigureAwait(false);
-				//lockManager.UnlockSchema(ObjectId);
 			}
 			finally
 			{
