@@ -633,7 +633,7 @@ namespace Zen.Trunk.Storage.Data
         /// although we could relax this to an IX lock and only force an X lock
         /// when the need arises to actually create a new page.
         /// </remarks>
-        public async Task<TPageType> LoadOrCreatePageAndLinkAsync<TPageType>(TPageType previousPage)
+        public async Task<TPageType> LoadOrCreateNextLinkedPageAsync<TPageType>(TPageType previousPage)
             where TPageType : LogicalPage, new()
         {
             // If previous page has next logical page identifier then load
@@ -647,8 +647,7 @@ namespace Zen.Trunk.Storage.Data
             }
 
             // Create new next page and link up
-            var newPage = new TPageType();
-            newPage.PrevLogicalPageId = previousPage.LogicalPageId;
+            var newPage = new TPageType { PrevLogicalPageId = previousPage.LogicalPageId };
             await InitDataPageAsync(new InitDataPageParameters(newPage, true, true, true))
                 .ConfigureAwait(false);
             previousPage.NextLogicalPageId = newPage.LogicalPageId;
@@ -1333,6 +1332,7 @@ namespace Zen.Trunk.Storage.Data
                 try
                 {
                     rootPage.Objects.Add(objectRef);
+                    rootPage.Save();
 
                     // If we get this far then page has space for object reference
                     break;
@@ -1342,10 +1342,11 @@ namespace Zen.Trunk.Storage.Data
                 }
 
                 // Failed to add to existing root page; prepare to load/create new rootpage
-                var nextRootPage = await LoadOrCreatePageAndLinkAsync(rootPage).ConfigureAwait(false);
+                var nextRootPage = await LoadOrCreateNextLinkedPageAsync(rootPage).ConfigureAwait(false);
 
-                // Lock page and try again
+                // Crab lock page and try again
                 await nextRootPage.SetRootLockAsync(FileGroupLockType.Exclusive).ConfigureAwait(false);
+                await rootPage.SetRootLockAsync(FileGroupLockType.None).ConfigureAwait(false);
                 rootPage = nextRootPage;
             }
 
