@@ -28,7 +28,6 @@ namespace Zen.Trunk.Storage
                 using (var dbDevice = new DatabaseDevice(PrimaryDatabaseId))
                 {
                     dbDevice.InitialiseDeviceLifetimeScope(Scope);
-                    dbDevice.BeginTransaction();
 
                     var addFgDevice =
                         new AddFileGroupDeviceParameters(
@@ -52,9 +51,6 @@ namespace Zen.Trunk.Storage
                     await dbDevice.OpenAsync(true).ConfigureAwait(true);
                     Trace.WriteLine("DatabaseDevice.Open succeeded");
 
-                    await TrunkTransactionContext.CommitAsync().ConfigureAwait(true);
-                    Trace.WriteLine("Transaction commit succeeded");
-
                     await dbDevice.CloseAsync().ConfigureAwait(true);
                     Trace.WriteLine("DatabaseDevice.Close succeeded");
                 }
@@ -72,7 +68,7 @@ namespace Zen.Trunk.Storage
                 using (var dbDevice = new DatabaseDevice(PrimaryDatabaseId))
                 {
                     dbDevice.InitialiseDeviceLifetimeScope(Scope);
-                    dbDevice.BeginTransaction();
+                    //dbDevice.BeginTransaction(); // transaction scope here is unnecessary as it is done inside open call on DatabaseDevice
                     bool rollback = false;
                     try
                     {
@@ -97,7 +93,7 @@ namespace Zen.Trunk.Storage
 
                         await dbDevice.OpenAsync(true).ConfigureAwait(true);
 
-                        await TrunkTransactionContext.CommitAsync().ConfigureAwait(true);
+                        //await TrunkTransactionContext.CommitAsync().ConfigureAwait(true);
 
                         dbDevice.BeginTransaction();
 
@@ -211,7 +207,6 @@ namespace Zen.Trunk.Storage
                     try
                     {
                         dbDevice.InitialiseDeviceLifetimeScope(Scope);
-                        dbDevice.BeginTransaction();
 
                         var addFgDevice =
                             new AddFileGroupDeviceParameters(
@@ -233,8 +228,6 @@ namespace Zen.Trunk.Storage
                         await dbDevice.AddLogDeviceAsync(addLogDevice).ConfigureAwait(true);
 
                         await dbDevice.OpenAsync(true).ConfigureAwait(true);
-
-                        await TrunkTransactionContext.CommitAsync().ConfigureAwait(true);
 
                         dbDevice.BeginTransaction();
                         try
@@ -311,7 +304,6 @@ namespace Zen.Trunk.Storage
                     using (var dbDevice = new MasterDatabaseDevice())
                     {
                         dbDevice.InitialiseDeviceLifetimeScope(Scope);
-                        dbDevice.BeginTransaction();
 
                         var addFgDevice =
                             new AddFileGroupDeviceParameters(
@@ -334,9 +326,6 @@ namespace Zen.Trunk.Storage
 
                         await dbDevice.OpenAsync(true).ConfigureAwait(true);
                         Trace.WriteLine("DatabaseDevice.Open succeeded");
-
-                        await TrunkTransactionContext.CommitAsync().ConfigureAwait(true);
-                        Trace.WriteLine("Transaction commit succeeded");
 
                         // This will acquire a session based lock
                         await dbDevice.UseDatabaseAsync(TimeSpan.FromSeconds(10)).ConfigureAwait(true);

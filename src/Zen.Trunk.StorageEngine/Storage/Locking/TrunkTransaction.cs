@@ -179,7 +179,7 @@ namespace Zen.Trunk.Storage.Locking
                 Timeout = timeout
             };
 
-            TryEnlistInTransaction();
+            EnlistInTransaction();
         }
         #endregion
 
@@ -220,7 +220,7 @@ namespace Zen.Trunk.Storage.Locking
             {
                 if (_logDevice == null)
                 {
-                    TryEnlistInTransaction();
+                    EnlistInTransaction();
                 }
                 return _logDevice;
             }
@@ -351,7 +351,7 @@ namespace Zen.Trunk.Storage.Locking
                 // If we don't yet have a valid transaction ID then try to get one now
                 if (_transactionId == TransactionId.Zero || _transactionId == TransactionId.Pending)
                 {
-                    TryEnlistInTransaction();
+                    EnlistInTransaction();
                     if (_transactionId != TransactionId.Zero && _transactionId != TransactionId.Pending)
                     {
                         needToResetTransactionId = true;
@@ -696,22 +696,16 @@ namespace Zen.Trunk.Storage.Locking
             _isCompleting = false;
         }
 
-        private void TryEnlistInTransaction()
+        private void EnlistInTransaction()
         {
             try
             {
-                if (_lifetimeScope.TryResolve(out _logDevice))
-                {
-                    _transactionId = _logDevice.GetNextTransactionId();
-                }
-                else
-                {
-                    _transactionId = TransactionId.Pending;
-                }
+                _logDevice = _lifetimeScope.Resolve<IMasterLogPageDevice>();
+                _transactionId = _logDevice.GetNextTransactionId();
             }
             catch (DependencyResolutionException)
             {
-                _transactionId = TransactionId.Pending;
+                throw new InvalidOperationException("Master log device not resolvable - unable to initate transction");
             }
             if (Logger.IsDebugEnabled())
             {
@@ -723,6 +717,7 @@ namespace Zen.Trunk.Storage.Locking
         {
             if (!_isBeginLogWritten)
             {
+                _isBeginLogWritten = true;
                 if (Logger.IsDebugEnabled())
                 {
                     Logger.Debug($"{_transactionId} => Writing begin xact to log");
@@ -732,7 +727,6 @@ namespace Zen.Trunk.Storage.Locking
                     // Write begin transaction entry
                     await LoggingDevice.WriteEntryAsync(new BeginTransactionLogEntry(_transactionId)).ConfigureAwait(false);
                 }
-                _isBeginLogWritten = true;
             }
         }
 

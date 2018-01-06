@@ -6,8 +6,6 @@ using Zen.Trunk.Storage.Data;
 using Zen.Trunk.Storage.Locking;
 using Zen.Trunk.VirtualMemory;
 using Zen.Trunk.VirtualMemory.Tests;
-using Zen.Trunk.Logging;
-using Zen.Trunk.Logging.LogProviders;
 
 namespace Zen.Trunk.Storage
 {
@@ -22,6 +20,7 @@ namespace Zen.Trunk.Storage
             var config = new LoggerConfiguration();
             Serilog.Log.Logger = config
                 .Enrich.With<ThreadIdEnricher>()
+                .Enrich.With<TransactionEnricher>()
                 .MinimumLevel.Verbose()
                 .WriteTo.Debug()
                 .CreateLogger();

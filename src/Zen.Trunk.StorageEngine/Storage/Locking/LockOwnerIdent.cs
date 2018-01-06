@@ -56,6 +56,7 @@
                 return new LockOwnerIdent(SessionId, TransactionId.Zero);
             }
         }
+
         /// <summary>
         /// Determines whether the specified <see cref="System.Object" />, is equal to this instance.
         /// </summary>
