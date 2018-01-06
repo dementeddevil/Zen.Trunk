@@ -13,12 +13,6 @@ namespace Zen.Trunk.Storage
         /// Transaction identifier zero constitutes an invalid transaction id
         /// </summary>
         public static readonly TransactionId Zero = new TransactionId(0);
-
-        /// <summary>
-        /// Transaction identifier pending is typically only ever assigned during
-        /// database startup prior to attachment of the log device
-        /// </summary>
-        public static readonly TransactionId Pending = new TransactionId(1);
         #endregion
 
         #region Public Constructors

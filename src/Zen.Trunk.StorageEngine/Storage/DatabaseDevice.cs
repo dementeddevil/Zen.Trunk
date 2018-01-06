@@ -87,6 +87,20 @@ namespace Zen.Trunk.Storage
             #endregion
         }
 
+        private class AddFileGroupTableIndexRequest : TransactionContextTaskRequest<AddFileGroupTableIndexParameters, IndexId>
+        {
+            #region Public Constructors
+            /// <summary>
+            /// Initializes a new instance of the <see cref="AddFileGroupTableRequest"/> class.
+            /// </summary>
+            /// <param name="tableIndexParams">The table parameters.</param>
+            public AddFileGroupTableIndexRequest(AddFileGroupTableIndexParameters tableIndexParams)
+                : base(tableIndexParams)
+            {
+            }
+            #endregion
+        }
+
         private class FlushFileGroupRequest : TransactionContextTaskRequest<FlushCachingDeviceParameters, bool>
         {
             #region Public Constructors
@@ -200,6 +214,13 @@ namespace Zen.Trunk.Storage
             AddFileGroupTablePort =
                 new TransactionContextActionBlock<AddFileGroupTableRequest, ObjectId>(
                     request => AddFileGroupTableHandlerAsync(request),
+                    new ExecutionDataflowBlockOptions
+                    {
+                        TaskScheduler = taskInterleave.ExclusiveScheduler
+                    });
+            AddFileGroupTableIndexPort =
+                new TransactionContextActionBlock<AddFileGroupTableIndexRequest, IndexId>(
+                    request => AddFileGroupTableIndexHandlerAsync(request),
                     new ExecutionDataflowBlockOptions
                     {
                         TaskScheduler = taskInterleave.ExclusiveScheduler
@@ -336,6 +357,12 @@ namespace Zen.Trunk.Storage
         /// </summary>
         /// <value>The add file group table port.</value>
         private ITargetBlock<AddFileGroupTableRequest> AddFileGroupTablePort { get; }
+
+        /// <summary>
+        /// Gets the add file-group table index port.
+        /// </summary>
+        /// <value>The add file-group table index port.</value>
+        private ITargetBlock<AddFileGroupTableIndexRequest> AddFileGroupTableIndexPort { get; }
 
         /// <summary>
         /// Gets the issue check point port.
@@ -480,10 +507,20 @@ namespace Zen.Trunk.Storage
         /// A <see cref="Task"/> representing the asynchronous operation.
         /// </returns>
         /// <exception cref="BufferDeviceShuttingDownException"></exception>
-        public Task AddFileGroupTableAsync(AddFileGroupTableParameters tableParams)
+        public Task<ObjectId> AddFileGroupTableAsync(AddFileGroupTableParameters tableParams)
         {
             var request = new AddFileGroupTableRequest(tableParams);
             if (!AddFileGroupTablePort.Post(request))
+            {
+                throw new BufferDeviceShuttingDownException();
+            }
+            return request.Task;
+        }
+
+        public Task<IndexId> AddFileGroupTableIndexAsync(AddFileGroupTableIndexParameters tableIndexParams)
+        {
+            var request = new AddFileGroupTableIndexRequest(tableIndexParams);
+            if(!AddFileGroupTableIndexPort.Post(request))
             {
                 throw new BufferDeviceShuttingDownException();
             }
@@ -982,6 +1019,16 @@ namespace Zen.Trunk.Storage
 
             // Delegate request to file-group device.
             return fileGroupDevice.AddTableAsync(request.Message);
+        }
+
+        private Task<IndexId> AddFileGroupTableIndexHandlerAsync(AddFileGroupTableIndexRequest request)
+        {
+            // Locate appropriate filegroup device
+            var fileGroupDevice = GetFileGroupDeviceCore(
+                request.Message.FileGroupId, request.Message.FileGroupName);
+
+            // Delegate request to file-group device.
+            return fileGroupDevice.AddTableIndexAsync(request.Message);
         }
 
         // ReSharper disable once UnusedParameter.Local

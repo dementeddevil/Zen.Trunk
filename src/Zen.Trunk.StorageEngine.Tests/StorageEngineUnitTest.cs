@@ -290,6 +290,126 @@ namespace Zen.Trunk.Storage
             }
         }
 
+        [Fact(DisplayName = "Validate that creating database table and set of indicies under transaction works as expected.")]
+        public async Task DatabaseCreateTableAndIndiciesTxnTest()
+        {
+            using (var tracker = new TempFileTracker())
+            {
+                var masterDataPathName = tracker.Get("master.mddf");
+                var masterLogPathName = tracker.Get("master.mlf");
+
+                using (var dbDevice = new DatabaseDevice(PrimaryDatabaseId))
+                {
+                    try
+                    {
+                        dbDevice.InitialiseDeviceLifetimeScope(Scope);
+                        var addFgDevice =
+                            new AddFileGroupDeviceParameters(
+                                FileGroupId.Primary,
+                                "PRIMARY",
+                                "master",
+                                masterDataPathName,
+                                DeviceId.Zero,
+                                128,
+                                true);
+                        await dbDevice.AddFileGroupDeviceAsync(addFgDevice).ConfigureAwait(true);
+
+                        var addLogDevice =
+                            new AddLogDeviceParameters(
+                                "MASTER_LOG",
+                                masterLogPathName,
+                                DeviceId.Zero,
+                                2);
+                        await dbDevice.AddLogDeviceAsync(addLogDevice).ConfigureAwait(true);
+
+                        await dbDevice.OpenAsync(true).ConfigureAwait(true);
+
+                        // Create table and index schemas
+                        dbDevice.BeginTransaction();
+                        try
+                        {
+                            var param =
+                                new AddFileGroupTableParameters(
+                                    addFgDevice.FileGroupId,
+                                    addFgDevice.FileGroupName,
+                                    "Test",
+                                    new TableColumnInfo(
+                                        "Id",
+                                        TableColumnDataType.Int,
+                                        false,
+                                        0,
+                                        1,
+                                        1),
+                                    new TableColumnInfo(
+                                        "Name",
+                                        TableColumnDataType.NVarChar,
+                                        false,
+                                        50),
+                                    new TableColumnInfo(
+                                        "SequenceIndex",
+                                        TableColumnDataType.Int,
+                                        false),
+                                    new TableColumnInfo(
+                                        "CreatedDate",
+                                        TableColumnDataType.DateTime,
+                                        false));
+                            var objectId = await dbDevice
+                                .AddFileGroupTableAsync(param)
+                                .ConfigureAwait(true);
+
+                            var primaryIndexParam =
+                                new AddFileGroupTableIndexParameters(
+                                    addFgDevice.FileGroupId,
+                                    addFgDevice.FileGroupName,
+                                    "PK_Test",
+                                    TableIndexSubType.Primary,
+                                    objectId);
+                            primaryIndexParam.AddColumnAndSortDirection(
+                                "Id", TableIndexSortDirection.Ascending);
+                            await dbDevice
+                                .AddFileGroupTableIndexAsync(primaryIndexParam)
+                                .ConfigureAwait(true);
+
+                            var secondaryIndexParam =
+                                new AddFileGroupTableIndexParameters(
+                                    addFgDevice.FileGroupId,
+                                    addFgDevice.FileGroupName,
+                                    "IX_CreatedDate",
+                                    TableIndexSubType.Primary,
+                                    objectId);
+                            secondaryIndexParam.AddColumnAndSortDirection(
+                                "CreatedDate", TableIndexSortDirection.Descending);
+                            await dbDevice
+                                .AddFileGroupTableIndexAsync(secondaryIndexParam)
+                                .ConfigureAwait(true);
+
+                            await TrunkTransactionContext.CommitAsync().ConfigureAwait(true);
+                        }
+                        catch (Exception e)
+                        {
+                            await TrunkTransactionContext.RollbackAsync().ConfigureAwait(true);
+                        }
+
+                        // Insert table data
+                        //dbDevice.BeginTransaction();
+                        //try
+                        //{
+
+                        //    await TrunkTransactionContext.CommitAsync().ConfigureAwait(true);
+                        //}
+                        //catch (Exception e)
+                        //{
+                        //    await TrunkTransactionContext.RollbackAsync().ConfigureAwait(true);
+                        //}
+                    }
+                    finally
+                    {
+                        await dbDevice.CloseAsync().ConfigureAwait(true);
+                    }
+                }
+            }
+        }
+
         [Fact(DisplayName = "Verify USE DATABASE statement creates shared database lock.")]
         public async Task UseDatabaseLockTest()
         {

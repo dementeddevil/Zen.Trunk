@@ -491,14 +491,8 @@ namespace Zen.Trunk.Storage.Data.Table
         /// </exception>
         public LogicalPageId DataFirstLogicalPageId
         {
-            get
-            {
-                return SchemaRootPage.DataFirstLogicalPageId;
-            }
-            private set
-            {
-                SchemaRootPage.DataFirstLogicalPageId = value;
-            }
+            get => SchemaRootPage.DataFirstLogicalPageId;
+            private set => SchemaRootPage.DataFirstLogicalPageId = value;
         }
 
         /// <summary>
@@ -515,14 +509,8 @@ namespace Zen.Trunk.Storage.Data.Table
         /// </exception>
         public LogicalPageId DataLastLogicalPageId
         {
-            get
-            {
-                return SchemaRootPage.DataLastLogicalPageId;
-            }
-            set
-            {
-                SchemaRootPage.DataLastLogicalPageId = value;
-            }
+            get => SchemaRootPage.DataLastLogicalPageId;
+            set => SchemaRootPage.DataLastLogicalPageId = value;
         }
 
         /// <summary>

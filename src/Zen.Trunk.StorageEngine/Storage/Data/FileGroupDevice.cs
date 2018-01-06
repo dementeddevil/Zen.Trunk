@@ -1383,19 +1383,40 @@ namespace Zen.Trunk.Storage.Data
                     })).ConfigureAwait(false);
         }
 
-        private Task<IndexId> AddTableIndexHandlerAsync(AddTableIndexRequest request)
+        private async Task<IndexId> AddTableIndexHandlerAsync(AddTableIndexRequest request)
         {
-            var indexId = IndexId.Zero;
+            // TODO: Determine the first logical page of the table schema
+            // Need to walk the root pages to find the object id and the first logical id
+            //  this likely needs it's own helper method and messages to support it
+            LogicalPageId firstLogicalPageId = LogicalPageId.Zero;
 
+            // Get table wrapper
             var table = GetService<DatabaseTable>();
             table.FileGroupId = FileGroupId;
             table.ObjectId = request.Message.ObjectId;
             table.IsNewTable = false;
+            await table.LoadAsync(firstLogicalPageId).ConfigureAwait(false);
 
-            //table.
-            //table.AddIndex
+            // Translate member column names into column identifiers
+            var members = new List<Tuple<ushort, TableIndexSortDirection>>();
+            foreach (var member in request.Message.Columns)
+            {
+                var columnId = table.Columns
+                    .Where(c => string.Equals(c.Name, member.Key, StringComparison.OrdinalIgnoreCase))
+                    .Select(c => (ushort)c.Id)
+                    .First();
+                members.Add(new Tuple<ushort, TableIndexSortDirection>(
+                    columnId, member.Value));
+            }
 
-            return Task.FromResult(indexId);
+            // Create index
+            var createParams =
+                new CreateTableIndexParameters(
+                    request.Message.Name,
+                    FileGroupId,
+                    request.Message.IndexSubType,
+                    members);
+            return await table.CreateIndexAsync(createParams).ConfigureAwait(false);
         }
 
         private async Task ExpandDeviceCoreAsync(DeviceId deviceId, RootPage rootPage, uint growthPages)

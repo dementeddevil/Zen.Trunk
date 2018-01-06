@@ -60,7 +60,7 @@ namespace Zen.Trunk.Storage.Log
         private VirtualLogFileStream _currentStream;
         private object _syncWriters = new object();
         private Dictionary<ActiveTransaction, List<TransactionLogEntry>> _activeTransactions;
-        private int _nextTransactionId = 2;
+        private int _nextTransactionId;
         private DeviceId _nextLogDeviceId;
 
         private bool _trucateLog = false;
@@ -68,7 +68,7 @@ namespace Zen.Trunk.Storage.Log
 
         private bool _isInCheckpoint;
         private int _logEntriesSinceCheckpoint;
-        private int _bytesWrittenSinceCheckpoint;
+        private uint _bytesWrittenSinceCheckpoint;
         #endregion
 
         #region Public Constructors
@@ -273,7 +273,7 @@ namespace Zen.Trunk.Storage.Log
         /// <param name="maximumLogEntries">The maximum log entries since last checkpoint threshold.</param>
         /// <param name="maximumLogBytes">The maximum log bytes since last checkpoint threshold.</param>
         /// <returns>
-        ///   <c>true</c> if [is checkpoint required] [the specified maximum log entries]; otherwise, <c>false</c>.
+        /// <c>true</c> if checkpoint is required; otherwise, <c>false</c>.
         /// </returns>
         public bool IsCheckpointRequired(int maximumLogEntries, int maximumLogBytes)
         {
@@ -294,7 +294,7 @@ namespace Zen.Trunk.Storage.Log
 
             return !_isInCheckpoint &&
                 ((maximumLogEntries > 0 && _logEntriesSinceCheckpoint > maximumLogEntries) ||
-                (maximumLogBytes > 0 && _bytesWrittenSinceCheckpoint > maximumLogBytes));
+                 (maximumLogBytes > 0 && _bytesWrittenSinceCheckpoint > maximumLogBytes));
         }
 
         /// <summary>
@@ -729,6 +729,7 @@ namespace Zen.Trunk.Storage.Log
             WriteEntryCore(entry);
 
             var rootPage = GetRootPage<MasterLogRootPage>();
+            var isWrapperEntry = false;
             switch (entry.LogType)
             {
                 case LogEntryType.BeginXact:
@@ -746,6 +747,7 @@ namespace Zen.Trunk.Storage.Log
                             rootPage.EndLogOffset,
                             beginXactEntry.LogId),
                         new List<TransactionLogEntry>());
+                    isWrapperEntry = true;
                     break;
                 case LogEntryType.BeginCheckpoint:
                 case LogEntryType.EndCheckpoint:
@@ -756,6 +758,8 @@ namespace Zen.Trunk.Storage.Log
                         entry.LogType == LogEntryType.BeginCheckpoint);
                     _isInCheckpoint = entry.LogType == LogEntryType.BeginCheckpoint;
                     _logEntriesSinceCheckpoint = 0;
+                    _bytesWrittenSinceCheckpoint = 0;
+                    isWrapperEntry = true;
                     break;
                 case LogEntryType.RollbackXact:
                 case LogEntryType.CommitXact:
@@ -773,6 +777,7 @@ namespace Zen.Trunk.Storage.Log
                             break;
                         }
                     }
+                    isWrapperEntry = true;
                     break;
                 default:
                     // Add transaction records to correct list
@@ -796,10 +801,12 @@ namespace Zen.Trunk.Storage.Log
             rootPage.EndLogOffset = (uint)_currentStream.Position;
             SaveRootPage();
 
-            // Maintain count of records written since last checkpoint
-            if (!_isInCheckpoint)
+            // Update log entry count and total number of bytes written since
+            //  last checkpoint as required
+            if (!_isInCheckpoint && !isWrapperEntry)
             {
                 ++_logEntriesSinceCheckpoint;
+                _bytesWrittenSinceCheckpoint += entry.RawSize;
             }
             return true;
         }

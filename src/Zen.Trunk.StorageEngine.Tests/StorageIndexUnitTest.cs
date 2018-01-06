@@ -26,12 +26,24 @@ namespace Zen.Trunk.Storage
             public void CreateIndex(RootIndexInfo rootIndexInfo)
             {
                 // Create the root index page
-                var rootPage = new TestIndexPage();
-                rootPage.FileGroupId = rootIndexInfo.IndexFileGroupId;
-                rootPage.ObjectId = rootIndexInfo.ObjectId;
-                rootPage.IndexType = IndexType.Root | IndexType.Leaf;
-                Database.InitFileGroupPageAsync(
-                    new InitFileGroupPageParameters(null, rootPage, true, false, true, true)).ConfigureAwait(false);
+                var rootPage =
+                    new TestIndexPage
+                    {
+                        FileGroupId = rootIndexInfo.IndexFileGroupId,
+                        ObjectId = rootIndexInfo.ObjectId,
+                        IndexType = IndexType.Root | IndexType.Leaf
+                    };
+
+                Database
+                    .InitFileGroupPageAsync(
+                        new InitFileGroupPageParameters(
+                            null,
+                            rootPage,
+                            true,
+                            false,
+                            true,
+                            true))
+                    .ConfigureAwait(false);
 
                 // Setup root index page
                 rootPage.SetHeaderDirty();
@@ -61,16 +73,13 @@ namespace Zen.Trunk.Storage
 
             public ulong LogicalId
             {
-                get { return _logicalId.Value; }
-                set { _logicalId.Value = value; }
+                get => _logicalId.Value;
+                set => _logicalId.Value = value;
             }
 
             public DateTime CreatedDate
             {
-                get
-                {
-                    return new DateTime(_firstKey.Value);
-                }
+                get => new DateTime(_firstKey.Value);
                 set
                 {
                     if (value.Ticks != _firstKey.Value)
@@ -82,10 +91,7 @@ namespace Zen.Trunk.Storage
 
             public int SequenceIndex
             {
-                get
-                {
-                    return _secondKey.Value;
-                }
+                get => _secondKey.Value;
                 set
                 {
                     if (_secondKey.Value != value)
@@ -95,13 +101,7 @@ namespace Zen.Trunk.Storage
                 }
             }
 
-            protected override BufferField LastField
-            {
-                get
-                {
-                    return _secondKey;
-                }
-            }
+            protected override BufferField LastField => _secondKey;
 
             public override int CompareTo(IndexInfo rhs)
             {
@@ -138,29 +138,11 @@ namespace Zen.Trunk.Storage
                 return lhs.CompareTo(rhs);
             }
 
-            public ushort KeySize
-            {
-                get
-                {
-                    return 12;
-                }
-            }
+            public ushort KeySize => 12;
 
-            public override ushort MaxIndexEntries
-            {
-                get
-                {
-                    return (ushort)(DataSize / (2 + KeySize));
-                }
-            }
+            public override ushort MaxIndexEntries => (ushort)(DataSize / (2 + KeySize));
 
-            public override IndexManager IndexManager
-            {
-                get
-                {
-                    return GetService<TestIndexManager>();
-                }
-            }
+            public override IndexManager IndexManager => GetService<TestIndexManager>();
 
             protected override TestIndexInfo CreateLinkToPage(
                 IndexPage<TestIndexInfo, RootIndexInfo> page)
@@ -187,8 +169,6 @@ namespace Zen.Trunk.Storage
                 var dbDevice = CreateDatabaseDevice();
                 try
                 {
-                    dbDevice.BeginTransaction(TimeSpan.FromMinutes(10));
-
                     var addFgDevice =
                         new AddFileGroupDeviceParameters(
                             FileGroupId.Primary,
@@ -210,8 +190,6 @@ namespace Zen.Trunk.Storage
 
                     await dbDevice.OpenAsync(true).ConfigureAwait(true);
 
-                    await TrunkTransactionContext.CommitAsync().ConfigureAwait(true);
-
                     dbDevice.BeginTransaction(TimeSpan.FromMinutes(10));
 
                     var manager = new TestIndexManager(Scope);
@@ -223,7 +201,7 @@ namespace Zen.Trunk.Storage
                         IndexFileGroupId = addFgDevice.FileGroupId,
                     };
                     manager.CreateIndex(indexInfo);
-                    //manager.
+                    //manager.AddIndexInfo();
 
                     await TrunkTransactionContext.CommitAsync().ConfigureAwait(true);
                 }

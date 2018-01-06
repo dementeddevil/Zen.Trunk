@@ -345,19 +345,10 @@ namespace Zen.Trunk.Storage.Locking
                 return true;
             }
 
-            bool needToResetTransactionId = false;
             try
             {
-                // If we don't yet have a valid transaction ID then try to get one now
-                if (_transactionId == TransactionId.Zero || _transactionId == TransactionId.Pending)
-                {
-                    EnlistInTransaction();
-                    if (_transactionId != TransactionId.Zero && _transactionId != TransactionId.Pending)
-                    {
-                        needToResetTransactionId = true;
-                    }
-                }
-
+                // Prepare enlistments for two-phase commit unless a nested
+                //  transaction was instructed to rollback.
                 _isCompleting = true;
                 var performCommit = true;
                 var prepTasks = new List<Task<bool>>();
@@ -377,6 +368,7 @@ namespace Zen.Trunk.Storage.Locking
                     }
 
                     // Prepare our sub-enlistments (pages) for commit operation
+                    // Each sub-enlistment can opt out of further work in the commit process if needed
                     foreach (var sub in _subEnlistments)
                     {
                         var prepInfo = new DbPrepare();
@@ -407,6 +399,8 @@ namespace Zen.Trunk.Storage.Locking
                             .ConfigureAwait(false);
                         if (result != null)
                         {
+                            // Walk the list of result objects and add all sub-enlistments
+                            //  that have opted into the two-phase commit
                             for (var index = 0; index < result.Length; ++index)
                             {
                                 if (result[index])
@@ -447,8 +441,7 @@ namespace Zen.Trunk.Storage.Locking
                         foreach (var sub in commitList)
                         {
                             // We only process untracked page buffers
-                            var page = sub as PageBuffer;
-                            if (page == null || tracker.Contains(page.PageId))
+                            if (!(sub is PageBuffer page) || tracker.Contains(page.PageId))
                             {
                                 continue;
                             }
@@ -481,13 +474,13 @@ namespace Zen.Trunk.Storage.Locking
                 {
                     // Rollback all objects in the commit list and throw
                     var rollbackTasks = new List<Task>();
-                    foreach (var rb in commitList)
+                    foreach (var sub in commitList)
                     {
                         var rollback = new DbNotify();
                         try
                         {
                             rollbackTasks.Add(rollback.Task);
-                            rb.Rollback(rollback);
+                            sub.Rollback(rollback);
                         }
                         catch
                         {
@@ -496,9 +489,10 @@ namespace Zen.Trunk.Storage.Locking
                     }
 
                     // Wait for rollback operations to complete
-                    TaskExtra.WhenAllOrEmpty(rollbackTasks.ToArray())
+                    await TaskExtra
+                        .WhenAllOrEmpty(rollbackTasks.ToArray())
                         .WithTimeout(TimeSpan.FromSeconds(5))
-                        .Wait();
+                        .ConfigureAwait(false);
                 }
 
                 // Write journal entry for transaction state
@@ -507,14 +501,18 @@ namespace Zen.Trunk.Storage.Locking
                 // Notify candidates that transaction has completed
                 var completeList = new List<IPageEnlistmentNotification>(
                     commitList.Count > 0 ? commitList : _subEnlistments);
-                foreach (var rb in completeList)
+                foreach (var sub in completeList)
                 {
                     try
                     {
-                        rb.Complete();
+                        sub.Complete();
                     }
-                    catch
+                    catch(Exception e)
                     {
+                        if (Logger.IsWarnEnabled())
+                        {
+                            Logger.WarnException($"Exception caught during transaction completion - this will be ignored\n\t{e.Message}", e);
+                        }
                     }
                 }
 
@@ -531,13 +529,6 @@ namespace Zen.Trunk.Storage.Locking
             {
                 // Release other objects
                 await ReleaseAsync().ConfigureAwait(false);
-
-                // We need to reset the transaction id so unlocking pages will work
-                if (needToResetTransactionId)
-                {
-                    _transactionId = TransactionId.Zero;
-                }
-
             }
             return true;
         }
@@ -595,9 +586,10 @@ namespace Zen.Trunk.Storage.Locking
                 }
 
                 // Wait for rollback operations to complete
-                TaskExtra.WhenAllOrEmpty(rollbackTasks.ToArray())
+                await TaskExtra
+                    .WhenAllOrEmpty(rollbackTasks.ToArray())
                     .WithTimeout(TimeSpan.FromSeconds(5))
-                    .Wait();
+                    .ConfigureAwait(false);
 
                 // Write rollback record
                 await WriteEndXact(false).ConfigureAwait(false);
@@ -705,8 +697,14 @@ namespace Zen.Trunk.Storage.Locking
             }
             catch (DependencyResolutionException)
             {
-                throw new InvalidOperationException("Master log device not resolvable - unable to initate transction");
+                if (Logger.IsWarnEnabled())
+                {
+                    Logger.Warn("Master log device not resolvable - faking transaction identifier");
+                }
+
+                _transactionId = new TransactionId(1);
             }
+
             if (Logger.IsDebugEnabled())
             {
                 Logger.Debug($"{_transactionId} => Returned from TryEnlistTransaction()");

@@ -6,6 +6,19 @@ namespace Zen.Trunk.Storage.Data.Table
 {
     public class CreateTableIndexParameters
     {
+        public CreateTableIndexParameters(
+            string name,
+            FileGroupId indexFileGroupId,
+            TableIndexSubType indexSubType,
+            IEnumerable<Tuple<ushort, TableIndexSortDirection>> members)
+        {
+            Name = name;
+            IndexFileGroupId = indexFileGroupId;
+            IndexSubType = indexSubType;
+            Members = new List<Tuple<ushort, TableIndexSortDirection>>(members)
+                .AsReadOnly();
+        }
+
         public string Name { get; }
 
         public FileGroupId IndexFileGroupId { get; }
