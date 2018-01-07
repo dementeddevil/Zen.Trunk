@@ -89,7 +89,7 @@ namespace Zen.Trunk.Storage.Locking
         /// <param name="lockType">Type of the lock.</param>
         /// <param name="timeout">The timeout.</param>
         /// <returns></returns>
-        public Task LockFileGroupAsync(FileGroupId fileGroupId, FileGroupLockType lockType, TimeSpan timeout)
+        public Task LockFileGroupAsync(FileGroupId fileGroupId, FileGroupRootLockType lockType, TimeSpan timeout)
 		{
 			return _globalLockManager.LockFileGroupAsync(DatabaseId, fileGroupId, lockType, timeout);
 		}
@@ -109,7 +109,7 @@ namespace Zen.Trunk.Storage.Locking
         /// </summary>
         /// <param name="fileGroupId">The file group identifier.</param>
         /// <returns></returns>
-        public FileGroupLock GetFileGroupLock(FileGroupId fileGroupId)
+        public FileGroupRootLock GetFileGroupLock(FileGroupId fileGroupId)
 		{
 			return _globalLockManager.GetFileGroupLock(DatabaseId, fileGroupId);
 		}

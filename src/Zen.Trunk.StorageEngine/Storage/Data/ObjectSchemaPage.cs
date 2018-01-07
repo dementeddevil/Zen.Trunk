@@ -27,20 +27,8 @@ namespace Zen.Trunk.Storage.Data
 		#endregion
 
 		#region Internal Properties
-		internal SchemaLock TrackedLock
-		{
-			get
-			{
-				if (TrunkTransactionContext.Current == null)
-				{
-					throw new InvalidOperationException("No current transaction.");
-				}
-
-			    // Return the lock-owner block for this object instance
-			    var txnLocks = TrunkTransactionContext.GetTransactionLockOwnerBlock(LockManager);
-				return txnLocks?.GetOrCreateSchemaLock(ObjectId);
-			}
-		}
+	    internal SchemaLock ObjectSchemaLock =>
+	        TransactionLockOwnerBlock?.GetOrCreateSchemaLock(ObjectId);
         #endregion
 
 	    #region Public Methods
@@ -123,7 +111,7 @@ namespace Zen.Trunk.Storage.Data
 			try
 			{
 				// Lock schema
-				await TrackedLock.LockAsync(SchemaLock, LockTimeout).ConfigureAwait(false);
+				await ObjectSchemaLock.LockAsync(SchemaLock, LockTimeout).ConfigureAwait(false);
 			}
 			catch
 			{
@@ -142,7 +130,7 @@ namespace Zen.Trunk.Storage.Data
 			// Unlock page based on schema
 			try
 			{
-				await TrackedLock.UnlockAsync().ConfigureAwait(false);
+				await ObjectSchemaLock.UnlockAsync().ConfigureAwait(false);
 			}
 			finally
 			{

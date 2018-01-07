@@ -36,7 +36,6 @@ namespace Zen.Trunk.Storage.Data
 		private readonly BufferFieldUInt32 _maximumPages;
 		private readonly BufferFieldUInt32 _growthPages;
 		private readonly BufferFieldDouble _growthPercent;
-        private IDatabaseLockManager _lockManager;
         #endregion
 
         #region Protected Constructors
@@ -63,7 +62,7 @@ namespace Zen.Trunk.Storage.Data
 	    /// Gets or sets the type of the lock.
 	    /// </summary>
 	    /// <value>The type of the lock.</value>
-	    public FileGroupLockType FileGroupLock { get; private set; }
+	    public FileGroupRootLockType FileGroupLock { get; private set; }
 
 	    /// <summary>
 		/// Overridden. Gets/sets the page status.
@@ -89,11 +88,8 @@ namespace Zen.Trunk.Storage.Data
         /// </value>
         public byte Status
 		{
-			get
-			{
-				return _status.Value;
-			}
-			set
+			get => _status.Value;
+            set
 			{
 				_status.Value = value;
 				SetHeaderDirty();
@@ -108,11 +104,8 @@ namespace Zen.Trunk.Storage.Data
         /// </value>
         public uint AllocatedPages
 		{
-			get
-			{
-				return _allocatedPages.Value;
-			}
-			set
+			get => _allocatedPages.Value;
+            set
 			{
 				_allocatedPages.Value = value;
 				SetHeaderDirty();
@@ -127,11 +120,8 @@ namespace Zen.Trunk.Storage.Data
         /// </value>
         public uint MaximumPages
 		{
-			get
-			{
-				return _maximumPages.Value;
-			}
-			set
+			get => _maximumPages.Value;
+            set
 			{
 				_maximumPages.Value = value;
 				SetHeaderDirty();
@@ -146,11 +136,8 @@ namespace Zen.Trunk.Storage.Data
         /// </value>
         public uint GrowthPages
 		{
-			get
-			{
-				return _growthPages.Value;
-			}
-			set
+			get => _growthPages.Value;
+            set
 			{
 				_growthPages.Value = value;
 				if (value > 0)
@@ -175,11 +162,8 @@ namespace Zen.Trunk.Storage.Data
         /// </value>
         public double GrowthPercent
 		{
-			get
-			{
-				return _growthPercent.Value;
-			}
-			set
+			get => _growthPercent.Value;
+            set
 			{
 				_growthPercent.Value = value;
 				if (value > 0.0)
@@ -204,15 +188,9 @@ namespace Zen.Trunk.Storage.Data
         /// </value>
         public bool IsExpandable
 		{
-			get
-			{
-				return _status.GetBit(StatusIsExpandable);
-			}
-			private set
-			{
-				_status.SetBit(StatusIsExpandable, value);
-			}
-		}
+			get => _status.GetBit(StatusIsExpandable);
+            private set => _status.SetBit(StatusIsExpandable, value);
+        }
 
         /// <summary>
         /// Gets a value indicating whether this instance is expandable by percent.
@@ -222,15 +200,9 @@ namespace Zen.Trunk.Storage.Data
         /// </value>
         public bool IsExpandableByPercent
 		{
-			get
-			{
-				return _status.GetBit(StatusIsExpandablePercent);
-			}
-			private set
-			{
-				_status.SetBit(StatusIsExpandablePercent, value);
-			}
-		}
+			get => _status.GetBit(StatusIsExpandablePercent);
+            private set => _status.SetBit(StatusIsExpandablePercent, value);
+        }
 		#endregion
 
 		#region Protected Properties
@@ -260,22 +232,8 @@ namespace Zen.Trunk.Storage.Data
         #endregion
 
         #region Private Properties
-        private IDatabaseLockManager LockManager => _lockManager ?? (_lockManager = GetService<IDatabaseLockManager>());
-
-        private FileGroupLock TrackedLock
-        {
-            get
-            {
-                if (TrunkTransactionContext.Current == null)
-                {
-                    throw new InvalidOperationException("No current transaction.");
-                }
-
-                // Return the lock-owner block for this object instance
-                var txnLocks = TrunkTransactionContext.GetTransactionLockOwnerBlock(LockManager);
-                return txnLocks?.GetOrCreateRootLock(FileGroupId);
-            }
-        }
+	    private FileGroupRootLock FileGroupRootLock =>
+	        TransactionLockOwnerBlock?.GetOrCreateRootLock(FileGroupId);
         #endregion
 
         #region Public Methods
@@ -284,7 +242,7 @@ namespace Zen.Trunk.Storage.Data
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns></returns>
-        public async Task SetRootLockAsync(FileGroupLockType value)
+        public async Task SetRootLockAsync(FileGroupRootLockType value)
         {
             if (FileGroupLock != value)
             {
@@ -318,7 +276,7 @@ namespace Zen.Trunk.Storage.Data
         /// </remarks>
         protected override async Task OnPreInitAsync(EventArgs e)
 		{
-			await SetRootLockAsync(FileGroupLockType.Exclusive).ConfigureAwait(false);
+			await SetRootLockAsync(FileGroupRootLockType.Exclusive).ConfigureAwait(false);
 			await base.OnPreInitAsync(e).ConfigureAwait(false);
 		}
 
@@ -337,9 +295,9 @@ namespace Zen.Trunk.Storage.Data
 		/// </remarks>
 		protected override async Task OnPreLoadAsync(EventArgs e)
 		{
-			if (FileGroupLock == FileGroupLockType.None)
+			if (FileGroupLock == FileGroupRootLockType.None)
 			{
-				await SetRootLockAsync(FileGroupLockType.Shared).ConfigureAwait(false);
+				await SetRootLockAsync(FileGroupRootLockType.Shared).ConfigureAwait(false);
 			}
 			await base.OnPreLoadAsync(e).ConfigureAwait(false);
 		}
@@ -395,7 +353,7 @@ namespace Zen.Trunk.Storage.Data
 			await base.OnLockPageAsync(lockManager).ConfigureAwait(false);
 			try
 			{
-				await TrackedLock.LockAsync(FileGroupLock, LockTimeout).ConfigureAwait(false);
+				await FileGroupRootLock.LockAsync(FileGroupLock, LockTimeout).ConfigureAwait(false);
 			}
 			catch
 			{
@@ -411,7 +369,7 @@ namespace Zen.Trunk.Storage.Data
 		/// <param name="lockManager">A reference to the <see cref="IDatabaseLockManager"/>.</param>
 		protected override async Task OnUnlockPageAsync(IDatabaseLockManager lockManager)
 		{
-			await TrackedLock.UnlockAsync().ConfigureAwait(false);
+			await FileGroupRootLock.UnlockAsync().ConfigureAwait(false);
 			await base.OnUnlockPageAsync(lockManager).ConfigureAwait(false);
 		}
 		#endregion

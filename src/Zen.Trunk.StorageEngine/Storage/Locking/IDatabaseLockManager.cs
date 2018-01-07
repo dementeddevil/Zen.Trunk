@@ -48,7 +48,7 @@ namespace Zen.Trunk.Storage.Locking
         /// <param name="lockType">Type of the lock.</param>
         /// <param name="timeout">The timeout.</param>
         /// <returns></returns>
-        Task LockFileGroupAsync(FileGroupId fileGroupId, FileGroupLockType lockType, TimeSpan timeout);
+        Task LockFileGroupAsync(FileGroupId fileGroupId, FileGroupRootLockType lockType, TimeSpan timeout);
 
         /// <summary>
         /// Unlocks the file-group root.
@@ -62,7 +62,7 @@ namespace Zen.Trunk.Storage.Locking
         /// </summary>
         /// <param name="fileGroupId">The file group identifier.</param>
         /// <returns></returns>
-        FileGroupLock GetFileGroupLock(FileGroupId fileGroupId);
+        FileGroupRootLock GetFileGroupLock(FileGroupId fileGroupId);
         #endregion
 
         #region Distribution Page Locks

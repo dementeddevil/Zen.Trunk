@@ -49,7 +49,7 @@ namespace Zen.Trunk.Storage.Locking
         /// <returns>
         /// A <see cref="Task"/> representing the asynchronous operation.
         /// </returns>
-        Task LockFileGroupAsync(DatabaseId dbId, FileGroupId fileGroupId, FileGroupLockType lockType, TimeSpan timeout);
+        Task LockFileGroupAsync(DatabaseId dbId, FileGroupId fileGroupId, FileGroupRootLockType lockType, TimeSpan timeout);
 
         /// <summary>
         /// Unlocks the file-group.
@@ -67,9 +67,9 @@ namespace Zen.Trunk.Storage.Locking
         /// <param name="dbId">The database identifier.</param>
         /// <param name="fileGroupId">The file group identifier.</param>
         /// <returns>
-        /// A <see cref="FileGroupLock"/> instance.
+        /// A <see cref="FileGroupRootLock"/> instance.
         /// </returns>
-        FileGroupLock GetFileGroupLock(DatabaseId dbId, FileGroupId fileGroupId);
+        FileGroupRootLock GetFileGroupLock(DatabaseId dbId, FileGroupId fileGroupId);
 
         /// <summary>
         /// Locks the distribution page.

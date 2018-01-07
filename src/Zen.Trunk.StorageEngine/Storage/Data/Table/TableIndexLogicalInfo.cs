@@ -65,14 +65,8 @@ namespace Zen.Trunk.Storage.Data.Table
         /// </summary>
         public LogicalPageId LogicalPageId
         {
-            get
-            {
-                return _logicalId.Value;
-            }
-            set
-            {
-                _logicalId.Value = value;
-            }
+            get => _logicalId.Value;
+            set => _logicalId.Value = value;
         }
         #endregion
 

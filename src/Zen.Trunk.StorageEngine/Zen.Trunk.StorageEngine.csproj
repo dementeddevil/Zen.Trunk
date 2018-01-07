@@ -133,7 +133,7 @@
     <Compile Include="Storage\FileSpec.cs" />
     <Compile Include="Storage\ISession.cs" />
     <Compile Include="Storage\ISessionManager.cs" />
-    <Compile Include="Storage\Locking\FileGroupLock.cs" />
+    <Compile Include="Storage\Locking\FileGroupRootLock.cs" />
     <Compile Include="Storage\Locking\TrunkSession.cs" />
     <Compile Include="Storage\Locking\TrunkSessionContext.cs" />
     <Compile Include="Storage\Locking\ITrunkSession.cs" />

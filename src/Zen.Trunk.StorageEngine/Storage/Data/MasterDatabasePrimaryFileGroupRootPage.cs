@@ -42,56 +42,38 @@ namespace Zen.Trunk.Storage.Data
 
 		    public DatabaseId DatabaseId
 			{
-				get
-				{
-					return new DatabaseId(_databaseId.Value);
-				}
-				set
-				{
-					_databaseId.Value = value.Value;
-				}
-			}
+				get => new DatabaseId(_databaseId.Value);
+		        set => _databaseId.Value = value.Value;
+		    }
 
 			public string Name
 			{
-				get
-				{
-					return _name.Value;
-				}
-				set
-				{
-					_name.Value = value;
-				}
+				get => _name.Value;
+			    set => _name.Value = value;
 			}
 
 			public string PrimaryName
 			{
-				get
-				{
-					return _primaryName.Value;
-				}
-				set
-				{
-					_primaryName.Value = value;
-				}
+				get => _primaryName.Value;
+			    set => _primaryName.Value = value;
 			}
 
 			public string PrimaryDataPathName
 			{
-				get { return _primaryDataPathName.Value; }
-				set { _primaryDataPathName.Value = value; }
+				get => _primaryDataPathName.Value;
+			    set => _primaryDataPathName.Value = value;
 			}
 
 		    public string PrimaryLogPathName
 		    {
-                get { return _primaryLogPathName.Value; }
-                set { _primaryLogPathName.Value = value; }
+                get => _primaryLogPathName.Value;
+		        set => _primaryLogPathName.Value = value;
 		    }
 
 			public bool IsOnline
             {
-                get { return _flags.GetBit(0); }
-				set { _flags.SetBit(0, value); }
+                get => _flags.GetBit(0);
+			    set => _flags.SetBit(0, value);
 			}
 		}
 		#endregion

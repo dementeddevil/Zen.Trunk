@@ -96,15 +96,9 @@ namespace Zen.Trunk.Storage.Log
         /// </value>
         public uint LogId
 		{
-			get
-			{
-				return _logId.Value;
-			}
-			set
-			{
-				_logId.Value = value;
-			}
-		}
+			get => _logId.Value;
+            set => _logId.Value = value;
+        }
 
         /// <summary>
         /// Gets or sets the last log.
@@ -114,15 +108,9 @@ namespace Zen.Trunk.Storage.Log
         /// </value>
         public uint LastLog
 		{
-			get
-			{
-				return _lastLog.Value;
-			}
-			set
-			{
-				_lastLog.Value = value;
-			}
-		}
+			get => _lastLog.Value;
+            set => _lastLog.Value = value;
+        }
 
         /// <summary>
         /// Gets the type of the log.

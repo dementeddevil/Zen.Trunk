@@ -37,11 +37,8 @@ namespace Zen.Trunk.Storage.Log
 		/// </summary>
 		public DeviceId DeviceId
 		{
-			get
-			{
-				return _id.Value.DeviceId;
-			}
-			set
+			get => _id.Value.DeviceId;
+		    set
 			{
 			    if (_id.Value.DeviceId != value)
 			    {
@@ -55,11 +52,8 @@ namespace Zen.Trunk.Storage.Log
 		/// </summary>
 		public ushort Index
 		{
-			get
-			{
-				return _id.Value.Index;
-			}
-			set
+			get => _id.Value.Index;
+		    set
 			{
 			    if (_id.Value.Index != value)
 			    {
@@ -73,14 +67,8 @@ namespace Zen.Trunk.Storage.Log
 		/// </summary>
 		public long StartOffset
 		{
-			get
-			{
-				return _startOffset.Value;
-			}
-			set
-			{
-				_startOffset.Value = value;
-			}
+			get => _startOffset.Value;
+		    set => _startOffset.Value = value;
 		}
 
 		/// <summary>
@@ -88,14 +76,8 @@ namespace Zen.Trunk.Storage.Log
 		/// </summary>
 		public uint Length
 		{
-			get
-			{
-				return _length.Value;
-			}
-			set
-			{
-				_length.Value = value;
-			}
+			get => _length.Value;
+		    set => _length.Value = value;
 		}
 
 		/// <summary>
@@ -108,15 +90,9 @@ namespace Zen.Trunk.Storage.Log
 		/// </summary>
 		public byte Status
 		{
-			get
-			{
-				return _status.Value;
-			}
-			set
-			{
-				_status.Value = value;
-			}
-		}
+			get => _status.Value;
+	        set => _status.Value = value;
+	    }
 
         /// <summary>
         /// Gets or sets a value indicating whether this instance is allocated.
@@ -126,15 +102,9 @@ namespace Zen.Trunk.Storage.Log
         /// </value>
         public bool IsAllocated
 		{
-			get
-			{
-				return _status.GetBit(0x01);
-			}
-			set
-			{
-				_status.SetBit(0x01, value);
-			}
-		}
+			get => _status.GetBit(0x01);
+            set => _status.SetBit(0x01, value);
+        }
 
         /// <summary>
         /// Gets or sets a value indicating whether this instance is full.
@@ -144,15 +114,9 @@ namespace Zen.Trunk.Storage.Log
         /// </value>
         public bool IsFull
 		{
-			get
-			{
-				return _status.GetBit(0x02);
-			}
-			set
-			{
-				_status.SetBit(0x02, value);
-			}
-		}
+			get => _status.GetBit(0x02);
+            set => _status.SetBit(0x02, value);
+        }
 
         /// <summary>
         /// Gets or sets the current header.

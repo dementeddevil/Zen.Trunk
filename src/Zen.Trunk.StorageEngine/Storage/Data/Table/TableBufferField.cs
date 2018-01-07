@@ -256,14 +256,8 @@ namespace Zen.Trunk.Storage.Data.Table
 		/// </summary>
 		public object this[int index]
 		{
-			get
-			{
-				return _keys[index].Value;
-			}
-			set
-			{
-				_keys[index].Value = value;
-			}
+			get => _keys[index].Value;
+		    set => _keys[index].Value = value;
 		}
 
         /// <summary>
@@ -274,11 +268,8 @@ namespace Zen.Trunk.Storage.Data.Table
         /// </value>
         public bool IndexMode
 		{
-			get
-			{
-				return _indexMode;
-			}
-			set
+			get => _indexMode;
+            set
 			{
 				if (_indexMode != value)
 				{

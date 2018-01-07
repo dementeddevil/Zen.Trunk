@@ -105,14 +105,8 @@ namespace Zen.Trunk.Storage.Log
 		#region Internal Properties
 		internal Stream BackingStore
 		{
-			get
-			{
-				return _backingStore;
-			}
-			set
-			{
-				_backingStore = value;
-			}
+			get => _backingStore;
+		    set => _backingStore = value;
 		}
 		#endregion
 	}

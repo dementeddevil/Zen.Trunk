@@ -63,15 +63,9 @@ namespace Zen.Trunk.Storage
         /// </value>
         public DeviceId Id
 		{
-			get
-			{
-				return new DeviceId(_id.Value);
-			}
-			set
-			{
-				_id.Value = value.Value;
-			}
-		}
+			get => new DeviceId(_id.Value);
+            set => _id.Value = value.Value;
+        }
 
         /// <summary>
         /// Gets or sets the name.
@@ -83,11 +77,8 @@ namespace Zen.Trunk.Storage
         /// <exception cref="ArgumentException">value too long - must be less than 32 characters.</exception>
         public string Name
 		{
-			get
-			{
-				return _name.Value;
-			}
-			set
+			get => _name.Value;
+            set
 			{
 				if (string.IsNullOrEmpty(value))
 				{
@@ -111,11 +102,8 @@ namespace Zen.Trunk.Storage
         /// <exception cref="ArgumentException">value too long - must be less than 128 characters.</exception>
         public string PathName
 		{
-			get
-			{
-				return _pathName.Value;
-			}
-			set
+			get => _pathName.Value;
+            set
 			{
 				if (string.IsNullOrEmpty(value))
 				{

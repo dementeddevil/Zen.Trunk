@@ -82,50 +82,26 @@ namespace Zen.Trunk.Storage.Data
 
             internal bool IsMixedExtent
             {
-                get
-                {
-                    return _status.GetBit(0);
-                }
-                set
-                {
-                    _status.SetBit(0, value);
-                }
+                get => _status.GetBit(0);
+                set => _status.SetBit(0, value);
             }
 
             internal bool IsFull
             {
-                get
-                {
-                    return _status.GetBit(1);
-                }
-                set
-                {
-                    _status.SetBit(1, value);
-                }
+                get => _status.GetBit(1);
+                set => _status.SetBit(1, value);
             }
 
             internal bool IsUsable
             {
-                get
-                {
-                    return _status.GetBit(2);
-                }
-                set
-                {
-                    _status.SetBit(2, value);
-                }
+                get => _status.GetBit(2);
+                set => _status.SetBit(2, value);
             }
 
             internal ObjectId ObjectId
             {
-                get
-                {
-                    return _objectId.Value;
-                }
-                set
-                {
-                    _objectId.Value = value;
-                }
+                get => _objectId.Value;
+                set => _objectId.Value = value;
             }
 
             internal PageInfo[] Pages => _pageState;
@@ -190,14 +166,8 @@ namespace Zen.Trunk.Storage.Data
             /// </summary>
             internal LogicalPageId LogicalPageId
             {
-                get
-                {
-                    return _logicalId.Value;
-                }
-                set
-                {
-                    _logicalId.Value = value;
-                }
+                get => _logicalId.Value;
+                set => _logicalId.Value = value;
             }
 
             /// <summary>
@@ -205,14 +175,8 @@ namespace Zen.Trunk.Storage.Data
             /// </summary>
             internal ObjectId ObjectId
             {
-                get
-                {
-                    return _objectId.Value;
-                }
-                set
-                {
-                    _objectId.Value = value;
-                }
+                get => _objectId.Value;
+                set => _objectId.Value = value;
             }
 
             /// <summary>
@@ -224,14 +188,8 @@ namespace Zen.Trunk.Storage.Data
             /// </summary>
             internal ObjectType ObjectType
             {
-                get
-                {
-                    return _objectType.Value;
-                }
-                set
-                {
-                    _objectType.Value = value;
-                }
+                get => _objectType.Value;
+                set => _objectType.Value = value;
             }
 
             /// <summary>
@@ -242,14 +200,8 @@ namespace Zen.Trunk.Storage.Data
             /// </value>
             internal bool IsAllocated
             {
-                get
-                {
-                    return _allocationStatus.Value != 0;
-                }
-                set
-                {
-                    _allocationStatus.Value = value ? (byte)1 : (byte)0;
-                }
+                get => _allocationStatus.Value != 0;
+                set => _allocationStatus.Value = value ? (byte)1 : (byte)0;
             }
         }
         #endregion
@@ -274,7 +226,6 @@ namespace Zen.Trunk.Storage.Data
         #region Private Fields
         private readonly ExtentInfo[] _extents;
         private List<uint> _lockedExtents;
-        private IDatabaseLockManager _lockManager;
         private ObjectLockType _distributionLock = ObjectLockType.IntentShared;
         #endregion
 
@@ -308,22 +259,8 @@ namespace Zen.Trunk.Storage.Data
         #endregion
 
         #region Private Properties
-        private IDatabaseLockManager LockManager => _lockManager ?? (_lockManager = GetService<IDatabaseLockManager>());
-
-        private DistributionLockOwnerBlock LockBlock
-        {
-            get
-            {
-                if (TrunkTransactionContext.Current == null)
-                {
-                    throw new InvalidOperationException("No current transaction.");
-                }
-
-                // Return the lock-owner block for this object instance
-                var txnLocks = TrunkTransactionContext.GetTransactionLockOwnerBlock(LockManager);
-                return txnLocks?.GetOrCreateDistributionLockOwnerBlock(VirtualPageId);
-            }
-        }
+        private DistributionLockOwnerBlock DistributionLockOwnerBlock =>
+            TransactionLockOwnerBlock?.GetOrCreateDistributionLockOwnerBlock(VirtualPageId);
         #endregion
 
         #region Public Methods
@@ -385,7 +322,7 @@ namespace Zen.Trunk.Storage.Data
             // If we don't have a suitable extent
             if (!result.UseExtent)
             {
-                return new VirtualPageId(0);
+                return VirtualPageId.Zero;
             }
 
             // Escalate locks
@@ -791,7 +728,7 @@ namespace Zen.Trunk.Storage.Data
             try
             {
                 // Lock owner via lock owner block
-                await LockBlock.LockOwnerAsync(DistributionLock, LockTimeout).ConfigureAwait(false);
+                await DistributionLockOwnerBlock.LockOwnerAsync(DistributionLock, LockTimeout).ConfigureAwait(false);
             }
             catch
             {
@@ -821,10 +758,10 @@ namespace Zen.Trunk.Storage.Data
                 }
 
                 // Release distribution page lock
-                var lob = LockBlock;
+                var lob = DistributionLockOwnerBlock;
                 if (lob != null)
                 {
-                    await LockBlock.UnlockOwnerAsync().ConfigureAwait(false);
+                    await DistributionLockOwnerBlock.UnlockOwnerAsync().ConfigureAwait(false);
                 }
             }
             finally
@@ -987,7 +924,7 @@ namespace Zen.Trunk.Storage.Data
 
         private async Task LockExtentAsync(uint extentIndex, DataLockType lockType)
         {
-            await LockBlock
+            await DistributionLockOwnerBlock
                 .LockItemAsync(extentIndex, lockType, LockTimeout)
                 .ConfigureAwait(false);
 
@@ -1005,7 +942,7 @@ namespace Zen.Trunk.Storage.Data
         {
             try
             {
-                await LockBlock
+                await DistributionLockOwnerBlock
                     .UnlockItemAsync(extentIndex)
                     .ConfigureAwait(false);
             }

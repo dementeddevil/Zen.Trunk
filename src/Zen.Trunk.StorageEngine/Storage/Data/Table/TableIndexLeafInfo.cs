@@ -141,14 +141,8 @@ namespace Zen.Trunk.Storage.Data.Table
 		/// </value>
 		public ushort RowId
 		{
-			get
-			{
-				return _rowId.Value;
-			}
-			set
-			{
-				_rowId.Value = value;
-			}
+			get => _rowId.Value;
+		    set => _rowId.Value = value;
 		}
 		#endregion
 

@@ -57,14 +57,8 @@ namespace Zen.Trunk.Storage.Log
 		/// <value>The status.</value>
 		public byte Status
 		{
-			get
-			{
-				return _status.Value;
-			}
-			set
-			{
-				_status.Value = value;
-			}
+			get => _status.Value;
+		    set => _status.Value = value;
 		}
 
 		/// <summary>
@@ -73,14 +67,8 @@ namespace Zen.Trunk.Storage.Log
 		/// <value>The allocated pages.</value>
 		public uint AllocatedPages
 		{
-			get
-			{
-				return _allocatedPages.Value;
-			}
-			set
-			{
-				_allocatedPages.Value = value;
-			}
+			get => _allocatedPages.Value;
+		    set => _allocatedPages.Value = value;
 		}
 
 		/// <summary>
@@ -89,14 +77,8 @@ namespace Zen.Trunk.Storage.Log
 		/// <value>The maximum pages.</value>
 		public uint MaximumPages
 		{
-			get
-			{
-				return _maximumPages.Value;
-			}
-			set
-			{
-				_maximumPages.Value = value;
-			}
+			get => _maximumPages.Value;
+		    set => _maximumPages.Value = value;
 		}
 
 		/// <summary>
@@ -105,11 +87,8 @@ namespace Zen.Trunk.Storage.Log
 		/// <value>The growth pages.</value>
 		public uint GrowthPages
 		{
-			get
-			{
-				return _growthPages.Value;
-			}
-			set
+			get => _growthPages.Value;
+		    set
 			{
 				_growthPages.Value = value;
 				if (value > 0)
@@ -131,11 +110,8 @@ namespace Zen.Trunk.Storage.Log
 		/// <value>The growth percent.</value>
 		public double GrowthPercent
 		{
-			get
-			{
-				return _growthPercent.Value;
-			}
-			set
+			get => _growthPercent.Value;
+		    set
 			{
 				_growthPercent.Value = value;
 				if (value > 0.0)
@@ -159,14 +135,8 @@ namespace Zen.Trunk.Storage.Log
 		/// </value>
 		public bool IsExpandable
 		{
-			get
-			{
-				return _status.GetBit(StatusIsExpandable);
-			}
-			private set
-			{
-				_status.SetBit(StatusIsExpandable, value);
-			}
+			get => _status.GetBit(StatusIsExpandable);
+		    private set => _status.SetBit(StatusIsExpandable, value);
 		}
 
 		/// <summary>
@@ -177,14 +147,8 @@ namespace Zen.Trunk.Storage.Log
 		/// </value>
 		public bool IsExpandableByPercent
 		{
-			get
-			{
-				return _status.GetBit(StatusIsExpandablePercent);
-			}
-			private set
-			{
-				_status.SetBit(StatusIsExpandablePercent, value);
-			}
+			get => _status.GetBit(StatusIsExpandablePercent);
+		    private set => _status.SetBit(StatusIsExpandablePercent, value);
 		}
 
 		/// <summary>

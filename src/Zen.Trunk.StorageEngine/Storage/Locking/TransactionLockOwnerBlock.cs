@@ -27,7 +27,7 @@ namespace Zen.Trunk.Storage.Locking
 	{
 		#region Private Fields
 		private readonly IDatabaseLockManager _lockManager;
-		private readonly ConcurrentDictionary<FileGroupId, FileGroupLock> _rootLocks;
+		private readonly ConcurrentDictionary<FileGroupId, FileGroupRootLock> _rootLocks;
 		private readonly ConcurrentDictionary<ObjectId, SchemaLock> _schemaLocks;
 		private readonly ConcurrentDictionary<VirtualPageId, DistributionLockOwnerBlock> _distributionOwnerBlocks;
 		private readonly ConcurrentDictionary<ObjectId, DataLockOwnerBlock> _dataOwnerBlocks;
@@ -42,7 +42,7 @@ namespace Zen.Trunk.Storage.Locking
 		public TransactionLockOwnerBlock(IDatabaseLockManager lockManager)
 		{
 			_lockManager = lockManager;
-			_rootLocks = new ConcurrentDictionary<FileGroupId, FileGroupLock>();
+			_rootLocks = new ConcurrentDictionary<FileGroupId, FileGroupRootLock>();
 			_schemaLocks = new ConcurrentDictionary<ObjectId, SchemaLock>();
 			_distributionOwnerBlocks = new ConcurrentDictionary<VirtualPageId, DistributionLockOwnerBlock>();
 			_dataOwnerBlocks = new ConcurrentDictionary<ObjectId, DataLockOwnerBlock>();
@@ -55,7 +55,7 @@ namespace Zen.Trunk.Storage.Locking
 		/// </summary>
 		/// <param name="fileGroupId">The file group unique identifier.</param>
 		/// <returns></returns>
-		public FileGroupLock GetOrCreateRootLock(FileGroupId fileGroupId)
+		public FileGroupRootLock GetOrCreateRootLock(FileGroupId fileGroupId)
 		{
 			return _rootLocks.GetOrAdd(
 				fileGroupId,
@@ -83,7 +83,8 @@ namespace Zen.Trunk.Storage.Locking
 		/// <returns>
 		/// A <see cref="DistributionLockOwnerBlock"/> for the distribution page.
 		/// </returns>
-		public DistributionLockOwnerBlock GetOrCreateDistributionLockOwnerBlock(VirtualPageId virtualId, uint maxExtentLocks = 10)
+		public DistributionLockOwnerBlock GetOrCreateDistributionLockOwnerBlock(
+		    VirtualPageId virtualId, uint maxExtentLocks = 10)
 		{
 			return _distributionOwnerBlocks.GetOrAdd(
 				virtualId,
@@ -99,7 +100,8 @@ namespace Zen.Trunk.Storage.Locking
 		/// <returns>
 		/// A <see cref="DataLockOwnerBlock"/> for the object.
 		/// </returns>
-		public DataLockOwnerBlock GetOrCreateDataLockOwnerBlock(ObjectId objectId, uint maxPageLocks = 100)
+		public DataLockOwnerBlock GetOrCreateDataLockOwnerBlock(
+		    ObjectId objectId, uint maxPageLocks = 100)
 		{
 			return _dataOwnerBlocks.GetOrAdd(
 				objectId,
@@ -117,43 +119,47 @@ namespace Zen.Trunk.Storage.Locking
 		{
 			while (_rootLocks.Count > 0)
 			{
-				FileGroupLock lockObject;
-				if (_rootLocks.TryRemove(_rootLocks.Keys.First(), out lockObject))
-				{
-					await lockObject.UnlockAsync().ConfigureAwait(false);
-					lockObject.ReleaseRefLock();
-				}
-			}
+                if (_rootLocks.TryRemove(
+                    _rootLocks.Keys.First(),
+                    out FileGroupRootLock lockObject))
+                {
+                    await lockObject.UnlockAsync().ConfigureAwait(false);
+                    lockObject.ReleaseRefLock();
+                }
+            }
 
 			while (_schemaLocks.Count > 0)
 			{
-				SchemaLock lockObject;
-				if (_schemaLocks.TryRemove(_schemaLocks.Keys.First(), out lockObject))
-				{
-					await lockObject.UnlockAsync().ConfigureAwait(false);
-					lockObject.ReleaseRefLock();
-				}
-			}
+                if (_schemaLocks.TryRemove(
+                    _schemaLocks.Keys.First(),
+                    out SchemaLock lockObject))
+                {
+                    await lockObject.UnlockAsync().ConfigureAwait(false);
+                    lockObject.ReleaseRefLock();
+                }
+            }
 
 			while (_distributionOwnerBlocks.Count > 0)
 			{
-				DistributionLockOwnerBlock block;
-				if (_distributionOwnerBlocks.TryRemove(_distributionOwnerBlocks.Keys.First(), out block))
-				{
-					await block.ReleaseLocksAsync().ConfigureAwait(false);
-					block.Dispose();
-				}
-			}
+                if (_distributionOwnerBlocks.TryRemove(
+                    _distributionOwnerBlocks.Keys.First(),
+                    out DistributionLockOwnerBlock block))
+                {
+                    await block.ReleaseLocksAsync().ConfigureAwait(false);
+                    block.Dispose();
+                }
+            }
 
 			while (_dataOwnerBlocks.Count > 0)
 			{
-				DataLockOwnerBlock block;
-				if (_dataOwnerBlocks.TryRemove(_dataOwnerBlocks.Keys.First(), out block))
-				{
-					await block.ReleaseLocksAsync().ConfigureAwait(false);
-					block.Dispose();
-				}
-			}
+                if (_dataOwnerBlocks.TryRemove(
+                    _dataOwnerBlocks.Keys.First(),
+                    out DataLockOwnerBlock block))
+                {
+                    await block.ReleaseLocksAsync().ConfigureAwait(false);
+                    block.Dispose();
+                }
+            }
 		}
 		#endregion
 	}

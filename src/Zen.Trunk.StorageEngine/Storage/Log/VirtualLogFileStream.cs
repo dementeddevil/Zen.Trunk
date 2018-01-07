@@ -72,10 +72,7 @@ namespace Zen.Trunk.Storage.Log
         /// </summary>
         public LogFileId PreviousLogFileId
         {
-            get
-            {
-                return _logFileInfo.CurrentHeader.PreviousLogFileId;
-            }
+            get => _logFileInfo.CurrentHeader.PreviousLogFileId;
             set
             {
                 if (_logFileInfo.CurrentHeader.PreviousLogFileId != value)
@@ -91,10 +88,7 @@ namespace Zen.Trunk.Storage.Log
         /// </summary>
         public LogFileId NextLogFileId
         {
-            get
-            {
-                return _logFileInfo.CurrentHeader.NextLogFileId;
-            }
+            get => _logFileInfo.CurrentHeader.NextLogFileId;
             set
             {
                 if (_logFileInfo.CurrentHeader.NextLogFileId != value)
@@ -110,14 +104,8 @@ namespace Zen.Trunk.Storage.Log
         /// </summary>
         public bool IsFull
         {
-            get
-            {
-                return _logFileInfo.IsFull;
-            }
-            set
-            {
-                _logFileInfo.IsFull = value;
-            }
+            get => _logFileInfo.IsFull;
+            set => _logFileInfo.IsFull = value;
         }
 
         /// <summary>
@@ -169,14 +157,8 @@ namespace Zen.Trunk.Storage.Log
         /// </remarks>
         public override long Position
         {
-            get
-            {
-                return _position;
-            }
-            set
-            {
-                Seek(value, SeekOrigin.Begin);
-            }
+            get => _position;
+            set => Seek(value, SeekOrigin.Begin);
         }
         #endregion
 

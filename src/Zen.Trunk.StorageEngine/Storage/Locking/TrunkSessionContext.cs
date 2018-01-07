@@ -79,10 +79,7 @@ namespace Zen.Trunk.Storage.Locking
         /// </value>
         public static ITrunkSession Current
         {
-            get
-            {
-                return (ITrunkSession)CallContext.LogicalGetData(LogicalContextName);
-            }
+            get => (ITrunkSession)CallContext.LogicalGetData(LogicalContextName);
             private set
             {
                 if (value != null)

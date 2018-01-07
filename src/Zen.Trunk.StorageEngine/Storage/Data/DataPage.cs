@@ -114,15 +114,17 @@ namespace Zen.Trunk.Storage.Data
         private static readonly ILog Logger = LogProvider.For<DataPage>();
 
 	    private PageBuffer _buffer;
+	    private IDatabaseLockManager _lockManager;
+
 		private readonly SpinLockClass _syncTimestamp = new SpinLockClass();
 		private readonly BufferFieldInt64 _timestamp;
 		#endregion
 
-		#region Public Constructors
-		/// <summary>
-		/// Initializes a new instance of the <see cref="DataPage"/> class.
-		/// </summary>
-		public DataPage()
+        #region Public Constructors
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DataPage"/> class.
+        /// </summary>
+        public DataPage()
 		{
 			_timestamp = new BufferFieldInt64(base.LastHeaderField, 0);
 		}
@@ -167,14 +169,8 @@ namespace Zen.Trunk.Storage.Data
 		/// <value></value>
 		public override bool IsNewPage
 		{
-			get
-			{
-				return _buffer.IsNew;
-			}
-			internal set
-			{
-				_buffer.IsNew = value;
-			}
+			get => _buffer.IsNew;
+		    internal set => _buffer.IsNew = value;
 		}
 
 		/// <summary>
@@ -227,11 +223,8 @@ namespace Zen.Trunk.Storage.Data
 		/// <value>A <see cref="T:BufferBase"/> object.</value>
 		internal PageBuffer DataBuffer
 		{
-			get
-			{
-				return _buffer;
-			}
-			set
+			get => _buffer;
+		    set
 			{
 				if (_buffer != value)
 				{
@@ -243,16 +236,38 @@ namespace Zen.Trunk.Storage.Data
 				}
 			}
 		}
-		#endregion
 
-		#region Protected Properties
+	    internal TransactionLockOwnerBlock TransactionLockOwnerBlock
+	    {
+	        get
+	        {
+	            if (TrunkTransactionContext.Current == null)
+	            {
+	                throw new InvalidOperationException("No current transaction.");
+	            }
+
+	            // Return the lock-owner block for this object instance
+	            return TrunkTransactionContext.GetTransactionLockOwnerBlock(LockManager);
+	        }
+        }
+        #endregion
+
+        #region Protected Properties
+	    /// <summary>
+	    /// Gets the lock manager.
+	    /// </summary>
+	    /// <value>
+	    /// The lock manager.
+	    /// </value>
+	    protected IDatabaseLockManager LockManager => _lockManager ?? (_lockManager = GetService<IDatabaseLockManager>());
+
 		/// <summary>
-		/// Gets or sets a value indicating whether this page has locking enabled.
-		/// </summary>
-		/// <value>
-		/// <c>true</c> if locking is enabled; otherwise, <c>false</c>.
-		/// </value>
-		protected bool IsLockingEnabled
+        /// Gets or sets a value indicating whether this page has locking enabled.
+        /// </summary>
+        /// <value>
+        /// <c>true</c> if locking is enabled; otherwise, <c>false</c>.
+        /// </value>
+        protected bool IsLockingEnabled
 		{
 			get;
 			private set;

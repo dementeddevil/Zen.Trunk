@@ -705,10 +705,10 @@ namespace Zen.Trunk.Storage.Data
                     //	needed by DeviceInfo.
                     rootPage.ReadOnly = false;
 
-                    if (rootPage.FileGroupLock != FileGroupLockType.Exclusive)
+                    if (rootPage.FileGroupLock != FileGroupRootLockType.Exclusive)
                     {
-                        await rootPage.SetRootLockAsync(FileGroupLockType.Update).ConfigureAwait(false);
-                        await rootPage.SetRootLockAsync(FileGroupLockType.Exclusive).ConfigureAwait(false);
+                        await rootPage.SetRootLockAsync(FileGroupRootLockType.Update).ConfigureAwait(false);
+                        await rootPage.SetRootLockAsync(FileGroupRootLockType.Exclusive).ConfigureAwait(false);
                     }
 
                     rootPage.AllocatedPages = bufferDevice.GetDeviceInfo(_primaryDevice.DeviceId).PageCount;
@@ -1165,7 +1165,7 @@ namespace Zen.Trunk.Storage.Data
                 // Load the root page and obtain update lock before we start
                 var pageDevice = GetDistributionPageDevice(request.Message.DeviceId);
                 rootPage = await pageDevice.LoadOrCreateRootPageAsync().ConfigureAwait(false);
-                await rootPage.SetRootLockAsync(FileGroupLockType.Shared).ConfigureAwait(false);
+                await rootPage.SetRootLockAsync(FileGroupRootLockType.Shared).ConfigureAwait(false);
 
                 await ExpandDeviceCoreAsync(request.Message.DeviceId, rootPage, request.Message.PageCount).ConfigureAwait(false);
             }
@@ -1187,7 +1187,7 @@ namespace Zen.Trunk.Storage.Data
                         .ConfigureAwait(false);
                     if (rootPage.IsExpandable)
                     {
-                        await rootPage.SetRootLockAsync(FileGroupLockType.Shared).ConfigureAwait(false);
+                        await rootPage.SetRootLockAsync(FileGroupRootLockType.Shared).ConfigureAwait(false);
                         rootPages.Add(deviceId, rootPage);
                     }
                     else
@@ -1324,7 +1324,7 @@ namespace Zen.Trunk.Storage.Data
                 await _primaryDevice.LoadOrCreateRootPageAsync().ConfigureAwait(false);
 
             // Attempt to write reference information into a root page
-            await rootPage.SetRootLockAsync(FileGroupLockType.Exclusive).ConfigureAwait(false);
+            await rootPage.SetRootLockAsync(FileGroupRootLockType.Exclusive).ConfigureAwait(false);
             while (true)
             {
                 // Mark root page as writable and attempt to add object reference
@@ -1345,8 +1345,8 @@ namespace Zen.Trunk.Storage.Data
                 var nextRootPage = await LoadOrCreateNextLinkedPageAsync(rootPage).ConfigureAwait(false);
 
                 // Crab lock page and try again
-                await nextRootPage.SetRootLockAsync(FileGroupLockType.Exclusive).ConfigureAwait(false);
-                await rootPage.SetRootLockAsync(FileGroupLockType.None).ConfigureAwait(false);
+                await nextRootPage.SetRootLockAsync(FileGroupRootLockType.Exclusive).ConfigureAwait(false);
+                await rootPage.SetRootLockAsync(FileGroupRootLockType.None).ConfigureAwait(false);
                 rootPage = nextRootPage;
             }
 
@@ -1469,11 +1469,11 @@ namespace Zen.Trunk.Storage.Data
             uint newPageCount;
 
             // Place root page into update mode
-            await rootPage.SetRootLockAsync(FileGroupLockType.Update).ConfigureAwait(false);
+            await rootPage.SetRootLockAsync(FileGroupRootLockType.Update).ConfigureAwait(false);
             try
             {
                 // Transition root page into exclusive mode
-                await rootPage.SetRootLockAsync(FileGroupLockType.Exclusive).ConfigureAwait(false);
+                await rootPage.SetRootLockAsync(FileGroupRootLockType.Exclusive).ConfigureAwait(false);
 
                 // Delegate the request to the underlying device
                 var bufferDevice = GetService<IMultipleBufferDevice>();
@@ -1485,7 +1485,7 @@ namespace Zen.Trunk.Storage.Data
             {
                 // Assume expand failed and revert lock
                 //	don't know if I really have to do this now
-                await rootPage.SetRootLockAsync(FileGroupLockType.Shared).ConfigureAwait(false);
+                await rootPage.SetRootLockAsync(FileGroupRootLockType.Shared).ConfigureAwait(false);
                 throw;
             }
 

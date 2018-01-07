@@ -324,7 +324,8 @@ namespace Zen.Trunk.Storage
 
                         await dbDevice.OpenAsync(true).ConfigureAwait(true);
 
-                        // Create table and index schemas
+                        // Create table schemas
+                        var objectId = ObjectId.Zero;
                         dbDevice.BeginTransaction();
                         try
                         {
@@ -353,17 +354,28 @@ namespace Zen.Trunk.Storage
                                         "CreatedDate",
                                         TableColumnDataType.DateTime,
                                         false));
-                            var objectId = await dbDevice
+                            objectId = await dbDevice
                                 .AddFileGroupTableAsync(param)
                                 .ConfigureAwait(true);
 
+                            await TrunkTransactionContext.CommitAsync().ConfigureAwait(true);
+                        }
+                        catch (Exception e)
+                        {
+                            await TrunkTransactionContext.RollbackAsync().ConfigureAwait(true);
+                        }
+
+                        // Create table indices
+                        dbDevice.BeginTransaction();
+                        try
+                        {
                             var primaryIndexParam =
-                                new AddFileGroupTableIndexParameters(
-                                    addFgDevice.FileGroupId,
-                                    addFgDevice.FileGroupName,
-                                    "PK_Test",
-                                    TableIndexSubType.Primary,
-                                    objectId);
+                                    new AddFileGroupTableIndexParameters(
+                                        addFgDevice.FileGroupId,
+                                        addFgDevice.FileGroupName,
+                                        "PK_Test",
+                                        TableIndexSubType.Primary,
+                                        objectId);
                             primaryIndexParam.AddColumnAndSortDirection(
                                 "Id", TableIndexSortDirection.Ascending);
                             await dbDevice

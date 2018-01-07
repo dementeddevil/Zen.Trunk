@@ -88,10 +88,7 @@ namespace Zen.Trunk.Storage.Data.Index
         /// <value>The type of the index.</value>
         public IndexType IndexType
         {
-            get
-            {
-                return (IndexType)_status[_indexType];
-            }
+            get => (IndexType)_status[_indexType];
             set
             {
                 CheckReadOnly();
@@ -113,10 +110,7 @@ namespace Zen.Trunk.Storage.Data.Index
         /// </value>
         public bool IsRootIndex
         {
-            get
-            {
-                return (IndexType & IndexType.Root) != 0;
-            }
+            get => (IndexType & IndexType.Root) != 0;
             set
             {
                 if (value)
@@ -140,10 +134,7 @@ namespace Zen.Trunk.Storage.Data.Index
         /// </value>
         public bool IsIntermediateIndex
         {
-            get
-            {
-                return (IndexType & IndexType.Intermediate) != 0;
-            }
+            get => (IndexType & IndexType.Intermediate) != 0;
             set
             {
                 if (value)
@@ -165,10 +156,7 @@ namespace Zen.Trunk.Storage.Data.Index
         /// </value>
         public bool IsLeafIndex
         {
-            get
-            {
-                return (IndexType & IndexType.Leaf) != 0;
-            }
+            get => (IndexType & IndexType.Leaf) != 0;
             set
             {
                 if (value)
@@ -187,10 +175,7 @@ namespace Zen.Trunk.Storage.Data.Index
         /// </summary>
         public IndexId IndexId
         {
-            get
-            {
-                return _indexId.Value;
-            }
+            get => _indexId.Value;
             set
             {
                 CheckReadOnly();
@@ -208,10 +193,7 @@ namespace Zen.Trunk.Storage.Data.Index
         /// <value>The left logical page id.</value>
         public LogicalPageId LeftLogicalPageId
         {
-            get
-            {
-                return _leftLogicalPageId.Value;
-            }
+            get => _leftLogicalPageId.Value;
             set
             {
                 CheckReadOnly();
@@ -229,10 +211,7 @@ namespace Zen.Trunk.Storage.Data.Index
         /// <value>The right logical page id.</value>
         public LogicalPageId RightLogicalPageId
         {
-            get
-            {
-                return _rightLogicalPageId.Value;
-            }
+            get => _rightLogicalPageId.Value;
             set
             {
                 CheckReadOnly();
@@ -250,10 +229,7 @@ namespace Zen.Trunk.Storage.Data.Index
         /// <value>The parent logical page id.</value>
         public LogicalPageId ParentLogicalPageId
         {
-            get
-            {
-                return _parentLogicalPageId.Value;
-            }
+            get => _parentLogicalPageId.Value;
             set
             {
                 CheckReadOnly();
@@ -278,10 +254,7 @@ namespace Zen.Trunk.Storage.Data.Index
         /// </remarks>
         public byte Depth
         {
-            get
-            {
-                return _depth.Value;
-            }
+            get => _depth.Value;
             set
             {
                 CheckReadOnly();

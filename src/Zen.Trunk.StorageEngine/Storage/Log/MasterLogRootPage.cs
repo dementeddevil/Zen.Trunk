@@ -65,11 +65,8 @@ namespace Zen.Trunk.Storage.Log
 		/// </remarks>
         public LogFileId LastLogFileId
 		{
-			get
-			{
-				return _lastLogFileId.Value;
-			}
-			set
+			get => _lastLogFileId.Value;
+            set
 			{
 				CheckReadOnly();
 				if (_lastLogFileId.Value != value)
@@ -93,11 +90,8 @@ namespace Zen.Trunk.Storage.Log
 		/// </remarks>
         public LogFileId StartLogFileId
 		{
-			get
-			{
-				return _startLogFileId.Value;
-			}
-			set
+			get => _startLogFileId.Value;
+            set
 			{
 				CheckReadOnly();
 				if (_startLogFileId.Value != value)
@@ -120,11 +114,8 @@ namespace Zen.Trunk.Storage.Log
         /// </remarks>
         public uint StartLogOffset
 		{
-			get
-			{
-				return _startLogOffset.Value;
-			}
-			set
+			get => _startLogOffset.Value;
+            set
 			{
 				CheckReadOnly();
 				if (_startLogOffset.Value != value)
@@ -146,11 +137,8 @@ namespace Zen.Trunk.Storage.Log
         /// </remarks>
         public LogFileId EndLogFileId
 		{
-			get
-			{
-				return _endLogFileId.Value;
-			}
-			set
+			get => _endLogFileId.Value;
+            set
 			{
 				CheckReadOnly();
 				if (_endLogFileId.Value != value)
@@ -170,11 +158,8 @@ namespace Zen.Trunk.Storage.Log
 		/// </remarks>
 		public uint EndLogOffset
 		{
-			get
-			{
-				return _endLogOffset.Value;
-			}
-			set
+			get => _endLogOffset.Value;
+		    set
 			{
 				CheckReadOnly();
 				if (_endLogOffset.Value != value)

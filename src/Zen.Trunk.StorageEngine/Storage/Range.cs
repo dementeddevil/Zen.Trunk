@@ -52,15 +52,9 @@
         /// </value>
         public int Min
 		{
-			get
-			{
-				return _min;
-			}
-			set
-			{
-				_min = value;
-			}
-		}
+			get => _min;
+            set => _min = value;
+        }
 
         /// <summary>
         /// Gets or sets the maximum.
@@ -70,15 +64,9 @@
         /// </value>
         public int Max
 		{
-			get
-			{
-				return _max;
-			}
-			set
-			{
-				_max = value;
-			}
-		}
+			get => _max;
+            set => _max = value;
+        }
         #endregion
 
         #region Public Methods
@@ -274,15 +262,9 @@
         /// </value>
         public int Min
 		{
-			get
-			{
-				return _min;
-			}
-			set
-			{
-				_min = value;
-			}
-		}
+			get => _min;
+            set => _min = value;
+        }
 
         /// <summary>
         /// Gets or sets the maximum.
@@ -292,15 +274,9 @@
         /// </value>
         public int Max
 		{
-			get
-			{
-				return _max;
-			}
-			set
-			{
-				_max = value;
-			}
-		}
+			get => _max;
+            set => _max = value;
+        }
         #endregion
 
         #region Public Methods

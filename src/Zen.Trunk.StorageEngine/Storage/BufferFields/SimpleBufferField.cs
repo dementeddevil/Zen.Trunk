@@ -56,10 +56,7 @@ namespace Zen.Trunk.Storage.BufferFields
         /// </summary>
         public T Value
         {
-            get
-            {
-                return _value;
-            }
+            get => _value;
             set
             {
                 if ((_value == null && value != null) ||

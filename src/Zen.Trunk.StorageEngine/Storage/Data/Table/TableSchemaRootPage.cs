@@ -46,10 +46,7 @@ namespace Zen.Trunk.Storage.Data.Table
         /// </value>
         public LogicalPageId DataFirstLogicalPageId
         {
-            get
-            {
-                return new LogicalPageId(_dataFirstLogicalPageId.Value);
-            }
+            get => new LogicalPageId(_dataFirstLogicalPageId.Value);
             set
             {
                 if (_dataFirstLogicalPageId.Value != value.Value)
@@ -68,10 +65,7 @@ namespace Zen.Trunk.Storage.Data.Table
         /// </value>
         public LogicalPageId DataLastLogicalPageId
         {
-            get
-            {
-                return new LogicalPageId(_dataLastLogicalPageId.Value);
-            }
+            get => new LogicalPageId(_dataLastLogicalPageId.Value);
             set
             {
                 if (_dataLastLogicalPageId.Value != value.Value)

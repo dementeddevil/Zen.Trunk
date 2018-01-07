@@ -139,11 +139,8 @@ namespace Zen.Trunk.Storage.Data.Table
 		/// <value>The id.</value>
 		public byte Id
 		{
-			get
-			{
-				return _id.Value;
-			}
-			internal set
+			get => _id.Value;
+		    internal set
 			{
 				if (_id.Value != value)
 				{
@@ -160,11 +157,8 @@ namespace Zen.Trunk.Storage.Data.Table
 		/// <value>The name.</value>
 		public string Name
 		{
-			get
-			{
-				return _name.Value;
-			}
-			set
+			get => _name.Value;
+		    set
 			{
 				if (string.IsNullOrEmpty(value))
 				{
@@ -203,11 +197,8 @@ namespace Zen.Trunk.Storage.Data.Table
 		/// <value>The type of the data.</value>
 		public TableColumnDataType DataType
 		{
-			get
-			{
-				return (TableColumnDataType)_dataType.Value;
-			}
-			set
+			get => (TableColumnDataType)_dataType.Value;
+		    set
 			{
 				var type = (byte)value;
 				if (_dataType.Value != type)
@@ -276,11 +267,8 @@ namespace Zen.Trunk.Storage.Data.Table
 		/// <value>The length.</value>
 		public ushort Length
 		{
-			get
-			{
-				return _length.Value;
-			}
-			set
+			get => _length.Value;
+		    set
 			{
 				switch (DataType)
 				{
@@ -303,11 +291,8 @@ namespace Zen.Trunk.Storage.Data.Table
 		/// <value><c>true</c> if nullable; otherwise, <c>false</c>.</value>
 		public bool Nullable
 		{
-			get
-			{
-				return _flags.GetBit(1);
-			}
-			set
+			get => _flags.GetBit(1);
+		    set
 			{
 				if (_flags.GetBit(1) != value)
 				{
@@ -324,11 +309,8 @@ namespace Zen.Trunk.Storage.Data.Table
 		/// <value><c>true</c> if [auto increment]; otherwise, <c>false</c>.</value>
 		public bool AutoIncrement
 		{
-			get
-			{
-				return _flags.GetBit(2);
-			}
-			set
+			get => _flags.GetBit(2);
+		    set
 			{
 				if (!IsIncrementSupported && value)
 				{

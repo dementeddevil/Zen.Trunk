@@ -106,9 +106,6 @@ namespace Zen.Trunk.Storage
                 device = GetService<DatabaseDevice>(new NamedParameter("dbId", dbId));
             }
 
-            // Create transaction context for the new database device
-            //TrunkTransactionContext.BeginTransaction(device, TimeSpan.FromMinutes(1));
-
             // Check database name is unique
             if (_userDatabases.ContainsKey(request.Name))
             {
@@ -217,20 +214,16 @@ namespace Zen.Trunk.Storage
             // Now mount the device
             await device.OpenAsync(request.IsCreate).ConfigureAwait(false);
 
-            // If we get this far then commit transaction used to create
-            //	the database device
-            //TrunkTransactionContext.Commit();
-
             // If we are not attaching the master database then update
             //	the master root page...
             if (!mountingMaster)
             {
-                //TrunkTransactionContext.BeginTransaction(this, TimeSpan.FromMinutes(1));
+                BeginTransaction(TimeSpan.FromMinutes(1));
 
                 // Load the master database primary file-group root page
                 var masterRootPage =
                     new MasterDatabasePrimaryFileGroupRootPage();
-                await masterRootPage.SetRootLockAsync(FileGroupLockType.Shared).ConfigureAwait(false);
+                await masterRootPage.SetRootLockAsync(FileGroupRootLockType.Shared).ConfigureAwait(false);
 
                 // Load page from root device
                 await LoadFileGroupPageAsync(
@@ -238,12 +231,12 @@ namespace Zen.Trunk.Storage
 
                 // Add this database information to the database list
                 masterRootPage.ReadOnly = false;
-                await masterRootPage.SetRootLockAsync(FileGroupLockType.Update).ConfigureAwait(false);
-                await masterRootPage.SetRootLockAsync(FileGroupLockType.Exclusive).ConfigureAwait(false);
+                await masterRootPage.SetRootLockAsync(FileGroupRootLockType.Update).ConfigureAwait(false);
+                await masterRootPage.SetRootLockAsync(FileGroupRootLockType.Exclusive).ConfigureAwait(false);
                 masterRootPage.AddDatabase(request.Name, primaryName, primaryDataPathName, primaryLogPathName);
                 masterRootPage.Save();
 
-                //TrunkTransactionContext.Commit();
+                await TrunkTransactionContext.CommitAsync().ConfigureAwait(false);
 
                 // If we get this far then add device
                 _userDatabases.Add(request.Name, device);
@@ -387,7 +380,7 @@ namespace Zen.Trunk.Storage
             {
                 // Load the master database primary file-group root page
                 var masterRootPage = new MasterDatabasePrimaryFileGroupRootPage();
-                await masterRootPage.SetRootLockAsync(FileGroupLockType.Shared).ConfigureAwait(false);
+                await masterRootPage.SetRootLockAsync(FileGroupRootLockType.Shared).ConfigureAwait(false);
 
                 // Load page from root device
                 await LoadFileGroupPageAsync(

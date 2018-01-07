@@ -132,14 +132,8 @@ namespace Zen.Trunk.Storage.Log
         /// </value>
         public long Position
         {
-            get
-            {
-                return _currentStream.Position;
-            }
-            set
-            {
-                _currentStream.Position = value;
-            }
+            get => _currentStream.Position;
+            set => _currentStream.Position = value;
         }
 
         /// <summary>

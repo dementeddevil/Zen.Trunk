@@ -50,14 +50,8 @@ namespace Zen.Trunk.Storage.Log
         /// </value>
         public LogFileId BeginLogFileId
         {
-            get
-            {
-                return _beginLogFileId.Value;
-            }
-            set
-            {
-                _beginLogFileId.Value = value;
-            }
+            get => _beginLogFileId.Value;
+            set => _beginLogFileId.Value = value;
         }
 
         /// <summary>
@@ -68,15 +62,9 @@ namespace Zen.Trunk.Storage.Log
         /// </value>
         public uint BeginOffset
 		{
-			get
-			{
-				return _beginOffset.Value;
-			}
-			set
-			{
-				_beginOffset.Value = value;
-			}
-		}
+			get => _beginOffset.Value;
+            set => _beginOffset.Value = value;
+        }
 
         /// <summary>
         /// Gets or sets the end log file identifier.
@@ -86,15 +74,9 @@ namespace Zen.Trunk.Storage.Log
         /// </value>
         public LogFileId EndLogFileId
 		{
-			get
-			{
-				return _endLogFileId.Value;
-			}
-			set
-			{
-				_endLogFileId.Value = value;
-			}
-		}
+			get => _endLogFileId.Value;
+            set => _endLogFileId.Value = value;
+        }
 
         /// <summary>
         /// Gets or sets the end offset.
@@ -104,15 +86,9 @@ namespace Zen.Trunk.Storage.Log
         /// </value>
         public uint EndOffset
 		{
-			get
-			{
-				return _endOffset.Value;
-			}
-			set
-			{
-				_endOffset.Value = value;
-			}
-		}
+			get => _endOffset.Value;
+            set => _endOffset.Value = value;
+        }
 
         /// <summary>
         /// Gets or sets a value indicating whether this <see cref="CheckPointInfo"/> is valid.
@@ -122,14 +98,8 @@ namespace Zen.Trunk.Storage.Log
         /// </value>
         public bool IsValid
 		{
-			get
-			{
-				return _status.GetBit(1);
-			}
-			set
-			{
-				_status.SetBit(1, value);
-			}
-		}
+			get => _status.GetBit(1);
+            set => _status.SetBit(1, value);
+        }
 	}
 }

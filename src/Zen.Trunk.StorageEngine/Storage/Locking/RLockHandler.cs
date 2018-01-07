@@ -60,14 +60,8 @@ namespace Zen.Trunk.Storage.Locking
 		#region ILockHandler Members
 		int ILockHandler.MaxFreeLocks
 		{
-			get
-			{
-				return _maxFreeLocks;
-			}
-			set
-			{
-				Interlocked.Exchange(ref _maxFreeLocks, value);
-			}
+			get => _maxFreeLocks;
+		    set => Interlocked.Exchange(ref _maxFreeLocks, value);
 		}
 
 		int ILockHandler.ActiveLockCount => _activeLocks.Count;

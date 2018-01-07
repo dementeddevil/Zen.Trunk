@@ -85,14 +85,8 @@ namespace Zen.Trunk.Storage
 		/// </summary>
 		public event EventHandler InitNew
 		{
-			add
-			{
-				Events.AddHandler(InitEvent, value);
-			}
-			remove
-			{
-				Events.RemoveHandler(InitEvent, value);
-			}
+			add => Events.AddHandler(InitEvent, value);
+		    remove => Events.RemoveHandler(InitEvent, value);
 		}
 
 		/// <summary>
@@ -100,14 +94,8 @@ namespace Zen.Trunk.Storage
 		/// </summary>
 		public event EventHandler LoadExisting
 		{
-			add
-			{
-				Events.AddHandler(LoadEvent, value);
-			}
-			remove
-			{
-				Events.RemoveHandler(LoadEvent, value);
-			}
+			add => Events.AddHandler(LoadEvent, value);
+		    remove => Events.RemoveHandler(LoadEvent, value);
 		}
 
 		/// <summary>
@@ -115,14 +103,8 @@ namespace Zen.Trunk.Storage
 		/// </summary>
 		public event EventHandler SaveCompleted
 		{
-			add
-			{
-				Events.AddHandler(SaveEvent, value);
-			}
-			remove
-			{
-				Events.RemoveHandler(SaveEvent, value);
-			}
+			add => Events.AddHandler(SaveEvent, value);
+		    remove => Events.RemoveHandler(SaveEvent, value);
 		}
 
 		/// <summary>
@@ -130,14 +112,8 @@ namespace Zen.Trunk.Storage
 		/// </summary>
 		public event EventHandler PageDirty
 		{
-			add
-			{
-				Events.AddHandler(DirtyEvent, value);
-			}
-			remove
-			{
-				Events.RemoveHandler(DirtyEvent, value);
-			}
+			add => Events.AddHandler(DirtyEvent, value);
+		    remove => Events.RemoveHandler(DirtyEvent, value);
 		}
 
 		/// <summary>
@@ -145,14 +121,8 @@ namespace Zen.Trunk.Storage
 		/// </summary>
 		public event EventHandler Disposed
 		{
-			add
-			{
-				Events.AddHandler(DisposedEvent, value);
-			}
-			remove
-			{
-				Events.RemoveHandler(DisposedEvent, value);
-			}
+			add => Events.AddHandler(DisposedEvent, value);
+		    remove => Events.RemoveHandler(DisposedEvent, value);
 		}
 		#endregion
 
@@ -200,10 +170,7 @@ namespace Zen.Trunk.Storage
 		/// </summary>
 		public virtual PageType PageType
 		{
-			get
-			{
-				return (PageType)_status.Value[_pageType];
-			}
+			get => (PageType)_status.Value[_pageType];
 	        protected set
 			{
 				CheckReadOnly();
@@ -239,15 +206,9 @@ namespace Zen.Trunk.Storage
 		/// </summary>
 		public bool IsManagedData
 		{
-			get
-			{
-				return _managedData;
-			}
-			set
-			{
-				_managedData = value;
-			}
-		}
+			get => _managedData;
+	        set => _managedData = value;
+	    }
 
 		/// <summary>
 		/// Gets/sets the virtual page ID.

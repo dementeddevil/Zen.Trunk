@@ -45,8 +45,8 @@ namespace Zen.Trunk.Storage.Data.Index
 	    /// <value>The index id.</value>
 	    public IndexId IndexId
 	    {
-	        get { return _indexId.Value; }
-            set { _indexId.Value = value; }
+	        get => _indexId.Value;
+	        set => _indexId.Value = value;
 	    }
 
 	    /// <summary>
@@ -55,9 +55,9 @@ namespace Zen.Trunk.Storage.Data.Index
 		/// <value>The owner object id.</value>
 		public ObjectId ObjectId
 		{
-			get { return _objectId.Value; }
-			set { _objectId.Value = value; }
-		}
+			get => _objectId.Value;
+	        set => _objectId.Value = value;
+	    }
 
 		/// <summary>
 		/// Gets or sets the name.
@@ -65,8 +65,8 @@ namespace Zen.Trunk.Storage.Data.Index
 		/// <value>The name.</value>
 		public string Name
 		{
-			get { return _name.Value; }
-			set { _name.Value = value; }
+			get => _name.Value;
+		    set => _name.Value = value;
 		}
 
 	    /// <summary>
@@ -75,9 +75,9 @@ namespace Zen.Trunk.Storage.Data.Index
 		/// <value>The root logical id.</value>
 		public LogicalPageId RootLogicalPageId
 		{
-			get { return _rootLogicalPageId.Value; }
-			set { _rootLogicalPageId.Value = value; }
-		}
+			get => _rootLogicalPageId.Value;
+	        set => _rootLogicalPageId.Value = value;
+	    }
 
 		/// <summary>
 		/// Gets or sets the root index depth.
@@ -85,8 +85,8 @@ namespace Zen.Trunk.Storage.Data.Index
 		/// <value>The root index depth.</value>
 		public byte RootIndexDepth
 		{
-			get { return _rootIndexDepth.Value; }
-			set { _rootIndexDepth.Value = value; }
+			get => _rootIndexDepth.Value;
+		    set => _rootIndexDepth.Value = value;
 		}
 
 		/// <summary>

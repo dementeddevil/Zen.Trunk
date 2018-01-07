@@ -56,14 +56,8 @@ namespace Zen.Trunk.Storage.Data.Table
         /// </value>
         public ushort ColumnId
         {
-            get
-            {
-                return _columnId.Value;
-            }
-            set
-            {
-                _columnId.Value = value;
-            }
+            get => _columnId.Value;
+            set => _columnId.Value = value;
         }
 
         /// <summary>
@@ -74,14 +68,8 @@ namespace Zen.Trunk.Storage.Data.Table
         /// </value>
         public RowConstraintType ConstraintType
         {
-            get
-            {
-                return (RowConstraintType)_constraintType.Value;
-            }
-            set
-            {
-                _constraintType.Value = (byte)value;
-            }
+            get => (RowConstraintType)_constraintType.Value;
+            set => _constraintType.Value = (byte)value;
         }
 
         /// <summary>
@@ -92,14 +80,8 @@ namespace Zen.Trunk.Storage.Data.Table
         /// </value>
         public string ConstraintData
         {
-            get
-            {
-                return _constraintData.Value;
-            }
-            set
-            {
-                _constraintData.Value = value;
-            }
+            get => _constraintData.Value;
+            set => _constraintData.Value = value;
         }
 
         /// <summary>

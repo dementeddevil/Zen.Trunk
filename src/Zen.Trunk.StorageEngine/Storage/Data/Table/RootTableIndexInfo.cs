@@ -92,14 +92,8 @@ namespace Zen.Trunk.Storage.Data.Table
 		/// <value>The type of the index sub.</value>
 		public TableIndexSubType IndexSubType
 		{
-			get
-			{
-				return (TableIndexSubType)_indexSubType.Value;
-			}
-			set
-			{
-				_indexSubType.Value = (byte)value;
-			}
+			get => (TableIndexSubType)_indexSubType.Value;
+		    set => _indexSubType.Value = (byte)value;
 		}
 
 		/// <summary>
@@ -108,14 +102,8 @@ namespace Zen.Trunk.Storage.Data.Table
 		/// <value>The column id array.</value>
 		public byte[] ColumnIDs
 		{
-			get
-			{
-				return _columnIDs.Value;
-			}
-			set
-			{
-				_columnIDs.Value = value;
-			}
+			get => _columnIDs.Value;
+		    set => _columnIDs.Value = value;
 		}
 
 		/// <summary>

@@ -75,11 +75,8 @@ namespace Zen.Trunk.Storage.Data
 		/// <value>Logical ID expressed as UInt64.</value>
 		public LogicalPageId PrevLogicalPageId
 		{
-			get
-			{
-				return _prevLogicalPageId.Value;
-			}
-			set
+			get => _prevLogicalPageId.Value;
+		    set
 			{
 				CheckReadOnly();
 				if (_prevLogicalPageId.Value != value)
@@ -96,11 +93,8 @@ namespace Zen.Trunk.Storage.Data
 		/// <value>Logical ID expressed as UInt64.</value>
 		public LogicalPageId NextLogicalPageId
 		{
-			get
-			{
-				return _nextLogicalPageId.Value;
-			}
-			set
+			get => _nextLogicalPageId.Value;
+		    set
 			{
 				CheckReadOnly();
 				if (_nextLogicalPageId.Value != value)

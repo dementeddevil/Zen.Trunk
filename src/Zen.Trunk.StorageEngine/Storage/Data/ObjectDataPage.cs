@@ -161,7 +161,7 @@ namespace Zen.Trunk.Storage.Data
 			try
 			{
 				// Lock data via lock owner block
-				var lob = LockBlock;
+				var lob = DataLockOwnerBlock;
 				if (lob == null)
 				{
 					throw new InvalidOperationException("Cannot obtain lock owner block for this transaction.");
@@ -186,7 +186,7 @@ namespace Zen.Trunk.Storage.Data
 			try
 			{
 				// Unlock data via lock owner block
-				var lob = LockBlock;
+				var lob = DataLockOwnerBlock;
 				if (lob != null)
 				{
 					await lob.UnlockItemAsync(LogicalPageId).ConfigureAwait(false);

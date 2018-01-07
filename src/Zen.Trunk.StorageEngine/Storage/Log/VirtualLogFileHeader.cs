@@ -42,14 +42,8 @@ namespace Zen.Trunk.Storage.Log
         /// </value>
         public long Timestamp
         {
-            get
-            {
-                return _timestamp.Value;
-            }
-            set
-            {
-                _timestamp.Value = value;
-            }
+            get => _timestamp.Value;
+            set => _timestamp.Value = value;
         }
 
         /// <summary>
@@ -60,14 +54,8 @@ namespace Zen.Trunk.Storage.Log
         /// </value>
         public LogFileId PreviousLogFileId
         {
-            get
-            {
-                return _previousLogFileId.Value;
-            }
-            set
-            {
-                _previousLogFileId.Value = value;
-            }
+            get => _previousLogFileId.Value;
+            set => _previousLogFileId.Value = value;
         }
 
         /// <summary>
@@ -78,14 +66,8 @@ namespace Zen.Trunk.Storage.Log
         /// </value>
         public LogFileId NextLogFileId
         {
-            get
-            {
-                return _nextLogFileId.Value;
-            }
-            set
-            {
-                _nextLogFileId.Value = value;
-            }
+            get => _nextLogFileId.Value;
+            set => _nextLogFileId.Value = value;
         }
 
         /// <summary>
@@ -96,14 +78,8 @@ namespace Zen.Trunk.Storage.Log
         /// </value>
         public uint LastCursor
         {
-            get
-            {
-                return _lastCursor.Value;
-            }
-            set
-            {
-                _lastCursor.Value = value;
-            }
+            get => _lastCursor.Value;
+            set => _lastCursor.Value = value;
         }
 
         /// <summary>
@@ -114,14 +90,8 @@ namespace Zen.Trunk.Storage.Log
         /// </value>
         public uint Cursor
         {
-            get
-            {
-                return _cursor.Value;
-            }
-            set
-            {
-                _cursor.Value = value;
-            }
+            get => _cursor.Value;
+            set => _cursor.Value = value;
         }
 
         /// <summary>
@@ -132,14 +102,8 @@ namespace Zen.Trunk.Storage.Log
         /// </value>
         public int Hash
         {
-            get
-            {
-                return _hash.Value;
-            }
-            set
-            {
-                _hash.Value = value;
-            }
+            get => _hash.Value;
+            set => _hash.Value = value;
         }
         #endregion
 

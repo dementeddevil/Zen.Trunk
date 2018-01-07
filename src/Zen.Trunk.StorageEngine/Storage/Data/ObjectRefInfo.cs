@@ -73,14 +73,8 @@ namespace Zen.Trunk.Storage.Data
         /// </value>
         public ObjectId ObjectId
         {
-            get
-            {
-                return _objectId.Value;
-            }
-            set
-            {
-                _objectId.Value = value;
-            }
+            get => _objectId.Value;
+            set => _objectId.Value = value;
         }
 
         /// <summary>
@@ -91,14 +85,8 @@ namespace Zen.Trunk.Storage.Data
         /// </value>
         public ObjectType ObjectType
         {
-            get
-            {
-                return _objectType.Value;
-            }
-            set
-            {
-                _objectType.Value = value;
-            }
+            get => _objectType.Value;
+            set => _objectType.Value = value;
         }
 
         /// <summary>
@@ -109,14 +97,8 @@ namespace Zen.Trunk.Storage.Data
         /// </value>
         public string Name
         {
-            get
-            {
-                return _name.Value;
-            }
-            set
-            {
-                _name.Value = value;
-            }
+            get => _name.Value;
+            set => _name.Value = value;
         }
 
         /// <summary>
@@ -127,14 +109,8 @@ namespace Zen.Trunk.Storage.Data
         /// </value>
         public LogicalPageId FirstLogicalPageId
         {
-            get
-            {
-                return _firstPageId.Value;
-            }
-            set
-            {
-                _firstPageId.Value = value;
-            }
+            get => _firstPageId.Value;
+            set => _firstPageId.Value = value;
         }
     }
 }

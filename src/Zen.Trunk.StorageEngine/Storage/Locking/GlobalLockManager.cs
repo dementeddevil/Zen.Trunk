@@ -13,7 +13,7 @@ namespace Zen.Trunk.Storage.Locking
     {
         #region Private Fields
         private readonly LockHandler<DatabaseLock, DatabaseLockType> _databaseLocks;
-        private readonly LockHandler<FileGroupLock, FileGroupLockType> _rootLocks;
+        private readonly LockHandler<FileGroupRootLock, FileGroupRootLockType> _rootLocks;
         private readonly LockHandler<ObjectLock, ObjectLockType> _objectLocks;
         private readonly LockHandler<SchemaLock, SchemaLockType> _schemaLocks;
         private readonly LockHandler<DataLock, DataLockType> _dataLocks;
@@ -27,7 +27,7 @@ namespace Zen.Trunk.Storage.Locking
         public GlobalLockManager()
         {
             _databaseLocks = new LockHandler<DatabaseLock, DatabaseLockType>(0);
-            _rootLocks = new LockHandler<FileGroupLock, FileGroupLockType>();
+            _rootLocks = new LockHandler<FileGroupRootLock, FileGroupRootLockType>();
             _objectLocks = new LockHandler<ObjectLock, ObjectLockType>();
             _schemaLocks = new LockHandler<SchemaLock, SchemaLockType>();
             _dataLocks = new LockHandler<DataLock, DataLockType>();
@@ -99,7 +99,7 @@ namespace Zen.Trunk.Storage.Locking
         /// <returns>
         /// A <see cref="Task" /> representing the asynchronous operation.
         /// </returns>
-        public async Task LockFileGroupAsync(DatabaseId dbId, FileGroupId fileGroupId, FileGroupLockType lockType, TimeSpan timeout)
+        public async Task LockFileGroupAsync(DatabaseId dbId, FileGroupId fileGroupId, FileGroupRootLockType lockType, TimeSpan timeout)
         {
             var rootLock = GetFileGroupLock(dbId, fileGroupId);
             try
@@ -139,9 +139,9 @@ namespace Zen.Trunk.Storage.Locking
         /// <param name="dbId">The database identifier.</param>
         /// <param name="fileGroupId">The file group identifier.</param>
         /// <returns>
-        /// A <see cref="FileGroupLock" /> instance.
+        /// A <see cref="FileGroupRootLock" /> instance.
         /// </returns>
-        public FileGroupLock GetFileGroupLock(DatabaseId dbId, FileGroupId fileGroupId)
+        public FileGroupRootLock GetFileGroupLock(DatabaseId dbId, FileGroupId fileGroupId)
         {
             var key = LockIdent.GetFileGroupRootKey(dbId, fileGroupId);
             var lockObject = _rootLocks.GetOrCreateLock(key);

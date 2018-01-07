@@ -70,16 +70,7 @@ namespace Zen.Trunk.Storage.Log
         /// <value>
         /// <c>true</c> if this instance is read only; otherwise, <c>false</c>.
         /// </value>
-        public bool IsReadOnly
-        {
-            get
-            {
-                //var parent = ResolveDeviceService<DatabaseDevice>();
-                //return parent.IsReadOnly;
-                // ReSharper disable once ConvertPropertyToExpressionBody
-                return false;
-            }
-        }
+        public bool IsReadOnly => false;
 
         /// <summary>
         /// Gets a value indicating whether this instance is in recovery.
