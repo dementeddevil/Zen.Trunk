@@ -643,37 +643,24 @@ namespace Zen.Trunk.Storage.Data.Table
 
                 // Keep loading schema pages (these are linked)
                 var logicalId = firstLogicalPageId;
-                var firstPage = true;
+                var isFirstSchemaPage = true;
                 while (logicalId != LogicalPageId.Zero)
                 {
                     // Prepare page object and load
-                    TableSchemaPage page;
-                    if (firstPage)
+                    using (var page = await LoadSchemaPageAsync(isFirstSchemaPage, logicalId))
                     {
-                        page = new TableSchemaRootPage();
-                        firstPage = false;
+                        // No longer first page so clear now
+                        isFirstSchemaPage = false;
+
+                        // Add page information to definition
+                        AddTableDefinition(page);
+
+                        // Setup schema last logical id
+                        SchemaLastLogicalPageId = page.LogicalPageId;
+
+                        // Advance to next logical page
+                        logicalId = page.NextLogicalPageId;
                     }
-                    else
-                    {
-                        page = new TableSchemaPage();
-                    }
-                    page.LogicalPageId = logicalId;
-                    page.FileGroupId = FileGroupId;
-                    page.ObjectId = ObjectId;
-                    await page.SetObjectLockAsync(ObjectLockType.Shared).ConfigureAwait(false);
-                    await page.SetSchemaLockAsync(SchemaLockType.SchemaStability).ConfigureAwait(false);
-                    await _owner
-                        .LoadDataPageAsync(new LoadDataPageParameters(page, false, true))
-                        .ConfigureAwait(false);
-
-                    // Add to definitions
-                    AddTableDefinition(page);
-
-                    // Setup schema last logical id
-                    SchemaLastLogicalPageId = page.LogicalPageId;
-
-                    // Advance to next logical page
-                    logicalId = page.NextLogicalPageId;
                 }
             }
             finally
@@ -923,7 +910,7 @@ namespace Zen.Trunk.Storage.Data.Table
                         {
                             if (rootPage == null)
                             {
-                                rootPage = await CreateSchemaPageAndLinkAsync(prevRootPage).ConfigureAwait(false);
+                                rootPage = await InitSchemaPageAndLinkAsync(prevRootPage).ConfigureAwait(false);
                                 if (firstPage)
                                 {
                                     initialPage = (TableSchemaRootPage)rootPage;
@@ -958,7 +945,7 @@ namespace Zen.Trunk.Storage.Data.Table
                         {
                             if (rootPage == null)
                             {
-                                rootPage = await CreateSchemaPageAndLinkAsync(prevRootPage).ConfigureAwait(false);
+                                rootPage = await InitSchemaPageAndLinkAsync(prevRootPage).ConfigureAwait(false);
                                 if (firstPage)
                                 {
                                     initialPage = (TableSchemaRootPage)rootPage;
@@ -1309,8 +1296,11 @@ namespace Zen.Trunk.Storage.Data.Table
                 // ReSharper disable once ConditionIsAlwaysTrueOrFalse
                 if (needNewPage)
                 {
+                    // Dispose of current page
+                    currentPage?.Dispose();
+
                     // Create new page and link with any current page
-                    currentPage = await CreateSchemaPageAndLinkAsync(currentPage)
+                    currentPage = await InitSchemaPageAndLinkAsync(currentPage)
                         .ConfigureAwait(false);
                     _tableDef.Add(currentPage);
                     needNewPage = false;
@@ -1375,28 +1365,32 @@ namespace Zen.Trunk.Storage.Data.Table
                 }
             }
 
-            if (currentPage.IsDirty)
-            {
-                currentPage.Save();
-            }
+            // Dispose of current page
+            currentPage?.Dispose();
         }
 
-        private async Task<TableSchemaPage> CreateSchemaPageAsync(bool isFirstTablePage)
+        private TableSchemaPage CreateSchemaPage(bool isFirstSchemaPage)
         {
-            var rootPage = isFirstTablePage ? new TableSchemaRootPage() : new TableSchemaPage();
-            rootPage.ReadOnly = false;
-            rootPage.ObjectId = ObjectId;
-            rootPage.FileGroupId = FileGroupId;
-            await _owner
-                .InitDataPageAsync(new InitDataPageParameters(rootPage, true, true, true, true))
-                .ConfigureAwait(true);
-            return rootPage;
+            var schemaPage = isFirstSchemaPage ? new TableSchemaRootPage() : new TableSchemaPage();
+            schemaPage.ObjectId = ObjectId;
+            schemaPage.FileGroupId = FileGroupId;
+            return schemaPage;
         }
 
-        private async Task<TableSchemaPage> CreateSchemaPageAndLinkAsync(TableSchemaPage prevSchemaPage)
+        private async Task<TableSchemaPage> InitSchemaPageAsync(bool isFirstSchemaPage)
+        {
+            var schemaPage = CreateSchemaPage(isFirstSchemaPage);
+            schemaPage.ReadOnly = false;
+            await _owner
+                .InitDataPageAsync(new InitDataPageParameters(schemaPage, true, true, true, true))
+                .ConfigureAwait(true);
+            return schemaPage;
+        }
+
+        private async Task<TableSchemaPage> InitSchemaPageAndLinkAsync(TableSchemaPage prevSchemaPage)
         {
             // Create root page
-            var schemaPage = await CreateSchemaPageAsync(prevSchemaPage == null)
+            var schemaPage = await InitSchemaPageAsync(prevSchemaPage == null)
                 .ConfigureAwait(false);
 
             // Setup pointer to previous table definition page (if any)
@@ -1410,6 +1404,21 @@ namespace Zen.Trunk.Storage.Data.Table
                 prevSchemaPage.Save();
             }
 
+            return schemaPage;
+        }
+
+        private async Task<TableSchemaPage> LoadSchemaPageAsync(bool isFirstSchemaPage, LogicalPageId logicalId)
+        {
+            var schemaPage = CreateSchemaPage(isFirstSchemaPage);
+            schemaPage.LogicalPageId = logicalId;
+
+            // Setup page locking and then load page
+            await schemaPage.SetObjectLockAsync(ObjectLockType.Shared).ConfigureAwait(false);
+            await schemaPage.SetSchemaLockAsync(SchemaLockType.SchemaStability).ConfigureAwait(false);
+
+            await _owner
+                .LoadDataPageAsync(new LoadDataPageParameters(schemaPage, false, true))
+                .ConfigureAwait(false);
             return schemaPage;
         }
 

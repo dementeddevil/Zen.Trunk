@@ -2,6 +2,7 @@
 using Autofac;
 using Serilog;
 using Serilog.Enrichers;
+using Serilog.Events;
 using Zen.Trunk.Storage.Data;
 using Zen.Trunk.Storage.Locking;
 using Zen.Trunk.VirtualMemory;
@@ -22,7 +23,9 @@ namespace Zen.Trunk.Storage
                 .Enrich.With<ThreadIdEnricher>()
                 .Enrich.With<TransactionEnricher>()
                 .MinimumLevel.Verbose()
-                .WriteTo.Debug()
+                .WriteTo.Debug(
+                    LogEventLevel.Verbose,
+                    "[{Timestamp:HH:mm:ss} {Level:u3} {SessionId} {TransactionId}] {Message:lj}{NewLine}{Exception}")
                 .CreateLogger();
             _ambientSessionScope = TrunkSessionContext.SwitchSessionContext(
                 new TrunkSession(new SessionId(11002), TimeSpan.FromSeconds(60)));

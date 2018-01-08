@@ -254,177 +254,183 @@ namespace Zen.Trunk.Storage.Data.Table
             }
 
             // Create the root index page
-            var rootPage = new TableIndexPage
-            {
-                FileGroupId = rootTableIndexInfo.IndexFileGroupId,
-                ObjectId = rootTableIndexInfo.ObjectId,
-                IndexId = indexId,
-                IndexType = IndexType.Root | IndexType.Leaf
-            };
-            await Database
-                .InitFileGroupPageAsync(new InitFileGroupPageParameters(
-                    null, rootPage, true, false, true))
-                .ConfigureAwait(false);
-
-            // Setup root index page
-            rootPage.SetHeaderDirty();
-            rootPage.SetContext(_ownerTable, rootTableIndexInfo);
-            rootTableIndexInfo.RootLogicalPageId = rootPage.LogicalPageId;
-            AddIndexInfo(rootTableIndexInfo);
-
-            // We need the zero-based ordinal positions of the columns used
-            //	in the index being created
-            var indexOrdinals = rootTableIndexInfo.ColumnIDs
-                .Select(columnId => _ownerTable.Columns.IndexOf(
-                    _ownerTable.Columns.First(item => item.Id == columnId)))
-                .ToArray();
-
-            // TODO: Populate the index
-            if (_ownerTable.HasData)
-            {
-                // We simply walk every logical page in the table starting with
-                //	the first logical page and continuing until the next logical
-                //	id is zero.
-                // For each page we load, we walk the rows in the page, pull
-                //	out the index column values and add an entry to the index.
-                var logicalPageId = _ownerTable.DataFirstLogicalPageId;
-                while (logicalPageId != LogicalPageId.Zero)
+            using (var rootPage =
+                new TableIndexPage
                 {
-                    // Load the next table data page
-                    var dataPage = new TableDataPage
+                    FileGroupId = rootTableIndexInfo.IndexFileGroupId,
+                    ObjectId = rootTableIndexInfo.ObjectId,
+                    IndexId = indexId,
+                    IndexType = IndexType.Root | IndexType.Leaf
+                })
+            {
+                await Database
+                    .InitFileGroupPageAsync(new InitFileGroupPageParameters(
+                        null, rootPage, true, false, true))
+                    .ConfigureAwait(false);
+
+                // Setup root index page
+                rootPage.SetHeaderDirty();
+                rootPage.SetContext(_ownerTable, rootTableIndexInfo);
+                rootTableIndexInfo.RootLogicalPageId = rootPage.LogicalPageId;
+                AddIndexInfo(rootTableIndexInfo);
+
+                // We need the zero-based ordinal positions of the columns used
+                //	in the index being created
+                var indexOrdinals = rootTableIndexInfo.ColumnIDs
+                    .Select(columnId => _ownerTable.Columns.IndexOf(
+                        _ownerTable.Columns.First(item => item.Id == columnId)))
+                    .ToArray();
+
+                // TODO: Populate the index
+                if (_ownerTable.HasData)
+                {
+                    // We simply walk every logical page in the table starting with
+                    //	the first logical page and continuing until the next logical
+                    //	id is zero.
+                    // For each page we load, we walk the rows in the page, pull
+                    //	out the index column values and add an entry to the index.
+                    var logicalPageId = _ownerTable.DataFirstLogicalPageId;
+                    while (logicalPageId != LogicalPageId.Zero)
                     {
-                        LogicalPageId = logicalPageId,
-                        FileGroupId = _ownerTable.FileGroupId,
-                    };
-                    await dataPage.SetPageLockAsync(DataLockType.Shared).ConfigureAwait(false);
-
-                    await Database
-                        .LoadFileGroupPageAsync(
-                            new LoadFileGroupPageParameters(
-                                null, dataPage, false, true))
-                        .ConfigureAwait(false);
-
-                    // Walk the table rows
-                    for (uint rowIndex = 0; rowIndex < dataPage.RowCount; ++rowIndex)
-                    {
-                        // Get row reader for this row
-                        var rowReader = dataPage.GetRowReader(
-                            rowIndex, _ownerTable.Columns);
-
-                        // Build array of row index values
-                        var rowIndexValues = new object[indexOrdinals.Length];
-                        for (var dataValueIndex = 0; dataValueIndex < indexOrdinals.Length; ++dataValueIndex)
-                        {
-                            rowIndexValues[dataValueIndex] = rowReader[indexOrdinals[dataValueIndex]];
-                        }
-
-                        // Use row values to create new entry in index
-                        // Technically clustered index inserts also require the
-                        //	size of the new row data so a determination can be
-                        //	made as to whether a split of the data-page is
-                        //	required.
-                        // In this instance however we never do clustered index
-                        //	inserts...
-                        EnumerateIndexEntriesParameters iterParams;
-                        TableIndexPage lastIndexPage = null;
-                        TableIndexLeafInfo lastLeaf = null;
-                        if (_ownerTable.IsHeap)
-                        {
-                            // Generate search parameters
-                            iterParams = new EnumerateIndexEntriesParameters(
-                                rootTableIndexInfo, rowIndexValues, rowIndexValues,
-                                (page, entry, iterationCount) =>
-                                {
-                                    lastIndexPage = page;
-                                    lastLeaf = entry;
-                                    return true;
-                                });
-                        }
-                        else
-                        {
-                            // Determine the clustered index we need to use
-                            var clusteredKeyValues = new object[_ownerTable.ClusteredIndex.ColumnIDs.Length];
-                            for (var index = 0; index < clusteredKeyValues.Length; ++index)
+                        // Load the next table data page
+                        using (var dataPage =
+                            new TableDataPage
                             {
-                                if (index == (clusteredKeyValues.Length - 1) &&
-                                    (_ownerTable.ClusteredIndex.IndexSubType & TableIndexSubType.Unique) == 0)
+                                LogicalPageId = logicalPageId,
+                                FileGroupId = _ownerTable.FileGroupId,
+                            })
+                        {
+                            await dataPage.SetPageLockAsync(DataLockType.Shared).ConfigureAwait(false);
+
+                            await Database
+                                .LoadFileGroupPageAsync(
+                                    new LoadFileGroupPageParameters(
+                                        null, dataPage, false, true))
+                                .ConfigureAwait(false);
+
+                            // Walk the table rows
+                            for (uint rowIndex = 0; rowIndex < dataPage.RowCount; ++rowIndex)
+                            {
+                                // Get row reader for this row
+                                var rowReader = dataPage.GetRowReader(
+                                    rowIndex, _ownerTable.Columns);
+
+                                // Build array of row index values
+                                var rowIndexValues = new object[indexOrdinals.Length];
+                                for (var dataValueIndex = 0; dataValueIndex < indexOrdinals.Length; ++dataValueIndex)
                                 {
-                                    clusteredKeyValues[index] = null;
+                                    rowIndexValues[dataValueIndex] = rowReader[indexOrdinals[dataValueIndex]];
+                                }
+
+                                // Use row values to create new entry in index
+                                // Technically clustered index inserts also require the
+                                //	size of the new row data so a determination can be
+                                //	made as to whether a split of the data-page is
+                                //	required.
+                                // In this instance however we never do clustered index
+                                //	inserts...
+                                EnumerateIndexEntriesParameters iterParams;
+                                TableIndexPage lastIndexPage = null;
+                                TableIndexLeafInfo lastLeaf = null;
+                                if (_ownerTable.IsHeap)
+                                {
+                                    // Generate search parameters
+                                    iterParams = new EnumerateIndexEntriesParameters(
+                                        rootTableIndexInfo, rowIndexValues, rowIndexValues,
+                                        (page, entry, iterationCount) =>
+                                        {
+                                            lastIndexPage = page;
+                                            lastLeaf = entry;
+                                            return true;
+                                        });
                                 }
                                 else
                                 {
-                                    var found = false;
-                                    for (var columnIndex = 0; !found && columnIndex < _ownerTable.Columns.Count; ++columnIndex)
+                                    // Determine the clustered index we need to use
+                                    var clusteredKeyValues = new object[_ownerTable.ClusteredIndex.ColumnIDs.Length];
+                                    for (var index = 0; index < clusteredKeyValues.Length; ++index)
                                     {
-                                        if (_ownerTable.Columns[columnIndex].Id == _ownerTable.ClusteredIndex.ColumnIDs[index])
+                                        if (index == (clusteredKeyValues.Length - 1) &&
+                                            (_ownerTable.ClusteredIndex.IndexSubType & TableIndexSubType.Unique) == 0)
                                         {
-                                            clusteredKeyValues[index] = rowReader[columnIndex];
-                                            found = true;
+                                            clusteredKeyValues[index] = null;
+                                        }
+                                        else
+                                        {
+                                            var found = false;
+                                            for (var columnIndex = 0; !found && columnIndex < _ownerTable.Columns.Count; ++columnIndex)
+                                            {
+                                                if (_ownerTable.Columns[columnIndex].Id == _ownerTable.ClusteredIndex.ColumnIDs[index])
+                                                {
+                                                    clusteredKeyValues[index] = rowReader[columnIndex];
+                                                    found = true;
+                                                }
+                                            }
+                                            if (!found)
+                                            {
+                                                throw new InvalidOperationException();
+                                            }
                                         }
                                     }
-                                    if (!found)
-                                    {
-                                        throw new InvalidOperationException();
-                                    }
+
+                                    // Generate search parameters
+                                    iterParams = new EnumerateIndexEntriesParameters(
+                                        _ownerTable.ClusteredIndex, clusteredKeyValues, clusteredKeyValues,
+                                        (page, entry, iterationCount) =>
+                                        {
+                                            lastIndexPage = page;
+                                            lastLeaf = entry;
+                                            return true;
+                                        });
                                 }
+
+                                // Enumerate index entries
+                                //	we want the last valid position
+                                if (await EnumerateIndexAsync(iterParams))
+                                {
+                                    // 
+                                    //_ownerTable.S
+                                }
+
+                                // For non-unique index we need to find insert point
+                                //	this is one past the last row with a matching key
                             }
 
-                            // Generate search parameters
-                            iterParams = new EnumerateIndexEntriesParameters(
-                                _ownerTable.ClusteredIndex, clusteredKeyValues, clusteredKeyValues,
-                                (page, entry, iterationCount) =>
-                                {
-                                    lastIndexPage = page;
-                                    lastLeaf = entry;
-                                    return true;
-                                });
+                            // Advance to next table data page
+                            logicalPageId = dataPage.NextLogicalPageId;
                         }
-
-                        // Enumerate index entries
-                        //	we want the last valid position
-                        if (await EnumerateIndexAsync(iterParams))
-                        {
-                            // 
-                            //_ownerTable.S
-                        }
-
-                        // For non-unique index we need to find insert point
-                        //	this is one past the last row with a matching key
                     }
 
-                    // Advance to next table data page
-                    logicalPageId = dataPage.NextLogicalPageId;
-                }
+                    // Finalise clustered index setup
+                    if (restoreClusteredIndex)
+                    {
+                        // NOTE: Populating a clustered index requires a rewrite of
+                        //	the table data so we do this AFTER creating a temporary
+                        //	non-clustered index because this gives us the populated
+                        //	index with the correct sort order.
+                        // To rewrite the data we will walk the depth=0 index pages
+                        //	and copy the data from the original table pages into
+                        //	new pages and rewrite the index entry accordingly.
+                        // Once complete we will drop all the table pages for the
+                        //	old data and recreate all other indicies defined on the
+                        //	table object.
+                        // This will be a lengthy operation on a large table...
 
-                // Finalise clustered index setup
-                if (restoreClusteredIndex)
-                {
-                    // NOTE: Populating a clustered index requires a rewrite of
-                    //	the table data so we do this AFTER creating a temporary
-                    //	non-clustered index because this gives us the populated
-                    //	index with the correct sort order.
-                    // To rewrite the data we will walk the depth=0 index pages
-                    //	and copy the data from the original table pages into
-                    //	new pages and rewrite the index entry accordingly.
-                    // Once complete we will drop all the table pages for the
-                    //	old data and recreate all other indicies defined on the
-                    //	table object.
-                    // This will be a lengthy operation on a large table...
+                        // The easiest way to do this is to create a new table with a
+                        //	temporary name and rewrite the table rows in index order.
 
-                    // The easiest way to do this is to create a new table with a
-                    //	temporary name and rewrite the table rows in index order.
+                        // Then we need to create any other non-clustered indices
+                        //	currently defined on this table on the new table
 
-                    // Then we need to create any other non-clustered indices
-                    //	currently defined on this table on the new table
+                        // Then we need to drop the old table (and associated indices)
+                        //	and rename this table
 
-                    // Then we need to drop the old table (and associated indices)
-                    //	and rename this table
+                        // Then we need to tell the owner table object to switch
+                        //	to the new table object (effectively an optimised copy)
 
-                    // Then we need to tell the owner table object to switch
-                    //	to the new table object (effectively an optimised copy)
-
-                    // We'd be done at this point
-                    return indexId;
+                        // We'd be done at this point
+                        return indexId;
+                    }
                 }
             }
 
