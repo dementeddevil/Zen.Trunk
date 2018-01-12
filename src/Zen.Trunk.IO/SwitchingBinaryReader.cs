@@ -27,24 +27,16 @@ namespace Zen.Trunk.IO
         /// <param name="leaveOpen">if set to <c>true</c> the stream will be left open.</param>
         public SwitchingBinaryReader(Stream stream, bool leaveOpen = false)
         {
-            // Wrap stream in non-closing stream
-            if (!leaveOpen)
+            if (!leaveOpen || stream is NonClosingStream)
             {
                 _stream = stream;
             }
             else
             {
-                if (!(stream is NonClosingStream))
-                {
-                    stream = new NonClosingStream(stream);
-                }
-                else
-                {
-                    _stream = (NonClosingStream)stream;
-                }
+                _stream = new NonClosingStream(stream);
             }
 
-            _reader = new BinaryReader(stream);
+            _reader = new BinaryReader(_stream);
         }
         #endregion
 

@@ -42,7 +42,7 @@ namespace Zen.Trunk.Storage.BufferFields
         #region Internal Methods
         internal void ReadFrom(Stream stream)
         {
-            using (var streamManager = new SwitchingBinaryReader(stream))
+            using (var streamManager = new SwitchingBinaryReader(stream, true))
             {
                 Read(streamManager);
             }

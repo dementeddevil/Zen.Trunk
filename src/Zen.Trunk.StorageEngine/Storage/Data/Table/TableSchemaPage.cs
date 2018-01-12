@@ -42,6 +42,7 @@ namespace Zen.Trunk.Storage.Data.Table
 		/// <value></value>
 		public override PageType PageType
 		{
+		    get => base.PageType;
 		    protected set
 			{
 				if (value != PageType.New &&
@@ -202,6 +203,16 @@ namespace Zen.Trunk.Storage.Data.Table
 		}
 
         /// <summary>
+        /// Reads the page header block from the specified buffer reader.
+        /// </summary>
+        /// <param name="streamManager">The stream manager.</param>
+	    protected override void ReadHeader(SwitchingBinaryReader streamManager)
+	    {
+	        base.ReadHeader(streamManager);
+
+	    }
+
+	    /// <summary>
         /// Writes the page header block to the specified buffer writer.
         /// </summary>
         /// <param name="streamManager">The stream manager.</param>

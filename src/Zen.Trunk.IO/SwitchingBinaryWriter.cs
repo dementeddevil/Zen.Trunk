@@ -27,24 +27,16 @@ namespace Zen.Trunk.IO
         /// <param name="leaveOpen">if set to <c>true</c> [leave open].</param>
         public SwitchingBinaryWriter(Stream stream, bool leaveOpen = false)
         {
-            // Wrap stream in non-closing stream
-            if (!leaveOpen)
+            if (!leaveOpen || stream is NonClosingStream)
             {
                 _stream = stream;
             }
             else
             {
-                if (!(stream is NonClosingStream))
-                {
-                    _stream = new NonClosingStream(stream);
-                }
-                else
-                {
-                    _stream = (NonClosingStream)stream;
-                }
+                _stream = new NonClosingStream(stream);
             }
 
-            _writer = new BinaryWriter(stream);
+            _writer = new BinaryWriter(_stream);
         }
         #endregion
 

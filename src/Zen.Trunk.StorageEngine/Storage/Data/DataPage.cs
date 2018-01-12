@@ -613,7 +613,7 @@ namespace Zen.Trunk.Storage.Data
         {
             using (var tempStream = new MemoryStream((int)DataSize))
             {
-                using (var writer = new SwitchingBinaryWriter(tempStream))
+                using (var writer = new SwitchingBinaryWriter(tempStream, true))
                 {
                     WriteData(writer);
 

@@ -417,7 +417,7 @@ namespace Zen.Trunk.Storage
 		{
 			using (var stream = CreateHeaderStream(true))
 			{
-				using (var streamManager = new SwitchingBinaryReader(stream))
+				using (var streamManager = new SwitchingBinaryReader(stream, true))
 				{
 					ReadHeader(streamManager);
 					streamManager.Close();
@@ -433,7 +433,7 @@ namespace Zen.Trunk.Storage
 		{
 			using (var stream = CreateHeaderStream(false))
 			{
-				using (var streamManager = new SwitchingBinaryWriter(stream))
+				using (var streamManager = new SwitchingBinaryWriter(stream, true))
 				{
 					WriteHeader(streamManager);
 					streamManager.Close();
@@ -593,7 +593,7 @@ namespace Zen.Trunk.Storage
         {
             using (var stream = CreateDataStream(true))
             {
-                using (var streamManager = new SwitchingBinaryReader(stream))
+                using (var streamManager = new SwitchingBinaryReader(stream, true))
                 {
                     ReadData(streamManager);
                     streamManager.Close();
@@ -606,7 +606,7 @@ namespace Zen.Trunk.Storage
         {
             using (var stream = CreateDataStream(false))
             {
-                using (var streamManager = new SwitchingBinaryWriter(stream))
+                using (var streamManager = new SwitchingBinaryWriter(stream, true))
                 {
                     WriteData(streamManager);
                     streamManager.Close();
@@ -618,7 +618,7 @@ namespace Zen.Trunk.Storage
         private void CreateStatus(int value)
 		{
 			_status.Value = new BitVector32(value);
-			_pageType = BitVector32.CreateSection((short)PageType.Index);
+			_pageType = BitVector32.CreateSection((short)PageType.Root);
             CreateStatusSections(_status.Value, _pageType);
 		}
 

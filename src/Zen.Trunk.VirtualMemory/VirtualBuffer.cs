@@ -165,6 +165,11 @@ namespace Zen.Trunk.VirtualMemory
             /// </summary>
             public override void Close()
             {
+                if (_innerStream == null)
+                {
+                    Trace.WriteLine("Already closed");
+                }
+
                 // Close the inner stream object.
                 if (_innerStream != null)
                 {

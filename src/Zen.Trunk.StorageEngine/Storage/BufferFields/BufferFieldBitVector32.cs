@@ -41,6 +41,7 @@ namespace Zen.Trunk.Storage.BufferFields
         public void SetBit(BitVector32.Section section, uint mask, bool on)
         {
             var vector = Value;
+
             if (on)
             {
                 vector[section] |= (ushort)mask;
@@ -49,12 +50,17 @@ namespace Zen.Trunk.Storage.BufferFields
             {
                 vector[section] &= (ushort)(~mask);
             }
+
+            Value = vector;
         }
 
         public void SetValue(BitVector32.Section section, int value)
         {
             var vector = Value;
+
             vector[section] = value;
+
+            Value = vector;
         }
 
         protected override void OnRead(SwitchingBinaryReader reader)
