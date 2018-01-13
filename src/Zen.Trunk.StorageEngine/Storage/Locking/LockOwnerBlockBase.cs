@@ -281,16 +281,14 @@ namespace Zen.Trunk.Storage.Locking
 
 			if (_ownerLockCount == 0)
 			{
-				//Tracer.WriteVerboseLine(
-				//    "Unlocking lock owner block for object {0}", _objectId);
+                Logger.Debug("Unlocking lock owner block");
 				await OwnerLock.UnlockAsync().ConfigureAwait(false);
 			}
 			else
 			{
-				//Tracer.WriteVerboseLine(
-				//    "Unlocking lock owner block for object {0} has been deferred {1} outstanding locks.",
-				//    _objectId, OwnerLockCount);
-			}
+			    Logger.Warn(
+                    $"Unlocking lock owner block has been deferred {_ownerLockCount} outstanding locks.");
+            }
 		}
 
 		/// <summary>

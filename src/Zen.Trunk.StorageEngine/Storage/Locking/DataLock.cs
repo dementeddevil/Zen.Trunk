@@ -80,7 +80,7 @@ namespace Zen.Trunk.Storage.Locking
             /// <value>
             /// The compatable locks.
             /// </value>
-            public override DataLockType[] CompatableLocks =>
+            protected override DataLockType[] AllowedLockTypes =>
                 new[]
 		        {
 		            DataLockType.Shared,
@@ -109,7 +109,7 @@ namespace Zen.Trunk.Storage.Locking
             /// <value>
             /// The compatable locks.
             /// </value>
-            public override DataLockType[] CompatableLocks =>
+            protected override DataLockType[] AllowedLockTypes =>
                 new[]
 		        {
 		            DataLockType.Shared,
@@ -137,7 +137,7 @@ namespace Zen.Trunk.Storage.Locking
             /// <value>
             /// The compatable locks.
             /// </value>
-            public override DataLockType[] CompatableLocks =>
+            protected override DataLockType[] AllowedLockTypes =>
                 new[] 
 		        {
 		            DataLockType.Shared,
@@ -174,7 +174,7 @@ namespace Zen.Trunk.Storage.Locking
             /// <value>
             /// The compatable locks.
             /// </value>
-            public override DataLockType[] CompatableLocks =>
+            protected override DataLockType[] AllowedLockTypes =>
                 new DataLockType[0];
 
             /// <summary>

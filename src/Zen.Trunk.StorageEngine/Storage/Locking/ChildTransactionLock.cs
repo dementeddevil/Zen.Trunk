@@ -6,8 +6,8 @@ namespace Zen.Trunk.Storage.Locking
     /// <c>ChildTransactionLock</c> encapsulates the semantics necessary
     /// for a lock object that has a parent lock.
     /// </summary>
-    /// <typeparam name="TLockTypeEnum">The type of the ock type enum.</typeparam>
-    /// <typeparam name="TParentLockType">The type of the arent lock type.</typeparam>
+    /// <typeparam name="TLockTypeEnum">The lock type enum.</typeparam>
+    /// <typeparam name="TParentLockType">The parent lock type.</typeparam>
     /// <seealso cref="Zen.Trunk.Storage.Locking.TransactionLock{LockTypeEnum}" />
     public abstract class ChildTransactionLock<TLockTypeEnum, TParentLockType> :
 		TransactionLock<TLockTypeEnum>

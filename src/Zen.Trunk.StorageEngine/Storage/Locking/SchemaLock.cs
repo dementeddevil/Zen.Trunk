@@ -98,7 +98,7 @@ namespace Zen.Trunk.Storage.Locking
             /// <value>
             /// The compatable locks.
             /// </value>
-            public override SchemaLockType[] CompatableLocks => new[]
+            protected override SchemaLockType[] AllowedLockTypes => new[]
 		    {
 		        SchemaLockType.SchemaStability,
 		        SchemaLockType.BulkUpdate,
@@ -126,7 +126,7 @@ namespace Zen.Trunk.Storage.Locking
             /// <value>
             /// The compatable locks.
             /// </value>
-            public override SchemaLockType[] CompatableLocks => new[]
+            protected override SchemaLockType[] AllowedLockTypes => new[]
 			{
 			    SchemaLockType.SchemaStability,
 			    SchemaLockType.BulkUpdate,
@@ -153,7 +153,7 @@ namespace Zen.Trunk.Storage.Locking
             /// <value>
             /// The compatable locks.
             /// </value>
-            public override SchemaLockType[] CompatableLocks => new[]
+            protected override SchemaLockType[] AllowedLockTypes => new[]
             {
 		        SchemaLockType.SchemaStability,
 		        SchemaLockType.BulkUpdate,
@@ -180,7 +180,7 @@ namespace Zen.Trunk.Storage.Locking
             /// <value>
             /// The compatable locks.
             /// </value>
-            public override SchemaLockType[] CompatableLocks => new SchemaLockType[0];
+            protected override SchemaLockType[] AllowedLockTypes => new SchemaLockType[0];
 
             /// <summary>
             /// Gets a boolean value indicating whether an exclusive lock can

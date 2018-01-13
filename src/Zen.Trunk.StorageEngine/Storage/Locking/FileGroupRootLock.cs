@@ -82,7 +82,7 @@ namespace Zen.Trunk.Storage.Locking
             /// <value>
             /// The compatable locks.
             /// </value>
-            public override FileGroupRootLockType[] CompatableLocks =>
+            protected override FileGroupRootLockType[] AllowedLockTypes =>
                 new[]
                 {
                     FileGroupRootLockType.Shared,
@@ -111,7 +111,7 @@ namespace Zen.Trunk.Storage.Locking
             /// <value>
             /// The compatable locks.
             /// </value>
-            public override FileGroupRootLockType[] CompatableLocks =>
+            protected override FileGroupRootLockType[] AllowedLockTypes =>
                 new[]
                 {
                     FileGroupRootLockType.Shared,
@@ -139,7 +139,7 @@ namespace Zen.Trunk.Storage.Locking
             /// <value>
             /// The compatable locks.
             /// </value>
-            public override FileGroupRootLockType[] CompatableLocks =>
+            protected override FileGroupRootLockType[] AllowedLockTypes =>
                 new[]
                 {
                     FileGroupRootLockType.Shared,
@@ -176,7 +176,7 @@ namespace Zen.Trunk.Storage.Locking
             /// <value>
             /// The compatable locks.
             /// </value>
-            public override FileGroupRootLockType[] CompatableLocks =>
+            protected override FileGroupRootLockType[] AllowedLockTypes =>
                 new FileGroupRootLockType[0];
 
             /// <summary>

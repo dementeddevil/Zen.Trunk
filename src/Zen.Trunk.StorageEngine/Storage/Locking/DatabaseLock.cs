@@ -83,7 +83,7 @@ namespace Zen.Trunk.Storage.Locking
             /// <value>
             /// The compatable locks.
             /// </value>
-            public override DatabaseLockType[] CompatableLocks =>
+            protected override DatabaseLockType[] AllowedLockTypes =>
                 new[] 
 		        {
 		            DatabaseLockType.Shared,
@@ -127,7 +127,7 @@ namespace Zen.Trunk.Storage.Locking
             /// <value>
             /// The compatable locks.
             /// </value>
-            public override DatabaseLockType[] CompatableLocks =>
+            protected override DatabaseLockType[] AllowedLockTypes =>
                 new[] 
 		        {
 		            DatabaseLockType.Shared,
@@ -155,7 +155,7 @@ namespace Zen.Trunk.Storage.Locking
             /// <value>
             /// The compatable locks.
             /// </value>
-            public override DatabaseLockType[] CompatableLocks =>
+            protected override DatabaseLockType[] AllowedLockTypes =>
                 new[] 
 		        {
 		            DatabaseLockType.Shared
@@ -192,7 +192,7 @@ namespace Zen.Trunk.Storage.Locking
             /// <value>
             /// The compatable locks.
             /// </value>
-            public override DatabaseLockType[] CompatableLocks =>
+            protected override DatabaseLockType[] AllowedLockTypes =>
                 new DatabaseLockType[0];
 
             /// <summary>

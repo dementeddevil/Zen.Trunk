@@ -181,7 +181,7 @@ namespace Zen.Trunk.IO
             CheckDisposed();
             var byteCount = _reader.ReadUInt16();
             var buffer = _reader.ReadBytes(byteCount);
-            return _currentEncoding.GetString(buffer);
+            return _currentEncoding.GetString(buffer).TrimEnd('\0');
         }
 
         /// <summary>
@@ -194,7 +194,7 @@ namespace Zen.Trunk.IO
             CheckDisposed();
             var byteCount = count * (_currentEncoding.IsSingleByte ? 1 : 2);
             var buffer = _reader.ReadBytes(byteCount);
-            return _currentEncoding.GetString(buffer);
+            return _currentEncoding.GetString(buffer).TrimEnd('\0');
         }
 
         /// <summary>

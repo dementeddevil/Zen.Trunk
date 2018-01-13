@@ -89,7 +89,7 @@ namespace Zen.Trunk.Storage.Locking
             /// <value>
             /// The compatable locks.
             /// </value>
-            public override ObjectLockType[] CompatableLocks =>
+            protected override ObjectLockType[] AllowedLockTypes =>
                 new[]
                 {
                     ObjectLockType.IntentShared,
@@ -120,7 +120,7 @@ namespace Zen.Trunk.Storage.Locking
             /// <value>
             /// The compatable locks.
             /// </value>
-            public override ObjectLockType[] CompatableLocks =>
+            protected override ObjectLockType[] AllowedLockTypes =>
                 new[]
 		        {
 		            ObjectLockType.IntentShared,
@@ -150,7 +150,7 @@ namespace Zen.Trunk.Storage.Locking
             /// <value>
             /// The compatable locks.
             /// </value>
-            public override ObjectLockType[] CompatableLocks => 
+            protected override ObjectLockType[] AllowedLockTypes => 
                 new[]
 		        {
 		            ObjectLockType.IntentShared,
@@ -178,7 +178,7 @@ namespace Zen.Trunk.Storage.Locking
             /// <value>
             /// The compatable locks.
             /// </value>
-            public override ObjectLockType[] CompatableLocks =>
+            protected override ObjectLockType[] AllowedLockTypes =>
                 new[] 
 		        {
 		            ObjectLockType.IntentShared,
@@ -216,7 +216,7 @@ namespace Zen.Trunk.Storage.Locking
             /// <value>
             /// The compatable locks.
             /// </value>
-            public override ObjectLockType[] CompatableLocks =>
+            protected override ObjectLockType[] AllowedLockTypes =>
                 new[]
 		        {
 		            ObjectLockType.IntentShared,
@@ -243,7 +243,7 @@ namespace Zen.Trunk.Storage.Locking
             /// <value>
             /// The compatable locks.
             /// </value>
-            public override ObjectLockType[] CompatableLocks =>
+            protected override ObjectLockType[] AllowedLockTypes =>
                 new ObjectLockType[0];
 
             /// <summary>

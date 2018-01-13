@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
@@ -102,15 +103,6 @@ namespace Zen.Trunk.Storage.Locking
             }
 
             /// <summary>
-            /// Gets an array of lock types that this state is compatable with.
-            /// </summary>
-            /// <value>The compatable locks.</value>
-            public abstract TLockTypeEnum[] CompatableLocks
-            {
-                get;
-            }
-
-            /// <summary>
             /// Gets a boolean value indicating whether an exclusive lock can
             /// be acquired from this state.
             /// </summary>
@@ -119,6 +111,15 @@ namespace Zen.Trunk.Storage.Locking
             /// state; otherwise, <c>false</c>. The default is <c>false</c>.
             /// </value>
             public virtual bool CanEnterExclusiveLock => false;
+
+            /// <summary>
+            /// Gets an array of lock types that this state allows.
+            /// </summary>
+            /// <value>The compatable locks.</value>
+            protected abstract TLockTypeEnum[] AllowedLockTypes
+            {
+                get;
+            }
 
             /// <summary>
             /// Determines whether the specified lock type is equivalent to an
@@ -174,7 +175,7 @@ namespace Zen.Trunk.Storage.Locking
                     /*(owner._activeRequests.Count == 1 &&
 					owner._activeRequests.ContainsKey(request.TransactionId) &&
 					!owner.IsEquivalentLock(owner._activeRequests[request.TransactionId].Lock, request.Lock)) ||*/
-                    (owner._pendingRequests.Count == 0 && IsLockCompatable(request)) ||
+                    (owner._pendingRequests.Count == 0 && CanAcquireLock(request)) ||
                     (owner._activeRequests.Count == 1 && owner._activeRequests.ContainsKey(request.LockOwner) && CanEnterExclusiveLock && IsExclusiveLock(request.Lock)))
                 {
                     return true;
@@ -185,26 +186,21 @@ namespace Zen.Trunk.Storage.Locking
 
             /// <summary>
             /// Determines whether the lock type specified in the request is
-            /// compatable with this lock state.
+            /// allowed by this lock state instance.
             /// </summary>
             /// <param name="request">The request.</param>
             /// <returns>
-            /// <c>true</c> if the specified request is compatable; otherwise,
+            /// <c>true</c> if the specified request is allowed; otherwise,
             /// <c>false</c>.
             /// </returns>
-            public bool IsLockCompatable(AcquireLock request)
+            private bool CanAcquireLock(AcquireLock request)
             {
-                if (CompatableLocks.Length > 0)
+                if (AllowedLockTypes.Length == 0)
                 {
-                    foreach (var lockType in CompatableLocks)
-                    {
-                        if (Convert.ToInt32(lockType) == Convert.ToInt32(request.Lock))
-                        {
-                            return true;
-                        }
-                    }
+                    return false;
                 }
-                return false;
+
+                return AllowedLockTypes.Any(lockType => Convert.ToInt32(lockType) == Convert.ToInt32(request.Lock));
             }
         }
         #endregion
