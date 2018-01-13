@@ -1363,25 +1363,27 @@ namespace Zen.Trunk.Storage.Data
                     async (objectId) =>
                     {
                         // Create database table helper and setup object
-                        var table = GetService<DatabaseTable>();
-                        table.FileGroupId = FileGroupId;
-                        table.ObjectId = objectId;
-                        table.IsNewTable = true;
-
-                        // Create columns
-                        table.BeginColumnUpdate();
-                        foreach (var column in request.Message.Columns)
+                        using (var table = GetService<DatabaseTable>())
                         {
-                            table.AddColumn(column, -1);
+                            table.FileGroupId = FileGroupId;
+                            table.ObjectId = objectId;
+                            table.IsNewTable = true;
+
+                            // Create columns
+                            table.BeginColumnUpdate();
+                            foreach (var column in request.Message.Columns)
+                            {
+                                table.AddColumn(column, -1);
+                            }
+
+                            // Commit table changes
+                            await table
+                                .EndColumnUpdate()
+                                .ConfigureAwait(false);
+
+                            // Return the first logical page id of the schema
+                            return table.SchemaFirstLogicalPageId;
                         }
-
-                        // Commit table changes
-                        await table
-                            .EndColumnUpdate()
-                            .ConfigureAwait(false);
-
-                        // Return the first logical page id of the schema
-                        return table.SchemaFirstLogicalPageId;
                     })).ConfigureAwait(false);
         }
 
@@ -1392,32 +1394,34 @@ namespace Zen.Trunk.Storage.Data
             var firstLogicalPageId = objRef.FirstLogicalPageId;
 
             // Load table schema
-            var table = GetService<DatabaseTable>();
-            table.FileGroupId = FileGroupId;
-            table.ObjectId = request.Message.ObjectId;
-            table.IsNewTable = false;
-            await table.LoadSchemaAsync(firstLogicalPageId).ConfigureAwait(false);
-
-            // Translate member column names into column identifiers
-            var members = new List<Tuple<ushort, TableIndexSortDirection>>();
-            foreach (var member in request.Message.Columns)
+            using (var table = GetService<DatabaseTable>())
             {
-                var columnId = table.Columns
-                    .Where(c => string.Equals(c.Name, member.Key, StringComparison.OrdinalIgnoreCase))
-                    .Select(c => (ushort)c.Id)
-                    .First();
-                members.Add(new Tuple<ushort, TableIndexSortDirection>(
-                    columnId, member.Value));
-            }
+                table.FileGroupId = FileGroupId;
+                table.ObjectId = request.Message.ObjectId;
+                table.IsNewTable = false;
+                await table.LoadSchemaAsync(firstLogicalPageId).ConfigureAwait(false);
 
-            // Create index
-            var createParams =
-                new CreateTableIndexParameters(
-                    request.Message.Name,
-                    FileGroupId,
-                    request.Message.IndexSubType,
-                    members);
-            return await table.CreateIndexAsync(createParams).ConfigureAwait(false);
+                // Translate member column names into column identifiers
+                var members = new List<Tuple<ushort, TableIndexSortDirection>>();
+                foreach (var member in request.Message.Columns)
+                {
+                    var columnId = table.Columns
+                        .Where(c => string.Equals(c.Name, member.Key, StringComparison.OrdinalIgnoreCase))
+                        .Select(c => (ushort)c.Id)
+                        .First();
+                    members.Add(new Tuple<ushort, TableIndexSortDirection>(
+                        columnId, member.Value));
+                }
+
+                // Create index
+                var createParams =
+                    new CreateTableIndexParameters(
+                        request.Message.Name,
+                        FileGroupId,
+                        request.Message.IndexSubType,
+                        members);
+                return await table.CreateIndexAsync(createParams).ConfigureAwait(false);
+            }
         }
 
         private async Task ExpandDeviceCoreAsync(DeviceId deviceId, RootPage rootPage, uint growthPages)

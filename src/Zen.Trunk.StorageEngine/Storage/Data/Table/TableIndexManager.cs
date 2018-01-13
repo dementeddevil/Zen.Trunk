@@ -435,7 +435,7 @@ namespace Zen.Trunk.Storage.Data.Table
             }
 
             // Add index to list of table indices
-            AddIndexInfo(rootTableIndexInfo);
+            //AddIndexInfo(rootTableIndexInfo);
 
             // Post success result
             return indexId;

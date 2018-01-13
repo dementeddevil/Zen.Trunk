@@ -14,7 +14,7 @@ namespace Zen.Trunk.Storage.Data.Table
     /// <summary>
     /// Represents a database table
     /// </summary>
-    public class DatabaseTable
+    public class DatabaseTable : IDisposable
     {
         #region Public Objects
         /// <summary>
@@ -396,6 +396,7 @@ namespace Zen.Trunk.Storage.Data.Table
             _lifetimeScope = parentLifetimeScope.BeginLifetimeScope(
                 builder =>
                 {
+                    builder.RegisterInstance(this);
                     builder.RegisterType<TableIndexManager>()
                         .As<IndexManager>()
                         .As<TableIndexManager>()
@@ -647,20 +648,19 @@ namespace Zen.Trunk.Storage.Data.Table
                 while (logicalId != LogicalPageId.Zero)
                 {
                     // Prepare page object and load
-                    using (var page = await LoadSchemaPageAsync(isFirstSchemaPage, logicalId))
-                    {
-                        // No longer first page so clear now
-                        isFirstSchemaPage = false;
+                    var page = await LoadSchemaPageAsync(isFirstSchemaPage, logicalId);
 
-                        // Add page information to definition
-                        AddTableDefinition(page);
+                    // No longer first page so clear now
+                    isFirstSchemaPage = false;
 
-                        // Setup schema last logical id
-                        SchemaLastLogicalPageId = page.LogicalPageId;
+                    // Add page information to definition
+                    AddTableDefinition(page);
 
-                        // Advance to next logical page
-                        logicalId = page.NextLogicalPageId;
-                    }
+                    // Setup schema last logical id
+                    SchemaLastLogicalPageId = page.LogicalPageId;
+
+                    // Advance to next logical page
+                    logicalId = page.NextLogicalPageId;
                 }
             }
             finally
@@ -1223,6 +1223,14 @@ namespace Zen.Trunk.Storage.Data.Table
                 // In all cases update all other indices
             }
         }
+
+        /// <summary>
+        /// Dispose of this instance
+        /// </summary>
+        public void Dispose()
+        {
+            Dispose(true);
+        }
         #endregion
 
         #region Internal Methods
@@ -1272,6 +1280,22 @@ namespace Zen.Trunk.Storage.Data.Table
                         throw new InvalidOperationException("Multiple clustered indicies found on table.");
                     }
                 }
+            }
+        }
+        #endregion
+
+        #region Protected Methods
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                foreach (var page in _tableDef)
+                {
+                    page.Dispose();
+                }
+
+                _tableDef.Clear();
             }
         }
         #endregion

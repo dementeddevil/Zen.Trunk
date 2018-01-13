@@ -45,7 +45,7 @@ namespace Zen.Trunk.Storage.Locking
 				return removed;
 			}
 
-			public async Task ReleaseLocksAsync(Action nullLockAction)
+			public async Task ReleaseLocksAsync(Action unlockAction)
 			{
 				foreach (var key in Keys.ToArray())
 				{
@@ -55,11 +55,8 @@ namespace Zen.Trunk.Storage.Locking
 						await lockObject.UnlockAsync().ConfigureAwait(false);
 						lockObject.ReleaseRefLock();
 					}
-					else
-					{
-					    nullLockAction?.Invoke();
-					}
 				    Remove(key);
+    			    unlockAction?.Invoke();
 				}
 			}
 		}
