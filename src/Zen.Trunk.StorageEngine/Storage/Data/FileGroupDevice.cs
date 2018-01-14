@@ -1171,17 +1171,13 @@ namespace Zen.Trunk.Storage.Data
             }
             else
             {
-                // TODO: Load root page for each device in our list
-                // TODO: Sort pages into "allocated pages" ascending
-                //	excluding all non-expandable devices
+                // Load root page for each device in our list excluding all non-expandable devices
                 var deviceIds = GetDistributionPageDeviceKeys();
-                var rootPages =
-                    new Dictionary<DeviceId, RootPage>();
+                var rootPages = new Dictionary<DeviceId, RootPage>();
                 foreach (var deviceId in deviceIds)
                 {
                     // Get distribution page device
-                    var pageDevice =
-                        GetDistributionPageDevice(deviceId);
+                    var pageDevice = GetDistributionPageDevice(deviceId);
                     rootPage = await pageDevice
                         .LoadOrCreateRootPageAsync()
                         .ConfigureAwait(false);
@@ -1196,7 +1192,7 @@ namespace Zen.Trunk.Storage.Data
                     }
                 }
 
-                // Walk sorted list of devices
+                // Walk sorted list of devices (sorted on ascending number of allocated pages)
                 var hasExpanded = false;
                 var failedDueToLock = false;
                 var failedDueToFull = false;
@@ -1229,14 +1225,13 @@ namespace Zen.Trunk.Storage.Data
                     {
                         throw new TimeoutException("Failed to expand file-group device due to lock timeout.");
                     }
-                    else if (failedDueToFull)
+
+                    if (failedDueToFull)
                     {
                         throw new FileGroupFullException(DeviceId.Zero, FileGroupId, FileGroupName, "Failed to expand file-group device; device is full.");
                     }
-                    else
-                    {
-                        throw new InvalidOperationException("Failed to expand file-group device due to unknown issue.");
-                    }
+
+                    throw new InvalidOperationException("Failed to expand file-group device due to unknown issue.");
                 }
             }
 

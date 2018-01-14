@@ -14,6 +14,10 @@ namespace Zen.Trunk.Storage.Data.Table
     /// <summary>
     /// Represents a database table
     /// </summary>
+    /// <remarks>
+    /// This object is returned via IoC on calls via the FileGroupDevice
+    /// </remarks>
+    // ReSharper disable once ClassNeverInstantiated.Global
     public class DatabaseTable : IDisposable
     {
         #region Public Objects
@@ -370,8 +374,8 @@ namespace Zen.Trunk.Storage.Data.Table
         private readonly FileGroupDevice _owner;
         private readonly ILifetimeScope _lifetimeScope;
 
+        private readonly List<TableSchemaPage> _schemaPages = new List<TableSchemaPage>();
         private byte _nextColumnId = 1;
-
         private bool _canUpdateSchema;
         private ColumnCollection _updatedColumns;
         private ReadOnlyCollection<TableColumnInfo> _columns;
@@ -381,8 +385,6 @@ namespace Zen.Trunk.Storage.Data.Table
 
         private InclusiveRange _rowSize;
         private ushort _rowsPerPage;
-
-        private readonly List<TableSchemaPage> _tableDef = new List<TableSchemaPage>();
         #endregion
 
         #region Public Constructors
@@ -476,7 +478,7 @@ namespace Zen.Trunk.Storage.Data.Table
         /// <value>
         /// The schema root page.
         /// </value>
-        public TableSchemaRootPage SchemaRootPage => (TableSchemaRootPage)_tableDef[0];
+        public TableSchemaRootPage SchemaRootPage => (TableSchemaRootPage)_schemaPages[0];
 
         /// <summary>
         /// Gets or sets the first logical page identifier for table data.
@@ -648,7 +650,7 @@ namespace Zen.Trunk.Storage.Data.Table
                 while (logicalId != LogicalPageId.Zero)
                 {
                     // Prepare page object and load
-                    var page = await LoadSchemaPageAsync(isFirstSchemaPage, logicalId);
+                    var page = await LoadSchemaPageAsync(isFirstSchemaPage, logicalId).ConfigureAwait(false);
 
                     // No longer first page so clear now
                     isFirstSchemaPage = false;
@@ -690,8 +692,7 @@ namespace Zen.Trunk.Storage.Data.Table
             lm.LockSchemaAsync(ObjectId, SchemaLockType.SchemaModification, LockTimeout);
 
             // Copy columns for performing diff checks
-            _updatedColumns = new ColumnCollection(this);
-            _updatedColumns.SkipInsertChecks = true;
+            _updatedColumns = new ColumnCollection(this) { SkipInsertChecks = true };
             _updatedConstraints = new ConstraintCollection(this);
             try
             {
@@ -773,7 +774,7 @@ namespace Zen.Trunk.Storage.Data.Table
 
             // Disconnect event handler
             ((INotifyPropertyChanged)tableColumn).PropertyChanged -=
-                new PropertyChangedEventHandler(Column_PropertyChanged);
+                Column_PropertyChanged;
         }
 
         /// <summary>
@@ -860,28 +861,43 @@ namespace Zen.Trunk.Storage.Data.Table
             }
 
             _canUpdateSchema = false;
-            //var lm = LockingManager;
             if (IsNewTable)
             {
                 await CreateTableDefinition().ConfigureAwait(false);
             }
             else if (!IsLoading)
             {
-                if (_columns != null)
+                // Check whether columns or constraints have changed (probably)
+                if (_columns != null && _updatedColumns != null)
                 {
-                    // Check whether columns or constraints have changed (probably)
                     // Check whether we need to rewrite table data pages (probably)
                     var needToRewriteTableData = false;
-                    if ((_columns == null && _updatedColumns != null) ||
-                        (_columns.Count != _updatedColumns.Count))
+                    if (_columns.Count != _updatedColumns.Count)
                     {
                         needToRewriteTableData = true;
                     }
-                    if (_columns != null && _columns.Count == _updatedColumns.Count)
+                    else
                     {
                         // Look for columns that are new or removed
                         // TODO: Look for column changes that would require rewrite of table
+                        for (int index = 0; !needToRewriteTableData && index < _columns.Count; ++index)
+                        {
+                            var oldColumn = _columns[index];
+                            var newColumn = _updatedColumns[index];
 
+                            // Rewrite column if any of the following are true:
+                            // Column identifiers have changed
+                            // Data types have changed
+                            // Column length have changed
+                            // IsVariableLength property have changed
+                            if (oldColumn.Id != newColumn.Id ||
+                                oldColumn.DataType != newColumn.DataType ||
+                                oldColumn.Length != newColumn.Length ||
+                                oldColumn.IsVariableLength != newColumn.IsVariableLength)
+                            {
+                                needToRewriteTableData = true;
+                            }
+                        }
                     }
 
                     // Write new table schema definition (since this may cause new
@@ -889,7 +905,7 @@ namespace Zen.Trunk.Storage.Data.Table
                     if (needToRewriteTableData)
                     {
                         // Get exclusive lock on table (we should already have this)
-                        await _tableDef[0].SetObjectLockAsync(ObjectLockType.Exclusive).ConfigureAwait(false);
+                        await _schemaPages[0].SetObjectLockAsync(ObjectLockType.Exclusive).ConfigureAwait(false);
 
                         // Rewrite table data based on new column layout
                         var request =
@@ -931,7 +947,7 @@ namespace Zen.Trunk.Storage.Data.Table
                                 }
 
                                 // Current root page is full so create a new one
-                                _tableDef.Add(rootPage);
+                                _schemaPages.Add(rootPage);
                                 prevRootPage = rootPage;
                                 rootPage = null;
                                 needRetry = true;
@@ -966,7 +982,7 @@ namespace Zen.Trunk.Storage.Data.Table
                                 }
 
                                 // Current root page is full so create a new one
-                                _tableDef.Add(rootPage);
+                                _schemaPages.Add(rootPage);
                                 prevRootPage = rootPage;
                                 rootPage = null;
                                 needRetry = true;
@@ -1006,9 +1022,9 @@ namespace Zen.Trunk.Storage.Data.Table
                 _rowSize.Max += column.MaxDataSize;
             }
             TableSchemaPage temp;
-            if (_tableDef.Count > 0)
+            if (_schemaPages.Count > 0)
             {
-                temp = _tableDef[0];
+                temp = _schemaPages[0];
             }
             else
             {
@@ -1189,7 +1205,7 @@ namespace Zen.Trunk.Storage.Data.Table
                 DataLastLogicalPageId == LogicalPageId.Zero)
             {
                 // We need a schema modification lock at this point
-                var rootPage = (TableSchemaRootPage)_tableDef[0];
+                var rootPage = (TableSchemaRootPage)_schemaPages[0];
                 await rootPage.SetSchemaLockAsync(SchemaLockType.SchemaModification).ConfigureAwait(false);
 
                 // Create first data page
@@ -1237,10 +1253,10 @@ namespace Zen.Trunk.Storage.Data.Table
         internal void AddTableDefinition(TableSchemaPage page)
         {
             // Only if we don't already have it...
-            if (!_tableDef.Contains(page))
+            if (!_schemaPages.Contains(page))
             {
                 // Add definition to list
-                _tableDef.Add(page);
+                _schemaPages.Add(page);
 
                 // Process table columns
                 _updatedColumns.SkipInsertChecks = true;
@@ -1290,12 +1306,12 @@ namespace Zen.Trunk.Storage.Data.Table
         {
             if (disposing)
             {
-                foreach (var page in _tableDef)
+                foreach (var page in _schemaPages)
                 {
                     page.Dispose();
                 }
 
-                _tableDef.Clear();
+                _schemaPages.Clear();
             }
         }
         #endregion
@@ -1326,7 +1342,7 @@ namespace Zen.Trunk.Storage.Data.Table
                     // Create new page and link with any current page
                     currentPage = await InitSchemaPageAndLinkAsync(currentPage)
                         .ConfigureAwait(false);
-                    _tableDef.Add(currentPage);
+                    _schemaPages.Add(currentPage);
                     needNewPage = false;
 
                     // Update first logical page id for schema as needed

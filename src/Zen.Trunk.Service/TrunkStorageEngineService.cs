@@ -1,22 +1,16 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 using Autofac;
-using Serilog;
+using Serilog.Context;
 using Serilog.Core;
-using Serilog.Events;
-using Serilog.Formatting.Json;
-using Serilog.Sinks.RollingFile;
+using Serilog.Core.Enrichers;
 using SuperSocket.SocketBase;
 using SuperSocket.SocketBase.Config;
+using Topshelf.Runtime;
 using Zen.Trunk.Network;
 using Zen.Trunk.Storage;
 using Zen.Trunk.Storage.Configuration;
-using Zen.Trunk.Storage.Data;
-using Zen.Trunk.Storage.Locking;
-using Zen.Trunk.Storage.Log;
 using Zen.Trunk.VirtualMemory;
 
 namespace Zen.Trunk.Service
@@ -25,68 +19,48 @@ namespace Zen.Trunk.Service
     /// <c>TrunkStorageEngineService</c> implements the interface between
     /// our service and the Windows Service Control Manager (SCM)
     /// </summary>
-    /// <seealso cref="InstanceServiceBase" />
-    public partial class TrunkStorageEngineService : InstanceServiceBase
+    public class TrunkStorageEngineService
     {
+        private readonly HostSettings _hostSettings;
+        private ILifetimeScope _globalLifetmeScope;
+        private ILifetimeScope _serviceLifetimeScope;
+        private IDisposable _serviceNameEnricher;
+
         private Logger _globalLogger;
-        private ILifetimeScope _globaLifetimeScope;
+
         private string _masterDataPathname;
         private string _masterLogPathname;
         private string _errorLogPathname;
-        
+
         /// <summary>
         /// Initializes a new instance of the <see cref="TrunkStorageEngineService"/> class.
         /// </summary>
-        public TrunkStorageEngineService()
+        public TrunkStorageEngineService(ILifetimeScope container, HostSettings hostSettings, DatabasePathInformation pathInformation)
         {
-            InitializeComponent();
-        }
+            _hostSettings = hostSettings;
+            _globalLifetmeScope = container;
+            _masterDataPathname = pathInformation.DataPathName;
+            _masterLogPathname = pathInformation.LogPathName;
+            _errorLogPathname = pathInformation.ErrorPathName;
 
-        /// <summary>
-        /// Gets the command line arguments.
-        /// </summary>
-        /// <value>
-        /// The command line arguments.
-        /// </value>
-        protected override IEnumerable<CommandLineArgument> CommandLineArguments
-        {
-            get
-            {
-                // TODO: Add our special command line arguments to support
-                //  alternate startup options (so we can init DB from command line
-                //  without starting the service)
-                return base.CommandLineArguments.Concat(
-                    new[] 
+            _serviceLifetimeScope = _serviceLifetimeScope
+                .BeginLifetimeScope(
+                    builder =>
                     {
-                        new CommandLineArgument("D", additionalArgumentCount: 1),
-                        new CommandLineArgument("L", additionalArgumentCount: 1),
-                        new CommandLineArgument("E", additionalArgumentCount: 1)
+                        // Create and register configuration manager bound to this service
+                        var configurationManager = new TrunkConfigurationManager(
+                            _hostSettings.ServiceName, false);
+                        builder.RegisterInstance(configurationManager)
+                            .As<ITrunkConfigurationManager>();
+
+                        // Register virtual memory and buffer device support
+                        var reservationInMegaBytes = configurationManager
+                            .Root[ConfigurationNames.VirtualMemory.Section]
+                            .GetValue(ConfigurationNames.VirtualMemory.ReservationInMegaBytes, 1024);
+                        builder
+                            .WithVirtualBufferFactory(8192, reservationInMegaBytes)
+                            .WithBufferDeviceFactory();
                     });
-            }
-        }
-
-        /// <summary>
-        /// Processes the command.
-        /// </summary>
-        /// <param name="command">The command.</param>
-        /// <param name="value">The value.</param>
-        /// <param name="additionalParameters">The additional parameters.</param>
-        protected override void ProcessCommand(CommandLineArgument command, string value, string[] additionalParameters)
-        {
-            base.ProcessCommand(command, value, additionalParameters);
-
-            if (command.ShortName == "D")
-            {
-                _masterDataPathname = additionalParameters[0];
-            }
-            else if (command.ShortName == "L")
-            {
-                _masterLogPathname = additionalParameters[0];
-            }
-            else if (command.ShortName == "E")
-            {
-                _errorLogPathname = additionalParameters[0];
-            }
         }
 
         /// <summary>
@@ -95,58 +69,40 @@ namespace Zen.Trunk.Service
         /// service that starts automatically).
         /// Specifies actions to take when the service starts.
         /// </summary>
-        /// <param name="args">Data passed by the start command.</param>
-        protected override void OnStart(string[] args)
+        public void Start()
         {
+            _serviceNameEnricher = LogContext
+                .Push(new PropertyEnricher("ServiceName", _hostSettings.ServiceName));
+
             // Initialise our custom configuration system (registry based)
-            var config = new TrunkConfigurationManager(ServiceName, false);
+            var config = _serviceLifetimeScope.Resolve<ITrunkConfigurationManager>();
             var loggingSection = config.Root[ConfigurationNames.Logging.Section];
 
-            // Determine locations for our base files
-            if(string.IsNullOrEmpty(_masterDataPathname))
-            {
-                _masterDataPathname = config.Root.GetInstanceValue(
-                    ConfigurationNames.MasterDataPathname, string.Empty);
-            }
-            if (string.IsNullOrEmpty(_masterLogPathname))
-            {
-                _masterLogPathname = config.Root.GetInstanceValue(
-                    ConfigurationNames.MasterLogPathname, string.Empty);
-            }
-            if (string.IsNullOrEmpty(_errorLogPathname))
-            {
-                _errorLogPathname = config.Root.GetInstanceValue(
-                    ConfigurationNames.ErrorLogPathname, string.Empty);
-            }
+            // Allow instance specific settings to override logging switches
+            var globalLoggingSwitch = _serviceLifetimeScope
+                .ResolveNamed<LoggingLevelSwitch>("GlobalLoggingSwitch");
+            globalLoggingSwitch.MinimumLevel = loggingSection.GetValue(
+                ConfigurationNames.Logging.GlobalLoggingSwitch, globalLoggingSwitch.MinimumLevel);
 
-            // Initialise logging framework
-            var errorLogFolder = Path.GetDirectoryName(_errorLogPathname);
-            var errorFilename = Path.GetFileNameWithoutExtension(_errorLogPathname);
-            var errorExtension = Path.GetExtension(_errorLogPathname);
-            var errorLogPattern = $"{errorLogFolder}{errorFilename}-" + "{Date}" + errorExtension;
-            var rollingFileSink = new RollingFileSink(errorLogPattern, new JsonFormatter(), null, null);
-            var globalLoggingSwitch = new LoggingLevelSwitch(loggingSection.GetValue(
-                ConfigurationNames.Logging.GlobalLoggingSwitch, LogEventLevel.Warning));
-            var virtualMemoryLoggingSwitch = new LoggingLevelSwitch(loggingSection.GetValue(
-                ConfigurationNames.Logging.VirtualMemoryLoggingSwitch, LogEventLevel.Information));
-            var dataMemoryLoggingSwitch = new LoggingLevelSwitch(loggingSection.GetValue(
-                ConfigurationNames.Logging.DataLoggingSwitch, LogEventLevel.Information));
-            var lockingLoggingSwitch = new LoggingLevelSwitch(loggingSection.GetValue(
-                ConfigurationNames.Logging.LockingLoggingSwitch, LogEventLevel.Error));
-            var logWriterLoggingSwitch = new LoggingLevelSwitch(loggingSection.GetValue(
-                ConfigurationNames.Logging.LogWriterLoggingSwitch, LogEventLevel.Warning));
-            var loggerConfig = new LoggerConfiguration()
-                .WriteTo.Sink(rollingFileSink)
-                .Enrich.WithProperty("ServiceName", ServiceName)
-                .MinimumLevel.ControlledBy(globalLoggingSwitch)
-                .MinimumLevel.Override(typeof(VirtualPageId).Namespace, virtualMemoryLoggingSwitch)
-                .MinimumLevel.Override(typeof(DataPage).Namespace, dataMemoryLoggingSwitch)
-                .MinimumLevel.Override(typeof(IGlobalLockManager).Namespace, lockingLoggingSwitch)
-                .MinimumLevel.Override(typeof(LogPage).Namespace, logWriterLoggingSwitch);
-            _globalLogger = loggerConfig.CreateLogger();
+            var virtualMemoryLoggingSwitch = _serviceLifetimeScope
+                .ResolveNamed<LoggingLevelSwitch>("VirtualMemoryLoggingSwitch");
+            virtualMemoryLoggingSwitch.MinimumLevel = loggingSection.GetValue(
+                ConfigurationNames.Logging.GlobalLoggingSwitch, virtualMemoryLoggingSwitch.MinimumLevel);
 
-            // Initialise IoC container
-            InitializeAutofacContainer(config);
+            var dataMemoryLoggingSwitch = _serviceLifetimeScope
+                .ResolveNamed<LoggingLevelSwitch>("DataLoggingSwitch");
+            dataMemoryLoggingSwitch.MinimumLevel = loggingSection.GetValue(
+                ConfigurationNames.Logging.GlobalLoggingSwitch, dataMemoryLoggingSwitch.MinimumLevel);
+
+            var lockingLoggingSwitch = _serviceLifetimeScope
+                .ResolveNamed<LoggingLevelSwitch>("LockingLoggingSwitch");
+            lockingLoggingSwitch.MinimumLevel = loggingSection.GetValue(
+                ConfigurationNames.Logging.GlobalLoggingSwitch, lockingLoggingSwitch.MinimumLevel);
+
+            var logWriterLoggingSwitch = _serviceLifetimeScope
+                .ResolveNamed<LoggingLevelSwitch>("LogWriterLoggingSwitch");
+            logWriterLoggingSwitch.MinimumLevel = loggingSection.GetValue(
+                ConfigurationNames.Logging.GlobalLoggingSwitch, logWriterLoggingSwitch.MinimumLevel);
 
             // Initiate deferred service startup
             Task.Run(DeferredServiceStartupAsync);
@@ -157,7 +113,7 @@ namespace Zen.Trunk.Service
         /// Control Manager (SCM).
         /// Specifies actions to take when a service stops running.
         /// </summary>
-        protected override void OnStop()
+        public void Stop()
         {
             // TODO: Notify local "browser" service that this instance is offline
 
@@ -175,8 +131,12 @@ namespace Zen.Trunk.Service
             //  the log writer/checkpoint writer processes have completed.
 
             // Teardown IoC
-            _globaLifetimeScope.Dispose();
-            _globaLifetimeScope = null;
+            _serviceLifetimeScope.Dispose();
+            _serviceLifetimeScope = null;
+            _globalLifetmeScope.Dispose();
+            _globalLifetmeScope = null;
+            _serviceNameEnricher.Dispose();
+            _serviceNameEnricher = null;
         }
 
         private async Task DeferredServiceStartupAsync()
@@ -190,12 +150,12 @@ namespace Zen.Trunk.Service
         private async Task MountAndOpenSystemDatabasesAsync()
         {
             // Create temp DB
-            var temporaryDatabase = _globaLifetimeScope.Resolve<TemporaryDatabaseDevice>();
+            var temporaryDatabase = _serviceLifetimeScope.Resolve<TemporaryDatabaseDevice>();
             var tempDbFolder = Path.GetDirectoryName(_masterDataPathname);
             //await temporaryDatabase.
 
             // Mount master DB
-            var masterDatabase = _globaLifetimeScope.Resolve<MasterDatabaseDevice>();
+            var masterDatabase = _serviceLifetimeScope.Resolve<MasterDatabaseDevice>();
             var attachParams = new AttachDatabaseParameters("MASTER");
             attachParams.AddDataFile(
                 "PRIMARY",
@@ -247,7 +207,7 @@ namespace Zen.Trunk.Service
                 };
 
             // Create and setup trunk socket app server
-            var server = _globaLifetimeScope.Resolve<TrunkSocketAppServer>();
+            var server = _serviceLifetimeScope.Resolve<TrunkSocketAppServer>();
             server.Setup(
                 rootConfig, serverConfig,
                 logFactory: new SuperSocketLogFactory());
@@ -259,40 +219,8 @@ namespace Zen.Trunk.Service
         private void StopNetworkProtocolServer()
         {
             // Shutdown the server
-            var server = _globaLifetimeScope.Resolve<TrunkSocketAppServer>();
+            var server = _serviceLifetimeScope.Resolve<TrunkSocketAppServer>();
             server.Stop();
-        }
-
-        private void InitializeAutofacContainer(ITrunkConfigurationManager configurationManager)
-        {
-            var builder = new ContainerBuilder();
-
-            // Register configuration manager instance
-            builder.RegisterInstance(configurationManager).As<ITrunkConfigurationManager>();
-
-            // Register virtual memory and buffer device support
-            var reservationInMegaBytes = configurationManager
-                .Root[ConfigurationNames.VirtualMemory.Section]
-                .GetValue(ConfigurationNames.VirtualMemory.ReservationInMegaBytes, 1024);
-            builder
-                .WithVirtualBufferFactory(8192, reservationInMegaBytes)
-                .WithBufferDeviceFactory();
-
-            // Register master database device
-            builder.RegisterType<MasterDatabaseDevice>()
-                .SingleInstance()
-                .AsSelf();
-
-            // Register temporary database device
-            builder.RegisterType<TemporaryDatabaseDevice>()
-                .SingleInstance()
-                .AsSelf();
-
-            // Register network support
-            builder.RegisterModule<AutofacNetworkModule>();
-
-            // Finally build the container
-            _globaLifetimeScope = builder.Build();
         }
     }
 }
