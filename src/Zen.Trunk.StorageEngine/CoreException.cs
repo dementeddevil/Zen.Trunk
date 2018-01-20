@@ -2,7 +2,7 @@ using System;
 using System.Runtime.Serialization;
 using System.Security.Permissions;
 
-namespace Zen.Trunk
+namespace Zen.Trunk.Storage
 {
 	/// <summary>
 	/// The <b>CoreException</b> class is the base class for all exception
