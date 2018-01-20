@@ -230,8 +230,9 @@ namespace Zen.Trunk.IO
         {
             CheckNotDisposed();
 
-            if (_memoryFlag == VirtualStreamMemoryFlag.AutoOverflowToDisk && _memoryBackingStore != null
-                && value > _thresholdSize)
+            if (_memoryFlag == VirtualStreamMemoryFlag.AutoOverflowToDisk &&
+                _memoryBackingStore != null &&
+                value > _thresholdSize)
             {
                 UpgradeStreamIfNeeded(true);
             }

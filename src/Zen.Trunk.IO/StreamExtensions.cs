@@ -90,19 +90,20 @@ namespace Zen.Trunk.IO
         /// when the stream is disposed.
         /// </summary>
         /// <param name="stream">The stream.</param>
-        /// <param name="action">The disposal action.</param>
+        /// <param name="actionWhenDisposed">The disposal action.</param>
         /// <returns></returns>
-        public static Stream AsStreamWithDisposeHandler(this Stream stream, Action action)
+        public static Stream AsStreamWithDisposeHandler(this Stream stream, Action actionWhenDisposed)
         {
             var result = new DelegatingStream(stream);
             EventHandler disposeHandler = null;
-            disposeHandler = (sender, args) =>
+            disposeHandler =
+                (sender, args) =>
                 {
                     // Disconnect event handler first
                     ((DelegatingStream)sender).Disposed -= disposeHandler;
 
                     // Execute the action last
-                    action();
+                    actionWhenDisposed();
                 };
             result.Disposed += disposeHandler;
             return result;

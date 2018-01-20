@@ -25,29 +25,8 @@ namespace Zen.Trunk.IO
         /// class.
         /// </summary>
         /// <param name="source">The source.</param>
-        public ReadOnlySeekableStream(Stream source)
-            : this(source, 4096)
-        {
-        }
-
-        /// <summary>
-        /// Initialises a new instance of the <see cref="ReadOnlySeekableStream" />
-        /// class.
-        /// </summary>
-        /// <param name="source">The source.</param>
-        /// <param name="buffer">The buffer.</param>
-        public ReadOnlySeekableStream(Stream source, Stream buffer)
-            : this(source, buffer, 4096)
-        {
-        }
-
-        /// <summary>
-        /// Initialises a new instance of the <see cref="ReadOnlySeekableStream" />
-        /// class.
-        /// </summary>
-        /// <param name="source">The source.</param>
         /// <param name="bufferSize">Size of the buffer.</param>
-        public ReadOnlySeekableStream(Stream source, int bufferSize)
+        public ReadOnlySeekableStream(Stream source, int bufferSize = 4096)
         {
             _source = source;
             _persist =
@@ -74,7 +53,7 @@ namespace Zen.Trunk.IO
         /// or
         /// buffer
         /// </exception>
-        public ReadOnlySeekableStream(Stream source, Stream buffer, int bufferSize)
+        public ReadOnlySeekableStream(Stream source, Stream buffer, int bufferSize = 4096)
         {
             if (source == null)
             {
@@ -255,7 +234,6 @@ namespace Zen.Trunk.IO
                     if (offset > 0L || Math.Abs(offset) <= Position)
                     {
                         offset += Position;
-                        origin = SeekOrigin.Begin;
                     }
                     else
                     {
@@ -263,10 +241,9 @@ namespace Zen.Trunk.IO
                     }
                     break;
                 case SeekOrigin.End:
-                    if (offset > 0 || (Math.Abs(offset) <= Length && offset <= 0L))
+                    if (offset > 0L || (Math.Abs(offset) <= Length && offset <= 0L))
                     {
                         offset += Length;
-                        origin = SeekOrigin.Begin;
                     }
                     break;
             }
@@ -295,7 +272,7 @@ namespace Zen.Trunk.IO
         /// When overridden in a derived class, sets the length of the current stream.
         /// </summary>
         /// <param name="value">The desired length of the current stream in bytes.</param>
-        /// <exception cref="System.NotSupportedException"></exception>
+        /// <exception cref="T:System.NotSupportedException"></exception>
         public override void SetLength(long value)
         {
             throw new NotSupportedException();
