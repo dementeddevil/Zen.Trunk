@@ -48,7 +48,7 @@ namespace Zen.Trunk.Storage.Query
 
             // Build query batch pipeline from the AST
             // TODO: Determine how to detect and return semantic errors
-            var visitor = new SqlBatchOperationBuilder(_masterDevice);
+            var visitor = new SqlBatchOperationBuilder();
             var expression = batchContext.Accept(visitor);
 
             // Create lambda expression capable of executing the expression tree

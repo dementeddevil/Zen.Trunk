@@ -45,7 +45,7 @@ namespace Zen.Trunk.Storage.Query
         /// <value>
         /// The current transaction isolation level.
         /// </value>
-        public IsolationLevel CurrentTransactionIsolationLevel { get; set; } = IsolationLevel.ReadCommitted;
+        public IsolationLevel IsolationLevel { get; set; } = IsolationLevel.ReadCommitted;
 
         /// <summary>
         /// Sets the active database.

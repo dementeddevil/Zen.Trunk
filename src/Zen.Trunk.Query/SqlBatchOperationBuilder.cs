@@ -4,6 +4,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 using System.Transactions;
+using Antlr4.Runtime;
 using Antlr4.Runtime.Misc;
 using Zen.Trunk.Storage.Data;
 
@@ -11,7 +12,7 @@ namespace Zen.Trunk.Storage.Query
 {
     /// <summary>
     /// <c>SqlBatchOperationBuilder</c> builds an <see cref="Expression"/> that
-    /// represents the TSQL passed to it.
+    /// represents the Trunk-SQL passed to it.
     /// </summary>
     /// <remarks>
     /// The purpose of this class is to build a list of batches based on
@@ -22,26 +23,14 @@ namespace Zen.Trunk.Storage.Query
     /// </remarks>
     public class SqlBatchOperationBuilder : TrunkSqlBaseVisitor<Expression>
     {
-        private readonly MasterDatabaseDevice _masterDatabase;
-        private DatabaseDevice _activeDatabase;
+        private SymbolDocumentInfo _documentInfo = Expression.SymbolDocument("blank.sql");
 
-        private IsolationLevel _currentIsolationLevel;
         private int _transactionDepth;
         private readonly List<Expression<Func<QueryExecutionContext, Task>>> _operations =
             new List<Expression<Func<QueryExecutionContext, Task>>>();
 
         private readonly ParameterExpression _executionContextParameterExpression =
             Expression.Parameter(typeof(QueryExecutionContext), "executionContext");
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="SqlBatchOperationBuilder"/> class.
-        /// </summary>
-        /// <param name="masterDatabase">The master database.</param>
-        public SqlBatchOperationBuilder(MasterDatabaseDevice masterDatabase)
-        {
-            _masterDatabase = masterDatabase;
-            _activeDatabase = masterDatabase;
-        }
 
         /// <summary>
         /// Gets the default value returned by visitor methods.
@@ -74,10 +63,11 @@ namespace Zen.Trunk.Storage.Query
         /// <return>The visitor result.</return>
         public override Expression VisitUse_statement(TrunkSqlParser.Use_statementContext context)
         {
+            var sourceLine = context.Start.Line;
+
             // TODO: We cannot be inside an active transaction and we must obtain a shared lock
             //  on the desired database - looks like setting the active database needs a method
             //  on the MasterDatabaseDevice object.
-
             var dbNameExpr = VisitId(context.database);
             var dbDeviceExpr = Expression.Variable(typeof(DatabaseDevice), "dbDevice");
             return Expression.Block(
@@ -85,16 +75,15 @@ namespace Zen.Trunk.Storage.Query
                 Expression.Assign(
                     dbDeviceExpr,
                     Expression.Call(
-                        Expression.Property(_executionContextParameterExpression, typeof(MasterDatabaseDevice),
-                            "MasterDatabase"),
+                        GetQueryExecutionContextMasterDatabaseExpression(),
                         "GetDatabaseDevice",
                         new[] { typeof(string) },
                         dbNameExpr)),
                 Expression.IfThen(
                     Expression.Equal(dbDeviceExpr, Expression.Constant(null)),
-                    Expression.Throw(Expression.Constant(new Exception("Unknown database.")))),
+                    Expression.Throw(Expression.Constant(new Exception($"Unknown database at line {sourceLine}.")))),
                 Expression.Assign(
-                    Expression.Property(_executionContextParameterExpression, "ActiveDatabase"),
+                    GetQueryExecutionContextActiveDatabaseExpression(),
                     dbDeviceExpr));
         }
 
@@ -111,7 +100,10 @@ namespace Zen.Trunk.Storage.Query
         /// <return>The visitor result.</return>
         public override Expression VisitBegin_transaction_statement([NotNull] TrunkSqlParser.Begin_transaction_statementContext context)
         {
-            return base.VisitBegin_transaction_statement(context);
+            return Expression.Call(
+                GetQueryExecutionContextActiveDatabaseExpression(),
+                typeof(DatabaseDevice).GetMethod("BeginTransaction"),
+                GetQueryExecutionContextIsolationLevelExpression());
         }
 
         /// <summary>
@@ -143,7 +135,7 @@ namespace Zen.Trunk.Storage.Query
         /// <return>The visitor result.</return>
         public override Expression VisitSet_transaction_isolation_level_statement([NotNull] TrunkSqlParser.Set_transaction_isolation_level_statementContext context)
         {
-            IsolationLevel level = IsolationLevel.ReadCommitted;
+            var level = IsolationLevel.ReadCommitted;
             if (context.GetChild(4) == context.SNAPSHOT())
             {
                 level = IsolationLevel.Snapshot;
@@ -152,27 +144,28 @@ namespace Zen.Trunk.Storage.Query
             {
                 level = IsolationLevel.Serializable;
             }
-            if (context.ChildCount > 5)
+            else if (context.ChildCount > 5)
             {
                 if (context.GetChild(4) == context.READ() &&
                     context.GetChild(5) == context.UNCOMMITTED())
                 {
                     level = IsolationLevel.ReadUncommitted;
                 }
-                if (context.GetChild(4) == context.READ() &&
+                else if (context.GetChild(4) == context.READ() &&
                     context.GetChild(5) == context.COMMITTED())
                 {
                     level = IsolationLevel.ReadCommitted;
                 }
-                if (context.GetChild(4) == context.REPEATABLE() &&
+                else if (context.GetChild(4) == context.REPEATABLE() &&
                     context.GetChild(5) == context.READ())
                 {
                     level = IsolationLevel.RepeatableRead;
                 }
             }
 
-            _currentIsolationLevel = level;
-            return base.VisitSet_transaction_isolation_level_statement(context);
+            return Expression.Assign(
+                GetQueryExecutionContextIsolationLevelExpression(),
+                Expression.Constant(level));
         }
 
         /// <summary>
@@ -325,8 +318,7 @@ namespace Zen.Trunk.Storage.Query
         /// <param name="childToAdd">The child to add.</param>
         /// <returns></returns>
         protected override Expression AggregateResult(
-            Expression aggregate,
-            Expression childToAdd)
+            Expression aggregate, Expression childToAdd)
         {
             if (aggregate == null)
             {
@@ -354,6 +346,30 @@ namespace Zen.Trunk.Storage.Query
             return Expression.Call(
                 _executionContextParameterExpression,
                 typeof(QueryExecutionContext).GetMethod("ThrowIfCancellationRequested"));
+        }
+
+        private MemberExpression GetQueryExecutionContextMasterDatabaseExpression()
+        {
+            return Expression.Property(
+                _executionContextParameterExpression,
+                typeof(MasterDatabaseDevice),
+                "MasterDatabase");
+        }
+
+        private MemberExpression GetQueryExecutionContextActiveDatabaseExpression()
+        {
+            return Expression.Property(
+                _executionContextParameterExpression,
+                typeof(DatabaseDevice),
+                "ActiveDatabase");
+        }
+
+        private MemberExpression GetQueryExecutionContextIsolationLevelExpression()
+        {
+            return Expression.Property(
+                _executionContextParameterExpression,
+                typeof(IsolationLevel),
+                "IsolationLevel");
         }
 
         private async Task ExecuteCompositeExpressionAsync(
@@ -480,6 +496,16 @@ namespace Zen.Trunk.Storage.Query
             }
 
             return text;
+        }
+
+        private DebugInfoExpression GetDebugInfoFromContext(ParserRuleContext context)
+        {
+            return Expression.DebugInfo(
+                _documentInfo,
+                context.Start.Line,
+                context.Start.Column,
+                context.Stop.Line,
+                context.Stop.Column);
         }
     }
 }

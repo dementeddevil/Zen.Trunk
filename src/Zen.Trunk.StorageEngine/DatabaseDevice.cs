@@ -642,6 +642,11 @@ namespace Zen.Trunk.Storage
                 return UnlockDatabaseAsync();
             }
         }
+
+        public void BeginTransaction(IsolationLevel isolationLevel)
+        {
+            TrunkTransactionContext.BeginTransaction(LifetimeScope, isolationLevel, TimeSpan.FromSeconds(30));
+        }
         #endregion
 
         #region Protected Methods
