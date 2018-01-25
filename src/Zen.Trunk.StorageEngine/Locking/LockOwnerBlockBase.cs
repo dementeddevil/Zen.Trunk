@@ -278,13 +278,13 @@ namespace Zen.Trunk.Storage.Locking
 
 			if (_ownerLockCount == 0)
 			{
-                Logger.Debug("Unlocking lock owner block");
+                Logger.Debug($"{GetType().Name}: Unlocking lock owner block");
 				await OwnerLock.UnlockAsync().ConfigureAwait(false);
 			}
 			else
 			{
 			    Logger.Warn(
-                    $"Unlocking lock owner block has been deferred {_ownerLockCount} outstanding locks.");
+                    $"{GetType().Name}: Unlocking lock owner block has been deferred {_ownerLockCount} outstanding locks.");
             }
 		}
 
@@ -392,7 +392,7 @@ namespace Zen.Trunk.Storage.Locking
 				{
 				    if (Logger.IsDebugEnabled())
 				    {
-				        Logger.Debug("Attempting lock owner block SHARED lock escalation");
+				        Logger.Debug($"{GetType().Name}: Attempting lock owner block SHARED lock escalation");
 				    }
 
 					var hasEscalatedLock = false;
@@ -405,7 +405,7 @@ namespace Zen.Trunk.Storage.Locking
 					catch
 					{
                         // Ignore error - we will attempt escalation on next lock
-                        Logger.Debug("Lock owner block SHARED lock escalation failed");
+                        Logger.Debug($"{GetType().Name}: Lock owner block SHARED lock escalation failed");
                     }
 
                     if (hasEscalatedLock)
@@ -546,7 +546,7 @@ namespace Zen.Trunk.Storage.Locking
 			{
                 if (Logger.IsDebugEnabled())
                 {
-                    Logger.Debug("Attempting lock owner block EXCLUSIVE lock escalation");
+                    Logger.Debug($"{GetType().Name}: Attempting lock owner block EXCLUSIVE lock escalation");
                 }
 
 				var hasEscalated = false;
@@ -559,7 +559,7 @@ namespace Zen.Trunk.Storage.Locking
 				catch
 				{
                     // Ignore error - we will attempt escalation on next lock
-                    Logger.Debug("Lock owner block EXCLUSIVE lock escalation failed");
+                    Logger.Debug($"{GetType().Name}: Lock owner block EXCLUSIVE lock escalation failed");
                 }
 
                 if (hasEscalated)

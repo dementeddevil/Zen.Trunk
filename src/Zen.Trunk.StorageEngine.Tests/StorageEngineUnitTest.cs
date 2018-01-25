@@ -322,9 +322,11 @@ namespace Zen.Trunk.Storage
                                 2);
                         await dbDevice.AddLogDeviceAsync(addLogDevice).ConfigureAwait(true);
 
+                        Trace.WriteLine("*** Database open ***");
                         await dbDevice.OpenAsync(true).ConfigureAwait(true);
 
                         // Create table schemas
+                        Trace.WriteLine("*** Create table ***");
                         var objectId = ObjectId.Zero;
                         dbDevice.BeginTransaction();
                         try
@@ -366,6 +368,7 @@ namespace Zen.Trunk.Storage
                         }
 
                         // Create table indices
+                        Trace.WriteLine("*** Create indices ***");
                         dbDevice.BeginTransaction();
                         try
                         {

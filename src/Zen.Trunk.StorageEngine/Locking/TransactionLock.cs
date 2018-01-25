@@ -25,7 +25,7 @@ namespace Zen.Trunk.Storage.Locking
         protected class LockRequestBase : TaskCompletionSource<bool>
         {
             #region Internal Constructors
-            internal LockRequestBase(TLockTypeEnum lockType, LockOwnerIdent lockOwner)
+            internal LockRequestBase(TLockTypeEnum lockType, LockOwnerIdentity lockOwner)
             {
                 Lock = lockType;
                 LockOwner = lockOwner;
@@ -35,7 +35,7 @@ namespace Zen.Trunk.Storage.Locking
             #region Internal Properties
             internal TLockTypeEnum Lock { get; set; }
 
-            internal LockOwnerIdent LockOwner { get; }
+            internal LockOwnerIdentity LockOwner { get; }
             #endregion
         }
 
@@ -47,7 +47,7 @@ namespace Zen.Trunk.Storage.Locking
         protected class AcquireLock : LockRequestBase
         {
             #region Internal Constructors
-            internal AcquireLock(TLockTypeEnum lockType, LockOwnerIdent lockOwner)
+            internal AcquireLock(TLockTypeEnum lockType, LockOwnerIdentity lockOwner)
                 : base(lockType, lockOwner)
             {
             }
@@ -62,7 +62,7 @@ namespace Zen.Trunk.Storage.Locking
         protected class ReleaseLock : LockRequestBase
         {
             #region Internal Constructors
-            internal ReleaseLock(TLockTypeEnum lockType, LockOwnerIdent lockOwner)
+            internal ReleaseLock(TLockTypeEnum lockType, LockOwnerIdentity lockOwner)
                 : base(lockType, lockOwner)
             {
             }
@@ -77,7 +77,7 @@ namespace Zen.Trunk.Storage.Locking
         protected class QueryLock : LockRequestBase
         {
             #region Internal Constructors
-            internal QueryLock(TLockTypeEnum lockType, LockOwnerIdent lockOwner)
+            internal QueryLock(TLockTypeEnum lockType, LockOwnerIdentity lockOwner)
                 : base(lockType, lockOwner)
             {
             }
@@ -209,7 +209,7 @@ namespace Zen.Trunk.Storage.Locking
         private readonly ActionBlock<AcquireLock> _acquireLockAction;
         private readonly ActionBlock<ReleaseLock> _releaseLockAction;
         private readonly ActionBlock<QueryLock> _queryLockAction;
-        private readonly Dictionary<LockOwnerIdent, AcquireLock> _activeRequests = new Dictionary<LockOwnerIdent, AcquireLock>();
+        private readonly Dictionary<LockOwnerIdentity, AcquireLock> _activeRequests = new Dictionary<LockOwnerIdentity, AcquireLock>();
         private readonly Queue<AcquireLock> _pendingRequests = new Queue<AcquireLock>();
         private int _referenceCount;
         private bool _initialised;
@@ -329,7 +329,7 @@ namespace Zen.Trunk.Storage.Locking
             // Retrieve connection id and create request object.
             // Will throw if no connection information is available for the
             //  calling thread.
-            var lockOwnerIdent = GetThreadLockOwnerIdent(true);
+            var lockOwnerIdent = GetThreadLockOwnerIdentity(true);
             return HasLockAsync(lockOwnerIdent, lockType);
         }
 
@@ -353,7 +353,7 @@ namespace Zen.Trunk.Storage.Locking
             // Retrieve connection id and create request object.
             // Will throw if no connection information is available for the
             //  calling thread.
-            var lockOwner = GetThreadLockOwnerIdent(true);
+            var lockOwner = GetThreadLockOwnerIdentity(true);
             return LockAsync(lockOwner, lockType, timeout);
         }
 
@@ -380,13 +380,13 @@ namespace Zen.Trunk.Storage.Locking
             // Retrieve connection id and create request object.
             // Will throw if no connection information is available for the
             //  calling thread.
-            var lockOwner = GetThreadLockOwnerIdent(true);
+            var lockOwner = GetThreadLockOwnerIdentity(true);
             return UnlockAsync(lockOwner, newLockType);
         }
         #endregion
 
         #region Internal Methods
-        internal async Task LockAsync(LockOwnerIdent lockOwner, TLockTypeEnum lockType, TimeSpan timeout)
+        internal async Task LockAsync(LockOwnerIdentity lockOwner, TLockTypeEnum lockType, TimeSpan timeout)
         {
             // Post lock acquisition message
             var request = new AcquireLock(lockType, lockOwner);
@@ -410,7 +410,7 @@ namespace Zen.Trunk.Storage.Locking
             }
         }
 
-        internal async Task UnlockAsync(LockOwnerIdent lockOwner, TLockTypeEnum newLockType)
+        internal async Task UnlockAsync(LockOwnerIdentity lockOwner, TLockTypeEnum newLockType)
         {
             // Post lock acquisition message
             var request = new ReleaseLock(newLockType, lockOwner);
@@ -435,7 +435,7 @@ namespace Zen.Trunk.Storage.Locking
         /// <returns></returns>
         protected override string GetTracePrefix()
         {
-            return $"{base.GetTracePrefix()} ID: {Id} Rc: {_referenceCount} Txn:{GetThreadLockOwnerIdent(false)}";
+            return $"{base.GetTracePrefix()} ID: {Id} Rc: {_referenceCount} Txn:{GetThreadLockOwnerIdentity(false)}";
         }
 #endif
 
@@ -448,7 +448,7 @@ namespace Zen.Trunk.Storage.Locking
         /// <returns>
         ///   <c>true</c> if the specified transaction identifier has lock; otherwise, <c>false</c>.
         /// </returns>
-        protected internal Task<bool> HasLockAsync(LockOwnerIdent lockOwner, TLockTypeEnum lockType)
+        protected internal Task<bool> HasLockAsync(LockOwnerIdentity lockOwner, TLockTypeEnum lockType)
         {
             // Post lock acquisition message
             var request = new QueryLock(lockType, lockOwner);
@@ -510,6 +510,8 @@ namespace Zen.Trunk.Storage.Locking
         #region Private Methods
         private void AcquireLockRequestHandler(AcquireLock request)
         {
+            TraceVerbose("AcquireLock - Enter");
+
             var activeLockOwner = GetActiveLockOwner(request.LockOwner);
             if (!CanAcquireLock(request))
             {
@@ -595,6 +597,8 @@ namespace Zen.Trunk.Storage.Locking
 
         private void ReleaseLockRequestHandler(ReleaseLock request)
         {
+            TraceVerbose("ReleaseLock - Enter");
+
             try
             {
                 var releaseLock = false;
@@ -669,27 +673,7 @@ namespace Zen.Trunk.Storage.Locking
             }
         }
 
-        /// <summary>
-        /// Gets the lock owner identification from the thread context.
-        /// </summary>
-        /// <remarks>
-        /// If throwIfMissing is set to true then this method will throw
-        /// a <see cref="LockException"/> if the
-        /// caller does not have transaction info.
-        /// If throwIfMissing is set to false then this method will return
-        /// zero if the caller does not have transaction info.
-        /// </remarks>
-        /// <param name="throwIfMissing">
-        /// Raises a <see cref="LockException"/> if no context information
-        /// can be found.
-        /// </param>
-        /// <returns>Lock owner identification.</returns>
-        /// <exception cref="LockException">
-        /// Thrown if no lock owner can be determined for the calling thread.
-        /// </exception>
-        // ReSharper disable once UnusedParameter.Local
-        // ReSharper disable once ParameterOnlyUsedForPreconditionCheck.Local
-        private LockOwnerIdent GetThreadLockOwnerIdent(bool throwIfMissing)
+        private LockOwnerIdentity GetThreadLockOwnerIdentity(bool throwIfMissing)
         {
             var sessionId = SessionId.Zero;
             var transactionId = TransactionId.Zero;
@@ -706,10 +690,10 @@ namespace Zen.Trunk.Storage.Locking
             {
                 throw new LockException("Current thread has no transaction context!");
             }
-            return new LockOwnerIdent(sessionId, transactionId);
+            return new LockOwnerIdentity(sessionId, transactionId);
         }
 
-        private LockOwnerIdent? GetActiveLockOwner(LockOwnerIdent lockOwner)
+        private LockOwnerIdentity? GetActiveLockOwner(LockOwnerIdentity lockOwner)
         {
             if (_activeRequests.ContainsKey(lockOwner))
             {

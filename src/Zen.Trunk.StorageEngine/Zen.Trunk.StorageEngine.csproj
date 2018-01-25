@@ -139,7 +139,7 @@
     <Compile Include="Locking\ITrunkSession.cs" />
     <Compile Include="Locking\ITrunkSessionPrivate.cs" />
     <Compile Include="Locking\ITrunkTransactionPrivate.cs" />
-    <Compile Include="Locking\LockOwnerIdent.cs" />
+    <Compile Include="Locking\LockOwnerIdentity.cs" />
     <Compile Include="Log\ILogPageDevice.cs" />
     <Compile Include="Log\IMasterLogPageDevice.cs" />
     <Compile Include="Log\VirtualLogFileHeader.cs" />

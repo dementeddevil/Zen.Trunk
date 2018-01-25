@@ -1,18 +1,18 @@
 ﻿namespace Zen.Trunk.Storage.Locking
 {
     /// <summary>
-    /// <c>LockOwnerIdent</c> defines the owner of a lock object.
+    /// <c>LockOwnerIdentity</c> defines the owner of a lock object.
     /// </summary>
     /// <seealso cref="Zen.Trunk.Storage.Locking.TransactionLockBase" />
     /// <seealso cref="Zen.Trunk.Storage.Locking.IReferenceLock" />
-    public struct LockOwnerIdent
+    public struct LockOwnerIdentity
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="LockOwnerIdent"/> struct.
+        /// Initializes a new instance of the <see cref="LockOwnerIdentity"/> struct.
         /// </summary>
         /// <param name="sessionId">The session identifier.</param>
         /// <param name="transactionId">The transaction identifier.</param>
-        public LockOwnerIdent(SessionId sessionId, TransactionId transactionId)
+        public LockOwnerIdentity(SessionId sessionId, TransactionId transactionId)
         {
             SessionId = sessionId;
             TransactionId = transactionId;
@@ -45,7 +45,7 @@
         /// copied from this instance with the transaction identifier
         /// set to zero.
         /// </remarks>
-        public LockOwnerIdent SessionOnlyLockOwner
+        public LockOwnerIdentity SessionOnlyLockOwner
         {
             get
             {
@@ -53,7 +53,7 @@
                 {
                     return this;
                 }
-                return new LockOwnerIdent(SessionId, TransactionId.Zero);
+                return new LockOwnerIdentity(SessionId, TransactionId.Zero);
             }
         }
 
@@ -66,7 +66,7 @@
         /// </returns>
         public override bool Equals(object obj)
         {
-            var rhs = (LockOwnerIdent)obj;
+            var rhs = (LockOwnerIdentity)obj;
             return SessionId == rhs.SessionId && TransactionId == rhs.TransactionId;
         }
 

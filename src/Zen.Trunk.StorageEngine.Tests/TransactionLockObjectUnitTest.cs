@@ -28,9 +28,9 @@ namespace Zen.Trunk.Storage
                 var dataLock = lockHierarchy.DataLocks["DL:01"];
 
                 // Now we spoof transactions so we can test this madness
-                var firstLockOwner = new LockOwnerIdent(
+                var firstLockOwner = new LockOwnerIdentity(
                     SessionId.Zero, new TransactionId(5));
-                var secondLockOwner = new LockOwnerIdent(
+                var secondLockOwner = new LockOwnerIdentity(
                     SessionId.Zero, new TransactionId(6));
 
                 await dataLock.LockAsync(firstLockOwner, DataLockType.Shared, TimeSpan.FromSeconds(30)).ConfigureAwait(true);
@@ -111,10 +111,10 @@ namespace Zen.Trunk.Storage
                 var dataLock = lockHierarchy.DataLocks["DL:01"];
 
                 // Now we spoof transactions so we can test this madness
-                var firstLockOwner = new LockOwnerIdent(
+                var firstLockOwner = new LockOwnerIdentity(
                     SessionId.Zero,
                     new TransactionId(5));
-                var secondLockOwner = new LockOwnerIdent(
+                var secondLockOwner = new LockOwnerIdentity(
                     SessionId.Zero,
                     new TransactionId(6));
 
