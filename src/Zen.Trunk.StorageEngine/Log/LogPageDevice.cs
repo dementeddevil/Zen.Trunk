@@ -24,6 +24,9 @@ namespace Zen.Trunk.Storage.Log
     /// All reads and writes to the underlying file-system streams is
     /// performed via asynchronous I/O.
     /// </para>
+    /// <para>
+    /// Calls to this device object are not multi-thread safe.
+    /// </para>
     /// </remarks>
     public class LogPageDevice : MountableDevice, ILogPageDevice
     {
@@ -191,16 +194,18 @@ namespace Zen.Trunk.Storage.Log
         /// </summary>
         /// <param name="fileId">The file identifier.</param>
         /// <returns></returns>
-        /// <exception cref="ArgumentException"></exception>
+        /// <exception cref="ArgumentException">
+        /// Device identifier of this device does not match identifier in file id.
+        /// </exception>
         public virtual VirtualLogFileInfo GetVirtualFileById(LogFileId fileId)
         {
             if (fileId.DeviceId != DeviceId)
             {
-                throw new ArgumentException();
+                throw new ArgumentException("Device identifier mismatch", nameof(fileId));
             }
 
             var rootPage = GetRootPage<LogRootPage>();
-            return rootPage.GetLogFile(fileId.Index);
+            return rootPage.GetLogFile(fileId);
         }
 
         /// <summary>
@@ -247,6 +252,8 @@ namespace Zen.Trunk.Storage.Log
         /// </returns>
         protected override Task OnOpenAsync()
         {
+            const int streamBufferSize = 8192;
+
             if (_rootPage == null)
             {
                 _rootPage = CreateRootPage();
@@ -259,12 +266,12 @@ namespace Zen.Trunk.Storage.Log
                     FileMode.Create,
                     FileAccess.ReadWrite,
                     FileShare.None,
-                    8192,
+                    streamBufferSize,
                     true);
-                _deviceStream.SetLength(8192 * _rootPage.AllocatedPages);
+                _deviceStream.SetLength(streamBufferSize * _rootPage.AllocatedPages);
+                _rootPage.PreInitInternal();
                 _rootPage.BackingStore = _deviceStream;
-
-                // TODO: Initialise root page information
+                _rootPage.OnInitInternal();
                 _rootPage.ReadOnly = false;
 
                 // Save root page
@@ -277,7 +284,7 @@ namespace Zen.Trunk.Storage.Log
                     FileMode.Open,
                     FileAccess.ReadWrite,
                     FileShare.None,
-                    8192,
+                    streamBufferSize,
                     true);
                 _rootPage.PreLoadInternal();
                 _rootPage.BackingStore = _deviceStream;

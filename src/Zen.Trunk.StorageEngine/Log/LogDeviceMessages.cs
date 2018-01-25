@@ -17,11 +17,13 @@ namespace Zen.Trunk.Storage.Log
 		/// <param name="deviceId">The device unique identifier.</param>
 		/// <param name="createPageCount">The create page count.</param>
 		/// <param name="growthPages">The growth pages.</param>
+		/// <param name="maximumPages">The maximum page count.</param>
 		/// <param name="updateRootPage">if set to <c>true</c> [update root page].</param>
-		public AddLogDeviceParameters(string name, string pathName, DeviceId deviceId, uint createPageCount = 0, uint growthPages = 0, bool updateRootPage = false)
+		public AddLogDeviceParameters(string name, string pathName, DeviceId deviceId, uint createPageCount = 0, uint growthPages = 0, uint maximumPages = 0, bool updateRootPage = false)
 			: base(name, pathName, deviceId, createPageCount)
 		{
 			GrowthPages = growthPages;
+		    MaximumPages = maximumPages;
 			UpdateRootPage = updateRootPage;
 		}
 		#endregion
@@ -33,11 +35,18 @@ namespace Zen.Trunk.Storage.Log
 		/// <value>
 		/// The growth pages.
 		/// </value>
-		public uint GrowthPages
-		{
-			get;
-			private set;
-		}
+		public uint GrowthPages { get; }
+
+        /// <summary>
+        /// Gets the maximum number of pages.
+        /// </summary>
+        /// <value>
+        /// The maximum page count.
+        /// </value>
+        /// <remarks>
+        /// If this value is zero then the maximum page count is unlimited.
+        /// </remarks>
+        public uint MaximumPages { get; }
 
 		/// <summary>
 		/// Gets a value indicating whether [update root page].
@@ -45,11 +54,7 @@ namespace Zen.Trunk.Storage.Log
 		/// <value>
 		///   <c>true</c> if [update root page]; otherwise, <c>false</c>.
 		/// </value>
-		public bool UpdateRootPage
-		{
-			get;
-			private set;
-		}
+		public bool UpdateRootPage { get; }
 		#endregion
 	}
 

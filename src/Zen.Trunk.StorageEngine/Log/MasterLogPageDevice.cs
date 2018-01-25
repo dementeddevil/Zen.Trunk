@@ -18,7 +18,15 @@ using Zen.Trunk.VirtualMemory;
 
 namespace Zen.Trunk.Storage.Log
 {
-    /// <summary>
+    public class ExpandLogDeviceParameters
+    {
+    }
+
+    public class TruncateLogDeviceParameters
+    {
+    }
+
+/// <summary>
     /// TODO: Update summary.
     /// </summary>
     public class MasterLogPageDevice : LogPageDevice, IMasterLogPageDevice
@@ -35,6 +43,22 @@ namespace Zen.Trunk.Storage.Log
         private class RemoveLogDeviceRequest : TaskRequest<RemoveLogDeviceParameters, bool>
         {
             public RemoveLogDeviceRequest(RemoveLogDeviceParameters param)
+                : base(param)
+            {
+            }
+        }
+
+        private class ExpandLogDeviceRequest : TaskRequest<ExpandLogDeviceParameters, bool>
+        {
+            public ExpandLogDeviceRequest(ExpandLogDeviceParameters param)
+                : base(param)
+            {
+            }
+        }
+
+        private class TruncateLogDeviceRequest : TaskRequest<TruncateLogDeviceParameters, bool>
+        {
+            public TruncateLogDeviceRequest(TruncateLogDeviceParameters param)
                 : base(param)
             {
             }
@@ -88,6 +112,18 @@ namespace Zen.Trunk.Storage.Log
                 });
             RemoveLogDevicePort = new TaskRequestActionBlock<RemoveLogDeviceRequest, bool>(
                 request => RemoveLogDeviceHandlerAsync(request),
+                new ExecutionDataflowBlockOptions
+                {
+                    TaskScheduler = taskInterleave.ExclusiveScheduler
+                });
+            ExpandLogDevicePort = new TaskRequestActionBlock<ExpandLogDeviceRequest, bool>(
+                request => ExpandLogDeviceHandlerAsync(request),
+                new ExecutionDataflowBlockOptions
+                {
+                    TaskScheduler = taskInterleave.ExclusiveScheduler
+                });
+            TruncateLogDevicePort = new TaskRequestActionBlock<TruncateLogDeviceRequest, bool>(
+                request => TruncateLogDeviceHandlerAsync(request),
                 new ExecutionDataflowBlockOptions
                 {
                     TaskScheduler = taskInterleave.ExclusiveScheduler
@@ -158,10 +194,13 @@ namespace Zen.Trunk.Storage.Log
 
         private ITargetBlock<RemoveLogDeviceRequest> RemoveLogDevicePort { get; }
 
+        private ITargetBlock<ExpandLogDeviceRequest> ExpandLogDevicePort { get; }
+
+        private ITargetBlock<TruncateLogDeviceRequest> TruncateLogDevicePort { get; }
+
         private ITargetBlock<WriteLogEntryRequest> WriteLogEntryPort { get; }
 
         private ITargetBlock<PerformRecoveryRequest> PerformRecoveryPort { get; }
-
         #endregion
 
         #region Public Methods
@@ -193,6 +232,26 @@ namespace Zen.Trunk.Storage.Log
         {
             var request = new RemoveLogDeviceRequest(deviceParams);
             if (!RemoveLogDevicePort.Post(request))
+            {
+                throw new BufferDeviceShuttingDownException();
+            }
+            return request.Task;
+        }
+
+        public Task ExpandDeviceAsync(ExpandLogDeviceParameters expandParams)
+        {
+            var request = new ExpandLogDeviceRequest(expandParams);
+            if (!ExpandLogDevicePort.Post(request))
+            {
+                throw new BufferDeviceShuttingDownException();
+            }
+            return request.Task;
+        }
+
+        public Task TruncateDeviceAsync(TruncateLogDeviceParameters truncateParams)
+        {
+            var request = new TruncateLogDeviceRequest(truncateParams);
+            if (!TruncateLogDevicePort.Post(request))
             {
                 throw new BufferDeviceShuttingDownException();
             }
@@ -289,82 +348,6 @@ namespace Zen.Trunk.Storage.Log
             return !_isInCheckpoint &&
                 ((maximumLogEntries > 0 && _logEntriesSinceCheckpoint > maximumLogEntries) ||
                  (maximumLogBytes > 0 && _bytesWrittenSinceCheckpoint > maximumLogBytes));
-        }
-
-        /// <summary>
-        /// TODO: Promote this code to a message sent via requestport
-        /// </summary>
-        public void TruncateLog()
-        {
-            // TODO Determine protected virtual files.
-            // TODO Mark all other files as unallocated.
-            // TODO For each device 
-            // TODO Skip devices without allocations.
-
-            // TODO find first free virtual file.
-
-            // TODO If this is the next file after protected block then skip.
-
-            // TODO: Consider moving protected log to start of first file
-            //	unless we are in the first file (then don't bother)
-
-            // TODO Update 
-        }
-
-        /// <summary>
-        /// TODO: Promote this code to a message sent via requestport
-        /// </summary>
-        public void ExpandDevice()
-        {
-            /*// Find our best candidate device.
-			PhysicalBufferDevice bestDevice = null;
-			LogDeviceInfo devInfo;
-			uint smallestAllocatedPageCount = uint.MaxValue;
-			for (int index = 0; index < _logBufferDevice.DeviceCount; ++index)
-			{
-				// Locate log device info from root page
-				devInfo = _rootPage.GetDeviceByIndex(index);
-
-				// If device is expandable then check if smallest device
-				if (devInfo.IsExpandable)
-				{
-					PhysicalBufferDevice device = _logBufferDevice[devInfo.Id];
-					if (device.PageCapacity < smallestAllocatedPageCount)
-					{
-						bestDevice = device;
-						smallestAllocatedPageCount = device.PageCapacity;
-					}
-				}
-			}
-
-			// If we don't have a suitable device then throw
-			if (bestDevice == null)
-			{
-				// TODO: Throw correct exception type
-				throw new DBException("Log device is full.");
-			}
-
-			// Determine the growth amount for this device.
-			uint virtualFiles = 2;
-			uint growthPages = _rootPage.ExtentPages * virtualFiles;
-			bestDevice.PageCapacity += growthPages;
-
-			// Create virtual file entries
-			devInfo = _rootPage.GetDeviceById(bestDevice.Id);
-			for (uint index = 0; index < virtualFiles; ++index)
-			{
-				VirtualLogFileInfo file = devInfo.AddLogFile(_rootPage.ExtentSize,
-					_rootPage.LogLastFileId);
-				VirtualLogFileInfo lastFile = _rootPage.GetVirtualFileById(_rootPage.LogLastFileId);
-				if (lastFile.CurrentHeader.NextFileId == 0)
-				{
-					lastFile.CurrentHeader.NextFileId = file.FileId;
-				}
-				_rootPage.LogLastFileId = file.FileId;
-			}
-
-			// Save root page
-			SaveRootPage();*/
         }
 
         /// <summary>
@@ -514,10 +497,8 @@ namespace Zen.Trunk.Storage.Log
             // Determine file-extension for LOG
             var proposedDeviceId = DeviceId.Zero;
             var proposedDeviceIdValid = false;
-
             var primaryLog = false;
             var extn = StorageConstants.SlaveLogFileDeviceExtension;
-
             if (DeviceState == MountableDeviceState.Closed &&
                 string.IsNullOrEmpty(PathName))
             {
@@ -538,7 +519,7 @@ namespace Zen.Trunk.Storage.Log
             var directoryName = Path.GetDirectoryName(request.Message.PathName);
             if (string.IsNullOrEmpty(directoryName))
             {
-                // If caller only specified filename then get folder from config
+                // Caller only specified filename; get folder from config
                 var config = GetService<ITrunkConfigurationManager>();
                 directoryName = config.Root.GetInstanceValue(
                     ConfigurationNames.DefaultLogFolder, string.Empty);
@@ -574,11 +555,18 @@ namespace Zen.Trunk.Storage.Log
                 proposedDeviceIdValid = true;
             }
 
-            // If this is a secondary device then create log device and
-            //	update root page and collections
+            // Create device object as necessary
             ILogPageDevice device;
-            if (!primaryLog)
+            if (primaryLog)
             {
+                // Primary log device; cache pathname and setup device object
+                PathName = fullPathName;
+                device = this;
+            }
+            else
+            {
+                // Secondary log device; create device object, update
+                //  collection and root page
                 var secondaryDevice = GetService<ILogPageDevice>(
                     new NamedParameter("deviceId", proposedDeviceId),
                     new NamedParameter("pathName", fullPathName));
@@ -593,18 +581,13 @@ namespace Zen.Trunk.Storage.Log
                     });
                 device = secondaryDevice;
             }
-            else
-            {
-                PathName = fullPathName;
-                device = this;
-            }
 
             // Setup root page information for new device
             if (request.Message.IsCreate)
             {
                 var rootPage = device.GetRootPage<LogRootPage>();
                 rootPage.AllocatedPages = request.Message.CreatePageCount;
-                rootPage.MaximumPages = 0;
+                rootPage.MaximumPages = request.Message.MaximumPages;
                 rootPage.GrowthPages = request.Message.GrowthPages;
             }
 
@@ -629,6 +612,116 @@ namespace Zen.Trunk.Storage.Log
         private bool RemoveLogDeviceHandlerAsync(RemoveLogDeviceRequest request)
         {
             return true;
+        }
+
+        private uint GetNewAllocatedPageCount(LogRootPage rootPage)
+        {
+            if (!rootPage.IsExpandable && !rootPage.IsExpandableByPercent ||
+                rootPage.MaximumPages > 0 && rootPage.MaximumPages == rootPage.AllocatedPages)
+            {
+                return 0;
+            }
+
+            uint allocatedPageCount = 0;
+
+            if (rootPage.IsExpandable)
+            {
+                allocatedPageCount = rootPage.AllocatedPages + rootPage.GrowthPages;
+            }
+            else if (rootPage.IsExpandableByPercent && rootPage.GrowthPercent > 0.0)
+            {
+                var growthPages = (uint)(rootPage.AllocatedPages * rootPage.GrowthPercent / 100);
+                allocatedPageCount = rootPage.AllocatedPages + growthPages;
+            }
+
+            if (rootPage.MaximumPages > 0)
+            {
+                allocatedPageCount = Math.Min(allocatedPageCount, rootPage.MaximumPages);
+            }
+
+            return allocatedPageCount;
+        }
+
+        private async Task<bool> ExpandLogDeviceHandlerAsync(ExpandLogDeviceRequest request)
+        {
+            // Find our best candidate device.
+			LogPageDevice bestDevice = null;
+			uint smallestAllocatedPageCount = uint.MaxValue;
+
+            // Check this device (the master first)
+            var rootPage = GetRootPage<LogRootPage>();
+            if (rootPage.IsExpandable && rootPage.AllocatedPages < smallestAllocatedPageCount)
+            {
+                bestDevice = this;
+                smallestAllocatedPageCount = rootPage.AllocatedPages;
+            }
+
+            // Check secondary devices next
+            foreach (var secondaryDevice in _secondaryDevices.Values)
+			{
+				// Locate log device info from root page
+				rootPage = secondaryDevice.GetRootPage<LogRootPage>();
+			    if (rootPage.IsExpandable && rootPage.AllocatedPages < smallestAllocatedPageCount)
+			    {
+			        bestDevice = this;
+			        smallestAllocatedPageCount = rootPage.AllocatedPages;
+			    }
+            }
+
+			// If we don't have a suitable device then fail
+			if (bestDevice == null)
+			{
+			    return false;
+			}
+
+			// Determine the growth amount for this device.
+            rootPage = bestDevice.GetRootPage<LogRootPage>();
+            uint newAllocationPageCount = GetNewAllocatedPageCount(rootPage);
+
+            // Update allocated page count
+            //rootPage.AllocatedPages = newAllocationPageCount;
+            //rootPage.Save();
+
+            // TODO: Create an "appropriate" number of virtual log files
+            //  this is dependent upon the max number of pages per file
+            //  and the actual number of pages we are increasing the device by
+
+			// Create virtual file entries
+			/*devInfo = _rootPage.GetDeviceById(bestDevice.Id);
+			for (uint index = 0; index < virtualFiles; ++index)
+			{
+				VirtualLogFileInfo file = devInfo.AddLogFile(_rootPage.ExtentSize,
+					_rootPage.LogLastFileId);
+				VirtualLogFileInfo lastFile = _rootPage.GetVirtualFileById(_rootPage.LogLastFileId);
+				if (lastFile.CurrentHeader.NextFileId == 0)
+				{
+					lastFile.CurrentHeader.NextFileId = file.FileId;
+				}
+				_rootPage.LogLastFileId = file.FileId;
+			}*/
+
+			// Save root page
+			//SaveRootPage();
+            return false;
+        }
+
+        private async Task<bool> TruncateLogDeviceHandlerAsync(TruncateLogDeviceRequest request)
+        {
+            // TODO Determine protected virtual files.
+            // TODO Mark all other files as unallocated.
+            // TODO For each device 
+            // TODO Skip devices without allocations.
+
+            // TODO find first free virtual file.
+
+            // TODO If this is the next file after protected block then skip.
+
+            // TODO: Consider moving protected log to start of first file
+            //	unless we are in the first file (then don't bother)
+
+            // TODO Update 
+
+            return false;
         }
 
         private Dictionary<TransactionId, List<TransactionLogEntry>> GetCheckPointTransactions()
@@ -819,7 +912,7 @@ namespace Zen.Trunk.Storage.Log
                 // If the next file is zero then attempt to expand the log device
                 if (current.CurrentHeader.NextLogFileId == LogFileId.Zero)
                 {
-                    ExpandDevice();
+                    //ExpandDevice();
                 }
 
                 // If next file Id is still zero then die
