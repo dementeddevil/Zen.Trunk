@@ -17,6 +17,7 @@ namespace Zen.Trunk.Storage.Log
         /// The status is expandable
         /// </summary>
         public const byte StatusIsExpandable = 1;
+
         /// <summary>
         /// The status is expandable percent
         /// </summary>
@@ -29,7 +30,6 @@ namespace Zen.Trunk.Storage.Log
 		private readonly BufferFieldUInt32 _maximumPages;
 		private readonly BufferFieldUInt32 _growthPages;
 		private readonly BufferFieldDouble _growthPercent;
-
 		private readonly BufferFieldUInt16 _logFileCount;
 		private readonly List<VirtualLogFileInfo> _logFiles =
 			new List<VirtualLogFileInfo>();
@@ -166,7 +166,6 @@ namespace Zen.Trunk.Storage.Log
 		/// </summary>
 		/// <value>The log file count.</value>
 		public ushort LogFileCount => (ushort)_logFiles.Count;
-
 	    #endregion
 
 		#region Protected Properties
@@ -175,7 +174,6 @@ namespace Zen.Trunk.Storage.Log
 		/// </summary>
 		/// <value>The last header field.</value>
 		protected override BufferField LastHeaderField => _logFileCount;
-
         #endregion
 
         #region Public Methods

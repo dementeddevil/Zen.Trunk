@@ -210,8 +210,7 @@ namespace Zen.Trunk.Storage.Log
         /// <returns></returns>
         public VirtualLogFileStream GetVirtualFileStream(VirtualLogFileInfo info)
         {
-            VirtualLogFileStream stream;
-            if (!_fileStreams.TryGetValue(info.FileId, out stream))
+            if (!_fileStreams.TryGetValue(info.FileId, out var stream))
             {
                 // Create virtual log file stream on top of backing store
                 stream = new VirtualLogFileStream(
@@ -324,9 +323,6 @@ namespace Zen.Trunk.Storage.Log
         {
             _rootPage.Save();
         }
-        #endregion
-
-        #region Private Methods
         #endregion
     }
 }

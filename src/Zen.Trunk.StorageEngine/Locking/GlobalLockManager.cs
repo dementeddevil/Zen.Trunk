@@ -6,32 +6,23 @@ using Zen.Trunk.VirtualMemory;
 namespace Zen.Trunk.Storage.Locking
 {
     /// <summary>
-    /// Global lock manager
+    /// <c>GlobalLockManager</c> tracks all lock objects across all daatabases
     /// </summary>
     /// <seealso cref="Zen.Trunk.Storage.Locking.IGlobalLockManager" />
     public class GlobalLockManager : IGlobalLockManager
     {
         #region Private Fields
-        private readonly LockHandler<DatabaseLock, DatabaseLockType> _databaseLocks;
-        private readonly LockHandler<FileGroupRootLock, FileGroupRootLockType> _rootLocks;
-        private readonly LockHandler<ObjectLock, ObjectLockType> _objectLocks;
-        private readonly LockHandler<SchemaLock, SchemaLockType> _schemaLocks;
-        private readonly LockHandler<DataLock, DataLockType> _dataLocks;
+        private readonly LockHandler<DatabaseLock, DatabaseLockType> _databaseLocks =
+            new LockHandler<DatabaseLock, DatabaseLockType>(0);
+        private readonly LockHandler<FileGroupRootLock, FileGroupRootLockType> _rootLocks =
+            new LockHandler<FileGroupRootLock, FileGroupRootLockType>();
+        private readonly LockHandler<ObjectLock, ObjectLockType> _objectLocks =
+            new LockHandler<ObjectLock, ObjectLockType>();
+        private readonly LockHandler<SchemaLock, SchemaLockType> _schemaLocks =
+            new LockHandler<SchemaLock, SchemaLockType>();
+        private readonly LockHandler<DataLock, DataLockType> _dataLocks =
+            new LockHandler<DataLock, DataLockType>();
         private readonly RLockHandler _rLocks = new RLockHandler();
-        #endregion
-
-        #region Public Constructors
-        /// <summary>
-        /// Initializes a new instance of the <see cref="GlobalLockManager"/> class.
-        /// </summary>
-        public GlobalLockManager()
-        {
-            _databaseLocks = new LockHandler<DatabaseLock, DatabaseLockType>(0);
-            _rootLocks = new LockHandler<FileGroupRootLock, FileGroupRootLockType>();
-            _objectLocks = new LockHandler<ObjectLock, ObjectLockType>();
-            _schemaLocks = new LockHandler<SchemaLock, SchemaLockType>();
-            _dataLocks = new LockHandler<DataLock, DataLockType>();
-        }
         #endregion
 
         #region Public Methods
@@ -83,7 +74,7 @@ namespace Zen.Trunk.Storage.Locking
         /// </returns>
         public DatabaseLock GetDatabaseLock(DatabaseId dbId)
         {
-            var key = LockIdent.GetDatabaseKey(dbId);
+            var key = LockIdentity.GetDatabaseKey(dbId);
             return _databaseLocks.GetOrCreateLock(key);
         }
         #endregion
@@ -143,7 +134,7 @@ namespace Zen.Trunk.Storage.Locking
         /// </returns>
         public FileGroupRootLock GetFileGroupLock(DatabaseId dbId, FileGroupId fileGroupId)
         {
-            var key = LockIdent.GetFileGroupRootKey(dbId, fileGroupId);
+            var key = LockIdentity.GetFileGroupRootKey(dbId, fileGroupId);
             var lockObject = _rootLocks.GetOrCreateLock(key);
 
             // Ensure parent lock has been resolved
@@ -266,7 +257,7 @@ namespace Zen.Trunk.Storage.Locking
         public void LockDistributionHeader(DatabaseId dbId, VirtualPageId virtualPageId, TimeSpan timeout)
         {
             Trace.TraceInformation("LDH:{0}:{1}", dbId, virtualPageId);
-            var distKey = LockIdent.GetDistributionKey(dbId, virtualPageId);
+            var distKey = LockIdentity.GetDistributionKey(dbId, virtualPageId);
             _rLocks.LockResource(distKey, true, timeout);
         }
 
@@ -278,7 +269,7 @@ namespace Zen.Trunk.Storage.Locking
         public void UnlockDistributionHeader(DatabaseId dbId, VirtualPageId virtualPageId)
         {
             Trace.TraceInformation("UDH:{0}:{1}", dbId, virtualPageId);
-            var distKey = LockIdent.GetDistributionKey(dbId, virtualPageId);
+            var distKey = LockIdentity.GetDistributionKey(dbId, virtualPageId);
             _rLocks.UnlockResource(distKey, true);
         }
 
@@ -292,7 +283,7 @@ namespace Zen.Trunk.Storage.Locking
         /// </returns>
         public ObjectLock GetDistributionLock(DatabaseId dbId, VirtualPageId virtualPageId)
         {
-            var key = LockIdent.GetDistributionKey(dbId, virtualPageId);
+            var key = LockIdentity.GetDistributionKey(dbId, virtualPageId);
             var lockObject = _objectLocks.GetOrCreateLock(key);
 
             if (lockObject.Parent == null)
@@ -316,7 +307,7 @@ namespace Zen.Trunk.Storage.Locking
         /// </returns>
         public DataLock GetDistributionExtentLock(DatabaseId dbId, VirtualPageId virtualPageId, uint extentIndex)
         {
-            var key = LockIdent.GetDistributionExtentLockKey(dbId, virtualPageId, extentIndex);
+            var key = LockIdentity.GetDistributionExtentLockKey(dbId, virtualPageId, extentIndex);
             var lockObject = _dataLocks.GetOrCreateLock(key);
 
             if (lockObject.Parent == null)
@@ -379,7 +370,7 @@ namespace Zen.Trunk.Storage.Locking
         /// <returns></returns>
         public ObjectLock GetObjectLock(DatabaseId dbId, ObjectId objectId)
         {
-            var key = LockIdent.GetObjectLockKey(dbId, objectId);
+            var key = LockIdentity.GetObjectLockKey(dbId, objectId);
             var lockObject = _objectLocks.GetOrCreateLock(key);
 
             // Ensure parent lock has been resolved
@@ -444,7 +435,7 @@ namespace Zen.Trunk.Storage.Locking
         public SchemaLock GetSchemaLock(DatabaseId dbId, ObjectId objectId)
         {
             // Get schema lock
-            var key = LockIdent.GetSchemaLockKey(dbId, objectId);
+            var key = LockIdentity.GetSchemaLockKey(dbId, objectId);
             var lockObject = _schemaLocks.GetOrCreateLock(key);
 
             if (lockObject.Parent == null)
@@ -469,7 +460,7 @@ namespace Zen.Trunk.Storage.Locking
         /// <param name="timeout">The timeout.</param>
         public void LockRootIndex(DatabaseId dbId, ObjectId objectId, IndexId indexId, bool writable, TimeSpan timeout)
         {
-            var resourceKey = LockIdent.GetIndexRootKey(dbId, objectId, indexId);
+            var resourceKey = LockIdentity.GetIndexRootKey(dbId, objectId, indexId);
             LockResource(resourceKey, writable, timeout);
         }
 
@@ -482,7 +473,7 @@ namespace Zen.Trunk.Storage.Locking
         /// <param name="writable">if set to <c>true</c> [writable].</param>
         public void UnlockRootIndex(DatabaseId dbId, ObjectId objectId, IndexId indexId, bool writable)
         {
-            var resourceKey = LockIdent.GetIndexRootKey(dbId, objectId, indexId);
+            var resourceKey = LockIdentity.GetIndexRootKey(dbId, objectId, indexId);
             UnlockResource(resourceKey, writable);
         }
 
@@ -497,7 +488,7 @@ namespace Zen.Trunk.Storage.Locking
         /// <param name="timeout">The timeout.</param>
         public void LockInternalIndex(DatabaseId dbId, ObjectId objectId, IndexId indexId, LogicalPageId logicalId, bool writable, TimeSpan timeout)
         {
-            var resourceKey = LockIdent.GetIndexInternalKey(dbId, objectId, indexId, logicalId);
+            var resourceKey = LockIdentity.GetIndexInternalKey(dbId, objectId, indexId, logicalId);
             LockResource(resourceKey, writable, timeout);
         }
 
@@ -511,7 +502,7 @@ namespace Zen.Trunk.Storage.Locking
         /// <param name="writable">if set to <c>true</c> [writable].</param>
         public void UnlockInternalIndex(DatabaseId dbId, ObjectId objectId, IndexId indexId, LogicalPageId logicalId, bool writable)
         {
-            var resourceKey = LockIdent.GetIndexInternalKey(dbId, objectId, indexId, logicalId);
+            var resourceKey = LockIdentity.GetIndexInternalKey(dbId, objectId, indexId, logicalId);
             UnlockResource(resourceKey, writable);
         }
 
@@ -526,7 +517,7 @@ namespace Zen.Trunk.Storage.Locking
         /// <param name="timeout">The timeout.</param>
         public void LockLeafIndex(DatabaseId dbId, ObjectId objectId, IndexId indexId, LogicalPageId logicalId, bool writable, TimeSpan timeout)
         {
-            var resourceKey = LockIdent.GetIndexLeafKey(dbId, objectId, indexId, logicalId);
+            var resourceKey = LockIdentity.GetIndexLeafKey(dbId, objectId, indexId, logicalId);
             LockResource(resourceKey, writable, timeout);
         }
 
@@ -540,7 +531,7 @@ namespace Zen.Trunk.Storage.Locking
         /// <param name="writable">if set to <c>true</c> [writable].</param>
         public void UnlockLeafIndex(DatabaseId dbId, ObjectId objectId, IndexId indexId, LogicalPageId logicalId, bool writable)
         {
-            var resourceKey = LockIdent.GetIndexLeafKey(dbId, objectId, indexId, logicalId);
+            var resourceKey = LockIdentity.GetIndexLeafKey(dbId, objectId, indexId, logicalId);
             UnlockResource(resourceKey, writable);
         }
         #endregion
@@ -597,7 +588,7 @@ namespace Zen.Trunk.Storage.Locking
         /// <returns></returns>
         public DataLock GetDataLock(DatabaseId dbId, ObjectId objectId, LogicalPageId logicalId)
         {
-            var key = LockIdent.GetDataLockKey(dbId, objectId, logicalId);
+            var key = LockIdentity.GetDataLockKey(dbId, objectId, logicalId);
             var lockObject = _dataLocks.GetOrCreateLock(key);
 
             if (lockObject.Parent == null)

@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// <copyright file="LockIdent.cs" company="Zen Design Software">
+// <copyright file="LockIdentity.cs" company="Zen Design Software">
 // © Zen Design Software 2009 - 2016
 // </copyright>
 // -----------------------------------------------------------------------
@@ -9,10 +9,10 @@ using Zen.Trunk.VirtualMemory;
 namespace Zen.Trunk.Storage.Locking
 {
 	/// <summary>
-	/// <c>LockIdent</c> contains helper methods for obtaining keys needed to
+	/// <c>LockIdentity</c> contains helper methods for obtaining keys needed to
 	/// access lock objects protecting various database resources.
 	/// </summary>
-	internal static class LockIdent
+	internal static class LockIdentity
 	{
 		/// <summary>
 		/// Gets the key for accessing the given database.

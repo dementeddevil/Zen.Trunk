@@ -186,14 +186,13 @@
     <Compile Include="Locking\IGlobalLockManager.cs" />
     <Compile Include="Locking\IRLockHandler.cs" />
     <Compile Include="Locking\ITrunkTransaction.cs" />
-    <Compile Include="Locking\LockIdent.cs" />
+    <Compile Include="Locking\LockIdentity.cs" />
     <Compile Include="Locking\LockOwnerBlockBase.cs" />
     <Compile Include="Locking\TrunkTransaction.cs" />
     <Compile Include="Locking\TrunkTransactionContext.cs" />
     <Compile Include="LogicalPageId.cs" />
     <Compile Include="Log\ActiveTransaction.cs" />
     <Compile Include="Log\CheckPointInfo.cs" />
-    <Compile Include="Log\LogBuffer.cs" />
     <Compile Include="Log\LogDeviceMessages.cs" />
     <Compile Include="Log\LogEntry.cs" />
     <Compile Include="Log\LogFileId.cs" />
