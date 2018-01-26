@@ -26,7 +26,7 @@ namespace Zen.Trunk.Storage.Log
     {
     }
 
-/// <summary>
+    /// <summary>
     /// TODO: Update summary.
     /// </summary>
     public class MasterLogPageDevice : LogPageDevice, IMasterLogPageDevice
@@ -614,94 +614,50 @@ namespace Zen.Trunk.Storage.Log
             return true;
         }
 
-        private uint GetNewAllocatedPageCount(LogRootPage rootPage)
+        private bool ExpandLogDeviceHandlerAsync(ExpandLogDeviceRequest request)
         {
-            if (!rootPage.IsExpandable && !rootPage.IsExpandableByPercent ||
-                rootPage.MaximumPages > 0 && rootPage.MaximumPages == rootPage.AllocatedPages)
+            // TODO: Add properties to request message that allow the 
+            //  device and/or the number of growth pages to be set
+            //  explicitly.
+
+            // Get sorted list of candidate expandable devices
+            var candidateDevices = Enumerable
+                .Concat(
+                    new[] {((LogPageDevice) this)},
+                    _secondaryDevices.Values)
+                .Select(
+                    device =>
+                        new
+                        {
+                            Device = device,
+                            RootPage = device.GetRootPage<LogRootPage>()
+                        })
+                .Where(candidate =>
+                    candidate.RootPage.IsExpandable &&
+                    candidate.RootPage.IsExpandableByPercent)
+                .Select(
+                    candidate =>
+                        new
+                        {
+                            candidate.Device,
+                            candidate.RootPage,
+                            GrowthPages = candidate.RootPage.CalculateExpansionPageCount(),
+                        })
+                .OrderBy(candidate => candidate.RootPage.AllocatedPages);
+
+            var masterRootPage = GetRootPage<MasterLogRootPage>();
+            foreach (var candidate in candidateDevices)
             {
-                return 0;
+                var result = candidate.Device.ExpandDeviceCore(
+                    masterRootPage, candidate.GrowthPages);
+                if (result.Any())
+                {
+                    // Save the master root page
+                    SaveRootPage();
+                    return true;
+                }
             }
 
-            uint allocatedPageCount = 0;
-
-            if (rootPage.IsExpandable)
-            {
-                allocatedPageCount = rootPage.AllocatedPages + rootPage.GrowthPages;
-            }
-            else if (rootPage.IsExpandableByPercent && rootPage.GrowthPercent > 0.0)
-            {
-                var growthPages = (uint)(rootPage.AllocatedPages * rootPage.GrowthPercent / 100);
-                allocatedPageCount = rootPage.AllocatedPages + growthPages;
-            }
-
-            if (rootPage.MaximumPages > 0)
-            {
-                allocatedPageCount = Math.Min(allocatedPageCount, rootPage.MaximumPages);
-            }
-
-            return allocatedPageCount;
-        }
-
-        private async Task<bool> ExpandLogDeviceHandlerAsync(ExpandLogDeviceRequest request)
-        {
-            // Find our best candidate device.
-			LogPageDevice bestDevice = null;
-			uint smallestAllocatedPageCount = uint.MaxValue;
-
-            // Check this device (the master first)
-            var rootPage = GetRootPage<LogRootPage>();
-            if (rootPage.IsExpandable && rootPage.AllocatedPages < smallestAllocatedPageCount)
-            {
-                bestDevice = this;
-                smallestAllocatedPageCount = rootPage.AllocatedPages;
-            }
-
-            // Check secondary devices next
-            foreach (var secondaryDevice in _secondaryDevices.Values)
-			{
-				// Locate log device info from root page
-				rootPage = secondaryDevice.GetRootPage<LogRootPage>();
-			    if (rootPage.IsExpandable && rootPage.AllocatedPages < smallestAllocatedPageCount)
-			    {
-			        bestDevice = this;
-			        smallestAllocatedPageCount = rootPage.AllocatedPages;
-			    }
-            }
-
-			// If we don't have a suitable device then fail
-			if (bestDevice == null)
-			{
-			    return false;
-			}
-
-			// Determine the growth amount for this device.
-            rootPage = bestDevice.GetRootPage<LogRootPage>();
-            uint newAllocationPageCount = GetNewAllocatedPageCount(rootPage);
-
-            // Update allocated page count
-            //rootPage.AllocatedPages = newAllocationPageCount;
-            //rootPage.Save();
-
-            // TODO: Create an "appropriate" number of virtual log files
-            //  this is dependent upon the max number of pages per file
-            //  and the actual number of pages we are increasing the device by
-
-			// Create virtual file entries
-			/*devInfo = _rootPage.GetDeviceById(bestDevice.Id);
-			for (uint index = 0; index < virtualFiles; ++index)
-			{
-				VirtualLogFileInfo file = devInfo.AddLogFile(_rootPage.ExtentSize,
-					_rootPage.LogLastFileId);
-				VirtualLogFileInfo lastFile = _rootPage.GetVirtualFileById(_rootPage.LogLastFileId);
-				if (lastFile.CurrentHeader.NextFileId == 0)
-				{
-					lastFile.CurrentHeader.NextFileId = file.FileId;
-				}
-				_rootPage.LogLastFileId = file.FileId;
-			}*/
-
-			// Save root page
-			//SaveRootPage();
             return false;
         }
 

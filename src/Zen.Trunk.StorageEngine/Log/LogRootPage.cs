@@ -283,6 +283,39 @@ namespace Zen.Trunk.Storage.Log
 
 			return _logFiles[index];
 		}
+
+        /// <summary>
+        /// Calculate the number of pages that this device will expand by using
+        /// default settings.
+        /// </summary>
+        /// <returns></returns>
+        public uint CalculateExpansionPageCount()
+        {
+            if (!IsExpandable && !IsExpandableByPercent ||
+                MaximumPages > 0 && MaximumPages == AllocatedPages)
+            {
+                return 0;
+            }
+
+            uint allocatedPageCount = 0;
+
+            if (IsExpandable)
+            {
+                allocatedPageCount = AllocatedPages + GrowthPages;
+            }
+            else if (IsExpandableByPercent && GrowthPercent > 0.0)
+            {
+                var growthPages = (uint)(AllocatedPages * GrowthPercent / 100);
+                allocatedPageCount = AllocatedPages + growthPages;
+            }
+
+            if (MaximumPages > 0)
+            {
+                allocatedPageCount = Math.Min(allocatedPageCount, MaximumPages);
+            }
+
+            return allocatedPageCount;
+        }
         #endregion
 
         #region Protected Methods

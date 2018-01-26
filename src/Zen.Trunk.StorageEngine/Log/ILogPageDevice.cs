@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Zen.Trunk.VirtualMemory;
 
 namespace Zen.Trunk.Storage.Log
@@ -92,6 +93,9 @@ namespace Zen.Trunk.Storage.Log
         /// log device that corresponds with the specified log file information.
         /// </returns>
         VirtualLogFileStream GetVirtualFileStream(VirtualLogFileInfo info);
+
+        IEnumerable<VirtualLogFileInfo> ExpandDeviceCore(
+            MasterLogRootPage masterRootPage, uint growthPageCount);
 
         /// <summary>
         /// Gets the root page.

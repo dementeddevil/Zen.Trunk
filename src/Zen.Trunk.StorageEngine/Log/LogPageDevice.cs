@@ -31,6 +31,9 @@ namespace Zen.Trunk.Storage.Log
     public class LogPageDevice : MountableDevice, ILogPageDevice
     {
         #region Private Fields
+        private const uint MinimumPagesPerVirtualFile = 128;
+        private const uint MaximumPagesPerVirtualFile = 16384;
+
         private FileStream _deviceStream;
         private readonly Dictionary<LogFileId, VirtualLogFileStream> _fileStreams =
             new Dictionary<LogFileId, VirtualLogFileStream>();
@@ -227,6 +230,53 @@ namespace Zen.Trunk.Storage.Log
             return stream;
         }
 
+        public IEnumerable<VirtualLogFileInfo> ExpandDeviceCore(
+            MasterLogRootPage masterRootPage, uint growthPageCount)
+        {
+            var rootPage = GetRootPage<LogRootPage>();
+
+            // Limit number of pages by any defined maximum
+            if (rootPage.MaximumPages > 0)
+            {
+                var maximumGrowthPages = rootPage.MaximumPages - rootPage.AllocatedPages;
+                growthPageCount = Math.Min(maximumGrowthPages, growthPageCount);
+            }
+
+            // We need at least the minimum pages per virtual file
+            growthPageCount = Math.Max(growthPageCount, MinimumPagesPerVirtualFile);
+
+            // If we haven't changed the allocation size then return immediately
+            var newAllocatedPageCount = rootPage.AllocatedPages + growthPageCount;
+            if (newAllocatedPageCount <= rootPage.AllocatedPages)
+            {
+                return new VirtualLogFileInfo[0];
+            }
+
+            // Determine number of virtual log files we need to create
+            var virtualFileCount = growthPageCount / MaximumPagesPerVirtualFile;
+            if (growthPageCount % MaximumPagesPerVirtualFile != 0)
+            {
+                ++virtualFileCount;
+            }
+
+            // Setup virtual file info and chain into master root page
+            var result = new List<VirtualLogFileInfo>();
+            for (var fileIndex = 0; fileIndex < virtualFileCount; ++fileIndex)
+            {
+                var pageCount = Math.Min(growthPageCount, MaximumPagesPerVirtualFile);
+                var info = rootPage.AddLogFile(
+                    DeviceId, pageCount * rootPage.PageSize, masterRootPage.LastLogFileId);
+                result.Add(info);
+                growthPageCount -= pageCount;
+                masterRootPage.LastLogFileId = info.FileId;
+            }
+
+            // Save the root page
+            SaveRootPage();
+
+            return result;
+        }
+
         /// <summary>
         /// Gets the root page.
         /// </summary>
@@ -329,6 +379,30 @@ namespace Zen.Trunk.Storage.Log
         protected void SaveRootPage()
         {
             _rootPage.Save();
+        }
+
+        protected uint CalculateGrowthPageCount()
+        {
+            var rootPage = GetRootPage<LogRootPage>();
+            if (!rootPage.IsExpandable && !rootPage.IsExpandableByPercent ||
+                rootPage.MaximumPages > 0 && rootPage.MaximumPages == rootPage.AllocatedPages)
+            {
+                return 0;
+            }
+
+            uint growthPageCount = 0;
+
+            if (rootPage.IsExpandable)
+            {
+                growthPageCount = rootPage.GrowthPages;
+            }
+            else if (rootPage.IsExpandableByPercent && rootPage.GrowthPercent > 0.0)
+            {
+                var growthPages = (uint)(rootPage.AllocatedPages * rootPage.GrowthPercent / 100);
+                growthPageCount = growthPages;
+            }
+
+            return growthPageCount;
         }
         #endregion
     }
