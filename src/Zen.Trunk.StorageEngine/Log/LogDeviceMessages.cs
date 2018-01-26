@@ -98,4 +98,12 @@ namespace Zen.Trunk.Storage.Log
 			private set;
 		}
 	}
+
+    public class ExpandLogDeviceParameters
+    {
+    }
+
+    public class TruncateLogDeviceParameters
+    {
+    }
 }

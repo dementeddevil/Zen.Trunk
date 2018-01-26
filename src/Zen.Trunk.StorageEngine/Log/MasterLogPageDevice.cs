@@ -18,14 +18,6 @@ using Zen.Trunk.VirtualMemory;
 
 namespace Zen.Trunk.Storage.Log
 {
-    public class ExpandLogDeviceParameters
-    {
-    }
-
-    public class TruncateLogDeviceParameters
-    {
-    }
-
     /// <summary>
     /// TODO: Update summary.
     /// </summary>
