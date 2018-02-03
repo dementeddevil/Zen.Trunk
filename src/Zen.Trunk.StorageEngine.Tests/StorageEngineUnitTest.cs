@@ -273,7 +273,7 @@ namespace Zen.Trunk.Storage
 
                             await TrunkTransactionContext.CommitAsync().ConfigureAwait(true);
                         }
-                        catch (Exception e)
+                        catch
                         {
                             await TrunkTransactionContext.RollbackAsync().ConfigureAwait(true);
                         }
@@ -362,7 +362,7 @@ namespace Zen.Trunk.Storage
 
                             await TrunkTransactionContext.CommitAsync().ConfigureAwait(true);
                         }
-                        catch (Exception e)
+                        catch
                         {
                             await TrunkTransactionContext.RollbackAsync().ConfigureAwait(true);
                         }
@@ -400,7 +400,7 @@ namespace Zen.Trunk.Storage
 
                             await TrunkTransactionContext.CommitAsync().ConfigureAwait(true);
                         }
-                        catch (Exception e)
+                        catch
                         {
                             await TrunkTransactionContext.RollbackAsync().ConfigureAwait(true);
                         }
