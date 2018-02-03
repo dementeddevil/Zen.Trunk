@@ -92,11 +92,7 @@ namespace Zen.Trunk.Storage.Log
         /// <value>
         ///   <c>true</c> if [update root page]; otherwise, <c>false</c>.
         /// </value>
-        public bool UpdateRootPage
-		{
-			get;
-			private set;
-		}
+        public bool UpdateRootPage { get; }
 	}
 
     public class ExpandLogDeviceParameters
