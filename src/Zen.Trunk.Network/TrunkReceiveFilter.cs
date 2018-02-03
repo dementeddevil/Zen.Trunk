@@ -11,6 +11,7 @@ namespace Zen.Trunk.Network
         /// <summary>
         /// Initializes a new instance of the <see cref="TrunkReceiveFilter"/> class.
         /// </summary>
+        // ReSharper disable once ArgumentsStyleLiteral
         public TrunkReceiveFilter() : base(headerSize: 6)
         {
         }
@@ -24,6 +25,7 @@ namespace Zen.Trunk.Network
         /// <returns></returns>
         protected override int GetBodyLengthFromHeader(byte[] header, int offset, int length)
         {
+            // ReSharper disable RedundantCast
             return (int)header[offset + 4] * 256 + (int)header[offset + 5];
         }
 
@@ -38,6 +40,11 @@ namespace Zen.Trunk.Network
         /// <exception cref="System.NotImplementedException"></exception>
         protected override BinaryRequestInfo ResolveRequestInfo(ArraySegment<byte> header, byte[] bodyBuffer, int offset, int length)
         {
+            if (header.Array == null)
+            {
+                throw new ArgumentNullException(nameof(header));
+            }
+
             return new BinaryRequestInfo(
                 Encoding.ASCII.GetString(header.Array, header.Offset, 4),
                 bodyBuffer.CloneRange(offset, length));

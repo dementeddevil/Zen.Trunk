@@ -73,6 +73,20 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Log\BeginCheckPointLogEntry.cs" />
+    <Compile Include="Log\BeginTransactionLogEntry.cs" />
+    <Compile Include="Log\CheckPointLogEntry.cs" />
+    <Compile Include="Log\CommitTransactionLogEntry.cs" />
+    <Compile Include="Log\EndCheckPointLogEntry.cs" />
+    <Compile Include="Log\LogEntryComparer.cs" />
+    <Compile Include="Log\LogEntryType.cs" />
+    <Compile Include="Log\NoOpLogEntry.cs" />
+    <Compile Include="Log\PageImageCreateLogEntry.cs" />
+    <Compile Include="Log\PageImageDeleteLogEntry.cs" />
+    <Compile Include="Log\PageImageUpdateLogEntry.cs" />
+    <Compile Include="Log\PageLogEntry.cs" />
+    <Compile Include="Log\RollbackTransactionLogEntry.cs" />
+    <Compile Include="Log\TransactionLogEntry.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="BufferFields\ArrayBufferField.cs" />
     <Compile Include="BufferFields\BufferField.cs" />

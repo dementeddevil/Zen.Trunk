@@ -472,15 +472,21 @@ namespace Zen.Trunk.VirtualMemory
             // Sanity check - must have absolute path information.
             if (!Path.IsPathRooted(pathName))
             {
-                throw new ArgumentException("Must have absolute path.");
+                throw new ArgumentException("Must have absolute path.", nameof(pathName));
             }
 
             var root = Path.GetPathRoot(pathName);
             var volumeName = new StringBuilder(255);
             var fileSystemName = new StringBuilder(255);
-            SafeNativeMethods.GetVolumeInformation(root, volumeName, 255,
-                out var volumeSerialNumber, out var maxFileNameLength,
-                out var fileSystemFlags, fileSystemName, 255);
+            SafeNativeMethods.GetVolumeInformation(
+                root,
+                volumeName,
+                255,
+                out var _,
+                out var _,
+                out var fileSystemFlags,
+                fileSystemName,
+                255);
             return ((fileSystemFlags & 0x40) != 0);
         }
 
@@ -503,7 +509,7 @@ namespace Zen.Trunk.VirtualMemory
                         FileOffset = offset,
                         BeyondFinalZero = offset + count
                     };
-                Win32.SetZeroData(_handle, zeroInfo, out var bytesReturned);
+                Win32.SetZeroData(_handle, zeroInfo, out var _);
             }
         }
 
@@ -1823,7 +1829,7 @@ namespace Zen.Trunk.VirtualMemory
             if (CanWrite)
             {
                 // Enable sparse files
-                _isSparse = Win32.SetSparse(SafeFileHandle, out var bytesReturned);
+                _isSparse = Win32.SetSparse(SafeFileHandle, out var _);
 
                 // TODO: Derived classes must walk the file in a manner deemed
                 //	appropriate and mark the zero-length regions.
@@ -2395,7 +2401,7 @@ namespace Zen.Trunk.VirtualMemory
                                 FileOffset = offset,
                                 BeyondFinalZero = value
                             };
-                        Win32.SetZeroData(_handle, zeroInfo, out var bytesReturned);
+                        Win32.SetZeroData(_handle, zeroInfo, out var _);
                     }
                 }
                 else

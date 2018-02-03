@@ -141,6 +141,7 @@ namespace Zen.Trunk.Storage
                 }
                 catch
                 {
+                    // ignored
                 }
 
                 // First transaction should already have an exclusive lock on data

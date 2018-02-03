@@ -73,6 +73,7 @@ namespace Zen.Trunk.Storage
 
             public ulong LogicalId
             {
+                // ReSharper disable once UnusedMember.Local
                 get => _logicalId.Value;
                 set => _logicalId.Value = value;
             }
@@ -131,6 +132,7 @@ namespace Zen.Trunk.Storage
 
         private class TestIndexPage : IndexPage<TestIndexInfo, RootIndexInfo>
         {
+            // ReSharper disable once UnusedMember.Local
             public int CompareIndex(int index, DateTime key1, int key2)
             {
                 var lhs = IndexEntries[index];

@@ -80,7 +80,8 @@ namespace Zen.Trunk.IO
         /// </summary>
         /// <param name="stream">The stream.</param>
         /// <returns></returns>
-        public static Stream AsMTAReadOnlySeekableStream(this Stream stream)
+        // ReSharper disable once UnusedMember.Global
+        public static Stream AsMtaReadOnlySeekableStream(this Stream stream)
         {
             return new MultiThreadAccessReadOnlySeekableStream(stream);
         }

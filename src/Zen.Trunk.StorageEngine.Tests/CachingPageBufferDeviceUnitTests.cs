@@ -111,7 +111,7 @@ namespace Zen.Trunk.Storage
         {
             // Arrange
             // Act
-            var pb = await Sut
+            await Sut
                 .LoadPageAsync(new VirtualPageId(deviceId, physicalPage))
                 .ConfigureAwait(true);
             await Sut

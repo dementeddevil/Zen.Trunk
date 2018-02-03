@@ -808,9 +808,11 @@ namespace Zen.Trunk.Storage.Data
             }
             catch (OperationCanceledException)
             {
+                // ignored
             }
             catch (Exception)
             {
+                // ignored
             }
         }
 

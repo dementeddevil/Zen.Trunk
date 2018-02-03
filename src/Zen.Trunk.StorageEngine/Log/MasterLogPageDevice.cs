@@ -74,7 +74,6 @@ namespace Zen.Trunk.Storage.Log
             new Dictionary<DeviceId, ILogPageDevice>();
 
         private VirtualLogFileStream _currentStream;
-        private object _syncWriters = new object();
         private Dictionary<ActiveTransaction, List<TransactionLogEntry>> _activeTransactions;
         private int _nextTransactionId;
         private DeviceId _nextLogDeviceId;
@@ -543,8 +542,6 @@ namespace Zen.Trunk.Storage.Log
 
                     proposedDeviceId = request.Message.DeviceId;
                 }
-
-                proposedDeviceIdValid = true;
             }
 
             // Create device object as necessary
@@ -606,6 +603,7 @@ namespace Zen.Trunk.Storage.Log
             return true;
         }
 
+        // ReSharper disable once UnusedParameter.Local
         private bool ExpandLogDeviceHandlerAsync(ExpandLogDeviceRequest request)
         {
             // TODO: Add properties to request message that allow the 
@@ -653,7 +651,10 @@ namespace Zen.Trunk.Storage.Log
             return false;
         }
 
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
+        // ReSharper disable once UnusedParameter.Local
         private async Task<bool> TruncateLogDeviceHandlerAsync(TruncateLogDeviceRequest request)
+#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
         {
             // TODO Determine protected virtual files.
             // TODO Mark all other files as unallocated.

@@ -41,7 +41,7 @@ namespace Zen.Trunk.Storage.Locking
 
             private void Dispose(bool disposing)
             {
-                if (!_disposed)
+                if (!_disposed && disposing)
                 {
                     _disposed = true;
 
@@ -84,8 +84,7 @@ namespace Zen.Trunk.Storage.Locking
             get
             {
                 var transaction = (ITrunkTransaction)CallContext.LogicalGetData(LogicalContextName);
-                var priv = transaction as ITrunkTransactionPrivate;
-                if (priv != null && priv.IsCompleted)
+                if (transaction is ITrunkTransactionPrivate priv && priv.IsCompleted)
                 {
                     CallContext.FreeNamedDataSlot(LogicalContextName);
                     return null;
@@ -151,11 +150,11 @@ namespace Zen.Trunk.Storage.Locking
         /// <returns></returns>
         public static async Task CommitAsync()
         {
-            var txn = Current as ITrunkTransactionPrivate;
-            if (txn != null)
+            if (Current is ITrunkTransactionPrivate transaction)
             {
-                var result = await txn.CommitAsync()
-                    .WithTimeout(txn.Timeout)
+                var result = await transaction
+                    .CommitAsync()
+                    .WithTimeout(transaction.Timeout)
                     .ConfigureAwait(false);
                 if (result)
                 {
@@ -170,8 +169,7 @@ namespace Zen.Trunk.Storage.Locking
         /// <returns></returns>
         public static async Task RollbackAsync()
         {
-            var transaction = Current as ITrunkTransactionPrivate;
-            if (transaction != null)
+            if (Current is ITrunkTransactionPrivate transaction)
             {
                 var result = await transaction
                     .RollbackAsync()
@@ -186,8 +184,8 @@ namespace Zen.Trunk.Storage.Locking
 
         internal static TransactionLockOwnerBlock GetTransactionLockOwnerBlock(IDatabaseLockManager lockManager)
         {
-            var privTxn = Current as ITrunkTransactionPrivate;
-            return privTxn?.GetTransactionLockOwnerBlock(lockManager);
+            var privateTransaction = Current as ITrunkTransactionPrivate;
+            return privateTransaction?.GetTransactionLockOwnerBlock(lockManager);
         }
 
         internal static IDisposable SwitchTransactionContext(ITrunkTransaction newContext)
