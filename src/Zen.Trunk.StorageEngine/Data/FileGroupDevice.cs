@@ -668,83 +668,73 @@ namespace Zen.Trunk.Storage.Data
         /// <returns></returns>
         protected override async Task OnOpenAsync()
         {
-            if (Logger.IsInfoEnabled())
+            using (Logger.BeginInfoTimingLogScope("FileGroupDevice.OnOpenAsync"))
             {
-                Logger.Info("OnOpen : Enter");
-            }
-
-            if (_primaryDevice == null)
-            {
-                throw new InvalidOperationException(
-                    "Cannot mount without primary device.");
-            }
-
-            // Open/create the primary device
-            if (Logger.IsInfoEnabled())
-            {
-                Logger.Info("OnOpen : Opening primary device");
-            }
-            await _primaryDevice.OpenAsync(IsCreate).ConfigureAwait(false);
-
-            // Load or create the root page(s)
-            if (Logger.IsInfoEnabled())
-            {
-                Logger.Info("OnOpen : Opening secondary devices");
-            }
-            if (IsCreate)
-            {
-                using (var rootPage = (PrimaryFileGroupRootPage)
-                    await _primaryDevice.LoadRootPageAsync().ConfigureAwait(false))
+                // Open/create the primary device
+                using (Logger.BeginDebugTimingLogScope("Primary Device"))
                 {
-                    var bufferDevice = GetService<IMultipleBufferDevice>();
-
-                    // TODO: We need to initialise the root page device list with
-                    //	information from the current devices in our collection
-                    //	We can only do this once we have extended the 
-                    //	DistributionPageDevice class to store all the information
-                    //	needed by DeviceInfo.
-                    rootPage.ReadOnly = false;
-
-                    if (rootPage.FileGroupLock != FileGroupRootLockType.Exclusive)
+                    if (_primaryDevice == null)
                     {
-                        await rootPage.SetRootLockAsync(FileGroupRootLockType.Update).ConfigureAwait(false);
-                        await rootPage.SetRootLockAsync(FileGroupRootLockType.Exclusive).ConfigureAwait(false);
+                        throw new InvalidOperationException(
+                            "Cannot mount without primary device.");
                     }
 
-                    rootPage.AllocatedPages = bufferDevice.GetDeviceInfo(_primaryDevice.DeviceId).PageCount;
-                    foreach (var distPageDevice in _devices.Values)
+                    await _primaryDevice.OpenAsync(IsCreate).ConfigureAwait(false);
+                }
+
+                using (Logger.BeginDebugTimingLogScope("Secondary Devices"))
+                {
+                    if (IsCreate)
                     {
-                        await distPageDevice.OpenAsync(IsCreate).ConfigureAwait(false);
-                        rootPage.AllocatedPages += bufferDevice.GetDeviceInfo(distPageDevice.DeviceId).PageCount;
+                        using (var rootPage = (PrimaryFileGroupRootPage)
+                            await _primaryDevice.LoadRootPageAsync().ConfigureAwait(false))
+                        {
+                            var bufferDevice = GetService<IMultipleBufferDevice>();
+
+                            // TODO: We need to initialise the root page device list with
+                            //	information from the current devices in our collection
+                            //	We can only do this once we have extended the 
+                            //	DistributionPageDevice class to store all the information
+                            //	needed by DeviceInfo.
+                            rootPage.ReadOnly = false;
+
+                            if (rootPage.FileGroupLock != FileGroupRootLockType.Exclusive)
+                            {
+                                await rootPage.SetRootLockAsync(FileGroupRootLockType.Update).ConfigureAwait(false);
+                                await rootPage.SetRootLockAsync(FileGroupRootLockType.Exclusive).ConfigureAwait(false);
+                            }
+
+                            rootPage.AllocatedPages = bufferDevice.GetDeviceInfo(_primaryDevice.DeviceId).PageCount;
+                            foreach (var distPageDevice in _devices.Values)
+                            {
+                                await distPageDevice.OpenAsync(IsCreate).ConfigureAwait(false);
+                                rootPage.AllocatedPages += bufferDevice.GetDeviceInfo(distPageDevice.DeviceId).PageCount;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        var rootPage = (PrimaryFileGroupRootPage)
+                            await _primaryDevice.LoadRootPageAsync().ConfigureAwait(false);
+                        while (true)
+                        {
+                            // Process the root page
+                            await ProcessPrimaryRootPageAsync(rootPage).ConfigureAwait(false);
+
+                            // If we have run out of root pages then exit loop
+                            if (rootPage.NextLogicalPageId == LogicalPageId.Zero)
+                            {
+                                break;
+                            }
+
+                            // Load the next primary file group root page
+                            var nextLogicalPage = new PrimaryFileGroupRootPage { LogicalPageId = rootPage.NextLogicalPageId };
+                            await LoadDataPageAsync(new LoadDataPageParameters(nextLogicalPage, false, true))
+                                .ConfigureAwait(false);
+                            rootPage = nextLogicalPage;
+                        }
                     }
                 }
-            }
-            else
-            {
-                var rootPage = (PrimaryFileGroupRootPage)
-                    await _primaryDevice.LoadRootPageAsync().ConfigureAwait(false);
-                while (true)
-                {
-                    // Process the root page
-                    await ProcessPrimaryRootPageAsync(rootPage).ConfigureAwait(false);
-
-                    // If we have run out of root pages then exit loop
-                    if (rootPage.NextLogicalPageId == LogicalPageId.Zero)
-                    {
-                        break;
-                    }
-
-                    // Load the next primary file group root page
-                    var nextLogicalPage = new PrimaryFileGroupRootPage { LogicalPageId = rootPage.NextLogicalPageId };
-                    await LoadDataPageAsync(new LoadDataPageParameters(nextLogicalPage, false, true))
-                        .ConfigureAwait(false);
-                    rootPage = nextLogicalPage;
-                }
-            }
-
-            if (Logger.IsInfoEnabled())
-            {
-                Logger.Info("OnOpen : Exit");
             }
         }
 
