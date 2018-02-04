@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Zen.Trunk.IO;
+using Zen.Trunk.Logging;
 using Zen.Trunk.Storage.BufferFields;
 using Zen.Trunk.Storage.Locking;
 using Zen.Trunk.Utils;
@@ -224,6 +225,8 @@ namespace Zen.Trunk.Storage.Data
         #endregion
 
         #region Private Fields
+        private static readonly ILog Logger = LogProvider.For<DistributionPage>();
+
         private readonly ExtentInfo[] _extents;
         private List<uint> _lockedExtents;
         private ObjectLockType _distributionLock = ObjectLockType.IntentShared;
@@ -301,8 +304,7 @@ namespace Zen.Trunk.Storage.Data
         /// </remarks>
         public async Task<VirtualPageId> AllocatePageAsync(AllocateDataPageParameters allocParams)
         {
-            System.Diagnostics.Debug.WriteLine(
-                $"Allocate page via DistributionPage {VirtualPageId}");
+            Logger.Debug($"Allocate page via DistributionPage {VirtualPageId}");
 
             // Ensure we have some kind of lock on the page...
             if (DistributionLock == ObjectLockType.None)

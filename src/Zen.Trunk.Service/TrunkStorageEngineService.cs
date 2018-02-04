@@ -36,7 +36,10 @@ namespace Zen.Trunk.Service
         /// <summary>
         /// Initializes a new instance of the <see cref="TrunkStorageEngineService"/> class.
         /// </summary>
-        public TrunkStorageEngineService(ILifetimeScope container, HostSettings hostSettings, DatabasePathInformation pathInformation)
+        public TrunkStorageEngineService(
+            ILifetimeScope container,
+            HostSettings hostSettings,
+            DatabasePathInformation pathInformation)
         {
             _hostSettings = hostSettings;
             _globalLifetmeScope = container;
