@@ -284,7 +284,7 @@ namespace Zen.Trunk.VirtualMemory
         /// Called when opening the device.
         /// </summary>
         /// <returns></returns>
-        protected override Task OnOpen()
+        protected override Task OnOpenAsync()
 		{
 			Parallel.ForEach(
 				_devices.Values,
@@ -327,7 +327,7 @@ namespace Zen.Trunk.VirtualMemory
         /// Raises the Close event.
         /// </summary>
         /// <returns></returns>
-        protected override Task OnClose()
+        protected override Task OnCloseAsync()
 		{
 			Parallel.ForEach(
 				_devices.Values,

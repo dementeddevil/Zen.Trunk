@@ -94,7 +94,6 @@ namespace Zen.Trunk.Storage
                 {
                     IsCreate = false;
                 }
-
                 MutateStateOrThrow(MountableDeviceState.Opening, MountableDeviceState.Open);
             }
         }
@@ -107,22 +106,17 @@ namespace Zen.Trunk.Storage
         /// </returns>
         public async Task CloseAsync()
         {
-            if (Logger.IsDebugEnabled())
+            using (Logger.BeginDebugTimingLogScope($"{GetType().Name}.CloseAsync"))
             {
-                Logger.Debug("Close - Enter");
-            }
-            CheckDisposed();
-            MutateStateOrThrow(MountableDeviceState.Open, MountableDeviceState.Closing);
-            try
-            {
-                await Task.Run(OnCloseAsync).ConfigureAwait(false);
-            }
-            finally
-            {
-                MutateStateOrThrow(MountableDeviceState.Closing, MountableDeviceState.Closed);
-                if (Logger.IsDebugEnabled())
+                CheckDisposed();
+                MutateStateOrThrow(MountableDeviceState.Open, MountableDeviceState.Closing);
+                try
                 {
-                    Logger.Debug("Close - Exit");
+                    await Task.Run(OnCloseAsync).ConfigureAwait(false);
+                }
+                finally
+                {
+                    MutateStateOrThrow(MountableDeviceState.Closing, MountableDeviceState.Closed);
                 }
             }
         }

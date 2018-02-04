@@ -261,7 +261,7 @@ namespace Zen.Trunk.VirtualMemory
         /// Called when opening the device.
         /// </summary>
         /// <returns></returns>
-        protected override Task OnOpen()
+        protected override Task OnOpenAsync()
         {
             if (IsScatterGatherIoEnabled)
             {
@@ -315,7 +315,7 @@ namespace Zen.Trunk.VirtualMemory
         /// Raises the Close event.
         /// </summary>
         /// <returns></returns>
-        protected override async Task OnClose()
+        protected override async Task OnCloseAsync()
         {
             if (IsScatterGatherIoEnabled)
             {

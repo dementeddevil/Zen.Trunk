@@ -46,30 +46,21 @@ namespace Zen.Trunk.VirtualMemory
 		/// <returns></returns>
 		public async Task OpenAsync()
 		{
-		    if (Logger.IsDebugEnabled())
+		    using (Logger.BeginDebugTimingLogScope($"{GetType().Name}.OpenAsync"))
 		    {
-		        Logger.Debug("Open - Enter");
+		        CheckDisposed();
+		        MutateStateOrThrow(MountableDeviceState.Closed, MountableDeviceState.Opening);
+		        try
+		        {
+		            await OnOpenAsync().ConfigureAwait(false);
+		        }
+		        catch
+		        {
+		            MutateStateOrThrow(MountableDeviceState.Opening, MountableDeviceState.Closed);
+		            throw;
+		        }
+		        MutateStateOrThrow(MountableDeviceState.Opening, MountableDeviceState.Open);
 		    }
-
-            CheckDisposed();
-			MutateStateOrThrow(MountableDeviceState.Closed, MountableDeviceState.Opening);
-			try
-			{
-				await OnOpen().ConfigureAwait(false);
-			}
-			catch
-			{
-				MutateStateOrThrow(MountableDeviceState.Opening, MountableDeviceState.Closed);
-				throw;
-			}
-			finally
-			{
-                if (Logger.IsDebugEnabled())
-                {
-                    Logger.Debug("Open - Exit");
-                }
-            }
-            MutateStateOrThrow(MountableDeviceState.Opening, MountableDeviceState.Open);
 		}
 
 		/// <summary>
@@ -78,25 +69,20 @@ namespace Zen.Trunk.VirtualMemory
 		/// <returns></returns>
 		public async Task CloseAsync()
 		{
-            if (Logger.IsDebugEnabled())
-            {
-                Logger.Debug("Close - Enter");
-            }
-            CheckDisposed();
-			MutateStateOrThrow(MountableDeviceState.Open, MountableDeviceState.Closing);
-			try
-			{
-				await OnClose().ConfigureAwait(false);
-			}
-			finally
-			{
-				MutateStateOrThrow(MountableDeviceState.Closing, MountableDeviceState.Closed);
-                if (Logger.IsDebugEnabled())
-                {
-                    Logger.Debug("Close - Exit");
-                }
-            }
-        }
+		    using (Logger.BeginDebugTimingLogScope($"{GetType().Name}.CloseAsync"))
+		    {
+		        CheckDisposed();
+		        MutateStateOrThrow(MountableDeviceState.Open, MountableDeviceState.Closing);
+		        try
+		        {
+		            await OnCloseAsync().ConfigureAwait(false);
+		        }
+		        finally
+		        {
+		            MutateStateOrThrow(MountableDeviceState.Closing, MountableDeviceState.Closed);
+		        }
+		    }
+		}
 
 		/// <summary>
 		/// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
@@ -138,7 +124,7 @@ namespace Zen.Trunk.VirtualMemory
 		/// Called when opening the device.
 		/// </summary>
 		/// <returns></returns>
-		protected virtual Task OnOpen()
+		protected virtual Task OnOpenAsync()
 		{
 			return CompletedTask.Default;
 		}
@@ -147,7 +133,7 @@ namespace Zen.Trunk.VirtualMemory
 		/// Called when closing the device.
 		/// </summary>
 		/// <returns></returns>
-		protected virtual Task OnClose()
+		protected virtual Task OnCloseAsync()
 		{
 			return CompletedTask.Default;
 		}
