@@ -22,20 +22,24 @@ namespace Zen.Trunk.Service
     public class TrunkStorageEngineService
     {
         private readonly HostSettings _hostSettings;
+        private readonly string _masterDataPathname;
+        private readonly string _masterLogPathname;
+
         private ILifetimeScope _globalLifetmeScope;
         private ILifetimeScope _serviceLifetimeScope;
         private IDisposable _serviceNameEnricher;
 
         private Logger _globalLogger;
 
-        private string _masterDataPathname;
-        private string _masterLogPathname;
         private string _errorLogPathname;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="TrunkStorageEngineService"/> class.
         /// </summary>
-        public TrunkStorageEngineService(ILifetimeScope container, HostSettings hostSettings, DatabasePathInformation pathInformation)
+        public TrunkStorageEngineService(
+            ILifetimeScope container,
+            HostSettings hostSettings,
+            DatabasePathInformation pathInformation)
         {
             _hostSettings = hostSettings;
             _globalLifetmeScope = container;
