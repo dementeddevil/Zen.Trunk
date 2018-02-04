@@ -668,71 +668,68 @@ namespace Zen.Trunk.Storage.Data
         /// <returns></returns>
         protected override async Task OnOpenAsync()
         {
-            using (Logger.BeginInfoTimingLogScope("FileGroupDevice.OnOpenAsync"))
+            // Open/create the primary device
+            using (Logger.BeginDebugTimingLogScope("FileGroupDevice => Open Primary Device"))
             {
-                // Open/create the primary device
-                using (Logger.BeginDebugTimingLogScope("Primary Device"))
+                if (_primaryDevice == null)
                 {
-                    if (_primaryDevice == null)
-                    {
-                        throw new InvalidOperationException(
-                            "Cannot mount without primary device.");
-                    }
-
-                    await _primaryDevice.OpenAsync(IsCreate).ConfigureAwait(false);
+                    throw new InvalidOperationException(
+                        "Cannot mount without primary device.");
                 }
 
-                using (Logger.BeginDebugTimingLogScope("Secondary Devices"))
+                await _primaryDevice.OpenAsync(IsCreate).ConfigureAwait(false);
+            }
+
+            using (Logger.BeginDebugTimingLogScope("FileGroupDevice => Open Secondary Devices"))
+            {
+                if (IsCreate)
                 {
-                    if (IsCreate)
+                    using (var rootPage = (PrimaryFileGroupRootPage)
+                        await _primaryDevice.LoadRootPageAsync().ConfigureAwait(false))
                     {
-                        using (var rootPage = (PrimaryFileGroupRootPage)
-                            await _primaryDevice.LoadRootPageAsync().ConfigureAwait(false))
+                        var bufferDevice = GetService<IMultipleBufferDevice>();
+
+                        // TODO: We need to initialise the root page device list with
+                        //	information from the current devices in our collection
+                        //	We can only do this once we have extended the 
+                        //	DistributionPageDevice class to store all the information
+                        //	needed by DeviceInfo.
+                        rootPage.ReadOnly = false;
+
+                        if (rootPage.FileGroupLock != FileGroupRootLockType.Exclusive)
                         {
-                            var bufferDevice = GetService<IMultipleBufferDevice>();
+                            await rootPage.SetRootLockAsync(FileGroupRootLockType.Update).ConfigureAwait(false);
+                            await rootPage.SetRootLockAsync(FileGroupRootLockType.Exclusive).ConfigureAwait(false);
+                        }
 
-                            // TODO: We need to initialise the root page device list with
-                            //	information from the current devices in our collection
-                            //	We can only do this once we have extended the 
-                            //	DistributionPageDevice class to store all the information
-                            //	needed by DeviceInfo.
-                            rootPage.ReadOnly = false;
-
-                            if (rootPage.FileGroupLock != FileGroupRootLockType.Exclusive)
-                            {
-                                await rootPage.SetRootLockAsync(FileGroupRootLockType.Update).ConfigureAwait(false);
-                                await rootPage.SetRootLockAsync(FileGroupRootLockType.Exclusive).ConfigureAwait(false);
-                            }
-
-                            rootPage.AllocatedPages = bufferDevice.GetDeviceInfo(_primaryDevice.DeviceId).PageCount;
-                            foreach (var distPageDevice in _devices.Values)
-                            {
-                                await distPageDevice.OpenAsync(IsCreate).ConfigureAwait(false);
-                                rootPage.AllocatedPages += bufferDevice.GetDeviceInfo(distPageDevice.DeviceId).PageCount;
-                            }
+                        rootPage.AllocatedPages = bufferDevice.GetDeviceInfo(_primaryDevice.DeviceId).PageCount;
+                        foreach (var distPageDevice in _devices.Values)
+                        {
+                            await distPageDevice.OpenAsync(IsCreate).ConfigureAwait(false);
+                            rootPage.AllocatedPages += bufferDevice.GetDeviceInfo(distPageDevice.DeviceId).PageCount;
                         }
                     }
-                    else
+                }
+                else
+                {
+                    var rootPage = (PrimaryFileGroupRootPage)
+                        await _primaryDevice.LoadRootPageAsync().ConfigureAwait(false);
+                    while (true)
                     {
-                        var rootPage = (PrimaryFileGroupRootPage)
-                            await _primaryDevice.LoadRootPageAsync().ConfigureAwait(false);
-                        while (true)
+                        // Process the root page
+                        await ProcessPrimaryRootPageAsync(rootPage).ConfigureAwait(false);
+
+                        // If we have run out of root pages then exit loop
+                        if (rootPage.NextLogicalPageId == LogicalPageId.Zero)
                         {
-                            // Process the root page
-                            await ProcessPrimaryRootPageAsync(rootPage).ConfigureAwait(false);
-
-                            // If we have run out of root pages then exit loop
-                            if (rootPage.NextLogicalPageId == LogicalPageId.Zero)
-                            {
-                                break;
-                            }
-
-                            // Load the next primary file group root page
-                            var nextLogicalPage = new PrimaryFileGroupRootPage { LogicalPageId = rootPage.NextLogicalPageId };
-                            await LoadDataPageAsync(new LoadDataPageParameters(nextLogicalPage, false, true))
-                                .ConfigureAwait(false);
-                            rootPage = nextLogicalPage;
+                            break;
                         }
+
+                        // Load the next primary file group root page
+                        var nextLogicalPage = new PrimaryFileGroupRootPage { LogicalPageId = rootPage.NextLogicalPageId };
+                        await LoadDataPageAsync(new LoadDataPageParameters(nextLogicalPage, false, true))
+                            .ConfigureAwait(false);
+                        rootPage = nextLogicalPage;
                     }
                 }
             }
@@ -893,7 +890,7 @@ namespace Zen.Trunk.Storage.Data
                 allocationPages = Math.Max(request.Message.CreatePageCount, 128);
             }
 
-            var pageBufferDevice = GetService<CachingPageBufferDevice>();
+            var pageBufferDevice = GetService<ICachingPageBufferDevice>();
 
             // Add buffer device
             DeviceId deviceId;
@@ -926,8 +923,6 @@ namespace Zen.Trunk.Storage.Data
                 _devices.Add(deviceId, device);
                 newDevice = device;
             }
-            newDevice.Name = request.Message.Name;
-            newDevice.PathName = fullPathName;
 
             // If file-group is open or opening then open this device too
             if (Owner.DeviceState == MountableDeviceState.Opening ||
@@ -1009,7 +1004,7 @@ namespace Zen.Trunk.Storage.Data
 
             // Stage #3: Initialise page object passed in request
             HookupPageSite(request.Message.Page);
-            var pageBufferDevice = GetService<CachingPageBufferDevice>();
+            var pageBufferDevice = GetService<ICachingPageBufferDevice>();
             request.Message.Page.PreInitInternal();
             using (var scope = new StatefulBufferScope<PageBuffer>(
                 await pageBufferDevice.InitPageAsync(pageId).ConfigureAwait(false)))
@@ -1059,7 +1054,7 @@ namespace Zen.Trunk.Storage.Data
 
             // Stage #2: Load the buffer from the underlying cache
             HookupPageSite(request.Message.Page);
-            var pageBufferDevice = GetService<CachingPageBufferDevice>();
+            var pageBufferDevice = GetService<ICachingPageBufferDevice>();
             request.Message.Page.PreLoadInternal();
             using (var scope = new StatefulBufferScope<PageBuffer>(
                 await pageBufferDevice.LoadPageAsync(virtualPageId).ConfigureAwait(false)))

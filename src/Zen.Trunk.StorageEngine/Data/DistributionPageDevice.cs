@@ -17,7 +17,6 @@ namespace Zen.Trunk.Storage.Data
         #region Private Fields
         private static readonly ILog Logger = LogProvider.For<DistributionPageDevice>();
 
-        private readonly DeviceId _deviceId;
         private FileGroupDevice _fileGroupDevice;
         #endregion
 
@@ -28,7 +27,7 @@ namespace Zen.Trunk.Storage.Data
         /// <param name="deviceId">The device id.</param>
         protected DistributionPageDevice(DeviceId deviceId)
         {
-            _deviceId = deviceId;
+            DeviceId = deviceId;
         }
         #endregion
 
@@ -39,7 +38,7 @@ namespace Zen.Trunk.Storage.Data
         /// <value>
         /// The device identifier.
         /// </value>
-        public DeviceId DeviceId => _deviceId;
+        public DeviceId DeviceId { get; }
 
         /// <summary>
         /// Gets a value indicating whether this instance is primary.
@@ -73,34 +72,7 @@ namespace Zen.Trunk.Storage.Data
         /// <value>
         /// The distribution page offset.
         /// </value>
-        public abstract uint DistributionPageOffset
-        {
-            get;
-        }
-
-        /// <summary>
-        /// Gets or sets the name.
-        /// </summary>
-        /// <value>
-        /// The name.
-        /// </value>
-        public string Name
-        {
-            get;
-            set;
-        }
-
-        /// <summary>
-        /// Gets or sets the name of the path.
-        /// </summary>
-        /// <value>
-        /// The name of the path.
-        /// </value>
-        public string PathName
-        {
-            get;
-            set;
-        }
+        public abstract uint DistributionPageOffset { get; }
         #endregion
 
         #region Public Methods
@@ -206,8 +178,9 @@ namespace Zen.Trunk.Storage.Data
                 // NOTE: We first release the root page to be sure the
                 //	expand will succeed (although since it would be using
                 //	the same transaction id it would have the same lock)
-                await FileGroupDevice.ExpandDataDeviceAsync(
-                    new ExpandDataDeviceParameters(DeviceId, 0)).ConfigureAwait(false);
+                await FileGroupDevice
+                    .ExpandDataDeviceAsync(new ExpandDataDeviceParameters(DeviceId, 0))
+                    .ConfigureAwait(false);
 
                 // Signal we have expanded the device
                 isExpand = true;
@@ -248,119 +221,111 @@ namespace Zen.Trunk.Storage.Data
         /// <returns></returns>
         protected override async Task OnOpenAsync()
         {
-            using (Logger.BeginDebugTimingLogScope("DistributionPageDevice.OnOpenAsync"))
+            if (IsCreate)
             {
-                if (IsCreate)
+                using (var rootPage = (PrimaryFileGroupRootPage)
+                    await InitRootPageAsync().ConfigureAwait(false))
                 {
-                    using (var rootPage = (PrimaryFileGroupRootPage)
-                        await InitRootPageAsync().ConfigureAwait(false))
+                    // Get the device size information from the device status msg
+                    var bufferDevice = GetService<IMultipleBufferDevice>();
+                    var deviceInfo = bufferDevice.GetDeviceInfo(DeviceId);
+                    rootPage.AllocatedPages = deviceInfo.PageCount;
+                    var pageCount = rootPage.AllocatedPages;
+                    if (Logger.IsDebugEnabled())
                     {
-                        // Get the device size information from the device status msg
-                        var bufferDevice = GetService<IMultipleBufferDevice>();
-                        var deviceInfo = bufferDevice.GetDeviceInfo(_deviceId);
-                        rootPage.AllocatedPages = deviceInfo.PageCount;
-                        var pageCount = rootPage.AllocatedPages;
+                        Logger.Debug(
+                            $"Preparing to create distribution pages to cover device {DeviceId} of {pageCount} pages");
+                    }
+
+                    var subTasks = new List<Task>();
+
+                    // Calculate number of distribution pages to deal with
+                    var strideLength = DistributionPage.PageTrackingCount + 1;
+                    var distPageCount = ((pageCount - DistributionPageOffset) / strideLength) + 1;
+
+                    var pages = new List<DistributionPage>();
+                    try
+                    {
+                        for (uint distPageIndex = 0; distPageIndex < distPageCount; ++distPageIndex)
+                        {
+                            // Create distribution page and setup virtual id
+                            var page = new DistributionPage();
+                            // Ensure page has exclusive lock during init
+                            await page.SetDistributionLockAsync(ObjectLockType.Exclusive).ConfigureAwait(false);
+                            subTasks.Add(InitDistributionPage(page, distPageIndex, pageCount));
+                            pages.Add(page);
+                        }
+
+                        // Wait for all pages to init or load and import
                         if (Logger.IsDebugEnabled())
                         {
                             Logger.Debug(
-                                $"Preparing to create distribution pages to cover device {_deviceId} of {pageCount} pages");
+                                $"Waiting for distribution page creation to complete for device {DeviceId}...");
                         }
 
-                        var subTasks = new List<Task>();
-
-                        // Calculate number of distribution pages to deal with
-                        var strideLength = DistributionPage.PageTrackingCount + 1;
-                        var distPageCount = ((pageCount - DistributionPageOffset) / strideLength) + 1;
-
-                        var pages = new List<DistributionPage>();
-                        try
+                        await TaskExtra
+                            .WhenAllOrEmpty(subTasks.ToArray())
+                            .ConfigureAwait(false);
+                    }
+                    finally
+                    {
+                        // Cleanup allocated pages
+                        foreach (var page in pages)
                         {
-                            for (uint distPageIndex = 0; distPageIndex < distPageCount; ++distPageIndex)
-                            {
-                                // Create distribution page and setup virtual id
-                                var page = new DistributionPage();
-                                // Ensure page has exclusive lock during init
-                                await page.SetDistributionLockAsync(ObjectLockType.Exclusive).ConfigureAwait(false);
-                                subTasks.Add(InitDistributionPage(page, distPageIndex, pageCount));
-                                pages.Add(page);
-                            }
-
-                            // Wait for all pages to init or load and import
-                            if (Logger.IsDebugEnabled())
-                            {
-                                Logger.Debug(
-                                    $"Waiting for distribution page creation to complete for device {_deviceId}...");
-                            }
-
-                            await TaskExtra
-                                .WhenAllOrEmpty(subTasks.ToArray())
-                                .ConfigureAwait(false);
-                        }
-                        finally
-                        {
-                            // Cleanup allocated pages
-                            foreach (var page in pages)
-                            {
-                                page.Dispose();
-                            }
+                            page.Dispose();
                         }
                     }
                 }
-                else
+            }
+            else
+            {
+                using (var rootPage = (PrimaryFileGroupRootPage)
+                    await LoadRootPageAsync().ConfigureAwait(false))
                 {
-                    using (var rootPage = (PrimaryFileGroupRootPage)
-                        await LoadRootPageAsync().ConfigureAwait(false))
+                    var pageCount = rootPage.AllocatedPages;
+                    if (Logger.IsDebugEnabled())
                     {
-                        var pageCount = rootPage.AllocatedPages;
+                        Logger.Debug(
+                            $"Preparing to load distribution pages to cover device {DeviceId} of {pageCount} pages");
+                    }
+
+                    var subTasks = new List<Task>();
+
+                    // Calculate number of distribution pages to deal with
+                    var strideLength = DistributionPage.PageTrackingCount + 1;
+                    var distPageCount = ((pageCount - DistributionPageOffset) / strideLength) + 1;
+
+                    var pages = new List<DistributionPage>();
+                    try
+                    {
+                        for (uint distPageIndex = 0; distPageIndex < distPageCount; ++distPageIndex)
+                        {
+                            // Create distribution page and setup virtual id
+                            var page = new DistributionPage();
+                            // Load distribution pages from the underlying device
+                            subTasks.Add(LoadDistributionPageAndImport(distPageIndex, page));
+                            pages.Add(page);
+                        }
+
+                        // Wait for all pages to init or load and import
                         if (Logger.IsDebugEnabled())
                         {
                             Logger.Debug(
-                                $"Preparing to load distribution pages to cover device {_deviceId} of {pageCount} pages");
+                                $"Waiting for distribution page loading to complete for device {DeviceId}...");
                         }
 
-                        var subTasks = new List<Task>();
-
-                        // Calculate number of distribution pages to deal with
-                        var strideLength = DistributionPage.PageTrackingCount + 1;
-                        var distPageCount = ((pageCount - DistributionPageOffset) / strideLength) + 1;
-
-                        var pages = new List<DistributionPage>();
-                        try
+                        await TaskExtra
+                            .WhenAllOrEmpty(subTasks.ToArray())
+                            .ConfigureAwait(false);
+                    }
+                    finally
+                    {
+                        // Cleanup allocated pages
+                        foreach (var page in pages)
                         {
-                            for (uint distPageIndex = 0; distPageIndex < distPageCount; ++distPageIndex)
-                            {
-                                // Create distribution page and setup virtual id
-                                var page = new DistributionPage();
-                                // Load distribution pages from the underlying device
-                                subTasks.Add(LoadDistributionPageAndImport(distPageIndex, page));
-                                pages.Add(page);
-                            }
-
-                            // Wait for all pages to init or load and import
-                            if (Logger.IsDebugEnabled())
-                            {
-                                Logger.Debug(
-                                    $"Waiting for distribution page loading to complete for device {_deviceId}...");
-                            }
-
-                            await TaskExtra
-                                .WhenAllOrEmpty(subTasks.ToArray())
-                                .ConfigureAwait(false);
-                        }
-                        finally
-                        {
-                            // Cleanup allocated pages
-                            foreach (var page in pages)
-                            {
-                                page.Dispose();
-                            }
+                            page.Dispose();
                         }
                     }
-                }
-
-                if (Logger.IsDebugEnabled())
-                {
-                    Logger.Debug($"Open completed for device {_deviceId}");
                 }
             }
         }

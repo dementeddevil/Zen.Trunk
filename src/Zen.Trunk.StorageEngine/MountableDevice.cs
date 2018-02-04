@@ -71,36 +71,32 @@ namespace Zen.Trunk.Storage
         /// <exception cref="InvalidOperationException"></exception>
         public async Task OpenAsync(bool isCreate)
         {
-            if (LifetimeScope == null)
+            using (Logger.BeginDebugTimingLogScope($"{GetType().Name}.OpenAsync"))
             {
-                throw new InvalidOperationException();
-            }
-
-            if (Logger.IsDebugEnabled())
-            {
-                Logger.Debug("Open - Enter");
-            }
-            CheckDisposed();
-            MutateStateOrThrow(MountableDeviceState.Closed, MountableDeviceState.Opening);
-            try
-            {
-                IsCreate = isCreate;
-                await Task.Run(OnOpenAsync).ConfigureAwait(false);
-            }
-            catch
-            {
-                MutateStateOrThrow(MountableDeviceState.Opening, MountableDeviceState.Closed);
-                throw;
-            }
-            finally
-            {
-                IsCreate = false;
-                if (Logger.IsDebugEnabled())
+                if (LifetimeScope == null)
                 {
-                    Logger.Debug("Open - Exit");
+                    throw new InvalidOperationException();
                 }
+
+                CheckDisposed();
+                MutateStateOrThrow(MountableDeviceState.Closed, MountableDeviceState.Opening);
+                try
+                {
+                    IsCreate = isCreate;
+                    await Task.Run(OnOpenAsync).ConfigureAwait(false);
+                }
+                catch
+                {
+                    MutateStateOrThrow(MountableDeviceState.Opening, MountableDeviceState.Closed);
+                    throw;
+                }
+                finally
+                {
+                    IsCreate = false;
+                }
+
+                MutateStateOrThrow(MountableDeviceState.Opening, MountableDeviceState.Open);
             }
-            MutateStateOrThrow(MountableDeviceState.Opening, MountableDeviceState.Open);
         }
 
         /// <summary>

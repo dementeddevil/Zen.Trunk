@@ -141,7 +141,7 @@ namespace Zen.Trunk.Storage
 
         // Underlying page buffer storage
         private IMultipleBufferDevice _bufferDevice;
-        private CachingPageBufferDevice _dataBufferDevice;
+        private ICachingPageBufferDevice _dataBufferDevice;
 
         // File-group mapping
         private readonly Dictionary<FileGroupId, FileGroupDevice> _fileGroupById =
@@ -302,13 +302,13 @@ namespace Zen.Trunk.Storage
             }
         }
 
-        private CachingPageBufferDevice CachingBufferDevice
+        private ICachingPageBufferDevice CachingBufferDevice
         {
             get
             {
                 if (_dataBufferDevice == null)
                 {
-                    _dataBufferDevice = GetService<CachingPageBufferDevice>();
+                    _dataBufferDevice = GetService<ICachingPageBufferDevice>();
                 }
                 return _dataBufferDevice;
             }
@@ -520,7 +520,7 @@ namespace Zen.Trunk.Storage
         public Task<IndexId> AddFileGroupTableIndexAsync(AddFileGroupTableIndexParameters tableIndexParams)
         {
             var request = new AddFileGroupTableIndexRequest(tableIndexParams);
-            if(!AddFileGroupTableIndexPort.Post(request))
+            if (!AddFileGroupTableIndexPort.Post(request))
             {
                 throw new BufferDeviceShuttingDownException();
             }
@@ -669,7 +669,7 @@ namespace Zen.Trunk.Storage
                 .As<IMultipleBufferDevice>()
                 .SingleInstance();
             builder.RegisterType<CachingPageBufferDevice>()
-                .AsSelf()
+                .As<ICachingPageBufferDevice>()
                 .SingleInstance();
 
             builder
@@ -705,11 +705,6 @@ namespace Zen.Trunk.Storage
         /// </returns>
         protected override async Task OnOpenAsync()
         {
-            if (Logger.IsInfoEnabled())
-            {
-                Logger.Info("DatabaseDevice.OnOpen -> Start");
-            }
-
             // Sanity check
             if (_fileGroupById.Count == 0)
             {
