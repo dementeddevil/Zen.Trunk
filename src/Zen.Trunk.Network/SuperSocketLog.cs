@@ -1,206 +1,206 @@
 using System;
-using SuperSocket.SocketBase.Logging;
-using LogExtensions = Zen.Trunk.Logging.LogExtensions;
+using SSocket = SuperSocket.SocketBase.Logging;
+using Zen.Trunk.Logging;
 
 namespace Zen.Trunk.Network
 {
-    internal class SuperSocketLog : ILog
+    internal class SuperSocketLog : SSocket.ILog
     {
-        private readonly Logging.ILog _innerLog;
+        private readonly ILog _innerLog;
 
-        public SuperSocketLog(Zen.Trunk.Logging.ILog innerLog)
+        public SuperSocketLog(ILog innerLog)
         {
             _innerLog = innerLog;
         }
 
-        public bool IsFatalEnabled => LogExtensions.IsFatalEnabled(_innerLog);
+        public bool IsFatalEnabled => _innerLog.IsFatalEnabled();
 
-        public bool IsErrorEnabled => LogExtensions.IsErrorEnabled(_innerLog);
+        public bool IsErrorEnabled => _innerLog.IsErrorEnabled();
 
-        public bool IsWarnEnabled => LogExtensions.IsWarnEnabled(_innerLog);
+        public bool IsWarnEnabled => _innerLog.IsWarnEnabled();
 
-        public bool IsInfoEnabled => LogExtensions.IsInfoEnabled(_innerLog);
+        public bool IsInfoEnabled => _innerLog.IsInfoEnabled();
 
-        public bool IsDebugEnabled => LogExtensions.IsDebugEnabled(_innerLog);
+        public bool IsDebugEnabled => _innerLog.IsDebugEnabled();
 
         public void Fatal(object message)
         {
-            LogExtensions.Fatal(_innerLog, message.ToString());
+            _innerLog.Fatal(message.ToString());
         }
 
         public void Fatal(object message, Exception exception)
         {
-            LogExtensions.FatalException(_innerLog, message.ToString(), exception);
+            _innerLog.FatalException(message.ToString(), exception);
         }
 
         public void FatalFormat(string format, params object[] args)
         {
-            LogExtensions.FatalFormat(_innerLog, format, args);
+            _innerLog.FatalFormat(format, args);
         }
 
         public void FatalFormat(IFormatProvider provider, string format, params object[] args)
         {
             var message = string.Format(provider, format, args);
-            LogExtensions.Fatal(_innerLog, message);
+            _innerLog.Fatal(message);
         }
 
         public void FatalFormat(string format, object arg0)
         {
-            LogExtensions.FatalFormat(_innerLog, format, arg0);
+            _innerLog.FatalFormat(format, arg0);
         }
 
         public void FatalFormat(string format, object arg0, object arg1)
         {
-            LogExtensions.FatalFormat(_innerLog, format, arg0, arg1);
+            _innerLog.FatalFormat(format, arg0, arg1);
         }
 
         public void FatalFormat(string format, object arg0, object arg1, object arg2)
         {
-            LogExtensions.FatalFormat(_innerLog, format, arg0, arg1, arg2);
+            _innerLog.FatalFormat(format, arg0, arg1, arg2);
         }
 
         public void Error(object message)
         {
-            LogExtensions.Error(_innerLog, message.ToString());
+            _innerLog.Error(message.ToString());
         }
 
         public void Error(object message, Exception exception)
         {
-            LogExtensions.ErrorException(_innerLog, message.ToString(), exception);
+            _innerLog.ErrorException(message.ToString(), exception);
         }
 
         public void ErrorFormat(string format, params object[] args)
         {
-            LogExtensions.ErrorFormat(_innerLog, format, args);
+            _innerLog.ErrorFormat(format, args);
         }
 
         public void ErrorFormat(IFormatProvider provider, string format, params object[] args)
         {
             var message = string.Format(provider, format, args);
-            LogExtensions.Error(_innerLog, message);
+            _innerLog.Error(message);
         }
 
         public void ErrorFormat(string format, object arg0)
         {
-            LogExtensions.ErrorFormat(_innerLog, format, arg0);
+            _innerLog.ErrorFormat(format, arg0);
         }
 
         public void ErrorFormat(string format, object arg0, object arg1)
         {
-            LogExtensions.ErrorFormat(_innerLog, format, arg0, arg1);
+            _innerLog.ErrorFormat(format, arg0, arg1);
         }
 
         public void ErrorFormat(string format, object arg0, object arg1, object arg2)
         {
-            LogExtensions.ErrorFormat(_innerLog, format, arg0, arg1, arg2);
+            _innerLog.ErrorFormat(format, arg0, arg1, arg2);
         }
 
         public void Warn(object message)
         {
-            LogExtensions.Warn(_innerLog, message.ToString());
+            _innerLog.Warn(message.ToString());
         }
 
         public void Warn(object message, Exception exception)
         {
-            LogExtensions.WarnException(_innerLog, message.ToString(), exception);
+            _innerLog.WarnException(message.ToString(), exception);
         }
 
         public void WarnFormat(string format, params object[] args)
         {
-            LogExtensions.WarnFormat(_innerLog, format, args);
+            _innerLog.WarnFormat(format, args);
         }
 
         public void WarnFormat(IFormatProvider provider, string format, params object[] args)
         {
             var message = string.Format(provider, format, args);
-            LogExtensions.Warn(_innerLog, message);
+            _innerLog.Warn(message);
         }
 
         public void WarnFormat(string format, object arg0)
         {
-            LogExtensions.WarnFormat(_innerLog, format, arg0);
+            _innerLog.WarnFormat(format, arg0);
         }
 
         public void WarnFormat(string format, object arg0, object arg1)
         {
-            LogExtensions.WarnFormat(_innerLog, format, arg0, arg1);
+            _innerLog.WarnFormat(format, arg0, arg1);
         }
 
         public void WarnFormat(string format, object arg0, object arg1, object arg2)
         {
-            LogExtensions.WarnFormat(_innerLog, format, arg0, arg1, arg2);
+            _innerLog.WarnFormat(format, arg0, arg1, arg2);
         }
 
         public void Info(object message)
         {
-            LogExtensions.Info(_innerLog, message.ToString());
+            _innerLog.Info(message.ToString());
         }
 
         public void Info(object message, Exception exception)
         {
-            LogExtensions.InfoException(_innerLog, message.ToString(), exception);
+            _innerLog.InfoException(message.ToString(), exception);
         }
 
         public void InfoFormat(string format, params object[] args)
         {
-            LogExtensions.InfoFormat(_innerLog, format, args);
+            _innerLog.InfoFormat(format, args);
         }
 
         public void InfoFormat(IFormatProvider provider, string format, params object[] args)
         {
             var message = string.Format(provider, format, args);
-            LogExtensions.Info(_innerLog, message);
+            _innerLog.Info(message);
         }
 
         public void InfoFormat(string format, object arg0)
         {
-            LogExtensions.InfoFormat(_innerLog, format, arg0);
+            _innerLog.InfoFormat(format, arg0);
         }
 
         public void InfoFormat(string format, object arg0, object arg1)
         {
-            LogExtensions.InfoFormat(_innerLog, format, arg0, arg1);
+            _innerLog.InfoFormat(format, arg0, arg1);
         }
 
         public void InfoFormat(string format, object arg0, object arg1, object arg2)
         {
-            LogExtensions.InfoFormat(_innerLog, format, arg0, arg1, arg2);
+            _innerLog.InfoFormat(format, arg0, arg1, arg2);
         }
 
         public void Debug(object message)
         {
-            LogExtensions.Debug(_innerLog, message.ToString());
+            _innerLog.Debug(message.ToString());
         }
 
         public void Debug(object message, Exception exception)
         {
-            LogExtensions.DebugException(_innerLog, message.ToString(), exception);
+            _innerLog.DebugException(message.ToString(), exception);
         }
 
         public void DebugFormat(string format, params object[] args)
         {
-            LogExtensions.DebugFormat(_innerLog, format, args);
+            _innerLog.DebugFormat(format, args);
         }
 
         public void DebugFormat(IFormatProvider provider, string format, params object[] args)
         {
             var message = string.Format(provider, format, args);
-            LogExtensions.Debug(_innerLog, message);
+            _innerLog.Debug(message);
         }
 
         public void DebugFormat(string format, object arg0)
         {
-            LogExtensions.DebugFormat(_innerLog, format, arg0);
+            _innerLog.DebugFormat(format, arg0);
         }
 
         public void DebugFormat(string format, object arg0, object arg1)
         {
-            LogExtensions.DebugFormat(_innerLog, format, arg0, arg1);
+            _innerLog.DebugFormat(format, arg0, arg1);
         }
 
         public void DebugFormat(string format, object arg0, object arg1, object arg2)
         {
-            LogExtensions.DebugFormat(_innerLog, format, arg0, arg1, arg2);
+            _innerLog.DebugFormat(format, arg0, arg1, arg2);
         }
     }
 }

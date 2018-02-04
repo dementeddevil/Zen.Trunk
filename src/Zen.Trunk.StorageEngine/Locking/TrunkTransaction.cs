@@ -582,6 +582,7 @@ namespace Zen.Trunk.Storage.Locking
                     }
                     catch
                     {
+                        // ignored
                     }
                 }
 
@@ -610,7 +611,7 @@ namespace Zen.Trunk.Storage.Locking
             }
             catch (Exception)
             {
-                // If commit fails then mark as aborted.
+                // ignored
             }
             finally
             {

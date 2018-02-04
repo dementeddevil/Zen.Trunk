@@ -16,10 +16,7 @@ namespace Zen.Trunk.VirtualMemory
         /// <value>
         /// The buffer factory.
         /// </value>
-        IVirtualBufferFactory BufferFactory
-		{
-			get;
-		}
+        IVirtualBufferFactory BufferFactory { get; }
 
         /// <summary>
         /// Opens the asynchronous.

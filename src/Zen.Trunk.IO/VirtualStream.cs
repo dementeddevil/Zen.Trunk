@@ -318,7 +318,7 @@ namespace Zen.Trunk.IO
         {
             if (_memoryFlag == VirtualStreamMemoryFlag.AutoOverflowToDisk &&
                 _memoryBackingStore != null &&
-                _memoryBackingStore.Length > _thresholdSize)
+                (force || _memoryBackingStore.Length > _thresholdSize))
             {
                 // Create file-based storage
                 _fileBackingStore =

@@ -66,6 +66,11 @@
         /// </returns>
         public override bool Equals(object obj)
         {
+            if (obj == null)
+            {
+                return false;
+            }
+
             var rhs = (LockOwnerIdentity)obj;
             return SessionId == rhs.SessionId && TransactionId == rhs.TransactionId;
         }

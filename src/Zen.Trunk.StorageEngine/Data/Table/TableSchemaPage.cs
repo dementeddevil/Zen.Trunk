@@ -202,16 +202,6 @@ namespace Zen.Trunk.Storage.Data.Table
 			return base.OnInitAsync(e);
 		}
 
-        /// <summary>
-        /// Reads the page header block from the specified buffer reader.
-        /// </summary>
-        /// <param name="streamManager">The stream manager.</param>
-	    protected override void ReadHeader(SwitchingBinaryReader streamManager)
-	    {
-	        base.ReadHeader(streamManager);
-
-	    }
-
 	    /// <summary>
         /// Writes the page header block to the specified buffer writer.
         /// </summary>

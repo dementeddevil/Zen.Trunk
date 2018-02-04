@@ -393,8 +393,7 @@ namespace Zen.Trunk.Storage.Data
 				}
 
 				// Write log record to underlying device.
-				var privTxn = TrunkTransactionContext.Current as ITrunkTransactionPrivate;
-				if (privTxn != null)
+			    if (TrunkTransactionContext.Current is ITrunkTransactionPrivate privTxn)
 				{
 					await privTxn.WriteLogEntryAsync(entry).ConfigureAwait(false);
 				}
@@ -750,14 +749,12 @@ namespace Zen.Trunk.Storage.Data
 
 		private Task LoadBufferAsync(IVirtualBuffer buffer)
 		{
-			var mbd = _bufferDevice as IMultipleBufferDevice;
-			if (mbd != null)
+		    if (_bufferDevice is IMultipleBufferDevice mbd)
 			{
 				return mbd.LoadBufferAsync(PageId, buffer);
 			}
 
-		    var sbd = _bufferDevice as ISingleBufferDevice;
-		    if (sbd != null)
+		    if (_bufferDevice is ISingleBufferDevice sbd)
 		    {
 		        return sbd.LoadBufferAsync(PageId.PhysicalPageId, buffer);
 		    }
@@ -769,13 +766,11 @@ namespace Zen.Trunk.Storage.Data
 		{
 		    try
 		    {
-			    var mbd = _bufferDevice as IMultipleBufferDevice;
-		        var sbd = _bufferDevice as ISingleBufferDevice;
-			    if (mbd != null)
+		        if (_bufferDevice is IMultipleBufferDevice mbd)
 			    {
 				    await mbd.SaveBufferAsync(PageId, buffer).ConfigureAwait(false);
 			    }
-			    else if (sbd != null)
+			    else if (_bufferDevice is ISingleBufferDevice sbd)
 			    {
 				    await sbd.SaveBufferAsync(PageId.PhysicalPageId, buffer).ConfigureAwait(false);
 			    }
@@ -803,6 +798,7 @@ namespace Zen.Trunk.Storage.Data
 			return SwitchStateAsync(PageBufferStateFactory.GetState(newState), userState);
 		}
 
+	    // ReSharper disable once UnusedMember.Local
 		private Task WaitForAnyStateAsync(params PageBufferStateType[] states)
 		{
 			if (states.Any(item => item == CurrentStateType))
@@ -815,13 +811,14 @@ namespace Zen.Trunk.Storage.Data
 			return trigger.Task;
 		}
 
+	    // ReSharper disable once UnusedMember.Local
 		private void RaiseStateTriggers(PageBufferStateType state)
 		{
 			foreach (var trigger in _triggers.Values.ToArray())
 			{
 				if (trigger.CompleteTrigger(state))
 				{
-					_triggers.TryRemove(trigger.Id, out var temp);
+					_triggers.TryRemove(trigger.Id, out var _);
 				}
 			}
 		}

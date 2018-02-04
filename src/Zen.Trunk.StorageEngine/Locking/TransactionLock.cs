@@ -673,6 +673,7 @@ namespace Zen.Trunk.Storage.Locking
             }
         }
 
+        // ReSharper disable once ParameterOnlyUsedForPreconditionCheck.Local
         private LockOwnerIdentity GetThreadLockOwnerIdentity(bool throwIfMissing)
         {
             var sessionId = SessionId.Zero;

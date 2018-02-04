@@ -40,8 +40,12 @@ namespace Zen.Trunk.Storage.Data
         {
             await base.ProcessPrimaryRootPageAsync(rootPage);
 
+            if (!(rootPage is MasterDatabasePrimaryFileGroupRootPage masterRootPage))
+            {
+                return;
+            }
+
             var masterDatabase = GetService<MasterDatabaseDevice>();
-            var masterRootPage = rootPage as MasterDatabasePrimaryFileGroupRootPage;
             foreach (var databaseInfo in masterRootPage.GetDatabaseEnumerator())
             {
                 // TODO: Mount each database

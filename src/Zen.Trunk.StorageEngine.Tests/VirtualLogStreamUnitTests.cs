@@ -14,10 +14,7 @@ namespace Zen.Trunk.Storage
         public void WhenStreamIsInitialisedTheLengthIsTwoHeaders()
         {
             var mockedLogDevice = new Moq.Mock<ILogPageDevice>();
-            var logFileInfo =
-                new VirtualLogFileInfo
-                {
-                };
+            var logFileInfo = new VirtualLogFileInfo();
 
             using (var stream = new MemoryStream())
             {
@@ -35,10 +32,7 @@ namespace Zen.Trunk.Storage
         public void CreateStreamAndWriteCheckpoint()
         {
             var mockedLogDevice = new Moq.Mock<ILogPageDevice>();
-            var logFileInfo =
-                new VirtualLogFileInfo
-                {
-                };
+            var logFileInfo = new VirtualLogFileInfo();
 
             using (var stream = new MemoryStream())
             {

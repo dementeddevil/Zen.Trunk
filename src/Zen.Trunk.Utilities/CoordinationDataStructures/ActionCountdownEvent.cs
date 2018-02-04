@@ -85,7 +85,7 @@ namespace Zen.Trunk.CoordinationDataStructures
         /// <param name="disposing">
         /// true if called because the object is being disposed; otherwise, false.
         /// </param>
-        protected void Dispose(bool disposing)
+        protected virtual void Dispose(bool disposing)
         {
             if (disposing)
             {

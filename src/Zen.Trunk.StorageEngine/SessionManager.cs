@@ -51,7 +51,7 @@ namespace Zen.Trunk.Storage
 
         private void OnSessionDisposed(Session session)
         {
-            _activeSessions.TryRemove(session.SessionId, out var temp);
+            _activeSessions.TryRemove(session.SessionId, out var _);
         }
     }
 }

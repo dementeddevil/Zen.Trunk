@@ -81,12 +81,16 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AddDeviceParameters.cs" />
+    <Compile Include="FlushCachingDeviceParameters.cs" />
+    <Compile Include="FlushDeviceParameters.cs" />
     <Compile Include="IBufferDeviceInfo.cs" />
-    <Compile Include="BufferDeviceMessages.cs" />
+    <Compile Include="FlushParameters.cs" />
     <Compile Include="BufferDeviceShuttingDownException.cs" />
     <Compile Include="DeviceId.cs" />
     <Compile Include="IBufferDeviceFactory.cs" />
     <Compile Include="IVirtualBuffer.cs" />
+    <Compile Include="RemoveDeviceParameters.cs" />
     <Compile Include="VirtualPageId.cs" />
     <Compile Include="IBufferDevice.cs" />
     <Compile Include="IMultipleBufferDevice.cs" />

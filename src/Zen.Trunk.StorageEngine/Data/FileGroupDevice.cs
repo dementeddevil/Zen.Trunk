@@ -694,7 +694,7 @@ namespace Zen.Trunk.Storage.Data
             if (IsCreate)
             {
                 using (var rootPage = (PrimaryFileGroupRootPage)
-                    await _primaryDevice.LoadOrCreateRootPageAsync().ConfigureAwait(false))
+                    await _primaryDevice.LoadRootPageAsync().ConfigureAwait(false))
                 {
                     var bufferDevice = GetService<IMultipleBufferDevice>();
 
@@ -721,12 +721,12 @@ namespace Zen.Trunk.Storage.Data
             }
             else
             {
-                var rootPage = (PrimaryFileGroupRootPage)await _primaryDevice
-                    .LoadOrCreateRootPageAsync().ConfigureAwait(false);
+                var rootPage = (PrimaryFileGroupRootPage)
+                    await _primaryDevice.LoadRootPageAsync().ConfigureAwait(false);
                 while (true)
                 {
                     // Process the root page
-                    await ProcessPrimaryRootPageAsync(rootPage);
+                    await ProcessPrimaryRootPageAsync(rootPage).ConfigureAwait(false);
 
                     // If we have run out of root pages then exit loop
                     if (rootPage.NextLogicalPageId == LogicalPageId.Zero)
@@ -1164,7 +1164,7 @@ namespace Zen.Trunk.Storage.Data
             {
                 // Load the root page and obtain update lock before we start
                 var pageDevice = GetDistributionPageDevice(request.Message.DeviceId);
-                rootPage = await pageDevice.LoadOrCreateRootPageAsync().ConfigureAwait(false);
+                rootPage = await pageDevice.LoadRootPageAsync().ConfigureAwait(false);
                 await rootPage.SetRootLockAsync(FileGroupRootLockType.Shared).ConfigureAwait(false);
 
                 await ExpandDeviceCoreAsync(request.Message.DeviceId, rootPage, request.Message.PageCount).ConfigureAwait(false);
@@ -1179,7 +1179,7 @@ namespace Zen.Trunk.Storage.Data
                     // Get distribution page device
                     var pageDevice = GetDistributionPageDevice(deviceId);
                     rootPage = await pageDevice
-                        .LoadOrCreateRootPageAsync()
+                        .LoadRootPageAsync()
                         .ConfigureAwait(false);
                     if (rootPage.IsExpandable)
                     {
@@ -1243,8 +1243,7 @@ namespace Zen.Trunk.Storage.Data
             List<DeviceId> deviceIds;
             if (request.Message.OnlyUsePrimaryDevice)
             {
-                deviceIds = new List<DeviceId>();
-                deviceIds.Add(PrimaryDeviceId);
+                deviceIds = new List<DeviceId> { PrimaryDeviceId };
             }
             else
             {
@@ -1316,7 +1315,7 @@ namespace Zen.Trunk.Storage.Data
 
             // Load primary file-group root page
             var rootPage = (PrimaryFileGroupRootPage)
-                await _primaryDevice.LoadOrCreateRootPageAsync().ConfigureAwait(false);
+                await _primaryDevice.LoadRootPageAsync().ConfigureAwait(false);
 
             // Attempt to write reference information into a root page
             await rootPage.SetRootLockAsync(FileGroupRootLockType.Exclusive).ConfigureAwait(false);

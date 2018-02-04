@@ -18,8 +18,6 @@ namespace Zen.Trunk.Storage
         private class MockPageDevice : PageDevice, IMultipleBufferDevice
         {
             private readonly DevicePageTracker _pageTracker;
-            private readonly Dictionary<VirtualPageId, PageBuffer> _pages =
-                new Dictionary<VirtualPageId, PageBuffer>();
 
             public MockPageDevice(ILifetimeScope parentLifetimeScope)
             {
@@ -146,7 +144,6 @@ Then the allocation fails.")]
                 .GetTypes()
                 .Where(t => t.IsAssignableTo<Page>() && !t.IsAbstract && t.IsPublic)
                 .Select(pageType => (Page)Activator.CreateInstance(pageType))
-                .Where(p => p != null)
                 .OrderBy(p => p.GetType().Namespace)
                 .ThenBy(p => p.MinHeaderSize);
             foreach (var page in concretePages)

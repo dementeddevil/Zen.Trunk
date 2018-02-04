@@ -208,8 +208,10 @@ namespace Zen.Trunk.Storage.Data.Table
                 }
             }
 
-            public object ExecuteConstraint(object data,
-                TableColumnInfo column, RowConstraint constraint,
+            public object ExecuteConstraint(
+                object data,
+                TableColumnInfo column,
+                RowConstraint constraint,
                 bool forInsert)
             {
                 var result = data;

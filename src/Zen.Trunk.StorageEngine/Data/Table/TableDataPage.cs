@@ -476,7 +476,6 @@ namespace Zen.Trunk.Storage.Data.Table
 					if (rowIndex < (_rowInfo.Count - 1))
 					{
 						// Reclaim unused space
-						var reclaim = (ushort)(_rowInfo[rowIndex].Length - reservationLength);
 						Array.Copy(_pageData, _rowInfo[rowIndex + 1].Offset,
 							_pageData, _rowInfo[rowIndex].Offset + reservationLength,
 							_totalRowDataSize.Value - _rowInfo[rowIndex + 1].Offset);
