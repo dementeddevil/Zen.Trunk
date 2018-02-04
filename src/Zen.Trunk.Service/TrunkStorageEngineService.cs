@@ -22,14 +22,15 @@ namespace Zen.Trunk.Service
     public class TrunkStorageEngineService
     {
         private readonly HostSettings _hostSettings;
+        private readonly string _masterDataPathname;
+        private readonly string _masterLogPathname;
+
         private ILifetimeScope _globalLifetmeScope;
         private ILifetimeScope _serviceLifetimeScope;
         private IDisposable _serviceNameEnricher;
 
         private Logger _globalLogger;
 
-        private string _masterDataPathname;
-        private string _masterLogPathname;
         private string _errorLogPathname;
 
         /// <summary>
