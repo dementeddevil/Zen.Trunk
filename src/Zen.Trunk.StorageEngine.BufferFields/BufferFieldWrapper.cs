@@ -1,4 +1,3 @@
-using System.IO;
 using Zen.Trunk.IO;
 
 namespace Zen.Trunk.Storage.BufferFields
@@ -36,16 +35,6 @@ namespace Zen.Trunk.Storage.BufferFields
         public void Write(SwitchingBinaryWriter streamManager)
         {
             OnWrite(streamManager);
-        }
-        #endregion
-
-        #region Internal Methods
-        internal void ReadFrom(Stream stream)
-        {
-            using (var streamManager = new SwitchingBinaryReader(stream, true))
-            {
-                Read(streamManager);
-            }
         }
         #endregion
     }

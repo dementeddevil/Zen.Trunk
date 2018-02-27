@@ -136,6 +136,10 @@
       <Project>{f7ed3f65-bfe8-4949-8bde-494f12cc30c6}</Project>
       <Name>Zen.Trunk.Utilities</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Zen.Trunk.VirtualMemory.Identifiers\Zen.Trunk.VirtualMemory.Identifiers.csproj">
+      <Project>{98872bb1-74e7-4abb-b0d1-9cc32b24f4c8}</Project>
+      <Name>Zen.Trunk.VirtualMemory.Identifiers</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Zen.Trunk.VirtualMemory.Interfaces\Zen.Trunk.VirtualMemory.Interfaces.csproj">
       <Project>{837f9dbd-7e29-4237-add9-1bd32fef965c}</Project>
       <Name>Zen.Trunk.VirtualMemory.Interfaces</Name>

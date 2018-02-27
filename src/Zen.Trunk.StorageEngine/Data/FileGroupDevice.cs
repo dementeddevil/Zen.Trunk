@@ -149,10 +149,10 @@ namespace Zen.Trunk.Storage.Data
             #endregion
         }
 
-        private class CreateObjectReferenceRequest : TransactionContextTaskRequest<CreateObjectReferenceParameters, ObjectId>
+        private class InsertReferenceInformationRequest : TransactionContextTaskRequest<InsertReferenceInformationRequestParameters, bool>
         {
             #region Public Constructors
-            public CreateObjectReferenceRequest(CreateObjectReferenceParameters parameters)
+            public InsertReferenceInformationRequest(InsertReferenceInformationRequestParameters parameters)
                 : base(parameters)
             {
             }
@@ -245,8 +245,8 @@ namespace Zen.Trunk.Storage.Data
                 {
                     TaskScheduler = taskInterleave.ConcurrentScheduler
                 });
-            CreateObjectReferencePort = new TransactionContextActionBlock<CreateObjectReferenceRequest, ObjectId>(
-                request => CreateObjectReferenceHandlerAsync(request),
+            CreateObjectReferencePort = new TransactionContextActionBlock<InsertReferenceInformationRequest, bool>(
+                request => InsertReferenceInformationHandlerAsync(request),
                 new ExecutionDataflowBlockOptions
                 {
                     TaskScheduler = taskInterleave.ConcurrentScheduler
@@ -387,7 +387,7 @@ namespace Zen.Trunk.Storage.Data
         /// <value>
         /// The create object reference port.
         /// </value>
-        private ITargetBlock<CreateObjectReferenceRequest> CreateObjectReferencePort { get; }
+        private ITargetBlock<InsertReferenceInformationRequest> CreateObjectReferencePort { get; }
 
         /// <summary>
         /// Gets the add table port.
@@ -558,14 +558,14 @@ namespace Zen.Trunk.Storage.Data
         }
 
         /// <summary>
-        /// Creates the object reference.
+        /// Inserts the reference information asynchronous.
         /// </summary>
         /// <param name="parameters">The parameters.</param>
         /// <returns></returns>
         /// <exception cref="BufferDeviceShuttingDownException"></exception>
-        public Task<ObjectId> CreateObjectReferenceAsync(CreateObjectReferenceParameters parameters)
+        public Task InsertReferenceInformationAsync(InsertReferenceInformationRequestParameters parameters)
         {
-            var request = new CreateObjectReferenceRequest(parameters);
+            var request = new InsertReferenceInformationRequest(parameters);
             if (!CreateObjectReferencePort.Post(request))
             {
                 throw new BufferDeviceShuttingDownException();
@@ -1282,39 +1282,50 @@ namespace Zen.Trunk.Storage.Data
             return true;
         }
 
-        private async Task<ObjectId> CreateObjectReferenceHandlerAsync(CreateObjectReferenceRequest request)
+        private async Task<bool> InsertReferenceInformationHandlerAsync(InsertReferenceInformationRequest request)
         {
-            // Determine object id
-            var objectId = _nextObjectId;
-            _nextObjectId = new ObjectId(_nextObjectId.Value + 1);
-
-            // Build object reference information.
-            var objectRef =
-                new ObjectRefInfo
-                {
-                    Name = request.Message.Name,
-                    ObjectType = request.Message.ObjectType,
-                    FileGroupId = FileGroupId,
-                    FirstLogicalPageId = await request.Message.FirstPageFunc(objectId).ConfigureAwait(false)
-                };
+            // Copy device and object references from message
+            var devices = request.Message.Devices?.ToList();
+            var objects = request.Message.Objects?.ToList();
 
             // Load primary file-group root page
-            var rootPage = (PrimaryFileGroupRootPage)
-                await _primaryDevice.LoadRootPageAsync().ConfigureAwait(false);
+            var rootPage = (PrimaryFileGroupRootPage)await _primaryDevice
+                .LoadRootPageAsync()
+                .ConfigureAwait(false);
 
             // Attempt to write reference information into a root page
-            await rootPage.SetRootLockAsync(FileGroupRootLockType.Exclusive).ConfigureAwait(false);
+            await rootPage
+                .SetRootLockAsync(FileGroupRootLockType.Exclusive)
+                .ConfigureAwait(false);
             while (true)
             {
                 // Mark root page as writable and attempt to add object reference
                 rootPage.ReadOnly = false;
                 try
                 {
+                    DeviceInfo device;
+                    while((device = devices?.FirstOrDefault()) != null)
+                    {
+                        rootPage.Devices.Add(device);
+                        rootPage.Save();
+                        devices.Remove(device);
+                    }
+
+                    ObjectRefInfo objectRef;
+                    while ((objectRef = objects?.FirstOrDefault()) != null)
+                    {
+                        rootPage.Objects.Add(objectRef);
+                        rootPage.Save();
+                        objects.Remove(objectRef);
+                    }
+
                     rootPage.Objects.Add(objectRef);
-                    rootPage.Save();
+
+                    // Add new object to our list
+                    _objects.Add(objectRef.ObjectId, objectRef);
 
                     // If we get this far then page has space for object reference
-                    break;
+                    return true;
                 }
                 catch (PageException)
                 {
@@ -1328,42 +1339,41 @@ namespace Zen.Trunk.Storage.Data
                 await rootPage.SetRootLockAsync(FileGroupRootLockType.None).ConfigureAwait(false);
                 rootPage = nextRootPage;
             }
-
-            // Add new object to our list
-            _objects.Add(objectId, objectRef);
-            return objectId;
         }
 
         private async Task<ObjectId> AddTableHandlerAsync(AddTableRequest request)
         {
             // Determine the object identifier for the table
-            return await CreateObjectReferenceAsync(
-                new CreateObjectReferenceParameters(request.Message.TableName, ObjectType.Table,
-                    async (objectId) =>
-                    {
-                        // Create database table helper and setup object
-                        using (var table = GetService<DatabaseTable>())
-                        {
-                            table.FileGroupId = FileGroupId;
-                            table.ObjectId = objectId;
-                            table.IsNewTable = true;
+            //return await CreateObjectReferenceAsync(
+            //    new InsertReferenceInformationRequestParameters(
+            //        request.Message.TableName,
+            //        ObjectType.Table,
+            //        async (objectId) =>
+            //        {
+            //            // Create database table helper and setup object
+            //            using (var table = GetService<DatabaseTable>())
+            //            {
+            //                table.FileGroupId = FileGroupId;
+            //                table.ObjectId = objectId;
+            //                table.IsNewTable = true;
 
-                            // Create columns
-                            table.BeginColumnUpdate();
-                            foreach (var column in request.Message.Columns)
-                            {
-                                table.AddColumn(column, -1);
-                            }
+            //                // Create columns
+            //                table.BeginColumnUpdate();
+            //                foreach (var column in request.Message.Columns)
+            //                {
+            //                    table.AddColumn(column, -1);
+            //                }
 
-                            // Commit table changes
-                            await table
-                                .EndColumnUpdate()
-                                .ConfigureAwait(false);
+            //                // Commit table changes
+            //                await table
+            //                    .EndColumnUpdate()
+            //                    .ConfigureAwait(false);
 
-                            // Return the first logical page id of the schema
-                            return table.SchemaFirstLogicalPageId;
-                        }
-                    })).ConfigureAwait(false);
+            //                // Return the first logical page id of the schema
+            //                return table.SchemaFirstLogicalPageId;
+            //            }
+            //        })).ConfigureAwait(false);
+            return ObjectId.Zero;
         }
 
         private async Task<IndexId> AddTableIndexHandlerAsync(AddTableIndexRequest request)

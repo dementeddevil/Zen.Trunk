@@ -114,7 +114,7 @@ namespace Zen.Trunk.Storage.Data
                     (int)ExtentInfoBytes,
                     false))
                 {
-                    ReadFrom(stream);
+                    this.ReadFrom(stream);
                 }
             }
 

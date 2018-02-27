@@ -115,6 +115,16 @@ namespace Zen.Trunk.Storage
             #endregion
         }
 
+        private class CreateObjectReferenceRequest : TransactionContextTaskRequest<CreateObjectReferenceParameters, ObjectId>
+        {
+            #region Public Constructors
+            public CreateObjectReferenceRequest(CreateObjectReferenceParameters parameters)
+                : base(parameters)
+            {
+            }
+            #endregion
+        }
+
         private class IssueCheckPointRequest : TransactionContextTaskRequest<bool>
         {
         }
@@ -149,6 +159,11 @@ namespace Zen.Trunk.Storage
         private readonly Dictionary<string, FileGroupDevice> _fileGroupByName =
             new Dictionary<string, FileGroupDevice>();
         private FileGroupId _nextFileGroupId = FileGroupId.Primary.Next;
+
+        // Object identifier tracking
+        private ObjectId _nextObjectId = new ObjectId(1);
+        private readonly Dictionary<ObjectId, ObjectRefInfo> _objects =
+            new Dictionary<ObjectId, ObjectRefInfo>();
 
         // Log device
         private MasterLogPageDevice _masterLogPageDevice;
@@ -209,6 +224,12 @@ namespace Zen.Trunk.Storage
                     {
                         TaskScheduler = taskInterleave.ExclusiveScheduler
                     });
+            CreateObjectReferencePort = new TransactionContextActionBlock<CreateObjectReferenceRequest, ObjectId>(
+                request => CreateObjectReferenceHandlerAsync(request),
+                new ExecutionDataflowBlockOptions
+                {
+                    TaskScheduler = taskInterleave.ConcurrentScheduler
+                });
 
             // Table action ports
             AddFileGroupTablePort =
@@ -365,6 +386,14 @@ namespace Zen.Trunk.Storage
         private ITargetBlock<AddFileGroupTableIndexRequest> AddFileGroupTableIndexPort { get; }
 
         /// <summary>
+        /// Gets the create object reference port.
+        /// </summary>
+        /// <value>
+        /// The create object reference port.
+        /// </value>
+        private ITargetBlock<CreateObjectReferenceRequest> CreateObjectReferencePort { get; }
+
+        /// <summary>
         /// Gets the issue check point port.
         /// </summary>
         /// <value>The issue check point port.</value>
@@ -493,6 +522,22 @@ namespace Zen.Trunk.Storage
         {
             var request = new FlushFileGroupRequest(flushParams);
             if (!FlushPageBuffersPort.Post(request))
+            {
+                throw new BufferDeviceShuttingDownException();
+            }
+            return request.Task;
+        }
+
+        /// <summary>
+        /// Creates the object reference.
+        /// </summary>
+        /// <param name="parameters">The parameters.</param>
+        /// <returns></returns>
+        /// <exception cref="BufferDeviceShuttingDownException"></exception>
+        public Task<ObjectId> CreateObjectReferenceAsync(CreateObjectReferenceParameters parameters)
+        {
+            var request = new CreateObjectReferenceRequest(parameters);
+            if (!CreateObjectReferencePort.Post(request))
             {
                 throw new BufferDeviceShuttingDownException();
             }
@@ -646,6 +691,23 @@ namespace Zen.Trunk.Storage
         public void BeginTransaction(IsolationLevel isolationLevel)
         {
             TrunkTransactionContext.BeginTransaction(LifetimeScope, isolationLevel, TimeSpan.FromSeconds(30));
+        }
+
+        /// <summary>
+        /// Processes the object references following the initial load of a set of
+        /// file-group root pages.
+        /// </summary>
+        /// <param name="objectReferences">The object references.</param>
+        internal void ProcessObjectReferences(ICollection<ObjectRefInfo> objectReferences)
+        {
+            foreach (var objRef in objectReferences)
+            {
+                _objects.Add(objRef.ObjectId, objRef);
+                if (objRef.ObjectId > _nextObjectId)
+                {
+                    _nextObjectId = new ObjectId(objRef.ObjectId.Value + 1);
+                }
+            }
         }
         #endregion
 
@@ -1009,6 +1071,63 @@ namespace Zen.Trunk.Storage
             // Delegate request through to caching buffer device
             await CachingBufferDevice.FlushPagesAsync(request.Message).ConfigureAwait(false);
             return true;
+        }
+
+        private async Task<ObjectId> CreateObjectReferenceHandlerAsync(CreateObjectReferenceRequest request)
+        {
+            // Determine object id
+            var objectId = _nextObjectId;
+            _nextObjectId = new ObjectId(_nextObjectId.Value + 1);
+
+            // Build object reference information.
+            var objectRef =
+                new ObjectRefInfo
+                {
+                    Name = request.Message.Name,
+                    ObjectType = request.Message.ObjectType,
+                    FileGroupId = request.Message.FileGroupId,
+                    FirstLogicalPageId = await request.Message.FirstPageFunc(objectId).ConfigureAwait(false)
+                };
+
+            // Load primary file-group root page
+            var primaryFileGroupDevice = _fileGroupById[request.Message.FileGroupId] as PrimaryFileGroupDevice;
+            var rootPage = (PrimaryFileGroupRootPage)primaryFileGroupDevice.CreateRootPage();
+            //var rootPage = (PrimaryFileGroupRootPage) await primaryFileGroupDevice
+            //    .LoadRootPageAsync()
+            //    .ConfigureAwait(false);
+
+            // Attempt to write reference information into a root page
+            await rootPage.SetRootLockAsync(FileGroupRootLockType.Exclusive).ConfigureAwait(false);
+            while (true)
+            {
+                // Mark root page as writable and attempt to add object reference
+                rootPage.ReadOnly = false;
+                try
+                {
+                    rootPage.Objects.Add(objectRef);
+                    rootPage.Save();
+
+                    // If we get this far then page has space for object reference
+                    break;
+                }
+                catch (PageException)
+                {
+                }
+
+                // Failed to add to existing root page; prepare to load/create new rootpage
+                var nextRootPage = await primaryFileGroupDevice
+                    .LoadOrCreateNextLinkedPageAsync(rootPage)
+                    .ConfigureAwait(false);
+
+                // Crab lock page and try again
+                await nextRootPage.SetRootLockAsync(FileGroupRootLockType.Exclusive).ConfigureAwait(false);
+                await rootPage.SetRootLockAsync(FileGroupRootLockType.None).ConfigureAwait(false);
+                rootPage = nextRootPage;
+            }
+
+            // Add new object to our list
+            _objects.Add(objectId, objectRef);
+            return objectId;
         }
 
         private Task<ObjectId> AddFileGroupTableHandlerAsync(AddFileGroupTableRequest request)
