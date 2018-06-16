@@ -6,7 +6,7 @@ namespace Zen.Trunk.Storage.Query
     /// 
     /// </summary>
     /// <seealso cref="Zen.Trunk.Storage.Query.Symbol" />
-    public class VariableSymbol : Symbol
+    public class VariableSymbol : DataTypeSymbol
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="VariableSymbol"/> class.
