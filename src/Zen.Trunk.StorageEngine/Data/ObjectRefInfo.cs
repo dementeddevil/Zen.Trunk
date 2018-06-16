@@ -10,13 +10,14 @@ using Zen.Trunk.VirtualMemory;
 namespace Zen.Trunk.Storage.Data
 {
     /// <summary>
-    /// TODO: Update summary.
+    /// Contains information used to track object references.
     /// </summary>
     /// <seealso cref="BufferFieldWrapper" />
     public class ObjectRefInfo : BufferFieldWrapper
     {
         private readonly BufferFieldObjectId _objectId;
         private readonly BufferFieldObjectType _objectType;
+        private readonly BufferFieldFileGroupId _fileGroupId;
         private readonly BufferFieldStringFixed _name;
         private readonly BufferFieldLogicalPageId _firstPageId;
 
@@ -27,7 +28,8 @@ namespace Zen.Trunk.Storage.Data
         {
             _objectId = new BufferFieldObjectId();
             _objectType = new BufferFieldObjectType(_objectId);
-            _name = new BufferFieldStringFixed(_objectType, 32);
+            _fileGroupId = new BufferFieldFileGroupId(_objectType);
+            _name = new BufferFieldStringFixed(_fileGroupId, 32);
             _firstPageId = new BufferFieldLogicalPageId(_name);
         }
 
@@ -46,15 +48,6 @@ namespace Zen.Trunk.Storage.Data
         /// A <see cref="T:BufferField" /> object.
         /// </value>
         protected override BufferField LastField => _firstPageId;
-
-        /// <summary>
-        /// Gets or sets the file group id.
-        /// </summary>
-        /// <value>The file group id.</value>
-        /// <remarks>
-        /// This value is not persisted.
-        /// </remarks>
-        public FileGroupId FileGroupId { get; set; }
 
         /// <summary>
         /// Gets or sets the root page virtual page id.
@@ -87,6 +80,16 @@ namespace Zen.Trunk.Storage.Data
         {
             get => _objectType.Value;
             set => _objectType.Value = value;
+        }
+
+        /// <summary>
+        /// Gets or sets the file group identifier.
+        /// </summary>
+        /// <value>The file group identifier.</value>
+        public FileGroupId FileGroupId
+        {
+            get => _fileGroupId.Value;
+            set => _fileGroupId.Value = value;
         }
 
         /// <summary>

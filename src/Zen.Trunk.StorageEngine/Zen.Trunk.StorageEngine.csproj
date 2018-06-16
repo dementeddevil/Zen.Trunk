@@ -88,36 +88,9 @@
     <Compile Include="Log\RollbackTransactionLogEntry.cs" />
     <Compile Include="Log\TransactionLogEntry.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="BufferFields\ArrayBufferField.cs" />
-    <Compile Include="BufferFields\BufferField.cs" />
-    <Compile Include="BufferFields\BufferFieldBitVector32.cs" />
-    <Compile Include="BufferFields\BufferFieldBitVector8.cs" />
-    <Compile Include="BufferFields\BufferFieldByte.cs" />
-    <Compile Include="BufferFields\BufferFieldByteArrayUnbounded.cs" />
-    <Compile Include="BufferFields\BufferFieldChangingEventArgs.cs" />
-    <Compile Include="BufferFields\BufferFieldDouble.cs" />
-    <Compile Include="BufferFields\BufferFieldIndexId.cs" />
-    <Compile Include="BufferFields\BufferFieldInt16.cs" />
-    <Compile Include="BufferFields\BufferFieldInt32.cs" />
-    <Compile Include="BufferFields\BufferFieldInt64.cs" />
-    <Compile Include="BufferFields\BufferFieldLogFileId.cs" />
-    <Compile Include="BufferFields\BufferFieldLogicalPageId.cs" />
-    <Compile Include="BufferFields\BufferFieldObjectId.cs" />
-    <Compile Include="BufferFields\BufferFieldObjectType.cs" />
-    <Compile Include="BufferFields\BufferFieldSingle.cs" />
-    <Compile Include="BufferFields\BufferFieldStringFixed.cs" />
-    <Compile Include="BufferFields\BufferFieldStringVariable.cs" />
-    <Compile Include="BufferFields\BufferFieldUInt16.cs" />
-    <Compile Include="BufferFields\BufferFieldUInt32.cs" />
-    <Compile Include="BufferFields\BufferFieldUInt64.cs" />
-    <Compile Include="BufferFields\BufferFieldWrapper.cs" />
-    <Compile Include="BufferFields\BufferFieldWrapperBase.cs" />
-    <Compile Include="BufferFields\SimpleBufferField.cs" />
-    <Compile Include="BufferFields\VariableBufferField.cs" />
     <Compile Include="Configuration\ConfigurationNames.cs" />
     <Compile Include="Configuration\ITrunkConfigurationManager.cs" />
     <Compile Include="Configuration\ITrunkConfigurationSection.cs" />
-    <Compile Include="DatabaseId.cs" />
     <Compile Include="Data\CachingPageBufferDevice.cs" />
     <Compile Include="CoreException.cs" />
     <Compile Include="Data\CachingPageBufferDeviceSettings.cs" />
@@ -189,10 +162,8 @@
     <Compile Include="Data\Table\TableIndexPage.cs" />
     <Compile Include="Data\Table\TableSchemaPage.cs" />
     <Compile Include="SessionManager.cs" />
-    <Compile Include="SessionId.cs" />
     <Compile Include="TableIdentifier.cs" />
     <Compile Include="TemporaryDatabaseDevice.cs" />
-    <Compile Include="FileGroupId.cs" />
     <Compile Include="IMountableDevice.cs" />
     <Compile Include="Locking\GlobalLockManager.cs" />
     <Compile Include="Locking\DistributionLockOwnerBlock.cs" />
@@ -204,12 +175,10 @@
     <Compile Include="Locking\LockOwnerBlockBase.cs" />
     <Compile Include="Locking\TrunkTransaction.cs" />
     <Compile Include="Locking\TrunkTransactionContext.cs" />
-    <Compile Include="LogicalPageId.cs" />
     <Compile Include="Log\ActiveTransaction.cs" />
     <Compile Include="Log\CheckPointInfo.cs" />
     <Compile Include="Log\LogDeviceMessages.cs" />
     <Compile Include="Log\LogEntry.cs" />
-    <Compile Include="Log\LogFileId.cs" />
     <Compile Include="Log\LogPage.cs" />
     <Compile Include="Log\LogPageDevice.cs" />
     <Compile Include="Log\LogRootPage.cs" />
@@ -218,9 +187,6 @@
     <Compile Include="Log\VirtualLogFileInfo.cs" />
     <Compile Include="Log\VirtualLogFileStream.cs" />
     <Compile Include="MountableDevice.cs" />
-    <Compile Include="IndexId.cs" />
-    <Compile Include="ObjectId.cs" />
-    <Compile Include="ObjectType.cs" />
     <Compile Include="PageDevice.cs" />
     <Compile Include="Range.cs" />
     <Compile Include="StatefulBufferScope.cs" />
@@ -254,7 +220,6 @@
     <Compile Include="StatefulBuffer.cs" />
     <Compile Include="Data\TransactionContextTaskRequest.cs" />
     <Compile Include="StorageConstants.cs" />
-    <Compile Include="TransactionId.cs" />
     <Compile Include="TransactionalSpinLock.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -266,9 +231,21 @@
       <Project>{e7e84aa7-daf9-4285-9f66-1ee692676b60}</Project>
       <Name>Zen.Trunk.Logging</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Zen.Trunk.StorageEngine.BufferFields\Zen.Trunk.StorageEngine.BufferFields.csproj">
+      <Project>{d5b09294-1f48-4dd3-b7a1-05fece63b481}</Project>
+      <Name>Zen.Trunk.StorageEngine.BufferFields</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Zen.Trunk.StorageEngine.Identifiers\Zen.Trunk.StorageEngine.Identifiers.csproj">
+      <Project>{e28b4e45-737f-47e6-9e92-52cc220ffccb}</Project>
+      <Name>Zen.Trunk.StorageEngine.Identifiers</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Zen.Trunk.Utilities\Zen.Trunk.Utilities.csproj">
       <Project>{f7ed3f65-bfe8-4949-8bde-494f12cc30c6}</Project>
       <Name>Zen.Trunk.Utilities</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Zen.Trunk.VirtualMemory.Identifiers\Zen.Trunk.VirtualMemory.Identifiers.csproj">
+      <Project>{98872bb1-74e7-4abb-b0d1-9cc32b24f4c8}</Project>
+      <Name>Zen.Trunk.VirtualMemory.Identifiers</Name>
     </ProjectReference>
     <ProjectReference Include="..\Zen.Trunk.VirtualMemory.Interfaces\Zen.Trunk.VirtualMemory.Interfaces.csproj">
       <Project>{837f9dbd-7e29-4237-add9-1bd32fef965c}</Project>
@@ -279,6 +256,7 @@
     <None Include="app.config" />
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

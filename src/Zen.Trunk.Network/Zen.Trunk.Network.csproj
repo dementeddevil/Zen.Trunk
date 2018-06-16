@@ -115,6 +115,18 @@
       <Project>{97135039-f5b3-4bca-9360-e14b1505680d}</Project>
       <Name>Zen.Trunk.Query</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Zen.Trunk.StorageEngine.BufferFields\Zen.Trunk.StorageEngine.BufferFields.csproj">
+      <Project>{d5b09294-1f48-4dd3-b7a1-05fece63b481}</Project>
+      <Name>Zen.Trunk.StorageEngine.BufferFields</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Zen.Trunk.StorageEngine.Identifiers\Zen.Trunk.StorageEngine.Identifiers.csproj">
+      <Project>{e28b4e45-737f-47e6-9e92-52cc220ffccb}</Project>
+      <Name>Zen.Trunk.StorageEngine.Identifiers</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Zen.Trunk.StorageEngine.Interfaces\Zen.Trunk.StorageEngine.Interfaces.csproj">
+      <Project>{72beecc4-72e1-4a9f-bef5-b93af54250aa}</Project>
+      <Name>Zen.Trunk.StorageEngine.Interfaces</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Zen.Trunk.StorageEngine\Zen.Trunk.StorageEngine.csproj">
       <Project>{2f2a3e61-960a-4da0-a087-d45c89b33099}</Project>
       <Name>Zen.Trunk.StorageEngine</Name>
@@ -122,6 +134,10 @@
     <ProjectReference Include="..\Zen.Trunk.Utilities\Zen.Trunk.Utilities.csproj">
       <Project>{f7ed3f65-bfe8-4949-8bde-494f12cc30c6}</Project>
       <Name>Zen.Trunk.Utilities</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Zen.Trunk.VirtualMemory.Identifiers\Zen.Trunk.VirtualMemory.Identifiers.csproj">
+      <Project>{98872bb1-74e7-4abb-b0d1-9cc32b24f4c8}</Project>
+      <Name>Zen.Trunk.VirtualMemory.Identifiers</Name>
     </ProjectReference>
     <ProjectReference Include="..\Zen.Trunk.VirtualMemory.Interfaces\Zen.Trunk.VirtualMemory.Interfaces.csproj">
       <Project>{837f9dbd-7e29-4237-add9-1bd32fef965c}</Project>

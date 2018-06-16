@@ -1,4 +1,6 @@
-﻿using Zen.Trunk.Storage.Data;
+﻿using System;
+using System.Threading.Tasks;
+using Zen.Trunk.Storage.Data;
 using Zen.Trunk.Storage.Data.Table;
 using Zen.Trunk.VirtualMemory;
 
@@ -295,5 +297,16 @@ namespace Zen.Trunk.Storage
         /// </value>
         public string FileGroupName { get; }
         #endregion
+    }
+
+    public class CreateObjectReferenceParameters
+    {
+        public string Name { get; }
+
+        public FileGroupId FileGroupId { get; }
+
+        public ObjectType ObjectType { get; }
+
+        public Func<ObjectId, Task<LogicalPageId>> FirstPageFunc { get; }
     }
 }

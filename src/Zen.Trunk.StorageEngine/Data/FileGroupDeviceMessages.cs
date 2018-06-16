@@ -525,20 +525,27 @@ namespace Zen.Trunk.Storage.Data
     /// <summary>
     /// 
     /// </summary>
-    public class CreateObjectReferenceParameters
+    public class InsertReferenceInformationRequestParameters
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="CreateObjectReferenceParameters"/> class.
+        /// Initializes a new instance of the <see cref="InsertReferenceInformationRequestParameters"/> class.
         /// </summary>
         /// <param name="name">The name.</param>
         /// <param name="objectType">Type of the object.</param>
         /// <param name="firstPageFunc">The first page function.</param>
-        public CreateObjectReferenceParameters(string name, ObjectType objectType, Func<ObjectId, Task<LogicalPageId>> firstPageFunc)
+        public InsertReferenceInformationRequestParameters(
+            string name, 
+            ObjectType objectType, 
+            Func<ObjectId, Task<LogicalPageId>> firstPageFunc)
         {
             Name = name;
             ObjectType = objectType;
             FirstPageFunc = firstPageFunc;
         }
+
+        public ICollection<DeviceInfo> Devices { get; }
+
+        public ICollection<ObjectRefInfo> Objects { get; }
 
         /// <summary>
         /// Gets the name.
