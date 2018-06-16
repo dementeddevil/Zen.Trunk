@@ -9,11 +9,16 @@ namespace Zen.Trunk.Storage.Query
     /// <summary>
     /// 
     /// </summary>
+    /// <remarks>
+    /// Need to add schema scoping support (with dbo default scope used when no schema is specified
+    /// This will affect proc, function and table methods
+    /// </remarks>
     /// <seealso cref="TrunkSqlBaseVisitor{Boolean}" />
     public class SymbolTableValidator : TrunkSqlBaseVisitor<bool>
     {
         private readonly GlobalSymbolScope _globalScope = new GlobalSymbolScope();
         private readonly Stack<SymbolScope> _scopeStack = new Stack<SymbolScope>();
+        private string _currentDatabaseName = "master";
 
         /// <summary>
         /// Gets the global symbol scope.
@@ -32,12 +37,55 @@ namespace Zen.Trunk.Storage.Query
         public SymbolScope CurrentSymbolScope => _scopeStack.Count > 0 ? _scopeStack.Peek() : _globalScope;
 
         /// <summary>
-        /// Gets the current function symbol scope.
+        /// Gets the current database symbol scope.
+        /// </summary>
+        public DatabaseSymbolScope CurrentDatabaseScope => (DatabaseSymbolScope)_scopeStack.FirstOrDefault(s => s is DatabaseSymbolScope);
+
+        /// <summary>
+        /// Gets the current schema symbol scope.
+        /// </summary>
+        public SchemaSymbolScope CurrentSchemaScope => (SchemaSymbolScope)_scopeStack.FirstOrDefault(s => s is SchemaSymbolScope);
+
+        /// <summary>
+        /// Gets the current method symbol scope.
         /// </summary>
         /// <value>
         /// The current function symbol scope.
         /// </value>
-        public FunctionSymbolScope CurrentFunctionSymbolScope => CurrentSymbolScope as FunctionSymbolScope;
+        public MethodSymbolScope CurrentMethodSymbolScope => (MethodSymbolScope)_scopeStack.FirstOrDefault(s => s is MethodSymbolScope);
+
+        public void UpdateDatabaseAndSchemaScopes(string databaseName, string schemaName)
+        {
+            if (string.IsNullOrEmpty(databaseName))
+            {
+                // TODO: Setup current database name
+                databaseName = _currentDatabaseName;
+            }
+
+            if (string.IsNullOrEmpty(schemaName))
+            {
+                schemaName = "dbo";
+            }
+
+            if (CurrentDatabaseScope == null ||
+                !CurrentDatabaseScope.Name.Equals(databaseName, StringComparison.OrdinalIgnoreCase))
+            {
+                // Discard all scopes
+                _scopeStack.Clear();
+                _scopeStack.Push(new DatabaseSymbolScope(databaseName, GlobalSymbolScope));
+            }
+
+            if (CurrentSchemaScope == null ||
+                !CurrentSchemaScope.Name.Equals(schemaName, StringComparison.OrdinalIgnoreCase))
+            {
+                while (!(_scopeStack.Peek() is DatabaseSymbolScope))
+                {
+                    _scopeStack.Pop();
+                }
+
+                _scopeStack.Push(new SchemaSymbolScope(schemaName, _scopeStack.Peek()));
+            }
+        }
 
         /// <summary>
         /// Visit a parse tree produced by <see cref="M:Zen.Trunk.Storage.Query.TrunkSqlParser.create_procedure" />.
@@ -52,19 +100,25 @@ namespace Zen.Trunk.Storage.Query
         /// <return>The visitor result.</return>
         public override bool VisitCreate_procedure(TrunkSqlParser.Create_procedureContext context)
         {
-            // TODO: Look for matching symbol matching context name
-            var funcName = context.func_proc_name().GetText();
-            if (CurrentSymbolScope.Find(funcName) != null)
+            // Update database and schema context based on function name
+            var funcOrProcName = context.func_proc_name();
+            UpdateDatabaseAndSchemaScopes(
+                funcOrProcName.database.GetText(),
+                funcOrProcName.schema.GetText());
+                
+            // Validate that procedure name is unique across the owning schema
+            var funcName = funcOrProcName.procedure.GetText();
+            if (CurrentSchemaScope.Find(funcName) != null)
             {
                 // TODO: Throw information should include symbol location
                 throw new Exception("proc name is not unique");
             }
 
             // Create function symbol for this proc in global scope
-            GlobalSymbolScope.AddSymbol(new FunctionSymbol(funcName, TableColumnDataType.None, 0));
+            CurrentSchemaScope.AddSymbol(new ProcedureSymbol(funcName));
 
             // Create new function symbol scope
-            _scopeStack.Push(new FunctionSymbolScope(GlobalSymbolScope, context.func_proc_name().GetText()));
+            _scopeStack.Push(new MethodSymbolScope(CurrentSchemaScope, funcName));
 
             var result = base.VisitCreate_procedure(context);
 
@@ -299,6 +353,12 @@ namespace Zen.Trunk.Storage.Query
                     symbolName, TableColumnDataType.Guid, 16));
             }
             return base.VisitDeclare_local(context);
+        }
+
+        public override bool VisitUse_statement(TrunkSqlParser.Use_statementContext context)
+        {
+            UpdateDatabaseAndSchemaScopes(context.database.GetText(), null);
+            return base.VisitUse_statement(context);
         }
     }
 }

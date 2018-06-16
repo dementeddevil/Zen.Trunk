@@ -6,7 +6,7 @@ namespace Zen.Trunk.Storage.Query
     /// 
     /// </summary>
     /// <seealso cref="Zen.Trunk.Storage.Query.Symbol" />
-    public class ParameterSymbol : Symbol
+    public class ParameterSymbol : DataTypeSymbol
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="ParameterSymbol"/> class.
