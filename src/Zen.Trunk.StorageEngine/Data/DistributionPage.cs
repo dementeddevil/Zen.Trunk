@@ -409,8 +409,6 @@ namespace Zen.Trunk.Storage.Data
             // Mark this instance as dirty and force save to underlying page buffer
             SetDirty();
             Save();
-            //WriteData();
-            //SetHeaderDirty();
 
             return virtPageId;
         }
