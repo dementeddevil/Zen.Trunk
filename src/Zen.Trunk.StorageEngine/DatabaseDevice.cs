@@ -1091,6 +1091,11 @@ namespace Zen.Trunk.Storage
 
             // Load primary file-group root page
             var primaryFileGroupDevice = _fileGroupById[request.Message.FileGroupId] as PrimaryFileGroupDevice;
+            if (primaryFileGroupDevice == null)
+            {
+                throw new ArgumentException("File group identifier must link to primary file group device.");
+            }
+
             var rootPage = (PrimaryFileGroupRootPage)primaryFileGroupDevice.CreateRootPage();
             //var rootPage = (PrimaryFileGroupRootPage) await primaryFileGroupDevice
             //    .LoadRootPageAsync()

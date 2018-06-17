@@ -39,6 +39,11 @@
 #pragma warning disable 1591
 
 using System.Diagnostics.CodeAnalysis;
+// ReSharper disable RedundantNameQualifier
+// ReSharper disable PartialTypeWithSinglePart
+// ReSharper disable ParameterOnlyUsedForPreconditionCheck.Local
+// ReSharper disable UnusedMember.Local
+// ReSharper disable RedundantUsingDirective
 
 [assembly: SuppressMessage("Microsoft.Design", "CA1020:AvoidNamespacesWithFewTypes", Scope = "namespace", Target = "Zen.Trunk.Logging.Logging")]
 [assembly: SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed", Scope = "member", Target = "Zen.Trunk.Logging.Logging.Logger.#Invoke(Zen.Trunk.Logging.Logging.LogLevel,System.Func`1<System.String>,System.Exception,System.Object[])")]
@@ -351,12 +356,11 @@ namespace Zen.Trunk.Logging
             }
         }
 
-        // ReSharper disable once UnusedParameter.Local
         private static void GuardAgainstNullLogger(ILog logger)
         {
             if (logger == null)
             {
-                throw new ArgumentNullException("logger");
+                throw new ArgumentNullException(nameof(logger));
             }
         }
 
@@ -424,8 +428,8 @@ namespace Zen.Trunk.Logging
 #if !LIBLOG_PROVIDERS_ONLY
         private const string NullLogProvider = "Current Log Provider is not set. Call SetCurrentLogProvider " +
                                                "with a non-null value first.";
-        private static dynamic s_currentLogProvider;
-        private static Action<ILogProvider> s_onCurrentLogProviderSet;
+        private static dynamic _currentLogProvider;
+        private static Action<ILogProvider> _onCurrentLogProviderSet;
 
         [SuppressMessage("Microsoft.Performance", "CA1810:InitializeReferenceTypeStaticFieldsInline")]
         static LogProvider()
@@ -439,7 +443,7 @@ namespace Zen.Trunk.Logging
         /// <param name="logProvider">The log provider.</param>
         public static void SetCurrentLogProvider(ILogProvider logProvider)
         {
-            s_currentLogProvider = logProvider;
+            _currentLogProvider = logProvider;
 
             RaiseOnCurrentLogProviderSet();
         }
@@ -462,7 +466,7 @@ namespace Zen.Trunk.Logging
         {
             set
             {
-                s_onCurrentLogProviderSet = value;
+                _onCurrentLogProviderSet = value;
                 RaiseOnCurrentLogProviderSet();
             }
         }
@@ -471,7 +475,7 @@ namespace Zen.Trunk.Logging
         {
             get
             {
-                return s_currentLogProvider;
+                return _currentLogProvider;
             }
         }
 
@@ -617,9 +621,9 @@ namespace Zen.Trunk.Logging
 #if !LIBLOG_PROVIDERS_ONLY
         private static void RaiseOnCurrentLogProviderSet()
         {
-            if (s_onCurrentLogProviderSet != null)
+            if (_onCurrentLogProviderSet != null)
             {
-                s_onCurrentLogProviderSet(s_currentLogProvider);
+                _onCurrentLogProviderSet(_currentLogProvider);
             }
         }
 #endif
@@ -777,7 +781,6 @@ namespace Zen.Trunk.Logging.LogProviders
     internal class NLogLogProvider : LogProviderBase
     {
         private readonly Func<string, object> _getLoggerByNameDelegate;
-        private static bool s_providerIsAvailableOverride = true;
 
         [SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "LogManager")]
         [SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "NLog")]
@@ -790,11 +793,7 @@ namespace Zen.Trunk.Logging.LogProviders
             _getLoggerByNameDelegate = GetGetLoggerMethodCall();
         }
 
-        public static bool ProviderIsAvailableOverride
-        {
-            get { return s_providerIsAvailableOverride; }
-            set { s_providerIsAvailableOverride = value; }
-        }
+        public static bool ProviderIsAvailableOverride { get; set; } = true;
 
         public override Logger GetLogger(string name)
         {
@@ -859,14 +858,14 @@ namespace Zen.Trunk.Logging.LogProviders
         {
             private readonly dynamic _logger;
 
-            private static Func<string, object, string, Exception, object> _logEventInfoFact;
+            private static readonly Func<string, object, string, Exception, object> LogEventInfoFact;
 
-            private static readonly object _levelTrace;
-            private static readonly object _levelDebug;
-            private static readonly object _levelInfo;
-            private static readonly object _levelWarn;
-            private static readonly object _levelError;
-            private static readonly object _levelFatal;
+            private static readonly object LevelTrace;
+            private static readonly object LevelDebug;
+            private static readonly object LevelInfo;
+            private static readonly object LevelWarn;
+            private static readonly object LevelError;
+            private static readonly object LevelFatal;
 
             static NLogLogger()
             {
@@ -879,32 +878,34 @@ namespace Zen.Trunk.Logging.LogProviders
                     }
 
                     var levelFields = logEventLevelType.GetFieldsPortable().ToList();
-                    _levelTrace = levelFields.First(x => x.Name == "Trace").GetValue(null);
-                    _levelDebug = levelFields.First(x => x.Name == "Debug").GetValue(null);
-                    _levelInfo = levelFields.First(x => x.Name == "Info").GetValue(null);
-                    _levelWarn = levelFields.First(x => x.Name == "Warn").GetValue(null);
-                    _levelError = levelFields.First(x => x.Name == "Error").GetValue(null);
-                    _levelFatal = levelFields.First(x => x.Name == "Fatal").GetValue(null);
+                    LevelTrace = levelFields.First(x => x.Name == "Trace").GetValue(null);
+                    LevelDebug = levelFields.First(x => x.Name == "Debug").GetValue(null);
+                    LevelInfo = levelFields.First(x => x.Name == "Info").GetValue(null);
+                    LevelWarn = levelFields.First(x => x.Name == "Warn").GetValue(null);
+                    LevelError = levelFields.First(x => x.Name == "Error").GetValue(null);
+                    LevelFatal = levelFields.First(x => x.Name == "Fatal").GetValue(null);
 
                     var logEventInfoType = Type.GetType("NLog.LogEventInfo, NLog");
                     if (logEventInfoType == null)
                     {
                         throw new InvalidOperationException("Type NLog.LogEventInfo was not found.");
                     }
-                    MethodInfo createLogEventInfoMethodInfo = logEventInfoType.GetMethodPortable("Create",
+
+                    var createLogEventInfoMethodInfo = logEventInfoType.GetMethodPortable("Create",
                         logEventLevelType, typeof(string), typeof(Exception), typeof(IFormatProvider), typeof(string), typeof(object[]));
-                    ParameterExpression loggerNameParam = Expression.Parameter(typeof(string));
-                    ParameterExpression levelParam = Expression.Parameter(typeof(object));
-                    ParameterExpression messageParam = Expression.Parameter(typeof(string));
-                    ParameterExpression exceptionParam = Expression.Parameter(typeof(Exception));
-                    UnaryExpression levelCast = Expression.Convert(levelParam, logEventLevelType);
-                    MethodCallExpression createLogEventInfoMethodCall = Expression.Call(null,
+                    var loggerNameParam = Expression.Parameter(typeof(string));
+                    var levelParam = Expression.Parameter(typeof(object));
+                    var messageParam = Expression.Parameter(typeof(string));
+                    var exceptionParam = Expression.Parameter(typeof(Exception));
+                    var levelCast = Expression.Convert(levelParam, logEventLevelType);
+                    var createLogEventInfoMethodCall = Expression.Call(null,
                         createLogEventInfoMethodInfo,
                         levelCast, loggerNameParam, exceptionParam,
                         Expression.Constant(null, typeof(IFormatProvider)), messageParam, Expression.Constant(null, typeof(object[])));
-                    _logEventInfoFact = Expression.Lambda<Func<string, object, string, Exception, object>>(createLogEventInfoMethodCall,
+                    LogEventInfoFact = Expression.Lambda<Func<string, object, string, Exception, object>>(createLogEventInfoMethodCall,
                         loggerNameParam, levelParam, messageParam, exceptionParam).Compile();
                 }
+                // ReSharper disable once EmptyGeneralCatchClause
                 catch { }
             }
 
@@ -922,19 +923,20 @@ namespace Zen.Trunk.Logging.LogProviders
                 }
                 messageFunc = LogMessageFormatter.SimulateStructuredLogging(messageFunc, formatParameters);
 
-                if (_logEventInfoFact != null)
+                if (LogEventInfoFact != null)
                 {
                     if (IsLogLevelEnable(logLevel))
                     {
-                        var nlogLevel = this.TranslateLevel(logLevel);
-                        Type s_callerStackBoundaryType;
+                        var nlogLevel = TranslateLevel(logLevel);
+                        // ReSharper disable once JoinDeclarationAndInitializer
+                        Type callerStackBoundaryType;
 #if !LIBLOG_PORTABLE
                         StackTrace stack = new StackTrace();
                         Type thisType = GetType();
                         Type knownType0 = typeof(LoggerExecutionWrapper);
                         Type knownType1 = typeof(LogExtensions);
                         //Maybe inline, so we may can't found any LibLog classes in stack
-                        s_callerStackBoundaryType = null;
+                        callerStackBoundaryType = null;
                         for (var i = 0; i < stack.FrameCount; i++)
                         {
                             var declaringType = stack.GetFrame(i).GetMethod().DeclaringType;
@@ -943,17 +945,17 @@ namespace Zen.Trunk.Logging.LogProviders
                                 !IsInTypeHierarchy(knownType1, declaringType))
                             {
                                 if (i > 1)
-                                    s_callerStackBoundaryType = stack.GetFrame(i - 1).GetMethod().DeclaringType;
+                                    callerStackBoundaryType = stack.GetFrame(i - 1).GetMethod().DeclaringType;
                                 break;
                             }
                         }
 #else
-                        s_callerStackBoundaryType = null;
+                        callerStackBoundaryType = null;
 #endif
-                        if (s_callerStackBoundaryType != null)
-                            _logger.Log(s_callerStackBoundaryType, _logEventInfoFact(_logger.Name, nlogLevel, messageFunc(), exception));
+                        if (callerStackBoundaryType != null)
+                            _logger.Log(callerStackBoundaryType, LogEventInfoFact(_logger.Name, nlogLevel, messageFunc(), exception));
                         else
-                            _logger.Log(_logEventInfoFact(_logger.Name, nlogLevel, messageFunc(), exception));
+                            _logger.Log(LogEventInfoFact(_logger.Name, nlogLevel, messageFunc(), exception));
                         return true;
                     }
                     return false;
@@ -1099,17 +1101,17 @@ namespace Zen.Trunk.Logging.LogProviders
                 switch (logLevel)
                 {
                     case LogLevel.Trace:
-                        return _levelTrace;
+                        return LevelTrace;
                     case LogLevel.Debug:
-                        return _levelDebug;
+                        return LevelDebug;
                     case LogLevel.Info:
-                        return _levelInfo;
+                        return LevelInfo;
                     case LogLevel.Warn:
-                        return _levelWarn;
+                        return LevelWarn;
                     case LogLevel.Error:
-                        return _levelError;
+                        return LevelError;
                     case LogLevel.Fatal:
-                        return _levelFatal;
+                        return LevelFatal;
                     default:
                         throw new ArgumentOutOfRangeException("logLevel", logLevel, null);
                 }
@@ -1120,7 +1122,6 @@ namespace Zen.Trunk.Logging.LogProviders
     internal class Log4NetLogProvider : LogProviderBase
     {
         private readonly Func<string, object> _getLoggerByNameDelegate;
-        private static bool s_providerIsAvailableOverride = true;
 
         [SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "LogManager")]
         public Log4NetLogProvider()
@@ -1132,11 +1133,7 @@ namespace Zen.Trunk.Logging.LogProviders
             _getLoggerByNameDelegate = GetGetLoggerMethodCall();
         }
 
-        public static bool ProviderIsAvailableOverride
-        {
-            get { return s_providerIsAvailableOverride; }
-            set { s_providerIsAvailableOverride = value; }
-        }
+        public static bool ProviderIsAvailableOverride { get; set; } = true;
 
         public override Logger GetLogger(string name)
         {
@@ -1228,7 +1225,7 @@ namespace Zen.Trunk.Logging.LogProviders
         internal class Log4NetLogger
         {
             private readonly dynamic _logger;
-            private static Type s_callerStackBoundaryType;
+            private static Type _callerStackBoundaryType;
             private static readonly object CallerStackBoundaryTypeSync = new object();
 
             private readonly object _levelDebug;
@@ -1239,7 +1236,7 @@ namespace Zen.Trunk.Logging.LogProviders
             private readonly Func<object, object, bool> _isEnabledForDelegate;
             private readonly Action<object, object> _logDelegate;
             private readonly Func<object, Type, object, string, Exception, object> _createLoggingEvent;
-            private Action<object, string, object> _loggingEventPropertySetter;
+            private readonly Action<object, string, object> _loggingEventPropertySetter;
 
             [SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "ILogger")]
             internal Log4NetLogger(dynamic logger)
@@ -1406,19 +1403,19 @@ namespace Zen.Trunk.Logging.LogProviders
                                                                 out patternMatches);
 
                 // determine correct caller - this might change due to jit optimizations with method inlining
-                if (s_callerStackBoundaryType == null)
+                if (_callerStackBoundaryType == null)
                 {
                     lock (CallerStackBoundaryTypeSync)
                     {
 #if !LIBLOG_PORTABLE
                         StackTrace stack = new StackTrace();
                         Type thisType = GetType();
-                        s_callerStackBoundaryType = Type.GetType("LoggerExecutionWrapper");
+                        _callerStackBoundaryType = Type.GetType("LoggerExecutionWrapper");
                         for (var i = 1; i < stack.FrameCount; i++)
                         {
                             if (!IsInTypeHierarchy(thisType, stack.GetFrame(i).GetMethod().DeclaringType))
                             {
-                                s_callerStackBoundaryType = stack.GetFrame(i - 1).GetMethod().DeclaringType;
+                                _callerStackBoundaryType = stack.GetFrame(i - 1).GetMethod().DeclaringType;
                                 break;
                             }
                         }
@@ -1430,7 +1427,7 @@ namespace Zen.Trunk.Logging.LogProviders
 
                 var translatedLevel = TranslateLevel(logLevel);
 
-                object loggingEvent = _createLoggingEvent(_logger, s_callerStackBoundaryType, translatedLevel, formattedMessage, exception);
+                object loggingEvent = _createLoggingEvent(_logger, _callerStackBoundaryType, translatedLevel, formattedMessage, exception);
 
                 PopulateProperties(loggingEvent, patternMatches, formatParameters);
 
@@ -1495,7 +1492,6 @@ namespace Zen.Trunk.Logging.LogProviders
     internal class EntLibLogProvider : LogProviderBase
     {
         private const string TypeTemplate = "Microsoft.Practices.EnterpriseLibrary.Logging.{0}, Microsoft.Practices.EnterpriseLibrary.Logging";
-        private static bool s_providerIsAvailableOverride = true;
         private static readonly Type LogEntryType;
         private static readonly Type LoggerType;
         private static readonly Type TraceEventTypeType;
@@ -1527,11 +1523,7 @@ namespace Zen.Trunk.Logging.LogProviders
             }
         }
 
-        public static bool ProviderIsAvailableOverride
-        {
-            get { return s_providerIsAvailableOverride; }
-            set { s_providerIsAvailableOverride = value; }
-        }
+        public static bool ProviderIsAvailableOverride { get; set; } = true;
 
         public override Logger GetLogger(string name)
         {
@@ -1669,7 +1661,6 @@ namespace Zen.Trunk.Logging.LogProviders
     internal class SerilogLogProvider : LogProviderBase
     {
         private readonly Func<string, object> _getLoggerByNameDelegate;
-        private static bool s_providerIsAvailableOverride = true;
 
         [SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "Serilog")]
         public SerilogLogProvider()
@@ -1681,11 +1672,7 @@ namespace Zen.Trunk.Logging.LogProviders
             _getLoggerByNameDelegate = GetForContextMethodCall();
         }
 
-        public static bool ProviderIsAvailableOverride
-        {
-            get { return s_providerIsAvailableOverride; }
-            set { s_providerIsAvailableOverride = value; }
-        }
+        public static bool ProviderIsAvailableOverride { get; set; } = true;
 
         public override Logger GetLogger(string name)
         {
@@ -1930,7 +1917,6 @@ namespace Zen.Trunk.Logging.LogProviders
             params object[] args
             );
 
-        private static bool s_providerIsAvailableOverride = true;
         private readonly WriteDelegate _logWriteDelegate;
 
         public LoupeLogProvider()
@@ -1949,11 +1935,7 @@ namespace Zen.Trunk.Logging.LogProviders
         /// <value>
         /// <c>true</c> if [provider is available override]; otherwise, <c>false</c>.
         /// </value>
-        public static bool ProviderIsAvailableOverride
-        {
-            get { return s_providerIsAvailableOverride; }
-            set { s_providerIsAvailableOverride = value; }
-        }
+        public static bool ProviderIsAvailableOverride { get; set; } = true;
 
         public override Logger GetLogger(string name)
         {
@@ -2099,8 +2081,7 @@ namespace Zen.Trunk.Logging.LogProviders
             return () =>
             {
                 string targetMessage = messageBuilder();
-                IEnumerable<string> patternMatches;
-                return FormatStructuredMessage(targetMessage, formatParameters, out patternMatches);
+                return FormatStructuredMessage(targetMessage, formatParameters, out _);
             };
         }
 
@@ -2129,8 +2110,7 @@ namespace Zen.Trunk.Logging.LogProviders
             {
                 var arg = match.Groups["arg"].Value;
 
-                int notUsed;
-                if (!int.TryParse(arg, out notUsed))
+                if (!int.TryParse(arg, out _))
                 {
                     int argumentIndex = processedArguments.IndexOf(arg);
                     if (argumentIndex == -1)

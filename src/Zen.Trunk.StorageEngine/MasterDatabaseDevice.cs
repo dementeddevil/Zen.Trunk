@@ -312,8 +312,7 @@ namespace Zen.Trunk.Storage
             }
 
             // Locate user database
-            DatabaseDevice device;
-            if (!_userDatabases.TryGetValue(request.Name, out device))
+            if (!_userDatabases.TryGetValue(request.Name, out var device))
             {
                 throw new ArgumentException("Database not found.");
             }

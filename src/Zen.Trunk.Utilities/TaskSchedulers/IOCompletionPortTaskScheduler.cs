@@ -162,7 +162,7 @@ namespace Zen.Trunk.TaskSchedulers
             {
                 // Wait for an item to be posted.
                 // DangerousGetHandle is used so that the safe handle can be closed even while blocked in the call to GetQueuedCompletionStatus.
-                if (!GetQueuedCompletionStatus(_handle.DangerousGetHandle(), out var lpNumberOfBytes, out var lpCompletionKey, out var lpOverlapped, INFINITE_TIMEOUT))
+                if (!GetQueuedCompletionStatus(_handle.DangerousGetHandle(), out _, out _, out _, INFINITE_TIMEOUT))
                 {
                     var errorCode = Marshal.GetLastWin32Error();
                     if (errorCode == 735 /*ERROR_ABANDONED_WAIT_0*/ || errorCode == 6 /*INVALID_HANDLE*/)

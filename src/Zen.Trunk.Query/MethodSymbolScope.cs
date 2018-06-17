@@ -14,16 +14,7 @@
         public MethodSymbolScope(SchemaSymbolScope schemaScope, string functionName)
             : base(functionName, schemaScope)
         {
-            Name = functionName;
         }
-
-        /// <summary>
-        /// Gets the name.
-        /// </summary>
-        /// <value>
-        /// The name.
-        /// </value>
-        public string Name { get; }
 
         /// <summary>
         /// Overridden. Find the symbol in this scope.

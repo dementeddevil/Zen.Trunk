@@ -7,7 +7,7 @@
     <ProjectGuid>{D5B09294-1F48-4DD3-B7A1-05FECE63B481}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Zen.Trunk.StorageEngine.BufferFields</RootNamespace>
+    <RootNamespace>Zen.Trunk.Storage.BufferFields</RootNamespace>
     <AssemblyName>Zen.Trunk.StorageEngine.BufferFields</AssemblyName>
     <TargetFrameworkVersion>v4.7.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>

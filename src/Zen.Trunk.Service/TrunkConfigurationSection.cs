@@ -55,6 +55,7 @@ namespace Zen.Trunk.Service
                             ? _globalKey?.OpenSubKey(subSection, !IsReadOnly)
                             : _globalKey?.CreateSubKey(subSection, true);
                     }
+                    // ReSharper disable once EmptyGeneralCatchClause
                     catch
                     {
                     }

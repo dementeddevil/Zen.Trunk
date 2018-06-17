@@ -4,25 +4,23 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+using System;
+
 namespace Zen.Trunk.Storage
 {
-	using System;
-
 	/// <summary>
 	/// <c>StatefulBufferScope</c> is used to manage the lifetime of a buffer.
 	/// </summary>
 	public class StatefulBufferScope<TBufferType> : IDisposable
 		where TBufferType : StatefulBuffer
 	{
-		private TBufferType _buffer;
-
         /// <summary>
         /// Initializes a new instance of the <see cref="StatefulBufferScope{TBufferType}"/> class.
         /// </summary>
         /// <param name="buffer">The buffer.</param>
         public StatefulBufferScope(TBufferType buffer)
 		{
-			_buffer = buffer;
+			Buffer = buffer;
 		}
 
         /// <summary>
@@ -31,7 +29,7 @@ namespace Zen.Trunk.Storage
         /// <value>
         /// The buffer.
         /// </value>
-        public TBufferType Buffer => _buffer;
+        public TBufferType Buffer { get; private set; }
 
         /// <summary>
         /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
@@ -48,10 +46,10 @@ namespace Zen.Trunk.Storage
         /// <param name="disposing"><c>true</c> to release both managed and unmanaged resources; <c>false</c> to release only unmanaged resources.</param>
         protected virtual void Dispose(bool disposing)
 		{
-			if (_buffer != null)
+			if (disposing && Buffer != null)
 			{
-				_buffer.Release();
-				_buffer = null;
+				Buffer.Release();
+				Buffer = null;
 			}
 		}
 	}

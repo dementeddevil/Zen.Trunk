@@ -73,5 +73,10 @@
         /// The temporary database name
         /// </summary>
         public const string TemporaryDatabaseName = "tempdb";
+
+        /// <summary>
+        /// The default schema name
+        /// </summary>
+        public const string DefaultSchemaName = "dbo";
     }
 }

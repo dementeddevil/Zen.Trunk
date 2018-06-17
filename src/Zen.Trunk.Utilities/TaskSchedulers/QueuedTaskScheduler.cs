@@ -13,6 +13,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+// ReSharper disable UnusedMember.Local
 
 namespace Zen.Trunk.TaskSchedulers
 {

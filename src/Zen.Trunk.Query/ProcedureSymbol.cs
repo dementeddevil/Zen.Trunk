@@ -1,6 +1,4 @@
-﻿using Zen.Trunk.Storage.Data.Table;
-
-namespace Zen.Trunk.Storage.Query
+﻿namespace Zen.Trunk.Storage.Query
 {
     /// <summary>
     /// 
@@ -12,7 +10,6 @@ namespace Zen.Trunk.Storage.Query
         /// Initializes a new instance of the <see cref="ProcedureSymbol"/> class.
         /// </summary>
         /// <param name="name">The name.</param>
-        /// <param name="type">The type.</param>
         public ProcedureSymbol(string name)
             : base(name)
         {

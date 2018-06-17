@@ -18,7 +18,8 @@ namespace Zen.Trunk.CoordinationDataStructures
 	/// </summary>
 	public sealed class TransferStream : AbstractStreamBase
 	{
-		private readonly Stream _writeableStream;
+	    // ReSharper disable once PrivateFieldCanBeConvertedToLocalVariable
+	    private readonly Stream _writeableStream;
 		private readonly BlockingCollection<byte[]> _chunks;
 		private readonly Task _processingTask;
 
