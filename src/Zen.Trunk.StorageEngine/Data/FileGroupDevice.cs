@@ -1317,12 +1317,8 @@ namespace Zen.Trunk.Storage.Data
                         rootPage.Objects.Add(objectRef);
                         rootPage.Save();
                         objects.Remove(objectRef);
+                        _objects.Add(objectRef.ObjectId, objectRef);
                     }
-
-                    rootPage.Objects.Add(objectRef);
-
-                    // Add new object to our list
-                    _objects.Add(objectRef.ObjectId, objectRef);
 
                     // If we get this far then page has space for object reference
                     return true;

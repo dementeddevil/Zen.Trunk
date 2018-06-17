@@ -534,6 +534,8 @@ namespace Zen.Trunk.Storage.Data
         /// <param name="objectType">Type of the object.</param>
         /// <param name="firstPageFunc">The first page function.</param>
         public InsertReferenceInformationRequestParameters(
+            ICollection<DeviceInfo> devices,
+            ICollection<ObjectRefInfo> objects,
             string name, 
             ObjectType objectType, 
             Func<ObjectId, Task<LogicalPageId>> firstPageFunc)
@@ -541,6 +543,8 @@ namespace Zen.Trunk.Storage.Data
             Name = name;
             ObjectType = objectType;
             FirstPageFunc = firstPageFunc;
+            Devices = devices;
+            Objects = objects;
         }
 
         public ICollection<DeviceInfo> Devices { get; }
