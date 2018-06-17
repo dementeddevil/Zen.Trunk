@@ -39,9 +39,17 @@ namespace Zen.Trunk.Storage.Query
         /// <returns></returns>
         public virtual Symbol Find(string symbolName)
         {
-            return _symbolTable.ContainsKey(symbolName)
-                ? _symbolTable[symbolName]
-                : ParentScope?.Find(symbolName);
+            return FindInThisScope(symbolName) ?? FindInParentScope(symbolName);
+        }
+
+        protected Symbol FindInThisScope(string symbolName)
+        {
+            return _symbolTable.ContainsKey(symbolName) ? _symbolTable[symbolName] : null;
+        }
+
+        protected Symbol FindInParentScope(string symbolName)
+        {
+            return ParentScope?.Find(symbolName);
         }
 
         /// <summary>

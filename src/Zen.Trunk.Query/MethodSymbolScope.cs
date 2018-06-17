@@ -25,6 +25,19 @@
         /// </value>
         public string Name { get; }
 
+        /// <summary>
+        /// Overridden. Find the symbol in this scope.
+        /// </summary>
+        /// <param name="symbolName"></param>
+        /// <returns></returns>
+        /// <remarks>
+        /// This overload does not recurse into parent scopes.
+        /// </remarks>
+        public override Symbol Find(string symbolName)
+        {
+            return FindInThisScope(symbolName);
+        }
+
         // ReSharper disable once RedundantOverriddenMember
         /// <summary>
         /// Validates the symbol.

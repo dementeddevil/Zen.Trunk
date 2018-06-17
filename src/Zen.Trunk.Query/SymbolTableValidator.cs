@@ -16,9 +16,13 @@ namespace Zen.Trunk.Storage.Query
     /// <seealso cref="TrunkSqlBaseVisitor{Boolean}" />
     public class SymbolTableValidator : TrunkSqlBaseVisitor<bool>
     {
-        private readonly GlobalSymbolScope _globalScope = new GlobalSymbolScope();
         private readonly Stack<SymbolScope> _scopeStack = new Stack<SymbolScope>();
-        private string _currentDatabaseName = "master";
+        private string _currentDatabaseName;
+
+        public SymbolTableValidator(string currentDatabaseName = null)
+        {
+            _currentDatabaseName = currentDatabaseName ?? "master";
+        }
 
         /// <summary>
         /// Gets the global symbol scope.
@@ -26,7 +30,7 @@ namespace Zen.Trunk.Storage.Query
         /// <value>
         /// The global symbol scope.
         /// </value>
-        public GlobalSymbolScope GlobalSymbolScope => _globalScope;
+        public GlobalSymbolScope GlobalSymbolScope { get; } = new GlobalSymbolScope();
 
         /// <summary>
         /// Gets the current symbol scope.
@@ -34,7 +38,7 @@ namespace Zen.Trunk.Storage.Query
         /// <value>
         /// The current symbol scope.
         /// </value>
-        public SymbolScope CurrentSymbolScope => _scopeStack.Count > 0 ? _scopeStack.Peek() : _globalScope;
+        public SymbolScope CurrentSymbolScope => _scopeStack.Count > 0 ? _scopeStack.Peek() : GlobalSymbolScope;
 
         /// <summary>
         /// Gets the current database symbol scope.
@@ -53,39 +57,6 @@ namespace Zen.Trunk.Storage.Query
         /// The current function symbol scope.
         /// </value>
         public MethodSymbolScope CurrentMethodSymbolScope => (MethodSymbolScope)_scopeStack.FirstOrDefault(s => s is MethodSymbolScope);
-
-        public void UpdateDatabaseAndSchemaScopes(string databaseName, string schemaName)
-        {
-            if (string.IsNullOrEmpty(databaseName))
-            {
-                // TODO: Setup current database name
-                databaseName = _currentDatabaseName;
-            }
-
-            if (string.IsNullOrEmpty(schemaName))
-            {
-                schemaName = "dbo";
-            }
-
-            if (CurrentDatabaseScope == null ||
-                !CurrentDatabaseScope.Name.Equals(databaseName, StringComparison.OrdinalIgnoreCase))
-            {
-                // Discard all scopes
-                _scopeStack.Clear();
-                _scopeStack.Push(new DatabaseSymbolScope(databaseName, GlobalSymbolScope));
-            }
-
-            if (CurrentSchemaScope == null ||
-                !CurrentSchemaScope.Name.Equals(schemaName, StringComparison.OrdinalIgnoreCase))
-            {
-                while (!(_scopeStack.Peek() is DatabaseSymbolScope))
-                {
-                    _scopeStack.Pop();
-                }
-
-                _scopeStack.Push(new SchemaSymbolScope(schemaName, _scopeStack.Peek()));
-            }
-        }
 
         /// <summary>
         /// Visit a parse tree produced by <see cref="M:Zen.Trunk.Storage.Query.TrunkSqlParser.create_procedure" />.
@@ -114,7 +85,7 @@ namespace Zen.Trunk.Storage.Query
                 throw new Exception("proc name is not unique");
             }
 
-            // Create function symbol for this proc in global scope
+            // Create procedure symbol for this proc in global scope
             CurrentSchemaScope.AddSymbol(new ProcedureSymbol(funcName));
 
             // Create new function symbol scope
@@ -122,37 +93,16 @@ namespace Zen.Trunk.Storage.Query
 
             var result = base.VisitCreate_procedure(context);
 
-            // Pop function scope off stack
+            // Pop method scope off stack
             _scopeStack.Pop();
             return result;
         }
 
-        /// <summary>
-        /// Visit a parse tree produced by <see cref="M:Zen.Trunk.Storage.Query.TrunkSqlParser.sql_clauses" />.
-        /// <para>
-        /// The default implementation returns the result of calling <see cref="M:Antlr4.Runtime.Tree.AbstractParseTreeVisitor`1.VisitChildren(Antlr4.Runtime.Tree.IRuleNode)" />
-        /// on <paramref name="context" />.
-        /// </para>
-        /// </summary>
-        /// <param name="context">The parse tree.</param>
-        /// <returns></returns>
-        /// <return>The visitor result.</return>
-        public override bool VisitSql_clauses([NotNull] TrunkSqlParser.Sql_clausesContext context)
+        public override bool VisitBlock_statement(TrunkSqlParser.Block_statementContext context)
         {
-            bool needToPopScope = false;
-            if (CurrentSymbolScope != GlobalSymbolScope)
-            {
-                _scopeStack.Push(new LocalSymbolScope(CurrentSymbolScope));
-                needToPopScope = true;
-            }
-
-            var result = base.VisitSql_clauses(context);
-
-            // If we entered a scope earlier then make sure we pop
-            if (needToPopScope)
-            {
-                _scopeStack.Pop();
-            }
+            _scopeStack.Push(new LocalSymbolScope(CurrentSymbolScope));
+            var result = base.VisitBlock_statement(context);
+            _scopeStack.Pop();
             return result;
         }
 
@@ -357,8 +307,42 @@ namespace Zen.Trunk.Storage.Query
 
         public override bool VisitUse_statement(TrunkSqlParser.Use_statementContext context)
         {
-            UpdateDatabaseAndSchemaScopes(context.database.GetText(), null);
+            _currentDatabaseName = context.database.GetText();
+            UpdateDatabaseAndSchemaScopes(_currentDatabaseName, null);
             return base.VisitUse_statement(context);
+        }
+
+        private void UpdateDatabaseAndSchemaScopes(string databaseName, string schemaName)
+        {
+            if (string.IsNullOrEmpty(databaseName))
+            {
+                databaseName = _currentDatabaseName;
+            }
+
+            if (string.IsNullOrEmpty(schemaName))
+            {
+                schemaName = "dbo";
+            }
+
+            if (CurrentDatabaseScope == null ||
+                !CurrentDatabaseScope.Name.Equals(databaseName, StringComparison.OrdinalIgnoreCase))
+            {
+                // Discard all scopes
+                _scopeStack.Clear();
+                _scopeStack.Push(GlobalSymbolScope.GetDatabaseSymbolScope(databaseName));
+            }
+
+            if (CurrentSchemaScope == null ||
+                !CurrentSchemaScope.Name.Equals(schemaName, StringComparison.OrdinalIgnoreCase))
+            {
+                while (!(_scopeStack.Peek() is DatabaseSymbolScope))
+                {
+                    _scopeStack.Pop();
+                }
+
+                // ReSharper disable once PossibleNullReferenceException
+                _scopeStack.Push(CurrentDatabaseScope.GetSchemaSymbolScope(schemaName));
+            }
         }
     }
 }
