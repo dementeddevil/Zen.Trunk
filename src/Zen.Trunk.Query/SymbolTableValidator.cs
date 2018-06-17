@@ -16,6 +16,27 @@ namespace Zen.Trunk.Storage.Query
     /// <seealso cref="TrunkSqlBaseVisitor{Boolean}" />
     public class SymbolTableValidator : TrunkSqlBaseVisitor<bool>
     {
+        private class SymbolScopeHolder : IDisposable
+        {
+            private readonly SymbolTableValidator _validator;
+            private bool _isDisposed;
+
+            public SymbolScopeHolder(SymbolTableValidator validator, SymbolScope scope)
+            {
+                _validator = validator;
+                _validator._scopeStack.Push(scope);
+            }
+
+            public void Dispose()
+            {
+                if (!_isDisposed)
+                {
+                    _isDisposed = true;
+                    _validator._scopeStack.Pop();
+                }
+            }
+        }
+
         private readonly Stack<SymbolScope> _scopeStack = new Stack<SymbolScope>();
         private string _currentDatabaseName;
 
@@ -89,21 +110,18 @@ namespace Zen.Trunk.Storage.Query
             CurrentSchemaScope.AddSymbol(new ProcedureSymbol(funcName));
 
             // Create new function symbol scope
-            _scopeStack.Push(new MethodSymbolScope(CurrentSchemaScope, funcName));
-
-            var result = base.VisitCreate_procedure(context);
-
-            // Pop method scope off stack
-            _scopeStack.Pop();
-            return result;
+            using (BeginSymbolScope(new MethodSymbolScope(CurrentSchemaScope, funcName)))
+            {
+                return base.VisitCreate_procedure(context);
+            }
         }
 
         public override bool VisitBlock_statement(TrunkSqlParser.Block_statementContext context)
         {
-            _scopeStack.Push(new LocalSymbolScope(CurrentSymbolScope));
-            var result = base.VisitBlock_statement(context);
-            _scopeStack.Pop();
-            return result;
+            using (BeginSymbolScope(new LocalSymbolScope(CurrentSymbolScope)))
+            {
+                return base.VisitBlock_statement(context);
+            }
         }
 
         /// <summary>
@@ -343,6 +361,11 @@ namespace Zen.Trunk.Storage.Query
                 // ReSharper disable once PossibleNullReferenceException
                 _scopeStack.Push(CurrentDatabaseScope.GetSchemaSymbolScope(schemaName));
             }
+        }
+
+        private IDisposable BeginSymbolScope(SymbolScope scope)
+        {
+            return new SymbolScopeHolder(this, scope);
         }
     }
 }
