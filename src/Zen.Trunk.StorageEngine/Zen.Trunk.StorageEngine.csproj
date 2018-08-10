@@ -122,7 +122,7 @@
     <Compile Include="ISessionManager.cs" />
     <Compile Include="Locking\FileGroupRootLock.cs" />
     <Compile Include="Locking\TrunkSession.cs" />
-    <Compile Include="Locking\TrunkSessionContext.cs" />
+    <Compile Include="TrunkSessionContext.cs" />
     <Compile Include="Locking\ITrunkSession.cs" />
     <Compile Include="Locking\ITrunkSessionPrivate.cs" />
     <Compile Include="Locking\ITrunkTransactionPrivate.cs" />
