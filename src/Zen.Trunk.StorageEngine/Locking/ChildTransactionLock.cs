@@ -7,15 +7,16 @@ namespace Zen.Trunk.Storage.Locking
     /// for a lock object that has a parent lock.
     /// </summary>
     /// <typeparam name="TLockTypeEnum">The lock type enum.</typeparam>
-    /// <typeparam name="TParentLockType">The parent lock type.</typeparam>
+    /// <typeparam name="TParentLockTypeEnum">The parent lock type enum.</typeparam>
     /// <seealso cref="Zen.Trunk.Storage.Locking.TransactionLock{LockTypeEnum}" />
-    public abstract class ChildTransactionLock<TLockTypeEnum, TParentLockType> :
-		TransactionLock<TLockTypeEnum>
-		where TLockTypeEnum : struct, IComparable, IConvertible, IFormattable // enum
-		where TParentLockType : class, IReferenceLock
-	{
+    public abstract class ChildTransactionLock<TLockTypeEnum, TParentLockTypeEnum> :
+        TransactionLock<TLockTypeEnum>,
+        IChildTransactionLock<TLockTypeEnum, TParentLockTypeEnum>
+        where TLockTypeEnum : struct, IComparable, IConvertible, IFormattable // enum
+		where TParentLockTypeEnum : struct, IComparable, IConvertible, IFormattable //enum
+    {
 		#region Private Fields
-		private TParentLockType _parentLock;
+		private ITransactionLock<TParentLockTypeEnum> _parentLock;
 		#endregion
 
 		#region Public Properties
@@ -23,14 +24,14 @@ namespace Zen.Trunk.Storage.Locking
 		/// Gets or sets the parent lock.
 		/// </summary>
 		/// <value>The parent.</value>
-		public TParentLockType Parent
+		public ITransactionLock<TParentLockTypeEnum> Parent
 		{
 			get => _parentLock;
 		    set
 			{
 				if (_parentLock != value)
 				{
-				    _parentLock?.ReleaseLock();
+				    ((IReferenceLock) _parentLock)?.ReleaseRefLock();
 				    _parentLock = value;
 				    _parentLock?.AddRefLock();
 				}

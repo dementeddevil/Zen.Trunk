@@ -37,7 +37,7 @@ namespace Zen.Trunk.Storage.Locking
         /// Gets the database lock.
         /// </summary>
         /// <returns></returns>
-        DatabaseLock GetDatabaseLock();
+        IDatabaseLock GetDatabaseLock();
         #endregion
 
         #region File-Group Lock/Unlock
@@ -62,7 +62,7 @@ namespace Zen.Trunk.Storage.Locking
         /// </summary>
         /// <param name="fileGroupId">The file group identifier.</param>
         /// <returns></returns>
-        FileGroupRootLock GetFileGroupLock(FileGroupId fileGroupId);
+        IFileGroupLock GetFileGroupLock(FileGroupId fileGroupId);
         #endregion
 
         #region Distribution Page Locks
@@ -119,7 +119,7 @@ namespace Zen.Trunk.Storage.Locking
         /// </summary>
         /// <param name="virtualPageId">The virtual page identifier.</param>
         /// <returns></returns>
-        ObjectLock GetDistributionLock(VirtualPageId virtualPageId);
+        IObjectLock GetDistributionLock(VirtualPageId virtualPageId);
 
         /// <summary>
         /// Gets the distribution extent lock.
@@ -127,7 +127,7 @@ namespace Zen.Trunk.Storage.Locking
         /// <param name="virtualPageId">The virtual page identifier.</param>
         /// <param name="extentIndex">Index of the extent.</param>
         /// <returns></returns>
-        DataLock GetDistributionExtentLock(VirtualPageId virtualPageId, uint extentIndex);
+        IDataLock GetDistributionExtentLock(VirtualPageId virtualPageId, uint extentIndex);
         #endregion
 
         #region Object Lock/Unlock
@@ -152,7 +152,7 @@ namespace Zen.Trunk.Storage.Locking
         /// </summary>
         /// <param name="objectId">The object identifier.</param>
         /// <returns></returns>
-        ObjectLock GetObjectLock(ObjectId objectId);
+        IObjectLock GetObjectLock(ObjectId objectId);
         #endregion
 
         #region Object-Schema Lock/Unlock
@@ -177,7 +177,7 @@ namespace Zen.Trunk.Storage.Locking
         /// </summary>
         /// <param name="objectId">The object identifier.</param>
         /// <returns></returns>
-        SchemaLock GetSchemaLock(ObjectId objectId);
+        ISchemaLock GetSchemaLock(ObjectId objectId);
         #endregion
 
         #region Index Lock/Unlock
@@ -262,7 +262,7 @@ namespace Zen.Trunk.Storage.Locking
         /// <param name="objectId">The object identifier.</param>
         /// <param name="logicalId">The logical identifier.</param>
         /// <returns></returns>
-        DataLock GetDataLock(ObjectId objectId, LogicalPageId logicalId);
+        IDataLock GetDataLock(ObjectId objectId, LogicalPageId logicalId);
 		#endregion
 	}
 }

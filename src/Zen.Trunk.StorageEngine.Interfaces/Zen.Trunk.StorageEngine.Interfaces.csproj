@@ -1,13 +1,13 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>72beecc4-72e1-4a9f-bef5-b93af54250aa</ProjectGuid>
+    <ProjectGuid>{72BEECC4-72E1-4A9F-BEF5-B93AF54250AA}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Zen.Trunk.StorageEngine.Interfaces</RootNamespace>
+    <RootNamespace>Zen.Trunk.Storage</RootNamespace>
     <AssemblyName>Zen.Trunk.StorageEngine.Interfaces</AssemblyName>
     <TargetFrameworkVersion>v4.7.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
@@ -30,24 +30,53 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="System"/>
-    
-    <Reference Include="System.Core"/>
-    <Reference Include="System.Xml.Linq"/>
-    <Reference Include="System.Data.DataSetExtensions"/>
-    
-    
-    <Reference Include="Microsoft.CSharp"/>
-    
-    <Reference Include="System.Data"/>
-    
-    <Reference Include="System.Net.Http"/>
-    
-    <Reference Include="System.Xml"/>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Transactions" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Class1.cs" />
+    <Compile Include="IMountableDevice.cs" />
+    <Compile Include="ISession.cs" />
+    <Compile Include="ISessionManager.cs" />
+    <Compile Include="Locking\DatabaseLockType.cs" />
+    <Compile Include="Locking\DataLockType.cs" />
+    <Compile Include="Locking\FileGroupRootLockType.cs" />
+    <Compile Include="Locking\IChildTransactionLock.cs" />
+    <Compile Include="Locking\IDatabaseLockManager.cs" />
+    <Compile Include="Locking\IDataLock.cs" />
+    <Compile Include="Locking\IFileGroupLock.cs" />
+    <Compile Include="Locking\IGlobalLockManager.cs" />
+    <Compile Include="Locking\IObjectLock.cs" />
+    <Compile Include="Locking\IPageEnlistmentNotification.cs" />
+    <Compile Include="Locking\IReferenceLock.cs" />
+    <Compile Include="Locking\ISchemaLock.cs" />
+    <Compile Include="Locking\ITransactionLock.cs" />
+    <Compile Include="Locking\ITrunkSession.cs" />
+    <Compile Include="Locking\ITrunkTransaction.cs" />
+    <Compile Include="Locking\IDatabaseLock.cs" />
+    <Compile Include="Locking\ObjectLockType.cs" />
+    <Compile Include="Locking\PageEnlistment.cs" />
+    <Compile Include="Locking\PreparingPageEnlistment.cs" />
+    <Compile Include="Locking\SchemaLockType.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Data\" />
+    <Folder Include="Log\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Zen.Trunk.StorageEngine.Identifiers\Zen.Trunk.StorageEngine.Identifiers.csproj">
+      <Project>{e28b4e45-737f-47e6-9e92-52cc220ffccb}</Project>
+      <Name>Zen.Trunk.StorageEngine.Identifiers</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Zen.Trunk.VirtualMemory.Identifiers\Zen.Trunk.VirtualMemory.Identifiers.csproj">
+      <Project>{98872bb1-74e7-4abb-b0d1-9cc32b24f4c8}</Project>
+      <Name>Zen.Trunk.VirtualMemory.Identifiers</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
- </Project>
+</Project>

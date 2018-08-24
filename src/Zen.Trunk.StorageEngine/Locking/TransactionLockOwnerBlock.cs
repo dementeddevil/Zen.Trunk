@@ -27,8 +27,8 @@ namespace Zen.Trunk.Storage.Locking
 	{
 		#region Private Fields
 		private readonly IDatabaseLockManager _lockManager;
-		private readonly ConcurrentDictionary<FileGroupId, FileGroupRootLock> _rootLocks;
-		private readonly ConcurrentDictionary<ObjectId, SchemaLock> _schemaLocks;
+		private readonly ConcurrentDictionary<FileGroupId, IFileGroupLock> _rootLocks;
+		private readonly ConcurrentDictionary<ObjectId, ISchemaLock> _schemaLocks;
 		private readonly ConcurrentDictionary<VirtualPageId, DistributionLockOwnerBlock> _distributionOwnerBlocks;
 		private readonly ConcurrentDictionary<ObjectId, DataLockOwnerBlock> _dataOwnerBlocks;
 		#endregion
@@ -42,8 +42,8 @@ namespace Zen.Trunk.Storage.Locking
 		public TransactionLockOwnerBlock(IDatabaseLockManager lockManager)
 		{
 			_lockManager = lockManager;
-			_rootLocks = new ConcurrentDictionary<FileGroupId, FileGroupRootLock>();
-			_schemaLocks = new ConcurrentDictionary<ObjectId, SchemaLock>();
+			_rootLocks = new ConcurrentDictionary<FileGroupId, IFileGroupLock>();
+			_schemaLocks = new ConcurrentDictionary<ObjectId, ISchemaLock>();
 			_distributionOwnerBlocks = new ConcurrentDictionary<VirtualPageId, DistributionLockOwnerBlock>();
 			_dataOwnerBlocks = new ConcurrentDictionary<ObjectId, DataLockOwnerBlock>();
 		}
@@ -55,7 +55,7 @@ namespace Zen.Trunk.Storage.Locking
 		/// </summary>
 		/// <param name="fileGroupId">The file group unique identifier.</param>
 		/// <returns></returns>
-		public FileGroupRootLock GetOrCreateRootLock(FileGroupId fileGroupId)
+		public IFileGroupLock GetOrCreateRootLock(FileGroupId fileGroupId)
 		{
 			return _rootLocks.GetOrAdd(
 				fileGroupId,
@@ -67,7 +67,7 @@ namespace Zen.Trunk.Storage.Locking
 		/// </summary>
 		/// <param name="objectId">The object unique identifier.</param>
 		/// <returns></returns>
-		public SchemaLock GetOrCreateSchemaLock(ObjectId objectId)
+		public ISchemaLock GetOrCreateSchemaLock(ObjectId objectId)
 		{
 			return _schemaLocks.GetOrAdd(
 				objectId,
@@ -121,7 +121,7 @@ namespace Zen.Trunk.Storage.Locking
 			{
                 if (_rootLocks.TryRemove(
                     _rootLocks.Keys.First(),
-                    out FileGroupRootLock lockObject))
+                    out IFileGroupLock lockObject))
                 {
                     await lockObject.UnlockAsync().ConfigureAwait(false);
                     lockObject.ReleaseRefLock();
@@ -132,7 +132,7 @@ namespace Zen.Trunk.Storage.Locking
 			{
                 if (_schemaLocks.TryRemove(
                     _schemaLocks.Keys.First(),
-                    out SchemaLock lockObject))
+                    out ISchemaLock lockObject))
                 {
                     await lockObject.UnlockAsync().ConfigureAwait(false);
                     lockObject.ReleaseRefLock();

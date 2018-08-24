@@ -27,7 +27,7 @@ namespace Zen.Trunk.Storage.Data
 		#endregion
 
 		#region Internal Properties
-	    internal SchemaLock ObjectSchemaLock =>
+	    internal ISchemaLock ObjectSchemaLock =>
 	        TransactionLockOwnerBlock?.GetOrCreateSchemaLock(ObjectId);
         #endregion
 

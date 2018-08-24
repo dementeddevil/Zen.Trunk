@@ -72,7 +72,7 @@ namespace Zen.Trunk.Storage.Locking
         /// <returns>
         /// A <see cref="DatabaseLock" /> instance.
         /// </returns>
-        public DatabaseLock GetDatabaseLock(DatabaseId dbId)
+        public IDatabaseLock GetDatabaseLock(DatabaseId dbId)
         {
             var key = LockIdentity.GetDatabaseKey(dbId);
             return _databaseLocks.GetOrCreateLock(key);
@@ -132,7 +132,7 @@ namespace Zen.Trunk.Storage.Locking
         /// <returns>
         /// A <see cref="FileGroupRootLock" /> instance.
         /// </returns>
-        public FileGroupRootLock GetFileGroupLock(DatabaseId dbId, FileGroupId fileGroupId)
+        public IFileGroupLock GetFileGroupLock(DatabaseId dbId, FileGroupId fileGroupId)
         {
             var key = LockIdentity.GetFileGroupRootKey(dbId, fileGroupId);
             var lockObject = _rootLocks.GetOrCreateLock(key);
@@ -281,7 +281,7 @@ namespace Zen.Trunk.Storage.Locking
         /// <returns>
         /// An <see cref="ObjectLock" /> instance.
         /// </returns>
-        public ObjectLock GetDistributionLock(DatabaseId dbId, VirtualPageId virtualPageId)
+        public IObjectLock GetDistributionLock(DatabaseId dbId, VirtualPageId virtualPageId)
         {
             var key = LockIdentity.GetDistributionKey(dbId, virtualPageId);
             var lockObject = _objectLocks.GetOrCreateLock(key);
@@ -305,7 +305,7 @@ namespace Zen.Trunk.Storage.Locking
         /// <returns>
         /// A <see cref="DataLock" /> instance.
         /// </returns>
-        public DataLock GetDistributionExtentLock(DatabaseId dbId, VirtualPageId virtualPageId, uint extentIndex)
+        public IDataLock GetDistributionExtentLock(DatabaseId dbId, VirtualPageId virtualPageId, uint extentIndex)
         {
             var key = LockIdentity.GetDistributionExtentLockKey(dbId, virtualPageId, extentIndex);
             var lockObject = _dataLocks.GetOrCreateLock(key);
@@ -368,7 +368,7 @@ namespace Zen.Trunk.Storage.Locking
         /// <param name="dbId">The database identifier.</param>
         /// <param name="objectId">The object identifier.</param>
         /// <returns></returns>
-        public ObjectLock GetObjectLock(DatabaseId dbId, ObjectId objectId)
+        public IObjectLock GetObjectLock(DatabaseId dbId, ObjectId objectId)
         {
             var key = LockIdentity.GetObjectLockKey(dbId, objectId);
             var lockObject = _objectLocks.GetOrCreateLock(key);
@@ -432,7 +432,7 @@ namespace Zen.Trunk.Storage.Locking
         /// <param name="dbId">The database identifier.</param>
         /// <param name="objectId">The object identifier.</param>
         /// <returns></returns>
-        public SchemaLock GetSchemaLock(DatabaseId dbId, ObjectId objectId)
+        public ISchemaLock GetSchemaLock(DatabaseId dbId, ObjectId objectId)
         {
             // Get schema lock
             var key = LockIdentity.GetSchemaLockKey(dbId, objectId);
@@ -586,7 +586,7 @@ namespace Zen.Trunk.Storage.Locking
         /// <param name="objectId">The object identifier.</param>
         /// <param name="logicalId">The logical identifier.</param>
         /// <returns></returns>
-        public DataLock GetDataLock(DatabaseId dbId, ObjectId objectId, LogicalPageId logicalId)
+        public IDataLock GetDataLock(DatabaseId dbId, ObjectId objectId, LogicalPageId logicalId)
         {
             var key = LockIdentity.GetDataLockKey(dbId, objectId, logicalId);
             var lockObject = _dataLocks.GetOrCreateLock(key);

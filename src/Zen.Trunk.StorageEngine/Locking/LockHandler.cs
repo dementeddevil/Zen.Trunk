@@ -24,7 +24,7 @@ namespace Zen.Trunk.Storage.Locking
     /// </remarks>
     internal class LockHandler<TLockClass, TLockTypeEnum> : ILockHandler
         where TLockTypeEnum : struct, IComparable, IConvertible, IFormattable // enum
-        where TLockClass : TransactionLock<TLockTypeEnum>, new()
+        where TLockClass : TransactionLock<TLockTypeEnum>, ITransactionLock<TLockTypeEnum>, new()
     {
         #region Private Fields
         private static readonly ILog Logger = LogProvider.For<LockHandler<TLockClass, TLockTypeEnum>>();

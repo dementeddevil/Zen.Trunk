@@ -1,7 +1,7 @@
 namespace Zen.Trunk.Storage.Locking
 {
 	/// <summary>
-	/// Interface which exposes reference counting primatives for locking
+	/// Interface which exposes reference counting primitives for locking
 	/// purposes.
 	/// </summary>
 	public interface IReferenceLock
@@ -14,6 +14,6 @@ namespace Zen.Trunk.Storage.Locking
         /// <summary>
         /// Releases the lock.
         /// </summary>
-        void ReleaseLock ();
+        void ReleaseRefLock ();
 	}
 }

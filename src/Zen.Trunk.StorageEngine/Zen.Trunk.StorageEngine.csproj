@@ -73,11 +73,17 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Locking\ILockHandler.cs" />
+    <Compile Include="Locking\IRLockHandler.cs" />
+    <Compile Include="Locking\ITrunkSessionPrivate.cs" />
+    <Compile Include="Locking\ITrunkTransactionPrivate.cs" />
     <Compile Include="Log\BeginCheckPointLogEntry.cs" />
     <Compile Include="Log\BeginTransactionLogEntry.cs" />
     <Compile Include="Log\CheckPointLogEntry.cs" />
     <Compile Include="Log\CommitTransactionLogEntry.cs" />
     <Compile Include="Log\EndCheckPointLogEntry.cs" />
+    <Compile Include="Log\ILogPageDevice.cs" />
+    <Compile Include="Log\IMasterLogPageDevice.cs" />
     <Compile Include="Log\LogEntryComparer.cs" />
     <Compile Include="Log\LogEntryType.cs" />
     <Compile Include="Log\NoOpLogEntry.cs" />
@@ -118,17 +124,10 @@
     <Compile Include="Data\Table\TableSchemaRootPage.cs" />
     <Compile Include="Data\TransactionContextTaskRequestExtensions.cs" />
     <Compile Include="FileSpec.cs" />
-    <Compile Include="ISession.cs" />
-    <Compile Include="ISessionManager.cs" />
     <Compile Include="Locking\FileGroupRootLock.cs" />
     <Compile Include="Locking\TrunkSession.cs" />
     <Compile Include="TrunkSessionContext.cs" />
-    <Compile Include="Locking\ITrunkSession.cs" />
-    <Compile Include="Locking\ITrunkSessionPrivate.cs" />
-    <Compile Include="Locking\ITrunkTransactionPrivate.cs" />
     <Compile Include="Locking\LockOwnerIdentity.cs" />
-    <Compile Include="Log\ILogPageDevice.cs" />
-    <Compile Include="Log\IMasterLogPageDevice.cs" />
     <Compile Include="Log\VirtualLogFileHeader.cs" />
     <Compile Include="MasterDatabaseDevice.cs" />
     <Compile Include="Data\MasterDatabasePrimaryFileGroupDevice.cs" />
@@ -164,13 +163,8 @@
     <Compile Include="SessionManager.cs" />
     <Compile Include="TableIdentifier.cs" />
     <Compile Include="TemporaryDatabaseDevice.cs" />
-    <Compile Include="IMountableDevice.cs" />
     <Compile Include="Locking\GlobalLockManager.cs" />
     <Compile Include="Locking\DistributionLockOwnerBlock.cs" />
-    <Compile Include="Locking\IDatabaseLockManager.cs" />
-    <Compile Include="Locking\IGlobalLockManager.cs" />
-    <Compile Include="Locking\IRLockHandler.cs" />
-    <Compile Include="Locking\ITrunkTransaction.cs" />
     <Compile Include="Locking\LockIdentity.cs" />
     <Compile Include="Locking\LockOwnerBlockBase.cs" />
     <Compile Include="Locking\TrunkTransaction.cs" />
@@ -197,16 +191,11 @@
     <Compile Include="Locking\ChildTransactionLock.cs" />
     <Compile Include="Locking\DatabaseLock.cs" />
     <Compile Include="Locking\DataLock.cs" />
-    <Compile Include="Locking\ILockHandler.cs" />
-    <Compile Include="Locking\IPageEnlistmentNotification.cs" />
-    <Compile Include="Locking\IReferenceLock.cs" />
     <Compile Include="Locking\LockException.cs" />
     <Compile Include="Locking\LockHandler.cs" />
     <Compile Include="Locking\DatabaseLockManager.cs" />
     <Compile Include="Locking\DataLockOwnerBlock.cs" />
     <Compile Include="Locking\ObjectLock.cs" />
-    <Compile Include="Locking\PageEnlistment.cs" />
-    <Compile Include="Locking\PreparingPageEnlistment.cs" />
     <Compile Include="Locking\RLock.cs" />
     <Compile Include="Locking\RLockHandler.cs" />
     <Compile Include="Locking\SchemaLock.cs" />
@@ -238,6 +227,10 @@
     <ProjectReference Include="..\Zen.Trunk.StorageEngine.Identifiers\Zen.Trunk.StorageEngine.Identifiers.csproj">
       <Project>{e28b4e45-737f-47e6-9e92-52cc220ffccb}</Project>
       <Name>Zen.Trunk.StorageEngine.Identifiers</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Zen.Trunk.StorageEngine.Interfaces\Zen.Trunk.StorageEngine.Interfaces.csproj">
+      <Project>{72beecc4-72e1-4a9f-bef5-b93af54250aa}</Project>
+      <Name>Zen.Trunk.StorageEngine.Interfaces</Name>
     </ProjectReference>
     <ProjectReference Include="..\Zen.Trunk.Utilities\Zen.Trunk.Utilities.csproj">
       <Project>{f7ed3f65-bfe8-4949-8bde-494f12cc30c6}</Project>
