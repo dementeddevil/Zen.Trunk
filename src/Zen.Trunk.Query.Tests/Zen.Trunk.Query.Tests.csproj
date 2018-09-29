@@ -118,6 +118,10 @@
       <Project>{97135039-f5b3-4bca-9360-e14b1505680d}</Project>
       <Name>Zen.Trunk.Query</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Zen.Trunk.StorageEngine.Interfaces\Zen.Trunk.StorageEngine.Interfaces.csproj">
+      <Project>{72BEECC4-72E1-4A9F-BEF5-B93AF54250AA}</Project>
+      <Name>Zen.Trunk.StorageEngine.Interfaces</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Zen.Trunk.StorageEngine.Tests\Zen.Trunk.StorageEngine.Tests.csproj">
       <Project>{07e7d6a1-141e-45db-b557-30425540be14}</Project>
       <Name>Zen.Trunk.StorageEngine.Tests</Name>

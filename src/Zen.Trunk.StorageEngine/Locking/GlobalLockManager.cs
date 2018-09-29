@@ -6,7 +6,7 @@ using Zen.Trunk.VirtualMemory;
 namespace Zen.Trunk.Storage.Locking
 {
     /// <summary>
-    /// <c>GlobalLockManager</c> tracks all lock objects across all daatabases
+    /// <c>GlobalLockManager</c> tracks all lock objects across all databases
     /// </summary>
     /// <seealso cref="Zen.Trunk.Storage.Locking.IGlobalLockManager" />
     public class GlobalLockManager : IGlobalLockManager
@@ -14,7 +14,7 @@ namespace Zen.Trunk.Storage.Locking
         #region Private Fields
         private readonly LockHandler<DatabaseLock, DatabaseLockType> _databaseLocks =
             new LockHandler<DatabaseLock, DatabaseLockType>(0);
-        private readonly LockHandler<FileGroupRootLock, FileGroupRootLockType> _rootLocks =
+        private readonly LockHandler<FileGroupRootLock, FileGroupRootLockType> _fileGroupLocks =
             new LockHandler<FileGroupRootLock, FileGroupRootLockType>();
         private readonly LockHandler<ObjectLock, ObjectLockType> _objectLocks =
             new LockHandler<ObjectLock, ObjectLockType>();
@@ -130,12 +130,12 @@ namespace Zen.Trunk.Storage.Locking
         /// <param name="dbId">The database identifier.</param>
         /// <param name="fileGroupId">The file group identifier.</param>
         /// <returns>
-        /// A <see cref="FileGroupRootLock" /> instance.
+        /// A <see cref="IFileGroupLock" /> instance.
         /// </returns>
         public IFileGroupLock GetFileGroupLock(DatabaseId dbId, FileGroupId fileGroupId)
         {
             var key = LockIdentity.GetFileGroupRootKey(dbId, fileGroupId);
-            var lockObject = _rootLocks.GetOrCreateLock(key);
+            var lockObject = _fileGroupLocks.GetOrCreateLock(key);
 
             // Ensure parent lock has been resolved
             if (lockObject.Parent == null)
@@ -206,15 +206,25 @@ namespace Zen.Trunk.Storage.Locking
         /// <returns>
         /// A <see cref="Task" /> representing the asynchronous operation.
         /// </returns>
-        public async Task LockDistributionExtentAsync(DatabaseId dbId, VirtualPageId virtualPageId, uint extentIndex,
-            ObjectLockType distLockType, DataLockType extentLockType, TimeSpan timeout)
+        public async Task LockDistributionExtentAsync(
+            DatabaseId dbId,
+            VirtualPageId virtualPageId,
+            uint extentIndex,
+            ObjectLockType distLockType,
+            DataLockType extentLockType,
+            TimeSpan timeout)
         {
+            var timeoutTracker = TimeoutTracker.FromTimeSpan(timeout);
             var extentLock = GetDistributionExtentLock(dbId, virtualPageId, extentIndex);
             var distLock = extentLock.Parent;
             try
             {
-                await distLock.LockAsync(distLockType, timeout).ConfigureAwait(false);
-                await extentLock.LockAsync(extentLockType, timeout).ConfigureAwait(false);
+                await distLock
+                    .LockAsync(distLockType, timeoutTracker.RemainingTimeout)
+                    .ConfigureAwait(false);
+                await extentLock
+                    .LockAsync(extentLockType, timeoutTracker.RemainingTimeout)
+                    .ConfigureAwait(false);
             }
             finally
             {
@@ -223,7 +233,7 @@ namespace Zen.Trunk.Storage.Locking
             }
         }
 
-        /// <summary>
+        /// <summary>0
         /// Unlocks the distribution extent.
         /// </summary>
         /// <param name="dbId">The database identifier.</param>
@@ -232,14 +242,21 @@ namespace Zen.Trunk.Storage.Locking
         /// <returns>
         /// A <see cref="Task" /> representing the asynchronous operation.
         /// </returns>
-        public async Task UnlockDistributionExtentAsync(DatabaseId dbId, VirtualPageId virtualPageId, uint extentIndex)
+        public async Task UnlockDistributionExtentAsync(
+            DatabaseId dbId,
+            VirtualPageId virtualPageId,
+            uint extentIndex)
         {
             var extentLock = GetDistributionExtentLock(dbId, virtualPageId, extentIndex);
             var distLock = extentLock.Parent;
             try
             {
-                await distLock.UnlockAsync().ConfigureAwait(false);
-                await extentLock.UnlockAsync().ConfigureAwait(false);
+                await distLock
+                    .UnlockAsync()
+                    .ConfigureAwait(false);
+                await extentLock
+                    .UnlockAsync()
+                    .ConfigureAwait(false);
             }
             finally
             {

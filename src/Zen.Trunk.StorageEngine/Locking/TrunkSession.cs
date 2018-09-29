@@ -73,7 +73,7 @@ namespace Zen.Trunk.Storage.Locking
         /// <param name="to">To.</param>
         /// <param name="lockTimeout">The lock timeout.</param>
         /// <returns></returns>
-        public async Task SwitchSharedDatabaseLockAsync(DatabaseDevice from, DatabaseDevice to, TimeSpan lockTimeout)
+        public async Task SwitchSharedDatabaseLockAsync(IDatabaseDevice from, IDatabaseDevice to, TimeSpan lockTimeout)
         {
             if (from == to)
             {

@@ -24,7 +24,7 @@ namespace Zen.Trunk.Storage
     /// Operations dealt with;
     /// Open, close, grow, shrink, page allocation/deallocation.
     /// </remarks>
-    public class DatabaseDevice : PageDevice
+    public class DatabaseDevice : PageDevice, IDatabaseDevice
     {
         #region Private Types
         private class AddFileGroupDeviceRequest : TransactionContextTaskRequest<AddFileGroupDeviceParameters, Tuple<DeviceId, string>>

@@ -126,6 +126,7 @@
     <Compile Include="FileSpec.cs" />
     <Compile Include="Locking\FileGroupRootLock.cs" />
     <Compile Include="Locking\TrunkSession.cs" />
+    <Compile Include="TimeoutTracker.cs" />
     <Compile Include="TrunkSessionContext.cs" />
     <Compile Include="Locking\LockOwnerIdentity.cs" />
     <Compile Include="Log\VirtualLogFileHeader.cs" />

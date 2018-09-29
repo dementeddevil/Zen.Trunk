@@ -37,7 +37,7 @@ namespace Zen.Trunk.Service
                 .New(
                     serviceConfig =>
                     {
-                        // We need to drive the command line processor and pull pathnames
+                        // We need to drive the command line processor and pull path names
                         var pathInfo = new DatabasePathInformation();
                         serviceConfig.AddCommandLineDefinition(
                             "D",
