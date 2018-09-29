@@ -12,6 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 using Autofac;
+using Zen.Trunk.Storage.BufferFields;
 using Zen.Trunk.Storage.Configuration;
 using Zen.Trunk.Utils;
 using Zen.Trunk.VirtualMemory;
@@ -562,7 +563,7 @@ namespace Zen.Trunk.Storage.Log
                 _secondaryDevices.Add(proposedDeviceId, secondaryDevice);
 
                 masterRootPage.AddDevice(
-                    new DeviceInfo
+                    new DeviceReferenceBufferFieldWrapper
                     {
                         Id = proposedDeviceId,
                         Name = request.Message.Name,

@@ -110,8 +110,8 @@ namespace Zen.Trunk.Storage.Data
         private readonly BufferFieldInt32 _deviceCount;
         private readonly BufferFieldInt32 _objectCount;
 
-        private readonly PageItemCollection<DeviceInfo> _devices;
-        private readonly PageItemCollection<ObjectRefInfo> _objects;
+        private readonly PageItemCollection<DeviceReferenceBufferFieldWrapper> _devices;
+        private readonly PageItemCollection<ObjectReferenceBufferFieldWrapper> _objects;
         #endregion
 
         #region Public Constructors
@@ -120,8 +120,8 @@ namespace Zen.Trunk.Storage.Data
         /// </summary>
         public PrimaryFileGroupRootPage()
         {
-            _devices = new PageItemCollection<DeviceInfo>(this);
-            _objects = new PageItemCollection<ObjectRefInfo>(this);
+            _devices = new PageItemCollection<DeviceReferenceBufferFieldWrapper>(this);
+            _objects = new PageItemCollection<ObjectReferenceBufferFieldWrapper>(this);
 
             _deviceCount = new BufferFieldInt32(base.LastHeaderField);
             _objectCount = new BufferFieldInt32(_deviceCount);
@@ -143,7 +143,7 @@ namespace Zen.Trunk.Storage.Data
         /// <value>
         /// The devices.
         /// </value>
-        public ICollection<DeviceInfo> Devices => _devices;
+        public ICollection<DeviceReferenceBufferFieldWrapper> Devices => _devices;
 
         /// <summary>
         /// Gets the list of objects registered on this page.
@@ -151,7 +151,7 @@ namespace Zen.Trunk.Storage.Data
         /// <value>
         /// The objects.
         /// </value>
-        public ICollection<ObjectRefInfo> Objects => _objects;
+        public ICollection<ObjectReferenceBufferFieldWrapper> Objects => _objects;
         #endregion
 
         #region Protected Properties
@@ -211,13 +211,13 @@ namespace Zen.Trunk.Storage.Data
             base.ReadData(streamManager);
             for (var index = 0; index < _deviceCount.Value; ++index)
             {
-                var info = new DeviceInfo();
+                var info = new DeviceReferenceBufferFieldWrapper();
                 info.Read(streamManager);
                 _devices.Add(info);
             }
             for (var index = 0; index < _objectCount.Value; ++index)
             {
-                var info = new ObjectRefInfo();
+                var info = new ObjectReferenceBufferFieldWrapper();
                 info.Read(streamManager);
                 _objects.Add(info);
 

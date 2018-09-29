@@ -5,7 +5,8 @@ using System.Text;
 namespace Zen.Trunk.IO
 {
     /// <summary>
-    /// 
+    /// <c>SwitchingBinaryReader</c> behaves just like a BinaryReader however
+    /// the encoding scheme used for reading strings can be changed dynamically.
     /// </summary>
     /// <seealso cref="System.IDisposable" />
     public class SwitchingBinaryReader : IDisposable
@@ -52,24 +53,13 @@ namespace Zen.Trunk.IO
         /// </summary>
         public bool UseUnicode
         {
-            get
-            {
-                return _useUnicode;
-            }
+            get => _useUnicode;
             set
             {
-                if (_useUnicode != value)
-                {
-                    _useUnicode = value;
-                    if (_useUnicode)
-                    {
-                        _currentEncoding = Encoding.Unicode;
-                    }
-                    else
-                    {
-                        _currentEncoding = Encoding.ASCII;
-                    }
-                }
+                if (_useUnicode == value) return;
+
+                _useUnicode = value;
+                _currentEncoding = _useUnicode ? Encoding.Unicode : Encoding.ASCII;
             }
         }
         #endregion
@@ -106,11 +96,13 @@ namespace Zen.Trunk.IO
                 _reader.Close();
                 _reader = null;
             }
+
             if (_stream != null)
             {
                 _stream.Dispose();
                 _stream = null;
             }
+
             _disposed = true;
         }
         #endregion

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Zen.Trunk.Storage.BufferFields;
 using Zen.Trunk.Storage.Data.Table;
 using Zen.Trunk.VirtualMemory;
 
@@ -530,12 +531,14 @@ namespace Zen.Trunk.Storage.Data
         /// <summary>
         /// Initializes a new instance of the <see cref="InsertReferenceInformationRequestParameters"/> class.
         /// </summary>
+        /// <param name="devices">Collection of device references.</param>
+        /// <param name="objects">Collection of object references.</param>
         /// <param name="name">The name.</param>
         /// <param name="objectType">Type of the object.</param>
         /// <param name="firstPageFunc">The first page function.</param>
         public InsertReferenceInformationRequestParameters(
-            ICollection<DeviceInfo> devices,
-            ICollection<ObjectRefInfo> objects,
+            ICollection<DeviceReferenceBufferFieldWrapper> devices,
+            ICollection<ObjectReferenceBufferFieldWrapper> objects,
             string name, 
             ObjectType objectType, 
             Func<ObjectId, Task<LogicalPageId>> firstPageFunc)
@@ -547,9 +550,9 @@ namespace Zen.Trunk.Storage.Data
             Objects = objects;
         }
 
-        public ICollection<DeviceInfo> Devices { get; }
+        public ICollection<DeviceReferenceBufferFieldWrapper> Devices { get; }
 
-        public ICollection<ObjectRefInfo> Objects { get; }
+        public ICollection<ObjectReferenceBufferFieldWrapper> Objects { get; }
 
         /// <summary>
         /// Gets the name.

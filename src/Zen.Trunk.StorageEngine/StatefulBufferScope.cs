@@ -11,6 +11,7 @@ namespace Zen.Trunk.Storage
 	/// <summary>
 	/// <c>StatefulBufferScope</c> is used to manage the lifetime of a buffer.
 	/// </summary>
+	// ReSharper disable once ClassWithVirtualMembersNeverInherited.Global
 	public class StatefulBufferScope<TBufferType> : IDisposable
 		where TBufferType : StatefulBuffer
 	{

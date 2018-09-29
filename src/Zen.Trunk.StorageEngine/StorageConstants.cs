@@ -10,7 +10,6 @@
         /// </summary>
         /// <remarks>
         /// Only used for the primary device on the primary file-group in a database.
-        /// 
         /// </remarks>
         public const string PrimaryFileGroupPrimaryDeviceFileExtension = ".mddf";
 

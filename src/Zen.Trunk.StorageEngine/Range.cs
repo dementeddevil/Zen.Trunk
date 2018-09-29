@@ -1,9 +1,9 @@
-﻿namespace Zen.Trunk.Storage
-{
-	using System;
-	using System.Globalization;
-	using System.Runtime.InteropServices;
+﻿using System;
+using System.Globalization;
+using System.Runtime.InteropServices;
 
+namespace Zen.Trunk.Storage
+{
     /// <summary>
     /// 
     /// </summary>
@@ -13,7 +13,7 @@
         /// <summary>
         /// The empty
         /// </summary>
-        public static InclusiveRange Empty = new InclusiveRange(0, 0);
+        public static readonly InclusiveRange Empty = new InclusiveRange(0, 0);
 
 		#region Private Fields
 		private int _min;
@@ -223,7 +223,8 @@
         /// <summary>
         /// The empty
         /// </summary>
-        public static ExclusiveRange Empty = new ExclusiveRange(0, 0);
+        // ReSharper disable once MemberCanBePrivate.Global
+        public static readonly ExclusiveRange Empty = new ExclusiveRange(0, 0);
 
 		#region Private Fields
 		private int _min;

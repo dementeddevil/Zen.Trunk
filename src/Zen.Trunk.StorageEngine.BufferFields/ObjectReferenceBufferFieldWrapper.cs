@@ -1,19 +1,18 @@
 ﻿// -----------------------------------------------------------------------
-// <copyright file="ObjectRefInfo.cs" company="Zen Design Software">
-// © Zen Design Software 2009 - 2016
+// <copyright file="ObjectReferenceBufferFieldWrapper.cs" company="Zen Design Software">
+// © Zen Design Software 2009 - 2018
 // </copyright>
 // -----------------------------------------------------------------------
 
-using Zen.Trunk.Storage.BufferFields;
 using Zen.Trunk.VirtualMemory;
 
-namespace Zen.Trunk.Storage.Data
+namespace Zen.Trunk.Storage.BufferFields
 {
     /// <summary>
     /// Contains information used to track object references.
     /// </summary>
     /// <seealso cref="BufferFieldWrapper" />
-    public class ObjectRefInfo : BufferFieldWrapper
+    public class ObjectReferenceBufferFieldWrapper : BufferFieldWrapper
     {
         private readonly BufferFieldObjectId _objectId;
         private readonly BufferFieldObjectType _objectType;
@@ -22,9 +21,9 @@ namespace Zen.Trunk.Storage.Data
         private readonly BufferFieldLogicalPageId _firstPageId;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ObjectRefInfo"/> class.
+        /// Initializes a new instance of the <see cref="ObjectReferenceBufferFieldWrapper"/> class.
         /// </summary>
-        public ObjectRefInfo()
+        public ObjectReferenceBufferFieldWrapper()
         {
             _objectId = new BufferFieldObjectId();
             _objectType = new BufferFieldObjectType(_objectId);

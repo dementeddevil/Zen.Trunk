@@ -63,6 +63,9 @@
     <Reference Include="System.Transactions" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Data\Table\DatabaseTableFactory.cs" />
+    <Compile Include="Data\Table\IDatabaseTable.cs" />
+    <Compile Include="Data\Table\IDatabaseTableFactory.cs" />
     <Compile Include="Locking\ILockHandler.cs" />
     <Compile Include="Locking\IRLockHandler.cs" />
     <Compile Include="Locking\ITrunkSessionPrivate.cs" />
@@ -127,7 +130,6 @@
     <Compile Include="ModelDatabaseDevice.cs" />
     <Compile Include="Data\ObjectDataPage.cs" />
     <Compile Include="Data\ObjectPage.cs" />
-    <Compile Include="Data\ObjectRefInfo.cs" />
     <Compile Include="Data\ObjectSchemaPage.cs" />
     <Compile Include="Data\PrimaryDistributionPageDevice.cs" />
     <Compile Include="Data\PrimaryFileGroupDevice.cs" />
@@ -177,7 +179,6 @@
     <Compile Include="StatefulBufferScope.cs" />
     <Compile Include="StorageEngineException.cs" />
     <Compile Include="DeviceExceptions.cs" />
-    <Compile Include="DeviceInfo.cs" />
     <Compile Include="Data\LogicalPage.cs" />
     <Compile Include="Locking\ChildTransactionLock.cs" />
     <Compile Include="Locking\DatabaseLock.cs" />

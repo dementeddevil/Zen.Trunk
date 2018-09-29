@@ -1,16 +1,22 @@
+// -----------------------------------------------------------------------
+// <copyright file="DeviceReferenceBufferFieldWrapper.cs" company="Zen Design Software">
+// © Zen Design Software 2009 - 2018
+// </copyright>
+// -----------------------------------------------------------------------
+
 using System;
-using Zen.Trunk.Storage.BufferFields;
 using Zen.Trunk.VirtualMemory;
 
-namespace Zen.Trunk.Storage
+namespace Zen.Trunk.Storage.BufferFields
 {
-	/// <summary>
-	/// <b>DeviceInfo</b> contains base device definition data.
-	/// </summary>
-	/// <remarks>
-	/// This object requires 162 bytes
-	/// </remarks>
-	public class DeviceInfo : BufferFieldWrapper
+    /// <summary>
+    /// <b>DeviceReferenceBufferFieldWrapper</b> contains information used to
+    /// track devices used within a database.
+    /// </summary>
+    /// <remarks>
+    /// This object requires 162 bytes
+    /// </remarks>
+    public class DeviceReferenceBufferFieldWrapper : BufferFieldWrapper
 	{
 		#region Private Fields
 		private readonly BufferFieldUInt16 _id;
@@ -20,9 +26,9 @@ namespace Zen.Trunk.Storage
 
         #region Public Constructors
         /// <summary>
-        /// Initializes a new instance of the <see cref="DeviceInfo"/> class.
+        /// Initializes a new instance of the <see cref="DeviceReferenceBufferFieldWrapper"/> class.
         /// </summary>
-        public DeviceInfo()
+        public DeviceReferenceBufferFieldWrapper()
 		{
 			_id = new BufferFieldUInt16();
 			_name = new BufferFieldStringFixed(_id, 32);
@@ -30,12 +36,12 @@ namespace Zen.Trunk.Storage
 		}
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="DeviceInfo"/> class.
+        /// Initializes a new instance of the <see cref="DeviceReferenceBufferFieldWrapper"/> class.
         /// </summary>
         /// <param name="id">The identifier.</param>
         /// <param name="name">The name.</param>
         /// <param name="pathName">Name of the path.</param>
-        public DeviceInfo(DeviceId id, string name, string pathName)
+        public DeviceReferenceBufferFieldWrapper(DeviceId id, string name, string pathName)
 		{
 			_id = new BufferFieldUInt16(id.Value);
 			_name = new BufferFieldStringFixed(_id, 32, name);
@@ -43,10 +49,10 @@ namespace Zen.Trunk.Storage
 		}
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="DeviceInfo"/> class.
+        /// Initializes a new instance of the <see cref="DeviceReferenceBufferFieldWrapper"/> class.
         /// </summary>
         /// <param name="clone">The clone.</param>
-        public DeviceInfo(DeviceInfo clone)
+        public DeviceReferenceBufferFieldWrapper(DeviceReferenceBufferFieldWrapper clone)
 		{
 			_id = new BufferFieldUInt16(clone.Id.Value);
 			_name = new BufferFieldStringFixed(_id, 32, clone.Name);
