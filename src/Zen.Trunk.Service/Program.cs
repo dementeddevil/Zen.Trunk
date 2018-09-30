@@ -1,5 +1,4 @@
 ﻿using System.IO;
-using System.ServiceProcess;
 using Autofac;
 using Serilog;
 using Serilog.Core;
@@ -11,7 +10,6 @@ using Topshelf.Autofac;
 using Topshelf.ServiceConfigurators;
 using Zen.Trunk.Network;
 using Zen.Trunk.Storage;
-using Zen.Trunk.Storage.Configuration;
 using Zen.Trunk.Storage.Data;
 using Zen.Trunk.Storage.Locking;
 using Zen.Trunk.Storage.Log;
@@ -39,7 +37,7 @@ namespace Zen.Trunk.Service
                 .New(
                     serviceConfig =>
                     {
-                        // We need to drive the command line processor and pull pathnames
+                        // We need to drive the command line processor and pull path names
                         var pathInfo = new DatabasePathInformation();
                         serviceConfig.AddCommandLineDefinition(
                             "D",

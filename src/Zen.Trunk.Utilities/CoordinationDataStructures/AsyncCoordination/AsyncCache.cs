@@ -171,7 +171,7 @@ namespace Zen.Trunk.CoordinationDataStructures.AsyncCoordination
 		/// <returns>True if the item could be removed; otherwise, false.</returns>
 		bool ICollection<KeyValuePair<TKey, Task<TValue>>>.Remove(KeyValuePair<TKey, Task<TValue>> item)
 		{
-		    return _map.TryRemove(item.Key, out var value);
+		    return _map.TryRemove(item.Key, out _);
 		}
 	}
 

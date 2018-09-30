@@ -71,6 +71,7 @@ namespace Zen.Trunk.CoordinationDataStructures
         /// <summary>Attempts to add an item to the dictionary, notifying observers of any changes.</summary>
         /// <param name="item">The item to be added.</param>
         /// <returns>Whether the add was successful.</returns>
+        // ReSharper disable once UnusedMethodReturnValue.Local
         private bool TryAddWithNotification(KeyValuePair<TKey, TValue> item)
         {
             return TryAddWithNotification(item.Key, item.Value);
@@ -145,7 +146,7 @@ namespace Zen.Trunk.CoordinationDataStructures
 
         bool ICollection<KeyValuePair<TKey, TValue>>.Remove(KeyValuePair<TKey, TValue> item)
         {
-            return TryRemoveWithNotification(item.Key, out var temp);
+            return TryRemoveWithNotification(item.Key, out _);
         }
         #endregion
 
@@ -198,7 +199,7 @@ namespace Zen.Trunk.CoordinationDataStructures
         /// </returns>
         public bool Remove(TKey key)
         {
-            return TryRemoveWithNotification(key, out var temp);
+            return TryRemoveWithNotification(key, out _);
         }
 
         /// <summary>

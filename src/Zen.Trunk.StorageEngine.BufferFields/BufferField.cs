@@ -8,8 +8,20 @@ namespace Zen.Trunk.Storage.BufferFields
     /// </summary>
     /// <remarks>
     /// <para>
+    /// The use of buffer fields mean that a we can support locking strategies
+    /// that do not require the entire buffer to be locked for the duration of
+    /// the transaction which increases concurrency and reduces the likelihood
+    /// of deadlocks.
+    /// </para>
+    /// <para>
     /// Fields can be locked or unlocked.
-    /// Locked fields never write themselves when saving to a buffer.
+    /// Locked fields never write themselves when saving to a stream. The locked
+    /// state makes no difference when reading from a stream
+    /// </para>
+    /// <para>
+    /// Buffer fields inherently support chaining and make use of
+    /// <see cref="SwitchingBinaryReader"/> and <see cref="SwitchingBinaryWriter"/>
+    /// to persist data to and from a stream.
     /// </para>
     /// </remarks>
     public abstract class BufferField
@@ -46,10 +58,10 @@ namespace Zen.Trunk.Storage.BufferFields
 
         #region Public Properties
         /// <summary>
-        /// Gets a value indicating whether this instance is writeable.
+        /// Gets a value indicating whether this instance is writable.
         /// </summary>
-        /// <value><c>true</c> if this instance is writeable; otherwise, <c>false</c>.</value>
-        public bool IsWriteable { get; private set; } = true;
+        /// <value><c>true</c> if this instance is writable; otherwise, <c>false</c>.</value>
+        public bool IsWritable { get; private set; } = true;
 
         /// <summary>
         /// Gets the size of a single element of this field
@@ -93,7 +105,7 @@ namespace Zen.Trunk.Storage.BufferFields
         /// </summary>
         public void Lock()
         {
-            IsWriteable = true;
+            IsWritable = false;
         }
 
         /// <summary>
@@ -101,7 +113,7 @@ namespace Zen.Trunk.Storage.BufferFields
         /// </summary>
         public void Unlock()
         {
-            IsWriteable = false;
+            IsWritable = true;
         }
 
         /// <summary>
@@ -123,7 +135,7 @@ namespace Zen.Trunk.Storage.BufferFields
         /// <param name="writer">A <see cref="T:SwitchingBinaryWriter"/> object.</param>
         public void Write(SwitchingBinaryWriter writer)
         {
-            writer.WriteToUnderlyingStream = IsWriteable;
+            writer.WriteToUnderlyingStream = IsWritable;
             OnWrite(writer);
             if (NextField != null && NextField.CanContinue(false))
             {

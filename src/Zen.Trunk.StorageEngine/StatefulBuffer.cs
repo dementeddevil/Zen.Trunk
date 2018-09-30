@@ -122,7 +122,7 @@ namespace Zen.Trunk.Storage
         public VirtualPageId PageId
         {
             get;
-            set;
+            protected set;
         }
 
         /// <summary>

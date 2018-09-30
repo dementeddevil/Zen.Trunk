@@ -27,7 +27,7 @@ namespace Zen.Trunk.Storage.Locking
 	internal abstract class LockOwnerBlockBase<TItemLockIdType> : IDisposable
 	{
 		#region Private Types
-		private class ItemLockDictionary : Dictionary<TItemLockIdType, DataLock>
+		private class ItemLockDictionary : Dictionary<TItemLockIdType, IDataLock>
 		{
 			public async Task<bool> TryReleaseLockAsync(TItemLockIdType key)
 			{
@@ -70,7 +70,7 @@ namespace Zen.Trunk.Storage.Locking
 		private readonly ItemLockDictionary _readLocks = new ItemLockDictionary();
 		private readonly ItemLockDictionary _updateLocks = new ItemLockDictionary();
 		private readonly ItemLockDictionary _writeLocks = new ItemLockDictionary();
-        private ObjectLock _ownerLock;
+        private IObjectLock _ownerLock;
 	    private uint _ownerLockCount;
 	    private bool _isDisposed;
 		#endregion
@@ -95,7 +95,7 @@ namespace Zen.Trunk.Storage.Locking
         /// <value>
         /// The owner lock.
         /// </value>
-        protected ObjectLock OwnerLock
+        protected IObjectLock OwnerLock
 	    {
 	        get
 	        {
@@ -333,18 +333,18 @@ namespace Zen.Trunk.Storage.Locking
 		/// Gets the owner lock.
 		/// </summary>
 		/// <returns>
-		/// An <see cref="ObjectLock"/> instance.
+		/// An <see cref="IObjectLock"/> instance.
 		/// </returns>
-		protected abstract ObjectLock GetOwnerLock();
+		protected abstract IObjectLock GetOwnerLock();
 
 		/// <summary>
 		/// Gets the item lock.
 		/// </summary>
 		/// <param name="key">The key.</param>
 		/// <returns>
-		/// An <see cref="DataLock"/> instance.
+		/// An <see cref="IDataLock"/> instance.
 		/// </returns>
-		protected abstract DataLock GetItemLock(TItemLockIdType key);
+		protected abstract IDataLock GetItemLock(TItemLockIdType key);
 		#endregion
 
 		#region Private Methods
@@ -454,7 +454,7 @@ namespace Zen.Trunk.Storage.Locking
 				}
 			}
 
-			DataLock lockObj;
+			IDataLock lockObj;
 
 			// Check whether we have an existing read lock
 			if (_readLocks.ContainsKey(key))
@@ -516,7 +516,7 @@ namespace Zen.Trunk.Storage.Locking
 			// Technically we can only obtain an exclusive lock via an update
 			//	lock...
 			// However we support attempts to gain an exclusive lock directly
-			DataLock lockObj;
+			IDataLock lockObj;
 			if (_updateLocks.ContainsKey(key))
 			{
 				// TODO: If ObjectLock ever supports escalation of update locks

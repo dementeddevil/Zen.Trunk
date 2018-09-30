@@ -1,38 +1,12 @@
+using System;
+
 namespace Zen.Trunk.Storage.Locking
 {
-	using System;
-
-	/// <summary>
-	/// Defines locking primatives which apply to the database itself
-	/// </summary>
-	public enum DatabaseLockType
-	{
-		/// <summary>
-		/// No locking required (illegal)
-		/// </summary>
-		None = 0,
-
-		/// <summary>
-		/// Shared access to database
-		/// </summary>
-		Shared = 1,
-
-		/// <summary>
-		/// Update lock - used to serialise access to exclusive state
-		/// </summary>
-		Update = 2,
-
-		/// <summary>
-		/// Exclusive read/write access to database
-		/// </summary>
-		Exclusive = 3
-	}
-
-	/// <summary>
+    /// <summary>
 	/// Implements a lock for locking database objects and is the root for
 	/// all child lock objects.
 	/// </summary>
-	public class DatabaseLock : TransactionLock<DatabaseLockType>
+	public class DatabaseLock : TransactionLock<DatabaseLockType>, IDatabaseLock
 	{
 		#region Private Fields
 		private static readonly NoneState NoneStateObject = new NoneState();

@@ -18,7 +18,7 @@ namespace Zen.Trunk.Storage.Data.Table
     /// This object is returned via IoC on calls via the FileGroupDevice
     /// </remarks>
     // ReSharper disable once ClassNeverInstantiated.Global
-    public class DatabaseTable : IDisposable
+    public class DatabaseTable : IDatabaseTable
     {
         #region Public Objects
         /// <summary>
@@ -394,7 +394,7 @@ namespace Zen.Trunk.Storage.Data.Table
         /// Initializes a new instance of the <see cref="DatabaseTable"/> class.
         /// </summary>
         /// <param name="parentLifetimeScope">The parent lifetime scope.</param>
-        public DatabaseTable(ILifetimeScope parentLifetimeScope)
+        public DatabaseTable(ILifetimeScope parentLifetimeScope, ObjectId objectId, bool isNewTable)
         {
             _owner = parentLifetimeScope.Resolve<FileGroupDevice>();
             _lifetimeScope = parentLifetimeScope.BeginLifetimeScope(
@@ -406,33 +406,43 @@ namespace Zen.Trunk.Storage.Data.Table
                         .As<TableIndexManager>()
                         .SingleInstance();
                 });
+            ObjectId = objectId;
+            IsNewTable = isNewTable;
+
 #if DEBUG
             LockTimeout = TimeSpan.FromSeconds(30);
 #else
 			LockTimeout = TimeSpan.FromSeconds(10);
 #endif
-
-            FileGroupId = FileGroupId.Invalid;
         }
         #endregion
 
         #region Public Properties
-        /// <summary>
-        /// Gets or sets the file group id.
-        /// </summary>
-        /// <value>The file group id.</value>
-        public FileGroupId FileGroupId { get; set; }
 
         /// <summary>
-        /// Gets or sets the name of the file group.
+        /// Gets the file group id.
+        /// </summary>
+        /// <value>The file group id.</value>
+        public FileGroupId FileGroupId => _owner.FileGroupId;
+
+        /// <summary>
+        /// Gets the name of the file group.
         /// </summary>
         /// <value>The name of the file group.</value>
-        public string FileGroupName { get; set; }
+        public string FileGroupName => _owner.FileGroupName;
 
         /// <summary>
         /// Gets the table object ID.
         /// </summary>
-        public ObjectId ObjectId { get; internal set; }
+        public ObjectId ObjectId { get; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether this instance is new table.
+        /// </summary>
+        /// <value>
+        /// 	<c>true</c> if this instance is new table; otherwise, <c>false</c>.
+        /// </value>
+        public bool IsNewTable { get; private set; }
 
         /// <summary>
         /// Gets a value indicating whether this instance is a system table.
@@ -449,14 +459,6 @@ namespace Zen.Trunk.Storage.Data.Table
         /// <c>true</c> if this instance is loading; otherwise, <c>false</c>.
         /// </value>
         public bool IsLoading { get; internal set; }
-
-        /// <summary>
-        /// Gets or sets a value indicating whether this instance is new table.
-        /// </summary>
-        /// <value>
-        /// 	<c>true</c> if this instance is new table; otherwise, <c>false</c>.
-        /// </value>
-        public bool IsNewTable { get; internal set; }
 
         /// <summary>
         /// Gets the schema first logical identifier.

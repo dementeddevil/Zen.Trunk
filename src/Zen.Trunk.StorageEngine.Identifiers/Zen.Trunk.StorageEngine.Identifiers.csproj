@@ -7,7 +7,7 @@
     <ProjectGuid>{E28B4E45-737F-47E6-9E92-52CC220FFCCB}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Zen.Trunk.StorageEngine.Identifiers</RootNamespace>
+    <RootNamespace>Zen.Trunk.Storage</RootNamespace>
     <AssemblyName>Zen.Trunk.StorageEngine.Identifiers</AssemblyName>
     <TargetFrameworkVersion>v4.7.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
@@ -33,18 +33,12 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Net.Http" />
-    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DatabaseId.cs" />
     <Compile Include="FileGroupId.cs" />
     <Compile Include="IndexId.cs" />
-    <Compile Include="LogFileId.cs" />
+    <Compile Include="Log\LogFileId.cs" />
     <Compile Include="LogicalPageId.cs" />
     <Compile Include="ObjectId.cs" />
     <Compile Include="ObjectType.cs" />

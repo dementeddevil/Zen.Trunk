@@ -4,8 +4,9 @@ using System.Runtime.Remoting.Messaging;
 using System.Threading;
 using System.Threading.Tasks;
 using Zen.Trunk.Extensions;
+using Zen.Trunk.Storage.Locking;
 
-namespace Zen.Trunk.Storage.Locking
+namespace Zen.Trunk.Storage
 {
     /// <summary>
     /// <c>TrunkSessionContext</c> is an object that tracks the current
@@ -111,8 +112,7 @@ namespace Zen.Trunk.Storage.Locking
         /// <returns></returns>
         public static async Task CommitAsync()
         {
-            var session = Current as ITrunkSessionPrivate;
-            if (session != null)
+            if (Current is ITrunkSessionPrivate session)
             {
                 var result = await session
                     .CommitAsync()
@@ -131,8 +131,7 @@ namespace Zen.Trunk.Storage.Locking
         /// <returns></returns>
         public static async Task RollbackAsync()
         {
-            var session = Current as ITrunkSessionPrivate;
-            if (session != null)
+            if (Current is ITrunkSessionPrivate session)
             {
                 var result = await session
                     .RollbackAsync()

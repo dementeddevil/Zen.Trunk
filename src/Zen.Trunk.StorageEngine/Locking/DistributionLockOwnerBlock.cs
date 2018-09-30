@@ -46,7 +46,7 @@ namespace Zen.Trunk.Storage.Locking
 		/// Gets the owner lock.
 		/// </summary>
 		/// <returns></returns>
-		protected override ObjectLock GetOwnerLock()
+		protected override IObjectLock GetOwnerLock()
 		{
 			return LockManager.GetDistributionLock(_virtualPageId);
 		}
@@ -56,7 +56,7 @@ namespace Zen.Trunk.Storage.Locking
 		/// </summary>
 		/// <param name="key">The key.</param>
 		/// <returns></returns>
-		protected override DataLock GetItemLock(uint key)
+		protected override IDataLock GetItemLock(uint key)
 		{
 			return LockManager.GetDistributionExtentLock(_virtualPageId, key);
 		}

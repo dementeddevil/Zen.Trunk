@@ -32,8 +32,7 @@ namespace Zen.Trunk.Storage
 
             while (true)
             {
-                TransactionId lockOwner;
-                if (_waiting.TryPeek(out lockOwner) && lockOwner == transactionId)
+                if (_waiting.TryPeek(out TransactionId lockOwner) && lockOwner == transactionId)
                 {
                     lockTaken = true;
                     return;
@@ -52,8 +51,7 @@ namespace Zen.Trunk.Storage
                 return;
             }
 
-            TransactionId lockOwner;
-            if (_waiting.TryPeek(out lockOwner) && lockOwner == transactionId)
+            if (_waiting.TryPeek(out TransactionId lockOwner) && lockOwner == transactionId)
             {
                 _waiting.TryDequeue(out lockOwner);
             }

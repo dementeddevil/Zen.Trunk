@@ -11,7 +11,7 @@
         /// </summary>
         /// <param name="parentScope">The parent scope.</param>
         public LocalSymbolScope(SymbolScope parentScope)
-            : base(parentScope)
+            : base(string.Empty, parentScope)
         {
         }
     }

@@ -640,61 +640,59 @@ namespace Zen.Trunk.Storage.Data.Table
 
                 // Check whether we were supposed to go via prev page.
                 var findInfo = new TableIndexInfo(request.Message.Keys);
-                if (prevPage != null && indexPage.IndexCount > 0)
-                {
-                    // If current page's first index is past cursor
-                    //	then backtrack
-                    if (indexPage.CompareIndex(0, request.Message.Keys) > 0)
-                    {
-                        // Dispose parent page (will unlock)
-                        if (parentPage != null)
-                        {
-                            parentPage.Dispose();
-                            parentPage = null;
-                        }
-                        if (indexPage != null)
-                        {
-                            indexPage.Dispose();
-                            indexPage = null;
-                        }
+                //if (prevPage != null && indexPage.IndexCount > 0)
+                //{
+                //    // If current page's first index is past cursor
+                //    //	then backtrack
+                //    if (indexPage.CompareIndex(0, request.Message.Keys) > 0)
+                //    {
+                //        // Dispose parent page (will unlock)
+                //        if (parentPage != null)
+                //        {
+                //            parentPage.Dispose();
+                //            parentPage = null;
+                //        }
 
-                        // Backtrack to previous page
-                        indexPage = prevPage;
-                        prevPage = null;
+                //        // Dispose of index page (will unlock)
+                //        indexPage.Dispose();
+                        
+                //        // Backtrack to previous page
+                //        indexPage = prevPage;
+                //        prevPage = null;
 
-                        // When we reach depth of zero we are finished
-                        if (indexPage.Depth == 0)
-                        {
-                            // Wait for split if we started one
-                            if (splitTask != null)
-                            {
-                                await splitTask.ConfigureAwait(false);
-                            }
+                //        // When we reach depth of zero we are finished
+                //        if (indexPage.Depth == 0)
+                //        {
+                //            // Wait for split if we started one
+                //            if (splitTask != null)
+                //            {
+                //                await splitTask.ConfigureAwait(false);
+                //            }
 
-                            // Return whatever we found
-                            return new FindTableIndexResult(
-                                indexPage,
-                                (TableIndexLeafInfo)indexPage.IndexEntries[indexPage.IndexCount - 1]);
-                        }
+                //            // Return whatever we found
+                //            return new FindTableIndexResult(
+                //                indexPage,
+                //                (TableIndexLeafInfo)indexPage.IndexEntries[indexPage.IndexCount - 1]);
+                //        }
 
-                        // Iterate down stack
-                        var logicalInfo = (TableIndexLogicalInfo)
-                            parentPage.IndexEntries[parentPage.IndexCount - 1];
-                        parentPage = indexPage;
-                        logicalId = logicalInfo.LogicalPageId;
-                        indexPage = null;
+                //        // Iterate down stack
+                //        var logicalInfo = (TableIndexLogicalInfo)
+                //            parentPage.IndexEntries[parentPage.IndexCount - 1];
+                //        parentPage = indexPage;
+                //        logicalId = logicalInfo.LogicalPageId;
+                //        indexPage = null;
 
-                        // Start async load on decendant index page
-                        continue;
-                    }
+                //        // Start async load on decendant index page
+                //        continue;
+                //    }
 
-                    // Dispose previous page (will unlock)
-                    if (prevPage != null)
-                    {
-                        prevPage.Dispose();
-                        prevPage = null;
-                    }
-                }
+                //    // Dispose previous page (will unlock)
+                //    if (prevPage != null)
+                //    {
+                //        prevPage.Dispose();
+                //        prevPage = null;
+                //    }
+                //}
 
                 // Search for descent point
                 for (var index = 0; indexPage != null &&
@@ -708,7 +706,7 @@ namespace Zen.Trunk.Storage.Data.Table
                     }
 
                     var compLower = lhs.CompareTo(findInfo);
-                    var compHigher = rhs.CompareTo(findInfo);
+                    var compHigher = rhs?.CompareTo(findInfo) ?? -1;
 
                     if (compLower < 0 && compHigher < 0)
                     {
@@ -724,14 +722,12 @@ namespace Zen.Trunk.Storage.Data.Table
                             return new FindTableIndexResult(
                                 indexPage, (TableIndexLeafInfo)lhs);
                         }
-                        else
-                        {
-                            // Determine new logical id and make this current
-                            //	page the new parent page.
-                            logicalId = ((TableIndexLogicalInfo)lhs).LogicalPageId;
-                            parentPage = indexPage;
-                            indexPage = null;
-                        }
+
+                        // Determine new logical id and make this current
+                        //	page the new parent page.
+                        logicalId = ((TableIndexLogicalInfo)lhs).LogicalPageId;
+                        parentPage = indexPage;
+                        indexPage = null;
                     }
                 }
 

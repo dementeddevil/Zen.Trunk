@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 using Autofac;
 using Zen.Trunk.Logging;
+using Zen.Trunk.Storage.BufferFields;
 using Zen.Trunk.Storage.Configuration;
 using Zen.Trunk.Storage.Data.Table;
 using Zen.Trunk.Storage.Locking;
@@ -171,8 +172,8 @@ namespace Zen.Trunk.Storage.Data
             new Dictionary<DeviceId, SecondaryDistributionPageDevice>();
 
         private ObjectId _nextObjectId = new ObjectId(1);
-        private readonly Dictionary<ObjectId, ObjectRefInfo> _objects =
-            new Dictionary<ObjectId, ObjectRefInfo>();
+        private readonly Dictionary<ObjectId, ObjectReferenceBufferFieldWrapper> _objects =
+            new Dictionary<ObjectId, ObjectReferenceBufferFieldWrapper>();
 
         // Logical id mapping
         private ILogicalVirtualManager _logicalVirtual;
@@ -795,7 +796,7 @@ namespace Zen.Trunk.Storage.Data
                 .As<ILogicalVirtualManager>()
                 .SingleInstance();
             builder.RegisterInstance(this).As<FileGroupDevice>();
-            builder.RegisterType<DatabaseTable>().AsSelf();
+            builder.RegisterType<DatabaseTableFactory>().As<IDatabaseTableFactory>();
             builder.RegisterType<PrimaryDistributionPageDevice>()
                 .OnActivated(e => e.Instance.InitialiseDeviceLifetimeScope(LifetimeScope));
             builder.RegisterType<SecondaryDistributionPageDevice>()
@@ -1303,7 +1304,7 @@ namespace Zen.Trunk.Storage.Data
                 rootPage.ReadOnly = false;
                 try
                 {
-                    DeviceInfo device;
+                    DeviceReferenceBufferFieldWrapper device;
                     while((device = devices?.FirstOrDefault()) != null)
                     {
                         rootPage.Devices.Add(device);
@@ -1311,18 +1312,14 @@ namespace Zen.Trunk.Storage.Data
                         devices.Remove(device);
                     }
 
-                    ObjectRefInfo objectRef;
+                    ObjectReferenceBufferFieldWrapper objectRef;
                     while ((objectRef = objects?.FirstOrDefault()) != null)
                     {
                         rootPage.Objects.Add(objectRef);
                         rootPage.Save();
                         objects.Remove(objectRef);
+                        _objects.Add(objectRef.ObjectId, objectRef);
                     }
-
-                    rootPage.Objects.Add(objectRef);
-
-                    // Add new object to our list
-                    _objects.Add(objectRef.ObjectId, objectRef);
 
                     // If we get this far then page has space for object reference
                     return true;
@@ -1344,36 +1341,37 @@ namespace Zen.Trunk.Storage.Data
         private async Task<ObjectId> AddTableHandlerAsync(AddTableRequest request)
         {
             // Determine the object identifier for the table
-            //return await CreateObjectReferenceAsync(
-            //    new InsertReferenceInformationRequestParameters(
-            //        request.Message.TableName,
-            //        ObjectType.Table,
-            //        async (objectId) =>
-            //        {
-            //            // Create database table helper and setup object
-            //            using (var table = GetService<DatabaseTable>())
-            //            {
-            //                table.FileGroupId = FileGroupId;
-            //                table.ObjectId = objectId;
-            //                table.IsNewTable = true;
+            var createdObjectId = ObjectId.Zero;
+            await InsertReferenceInformationAsync(
+                new InsertReferenceInformationRequestParameters(
+                    null,
+                    null,
+                    request.Message.TableName,
+                    ObjectType.Table,
+                    async (objectId) =>
+                    {
+                        // Create database table helper and setup object
+                        var tableFactory = GetService<IDatabaseTableFactory>();
+                        using (var table = tableFactory.GetTableScopeForNewTable(objectId))
+                        {
+                            // Create columns
+                            table.BeginColumnUpdate();
+                            foreach (var column in request.Message.Columns)
+                            {
+                                table.AddColumn(column, -1);
+                            }
 
-            //                // Create columns
-            //                table.BeginColumnUpdate();
-            //                foreach (var column in request.Message.Columns)
-            //                {
-            //                    table.AddColumn(column, -1);
-            //                }
+                            // Commit table changes
+                            await table
+                                .EndColumnUpdate()
+                                .ConfigureAwait(false);
 
-            //                // Commit table changes
-            //                await table
-            //                    .EndColumnUpdate()
-            //                    .ConfigureAwait(false);
-
-            //                // Return the first logical page id of the schema
-            //                return table.SchemaFirstLogicalPageId;
-            //            }
-            //        })).ConfigureAwait(false);
-            return ObjectId.Zero;
+                            // Return the first logical page id of the schema
+                            createdObjectId = objectId;
+                            return table.SchemaFirstLogicalPageId;
+                        }
+                    })).ConfigureAwait(false);
+            return createdObjectId;
         }
 
         private async Task<IndexId> AddTableIndexHandlerAsync(AddTableIndexRequest request)
@@ -1383,11 +1381,9 @@ namespace Zen.Trunk.Storage.Data
             var firstLogicalPageId = objRef.FirstLogicalPageId;
 
             // Load table schema
-            using (var table = GetService<DatabaseTable>())
+            var tableFactory = GetService<IDatabaseTableFactory>();
+            using (var table = tableFactory.GetTableScopeForExistingTable(request.Message.ObjectId))
             {
-                table.FileGroupId = FileGroupId;
-                table.ObjectId = request.Message.ObjectId;
-                table.IsNewTable = false;
                 await table.LoadSchemaAsync(firstLogicalPageId).ConfigureAwait(false);
 
                 // Translate member column names into column identifiers

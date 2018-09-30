@@ -71,12 +71,13 @@ namespace Zen.Trunk.Storage.Query
             var dbNameExpr = VisitId(context.database);
             var dbDeviceExpr = Expression.Variable(typeof(DatabaseDevice), "dbDevice");
             return Expression.Block(
+                GetDebugInfoFromContext(context),
                 dbDeviceExpr,
                 Expression.Assign(
                     dbDeviceExpr,
                     Expression.Call(
                         GetQueryExecutionContextMasterDatabaseExpression(),
-                        "GetDatabaseDevice",
+                        nameof(MasterDatabaseDevice.GetDatabaseDevice),
                         new[] { typeof(string) },
                         dbNameExpr)),
                 Expression.IfThen(
@@ -100,10 +101,13 @@ namespace Zen.Trunk.Storage.Query
         /// <return>The visitor result.</return>
         public override Expression VisitBegin_transaction_statement([NotNull] TrunkSqlParser.Begin_transaction_statementContext context)
         {
-            return Expression.Call(
-                GetQueryExecutionContextActiveDatabaseExpression(),
-                typeof(DatabaseDevice).GetMethod("BeginTransaction"),
-                GetQueryExecutionContextIsolationLevelExpression());
+            return Expression.Block(
+                GetDebugInfoFromContext(context),
+                Expression.Call(
+                    GetQueryExecutionContextActiveDatabaseExpression(),
+                    // ReSharper disable once AssignNullToNotNullAttribute
+                    typeof(DatabaseDevice).GetMethod(nameof(DatabaseDevice.BeginTransaction)),
+                    GetQueryExecutionContextIsolationLevelExpression()));
         }
 
         /// <summary>
@@ -163,9 +167,11 @@ namespace Zen.Trunk.Storage.Query
                 }
             }
 
-            return Expression.Assign(
-                GetQueryExecutionContextIsolationLevelExpression(),
-                Expression.Constant(level));
+            return Expression.Block(
+                GetDebugInfoFromContext(context),
+                Expression.Assign(
+                    GetQueryExecutionContextIsolationLevelExpression(),
+                    Expression.Constant(level)));
         }
 
         /// <summary>
@@ -253,12 +259,14 @@ namespace Zen.Trunk.Storage.Query
             //  task chaining - or needs to add statements into task chain
             //  that we can do async/await processing via helper...
             return Expression.Block(
-                new[] {_executionContextParameterExpression},
+                new[]
+                {
+                    _executionContextParameterExpression
+                },
+                GetDebugInfoFromContext(context),
                 Expression.Call(
-                    Expression.Property(
-                        _executionContextParameterExpression,
-                        "MasterDatabase"),
-                    "AttachDatabaseAsync",
+                    GetQueryExecutionContextMasterDatabaseExpression(),
+                    nameof(MasterDatabaseDevice.AttachDatabaseAsync),
                     new[] {typeof(AttachDatabaseParameters)},
                     Expression.Constant(attachDatabaseParameters)));
         }
@@ -276,7 +284,9 @@ namespace Zen.Trunk.Storage.Query
         public override Expression VisitCreate_table(TrunkSqlParser.Create_tableContext context)
         {
             //context.table_name().
-            return base.VisitCreate_table(context);
+            return Expression.Block(
+                GetDebugInfoFromContext(context),
+                base.VisitCreate_table(context));
         }
 
         /// <summary>
@@ -345,7 +355,9 @@ namespace Zen.Trunk.Storage.Query
         {
             return Expression.Call(
                 _executionContextParameterExpression,
-                typeof(QueryExecutionContext).GetMethod("ThrowIfCancellationRequested"));
+                // ReSharper disable once AssignNullToNotNullAttribute
+                typeof(QueryExecutionContext).GetMethod(
+                    nameof(QueryExecutionContext.ThrowIfCancellationRequested)));
         }
 
         private MemberExpression GetQueryExecutionContextMasterDatabaseExpression()
@@ -353,7 +365,7 @@ namespace Zen.Trunk.Storage.Query
             return Expression.Property(
                 _executionContextParameterExpression,
                 typeof(MasterDatabaseDevice),
-                "MasterDatabase");
+                nameof(QueryExecutionContext.MasterDatabase));
         }
 
         private MemberExpression GetQueryExecutionContextActiveDatabaseExpression()
@@ -361,7 +373,7 @@ namespace Zen.Trunk.Storage.Query
             return Expression.Property(
                 _executionContextParameterExpression,
                 typeof(DatabaseDevice),
-                "ActiveDatabase");
+                nameof(QueryExecutionContext.ActiveDatabase));
         }
 
         private MemberExpression GetQueryExecutionContextIsolationLevelExpression()
@@ -369,19 +381,19 @@ namespace Zen.Trunk.Storage.Query
             return Expression.Property(
                 _executionContextParameterExpression,
                 typeof(IsolationLevel),
-                "IsolationLevel");
+                nameof(QueryExecutionContext.IsolationLevel));
         }
 
-        private async Task ExecuteCompositeExpressionAsync(
-            QueryExecutionContext queryExecutionContext,
-            Expression<Func<QueryExecutionContext, Task>> lhs,
-            Expression<Func<QueryExecutionContext, Task>> rhs)
-        {
-            var compiledLeft = lhs.Compile();
-            var compiledRight = rhs.Compile();
-            await compiledLeft(queryExecutionContext).ConfigureAwait(false);
-            await compiledRight(queryExecutionContext).ConfigureAwait(false);
-        }
+        //private async Task ExecuteCompositeExpressionAsync(
+        //    QueryExecutionContext queryExecutionContext,
+        //    Expression<Func<QueryExecutionContext, Task>> lhs,
+        //    Expression<Func<QueryExecutionContext, Task>> rhs)
+        //{
+        //    var compiledLeft = lhs.Compile();
+        //    var compiledRight = rhs.Compile();
+        //    await compiledLeft(queryExecutionContext).ConfigureAwait(false);
+        //    await compiledRight(queryExecutionContext).ConfigureAwait(false);
+        //}
 
         private FileSpec GetNativeFileSpecFromFileSpec(TrunkSqlParser.File_specContext fileSpecContext)
         {
@@ -427,6 +439,7 @@ namespace Zen.Trunk.Storage.Query
             // Get the 
             var sizeText = fileSizeContext.GetChild(0).GetText();
             var unit = FileSize.FileSizeUnit.MegaBytes;
+            // ReSharper disable once InvertIf
             if (fileSizeContext.ChildCount > 1)
             {
                 var unitToken = fileSizeContext.GetChild(1);
@@ -452,13 +465,7 @@ namespace Zen.Trunk.Storage.Query
                 }
             }
 
-            double value;
-            if (double.TryParse(sizeText, out value))
-            {
-                return new FileSize(value, unit);
-            }
-
-            return new FileSize(0.0, unit);
+            return double.TryParse(sizeText, out var value) ? new FileSize(value, unit) : new FileSize(0.0, unit);
         }
 
         private string GetNativeString(string text)

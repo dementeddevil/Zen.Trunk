@@ -47,7 +47,7 @@ namespace Zen.Trunk.Storage.Locking
 		/// Gets the owner lock.
 		/// </summary>
 		/// <returns></returns>
-		protected override ObjectLock GetOwnerLock()
+		protected override IObjectLock GetOwnerLock()
 		{
 			return LockManager.GetObjectLock(_objectId);
 		}
@@ -57,7 +57,7 @@ namespace Zen.Trunk.Storage.Locking
 		/// </summary>
 		/// <param name="key">The key.</param>
 		/// <returns></returns>
-		protected override DataLock GetItemLock(LogicalPageId key)
+		protected override IDataLock GetItemLock(LogicalPageId key)
 		{
 			return LockManager.GetDataLock(_objectId, key);
 		}

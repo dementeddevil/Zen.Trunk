@@ -4,26 +4,30 @@
     /// 
     /// </summary>
     /// <seealso cref="Zen.Trunk.Storage.Query.ChildSymbolScope" />
-    public class FunctionSymbolScope : ChildSymbolScope
+    public class MethodSymbolScope : ChildSymbolScope
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="FunctionSymbolScope"/> class.
+        /// Initializes a new instance of the <see cref="MethodSymbolScope"/> class.
         /// </summary>
-        /// <param name="globalScope">The global scope.</param>
+        /// <param name="schemaScope">The schema scope.</param>
         /// <param name="functionName">Name of the function.</param>
-        public FunctionSymbolScope(GlobalSymbolScope globalScope, string functionName)
-            : base(globalScope)
+        public MethodSymbolScope(SchemaSymbolScope schemaScope, string functionName)
+            : base(functionName, schemaScope)
         {
-            Name = functionName;
         }
 
         /// <summary>
-        /// Gets the name.
+        /// Overridden. Find the symbol in this scope.
         /// </summary>
-        /// <value>
-        /// The name.
-        /// </value>
-        public string Name { get; }
+        /// <param name="symbolName"></param>
+        /// <returns></returns>
+        /// <remarks>
+        /// This overload does not recurse into parent scopes.
+        /// </remarks>
+        public override Symbol Find(string symbolName)
+        {
+            return FindInThisScope(symbolName);
+        }
 
         // ReSharper disable once RedundantOverriddenMember
         /// <summary>

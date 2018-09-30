@@ -13,6 +13,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+// ReSharper disable UnusedMember.Local
 
 namespace Zen.Trunk.TaskSchedulers
 {
@@ -47,7 +48,7 @@ namespace Zen.Trunk.TaskSchedulers
                 get
                 {
                     var tasks = (_scheduler._targetScheduler != null) ?
-                        _scheduler._nonthreadsafeTaskQueue :
+                        _scheduler._nonThreadSafeTaskQueue :
                         (IEnumerable<Task>)_scheduler._blockingTaskQueue;
                     return tasks.Where(t => t != null).ToList();
                 }
@@ -70,61 +71,75 @@ namespace Zen.Trunk.TaskSchedulers
         }
 
         /// <summary>
-        /// A sorted list of round-robin queue lists.  Tasks with the smallest priority value
-        /// are preferred.  Priority groups are round-robin'd through in order of priority.
+        /// A sorted list of round-robin queue lists. Tasks with the smallest priority value
+        /// are preferred. Priority groups are accessed in round-robin fashion in order of priority.
         /// </summary>
         private readonly SortedList<int, QueueGroup> _queueGroups = new SortedList<int, QueueGroup>();
-        /// <summary>Cancellation token used for disposal.</summary>
+        
+        /// <summary>
+        /// Cancellation token used for disposal.
+        /// </summary>
         private readonly CancellationTokenSource _disposeCancellation = new CancellationTokenSource();
+        
         /// <summary>
         /// The maximum allowed concurrency level of this scheduler.  If custom threads are
         /// used, this represents the number of created threads.
         /// </summary>
         private readonly int _concurrencyLevel;
-        /// <summary>Whether we're processing tasks on the current thread.</summary>
+        
+        /// <summary>
+        /// Whether we're processing tasks on the current thread.
+        /// </summary>
         private static readonly ThreadLocal<bool> TaskProcessingThread = new ThreadLocal<bool>();
 
         // ***
         // *** For when using a target scheduler
         // ***
 
-        /// <summary>The scheduler onto which actual work is scheduled.</summary>
+        /// <summary>
+        /// The scheduler onto which actual work is scheduled.
+        /// </summary>
         private readonly TaskScheduler _targetScheduler;
-        /// <summary>The queue of tasks to process when using an underlying target scheduler.</summary>
-        private readonly Queue<Task> _nonthreadsafeTaskQueue;
-        /// <summary>The number of Tasks that have been queued or that are running whiel using an underlying scheduler.</summary>
+
+        /// <summary>
+        /// The queue of tasks to process when using an underlying target scheduler.
+        /// </summary>
+        private readonly Queue<Task> _nonThreadSafeTaskQueue;
+        
+        /// <summary>
+        /// The number of Tasks that have been queued or that are running while using an underlying scheduler.
+        /// </summary>
         private int _delegatesQueuedOrRunning;
 
         // ***
         // *** For when using our own threads
         // ***
 
-        /// <summary>The threads used by the scheduler to process work.</summary>
+        /// <summary>
+        /// The threads used by the scheduler to process work.
+        /// </summary>
+        // ReSharper disable once PrivateFieldCanBeConvertedToLocalVariable
         private readonly Thread[] _threads;
-        /// <summary>The collection of tasks to be executed on our custom threads.</summary>
+        
+        /// <summary>
+        /// The collection of tasks to be executed on our custom threads.
+        /// </summary>
         private readonly BlockingCollection<Task> _blockingTaskQueue;
 
         // ***
 
         /// <summary>Initializes the scheduler.</summary>
-        public QueuedTaskScheduler() : this(Default, 0) { }
+        public QueuedTaskScheduler() : this(Default)
+        {
+        }
 
         /// <summary>Initializes the scheduler.</summary>
-        /// <param name="targetScheduler">The target underlying scheduler onto which this sceduler's work is queued.</param>
-        public QueuedTaskScheduler(TaskScheduler targetScheduler) : this(targetScheduler, 0) { }
-
-        /// <summary>Initializes the scheduler.</summary>
-        /// <param name="targetScheduler">The target underlying scheduler onto which this sceduler's work is queued.</param>
-        /// <param name="maxConcurrencyLevel">The maximum degree of concurrency allowed for this scheduler's work.</param>
+        /// <param name="targetScheduler">The target underlying work scheduler.</param>
+        /// <param name="maxConcurrencyLevel">The maximum degree of concurrency allowed.</param>
         public QueuedTaskScheduler(
             TaskScheduler targetScheduler,
-            int maxConcurrencyLevel)
+            int maxConcurrencyLevel = 0)
         {
-            // Validate arguments
-            if (targetScheduler == null)
-            {
-                throw new ArgumentNullException(nameof(targetScheduler));
-            }
             if (maxConcurrencyLevel < 0)
             {
                 throw new ArgumentOutOfRangeException(nameof(maxConcurrencyLevel));
@@ -132,8 +147,8 @@ namespace Zen.Trunk.TaskSchedulers
 
             // Initialize only those fields relevant to use an underlying scheduler.  We don't
             // initialize the fields relevant to using our own custom threads.
-            _targetScheduler = targetScheduler;
-            _nonthreadsafeTaskQueue = new Queue<Task>();
+            _targetScheduler = targetScheduler ?? throw new ArgumentNullException(nameof(targetScheduler));
+            _nonThreadSafeTaskQueue = new Queue<Task>();
 
             // If 0, use the number of logical processors.  But make sure whatever value we pick
             // is not greater than the degree of parallelism allowed by the underlying scheduler.
@@ -308,9 +323,10 @@ namespace Zen.Trunk.TaskSchedulers
         {
             get
             {
-                return (_targetScheduler != null ? 
-                    _nonthreadsafeTaskQueue : (IEnumerable<Task>)_blockingTaskQueue)
-                    .Where(t => t != null).Count();
+                return (_targetScheduler != null
+                        ? _nonThreadSafeTaskQueue
+                        : (IEnumerable<Task>)_blockingTaskQueue)
+                    .Count(t => t != null);
             }
         }
 
@@ -337,11 +353,11 @@ namespace Zen.Trunk.TaskSchedulers
                 foreach (var i in queues.CreateSearchOrder())
                 {
                     queueForTargetTask = queues[i];
-                    var items = queueForTargetTask._workItems;
+                    var items = queueForTargetTask.WorkItems;
                     if (items.Count > 0)
                     {
                         targetTask = items.Dequeue();
-                        if (queueForTargetTask._disposed && items.Count == 0)
+                        if (queueForTargetTask.Disposed && items.Count == 0)
                         {
                             RemoveQueue_NeedsLock(queueForTargetTask);
                         }
@@ -377,9 +393,9 @@ namespace Zen.Trunk.TaskSchedulers
                 // task (noting it if we do, so that other threads don't result
                 // in queueing up too many).
                 var launchTask = false;
-                lock (_nonthreadsafeTaskQueue)
+                lock (_nonThreadSafeTaskQueue)
                 {
-                    _nonthreadsafeTaskQueue.Enqueue(task);
+                    _nonThreadSafeTaskQueue.Enqueue(task);
                     if (_delegatesQueuedOrRunning < _concurrencyLevel)
                     {
                         ++_delegatesQueuedOrRunning;
@@ -416,14 +432,14 @@ namespace Zen.Trunk.TaskSchedulers
                     {
                         // Try to get the next task.  If there aren't any more, we're done.
                         Task targetTask;
-                        lock (_nonthreadsafeTaskQueue)
+                        lock (_nonThreadSafeTaskQueue)
                         {
-                            if (_nonthreadsafeTaskQueue.Count == 0)
+                            if (_nonThreadSafeTaskQueue.Count == 0)
                             {
                                 return;
                             }
 
-                            targetTask = _nonthreadsafeTaskQueue.Dequeue();
+                            targetTask = _nonThreadSafeTaskQueue.Dequeue();
                         }
 
                         // If the task is null, it's a placeholder for a task in the round-robin queues.
@@ -458,9 +474,9 @@ namespace Zen.Trunk.TaskSchedulers
                     // Now that we think we're done, verify that there really is
                     // no more work to do.  If there's not, highlight
                     // that we're now less parallel than we were a moment ago.
-                    lock (_nonthreadsafeTaskQueue)
+                    lock (_nonThreadSafeTaskQueue)
                     {
-                        if (_nonthreadsafeTaskQueue.Count == 0)
+                        if (_nonThreadSafeTaskQueue.Count == 0)
                         {
                             _delegatesQueuedOrRunning--;
                             continueProcessing = false;
@@ -471,10 +487,18 @@ namespace Zen.Trunk.TaskSchedulers
             }
         }
 
-        /// <summary>Notifies the pool that there's a new item to be executed in one of the round-robin queues.</summary>
-        private void NotifyNewWorkItem() { QueueTask(null); }
+        /// <summary>
+        /// Notifies the pool that there's a new item to be executed in one of the round-robin queues.
+        /// </summary>
+        private void NotifyNewWorkItem()
+        {
+            // ReSharper disable once AssignNullToNotNullAttribute
+            QueueTask(null);
+        }
 
-        /// <summary>Tries to execute a task synchronously on the current thread.</summary>
+        /// <summary>
+        /// Tries to execute a task synchronously on the current thread.
+        /// </summary>
         /// <param name="task">The task to execute.</param>
         /// <param name="taskWasPreviouslyQueued">Whether the task was previously queued.</param>
         /// <returns>true if the task was executed; otherwise, false.</returns>
@@ -484,7 +508,9 @@ namespace Zen.Trunk.TaskSchedulers
             return TaskProcessingThread.Value && TryExecuteTask(task);
         }
 
-        /// <summary>Gets the tasks scheduled to this scheduler.</summary>
+        /// <summary>
+        /// Gets the tasks scheduled to this scheduler.
+        /// </summary>
         /// <returns>An enumerable of all tasks queued to this scheduler.</returns>
         /// <remarks>This does not include the tasks on sub-schedulers.  Those will be retrieved by the debugger separately.</remarks>
         protected override IEnumerable<Task> GetScheduledTasks()
@@ -499,24 +525,36 @@ namespace Zen.Trunk.TaskSchedulers
             // otherwise get them from the non-blocking queue...
             else
             {
-                return _nonthreadsafeTaskQueue.Where(t => t != null).ToList();
+                return _nonThreadSafeTaskQueue.Where(t => t != null).ToList();
             }
         }
 
-        /// <summary>Gets the maximum concurrency level to use when processing tasks.</summary>
+        /// <summary>
+        /// Gets the maximum concurrency level to use when processing tasks.
+        /// </summary>
         public override int MaximumConcurrencyLevel => _concurrencyLevel;
 
-        /// <summary>Initiates shutdown of the scheduler.</summary>
+        /// <summary>
+        /// Initiates shutdown of the scheduler.
+        /// </summary>
         public void Dispose()
         {
             _disposeCancellation.Cancel();
         }
 
-        /// <summary>Creates and activates a new scheduling queue for this scheduler.</summary>
+        /// <summary>
+        /// Creates and activates a new scheduling queue for this scheduler.
+        /// </summary>
         /// <returns>The newly created and activated queue at priority 0.</returns>
-        public TaskScheduler ActivateNewQueue() { return ActivateNewQueue(0); }
+        public TaskScheduler ActivateNewQueue()
+        {
+            // ReSharper disable once IntroduceOptionalParameters.Global
+            return ActivateNewQueue(0);
+        }
 
-        /// <summary>Creates and activates a new scheduling queue for this scheduler.</summary>
+        /// <summary>
+        /// Creates and activates a new scheduling queue for this scheduler.
+        /// </summary>
         /// <param name="priority">The priority level for the new queue.</param>
         /// <returns>The newly created and activated queue at the specified priority.</returns>
         public TaskScheduler ActivateNewQueue(int priority)
@@ -545,7 +583,7 @@ namespace Zen.Trunk.TaskSchedulers
         private void RemoveQueue_NeedsLock(QueuedTaskSchedulerQueue queue)
         {
             // Find the group that contains the queue and the queue's index within the group
-            var queueGroup = _queueGroups[queue._priority];
+            var queueGroup = _queueGroups[queue.Priority];
             var index = queueGroup.IndexOf(queue);
 
             // We're about to remove the queue, so adjust the index of the next
@@ -581,7 +619,7 @@ namespace Zen.Trunk.TaskSchedulers
         }
 
         /// <summary>Provides a scheduling queue associatd with a QueuedTaskScheduler.</summary>
-        [DebuggerDisplay("QueuePriority = {_priority}, WaitingTasks = {WaitingTasks}")]
+        [DebuggerDisplay("QueuePriority = {Priority}, WaitingTasks = {WaitingTasks}")]
         [DebuggerTypeProxy(typeof(QueuedTaskSchedulerQueueDebugView))]
         private sealed class QueuedTaskSchedulerQueue : TaskScheduler, IDisposable
         {
@@ -604,7 +642,7 @@ namespace Zen.Trunk.TaskSchedulers
                 }
 
                 /// <summary>Gets the priority of this queue in its associated scheduler.</summary>
-                public int Priority => _queue._priority;
+                public int Priority => _queue.Priority;
 
                 /// <summary>Gets the ID of this scheduler.</summary>
                 public int Id => _queue.Id;
@@ -618,35 +656,38 @@ namespace Zen.Trunk.TaskSchedulers
 
             /// <summary>The scheduler with which this pool is associated.</summary>
             private readonly QueuedTaskScheduler _pool;
+
             /// <summary>The work items stored in this queue.</summary>
-            internal readonly Queue<Task> _workItems;
+            internal Queue<Task> WorkItems { get; }
+            
             /// <summary>Whether this queue has been disposed.</summary>
-            internal bool _disposed;
+            internal bool Disposed { get; private set; }
+            
             /// <summary>Gets the priority for this queue.</summary>
-            internal readonly int _priority;
+            internal int Priority { get; }
 
             /// <summary>Initializes the queue.</summary>
             /// <param name="priority">The priority associated with this queue.</param>
             /// <param name="pool">The scheduler with which this queue is associated.</param>
             internal QueuedTaskSchedulerQueue(int priority, QueuedTaskScheduler pool)
             {
-                _priority = priority;
+                Priority = priority;
                 _pool = pool;
-                _workItems = new Queue<Task>();
+                WorkItems = new Queue<Task>();
             }
 
             /// <summary>Gets the number of tasks waiting in this scheduler.</summary>
-            internal int WaitingTasks => _workItems.Count;
+            internal int WaitingTasks => WorkItems.Count;
 
             /// <summary>Gets the tasks scheduled to this scheduler.</summary>
             /// <returns>An enumerable of all tasks queued to this scheduler.</returns>
-            protected override IEnumerable<Task> GetScheduledTasks() { return _workItems.ToList(); }
+            protected override IEnumerable<Task> GetScheduledTasks() { return WorkItems.ToList(); }
 
             /// <summary>Queues a task to the scheduler.</summary>
             /// <param name="task">The task to be queued.</param>
             protected override void QueueTask(Task task)
             {
-                if (_disposed)
+                if (Disposed)
                 {
                     throw new ObjectDisposedException(GetType().Name);
                 }
@@ -655,7 +696,7 @@ namespace Zen.Trunk.TaskSchedulers
                 // the parent scheduler that there's work available
                 lock (_pool._queueGroups)
                 {
-                    _workItems.Enqueue(task);
+                    WorkItems.Enqueue(task);
                 }
                 _pool.NotifyNewWorkItem();
             }
@@ -681,19 +722,19 @@ namespace Zen.Trunk.TaskSchedulers
             /// <summary>Signals that the queue should be removed from the scheduler as soon as the queue is empty.</summary>
             public void Dispose()
             {
-                if (!_disposed)
+                if (!Disposed)
                 {
                     lock (_pool._queueGroups)
                     {
                         // We only remove the queue if it's empty.  If it's not empty,
                         // we still mark it as disposed, and the associated QueuedTaskScheduler
                         // will remove the queue when its count hits 0 and its _disposed is true.
-                        if (_workItems.Count == 0)
+                        if (WaitingTasks == 0)
                         {
                             _pool.RemoveQueue_NeedsLock(this);
                         }
                     }
-                    _disposed = true;
+                    Disposed = true;
                 }
             }
         }

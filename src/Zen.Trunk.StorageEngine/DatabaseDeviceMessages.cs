@@ -301,12 +301,28 @@ namespace Zen.Trunk.Storage
 
     public class CreateObjectReferenceParameters
     {
+        #region Public Constructors
+        public CreateObjectReferenceParameters(
+            string name,
+            FileGroupId fileGroupId,
+            ObjectType objectType,
+            Func<ObjectId, Task<LogicalPageId>> firstPageFunc)
+        {
+            Name = name;
+            FileGroupId = fileGroupId;
+            ObjectType = objectType;
+            FirstPageFunc = firstPageFunc;
+        }
+        #endregion
+
+        #region Public Properties
         public string Name { get; }
 
         public FileGroupId FileGroupId { get; }
 
         public ObjectType ObjectType { get; }
 
-        public Func<ObjectId, Task<LogicalPageId>> FirstPageFunc { get; }
+        public Func<ObjectId, Task<LogicalPageId>> FirstPageFunc { get; } 
+        #endregion
     }
 }

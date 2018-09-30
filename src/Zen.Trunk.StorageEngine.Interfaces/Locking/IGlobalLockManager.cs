@@ -35,9 +35,9 @@ namespace Zen.Trunk.Storage.Locking
         /// </summary>
         /// <param name="dbId">The db id.</param>
         /// <returns>
-        /// A <see cref="DatabaseLock"/> instance.
+        /// A <see cref="IDatabaseLock"/> instance.
         /// </returns>
-        DatabaseLock GetDatabaseLock(DatabaseId dbId);
+        IDatabaseLock GetDatabaseLock(DatabaseId dbId);
 
         /// <summary>
         /// Locks the file-group.
@@ -67,9 +67,9 @@ namespace Zen.Trunk.Storage.Locking
         /// <param name="dbId">The database identifier.</param>
         /// <param name="fileGroupId">The file group identifier.</param>
         /// <returns>
-        /// A <see cref="FileGroupRootLock"/> instance.
+        /// A <see cref="IFileGroupLock"/> instance.
         /// </returns>
-        FileGroupRootLock GetFileGroupLock(DatabaseId dbId, FileGroupId fileGroupId);
+        IFileGroupLock GetFileGroupLock(DatabaseId dbId, FileGroupId fileGroupId);
 
         /// <summary>
         /// Locks the distribution page.
@@ -139,9 +139,9 @@ namespace Zen.Trunk.Storage.Locking
         /// <param name="dbId">The database identifier.</param>
         /// <param name="virtualPageId">The virtual page identifier.</param>
         /// <returns>
-        /// An <see cref="ObjectLock"/> instance.
+        /// An <see cref="IObjectLock"/> instance.
         /// </returns>
-        ObjectLock GetDistributionLock(DatabaseId dbId, VirtualPageId virtualPageId);
+        IObjectLock GetDistributionLock(DatabaseId dbId, VirtualPageId virtualPageId);
 
         /// <summary>
         /// Gets the distribution extent lock.
@@ -150,9 +150,9 @@ namespace Zen.Trunk.Storage.Locking
         /// <param name="virtualPageId">The virtual page identifier.</param>
         /// <param name="extentIndex">Index of the extent.</param>
         /// <returns>
-        /// A <see cref="DataLock"/> instance.
+        /// A <see cref="IDataLock"/> instance.
         /// </returns>
-        DataLock GetDistributionExtentLock(DatabaseId dbId, VirtualPageId virtualPageId, uint extentIndex);
+        IDataLock GetDistributionExtentLock(DatabaseId dbId, VirtualPageId virtualPageId, uint extentIndex);
 
         /// <summary>
         /// Locks the object.
@@ -182,9 +182,9 @@ namespace Zen.Trunk.Storage.Locking
         /// <param name="dbId">The database identifier.</param>
         /// <param name="objectId">The object identifier.</param>
         /// <returns>
-        /// An <see cref="ObjectLock"/> instance.
+        /// An <see cref="IObjectLock"/> instance.
         /// </returns>
-        ObjectLock GetObjectLock(DatabaseId dbId, ObjectId objectId);
+        IObjectLock GetObjectLock(DatabaseId dbId, ObjectId objectId);
 
         /// <summary>
         /// Locks the schema.
@@ -214,9 +214,9 @@ namespace Zen.Trunk.Storage.Locking
         /// <param name="dbId">The database identifier.</param>
         /// <param name="objectId">The object identifier.</param>
         /// <returns>
-        /// A <see cref="SchemaLock"/> instance.
+        /// A <see cref="ISchemaLock"/> instance.
         /// </returns>
-        SchemaLock GetSchemaLock(DatabaseId dbId, ObjectId objectId);
+        ISchemaLock GetSchemaLock(DatabaseId dbId, ObjectId objectId);
 
         /// <summary>
         /// Locks the root index.
@@ -314,8 +314,8 @@ namespace Zen.Trunk.Storage.Locking
         /// <param name="objectId">The object identifier.</param>
         /// <param name="logicalId">The logical identifier.</param>
         /// <returns>
-        /// A <see cref="DataLock"/> instance.
+        /// A <see cref="IDataLock"/> instance.
         /// </returns>
-        DataLock GetDataLock(DatabaseId dbId, ObjectId objectId, LogicalPageId logicalId);
+        IDataLock GetDataLock(DatabaseId dbId, ObjectId objectId, LogicalPageId logicalId);
     }
 }

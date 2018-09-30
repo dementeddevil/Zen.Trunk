@@ -10,7 +10,6 @@
         /// </summary>
         /// <remarks>
         /// Only used for the primary device on the primary file-group in a database.
-        /// 
         /// </remarks>
         public const string PrimaryFileGroupPrimaryDeviceFileExtension = ".mddf";
 
@@ -73,5 +72,10 @@
         /// The temporary database name
         /// </summary>
         public const string TemporaryDatabaseName = "tempdb";
+
+        /// <summary>
+        /// The default schema name
+        /// </summary>
+        public const string DefaultSchemaName = "dbo";
     }
 }

@@ -154,8 +154,8 @@ namespace Zen.Trunk.Service
         private async Task MountAndOpenSystemDatabasesAsync()
         {
             // Create temp DB
-            var temporaryDatabase = _serviceLifetimeScope.Resolve<TemporaryDatabaseDevice>();
-            var tempDbFolder = Path.GetDirectoryName(_masterDataPathname);
+            //var temporaryDatabase = _serviceLifetimeScope.Resolve<TemporaryDatabaseDevice>();
+            //var tempDbFolder = Path.GetDirectoryName(_masterDataPathname);
             //await temporaryDatabase.
 
             // Mount master DB

@@ -75,7 +75,7 @@ namespace Zen.Trunk.Storage.Locking
         /// Gets the database lock.
         /// </summary>
         /// <returns></returns>
-        public DatabaseLock GetDatabaseLock()
+        public IDatabaseLock GetDatabaseLock()
 	    {
 	        return _globalLockManager.GetDatabaseLock(DatabaseId);
 	    }
@@ -109,7 +109,7 @@ namespace Zen.Trunk.Storage.Locking
         /// </summary>
         /// <param name="fileGroupId">The file group identifier.</param>
         /// <returns></returns>
-        public FileGroupRootLock GetFileGroupLock(FileGroupId fileGroupId)
+        public IFileGroupLock GetFileGroupLock(FileGroupId fileGroupId)
 		{
 			return _globalLockManager.GetFileGroupLock(DatabaseId, fileGroupId);
 		}
@@ -188,7 +188,7 @@ namespace Zen.Trunk.Storage.Locking
         /// </summary>
         /// <param name="virtualPageId">The virtual page identifier.</param>
         /// <returns></returns>
-        public ObjectLock GetDistributionLock(VirtualPageId virtualPageId)
+        public IObjectLock GetDistributionLock(VirtualPageId virtualPageId)
 		{
 			return _globalLockManager.GetDistributionLock(DatabaseId, virtualPageId);
 		}
@@ -199,7 +199,7 @@ namespace Zen.Trunk.Storage.Locking
         /// <param name="virtualPageId">The virtual page identifier.</param>
         /// <param name="extentIndex">Index of the extent.</param>
         /// <returns></returns>
-        public DataLock GetDistributionExtentLock(VirtualPageId virtualPageId, uint extentIndex)
+        public IDataLock GetDistributionExtentLock(VirtualPageId virtualPageId, uint extentIndex)
 		{
 			return _globalLockManager.GetDistributionExtentLock(DatabaseId, virtualPageId, extentIndex);
 		}
@@ -233,7 +233,7 @@ namespace Zen.Trunk.Storage.Locking
         /// </summary>
         /// <param name="objectId">The object identifier.</param>
         /// <returns></returns>
-        public ObjectLock GetObjectLock(ObjectId objectId)
+        public IObjectLock GetObjectLock(ObjectId objectId)
 		{
 			return _globalLockManager.GetObjectLock(DatabaseId, objectId);
 		}
@@ -267,7 +267,7 @@ namespace Zen.Trunk.Storage.Locking
         /// </summary>
         /// <param name="objectId">The object identifier.</param>
         /// <returns></returns>
-        public SchemaLock GetSchemaLock(ObjectId objectId)
+        public ISchemaLock GetSchemaLock(ObjectId objectId)
 		{
 			return _globalLockManager.GetSchemaLock(DatabaseId, objectId);
 		}
@@ -379,7 +379,7 @@ namespace Zen.Trunk.Storage.Locking
         /// <param name="objectId">The object identifier.</param>
         /// <param name="logicalId">The logical identifier.</param>
         /// <returns></returns>
-        public DataLock GetDataLock(ObjectId objectId, LogicalPageId logicalId)
+        public IDataLock GetDataLock(ObjectId objectId, LogicalPageId logicalId)
 		{
 			return _globalLockManager.GetDataLock(DatabaseId, objectId, logicalId);
 		}

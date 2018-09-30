@@ -7,7 +7,7 @@
     <ProjectGuid>{98872BB1-74E7-4ABB-B0D1-9CC32B24F4C8}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Zen.Trunk.VirtualMemory.Identifiers</RootNamespace>
+    <RootNamespace>Zen.Trunk.VirtualMemory</RootNamespace>
     <AssemblyName>Zen.Trunk.VirtualMemory.Identifiers</AssemblyName>
     <TargetFrameworkVersion>v4.7.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
@@ -33,12 +33,6 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Net.Http" />
-    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DeviceId.cs" />

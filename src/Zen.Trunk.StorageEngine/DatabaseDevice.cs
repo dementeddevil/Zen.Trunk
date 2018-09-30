@@ -7,6 +7,7 @@ using System.Transactions;
 using Autofac;
 using Zen.Trunk.Extensions;
 using Zen.Trunk.Logging;
+using Zen.Trunk.Storage.BufferFields;
 using Zen.Trunk.Storage.Data;
 using Zen.Trunk.Storage.Locking;
 using Zen.Trunk.Storage.Log;
@@ -24,7 +25,7 @@ namespace Zen.Trunk.Storage
     /// Operations dealt with;
     /// Open, close, grow, shrink, page allocation/deallocation.
     /// </remarks>
-    public class DatabaseDevice : PageDevice
+    public class DatabaseDevice : PageDevice, IDatabaseDevice
     {
         #region Private Types
         private class AddFileGroupDeviceRequest : TransactionContextTaskRequest<AddFileGroupDeviceParameters, Tuple<DeviceId, string>>
@@ -162,8 +163,8 @@ namespace Zen.Trunk.Storage
 
         // Object identifier tracking
         private ObjectId _nextObjectId = new ObjectId(1);
-        private readonly Dictionary<ObjectId, ObjectRefInfo> _objects =
-            new Dictionary<ObjectId, ObjectRefInfo>();
+        private readonly Dictionary<ObjectId, ObjectReferenceBufferFieldWrapper> _objects =
+            new Dictionary<ObjectId, ObjectReferenceBufferFieldWrapper>();
 
         // Log device
         private MasterLogPageDevice _masterLogPageDevice;
@@ -698,7 +699,7 @@ namespace Zen.Trunk.Storage
         /// file-group root pages.
         /// </summary>
         /// <param name="objectReferences">The object references.</param>
-        internal void ProcessObjectReferences(ICollection<ObjectRefInfo> objectReferences)
+        internal void ProcessObjectReferences(ICollection<ObjectReferenceBufferFieldWrapper> objectReferences)
         {
             foreach (var objRef in objectReferences)
             {
@@ -1081,7 +1082,7 @@ namespace Zen.Trunk.Storage
 
             // Build object reference information.
             var objectRef =
-                new ObjectRefInfo
+                new ObjectReferenceBufferFieldWrapper
                 {
                     Name = request.Message.Name,
                     ObjectType = request.Message.ObjectType,
@@ -1091,6 +1092,11 @@ namespace Zen.Trunk.Storage
 
             // Load primary file-group root page
             var primaryFileGroupDevice = _fileGroupById[request.Message.FileGroupId] as PrimaryFileGroupDevice;
+            if (primaryFileGroupDevice == null)
+            {
+                throw new ArgumentException("File group identifier must link to primary file group device.");
+            }
+
             var rootPage = (PrimaryFileGroupRootPage)primaryFileGroupDevice.CreateRootPage();
             //var rootPage = (PrimaryFileGroupRootPage) await primaryFileGroupDevice
             //    .LoadRootPageAsync()

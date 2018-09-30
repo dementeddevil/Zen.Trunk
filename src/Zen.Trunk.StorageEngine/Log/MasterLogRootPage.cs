@@ -19,8 +19,8 @@ namespace Zen.Trunk.Storage.Log
     public class MasterLogRootPage : LogRootPage
 	{
 		#region Private Fields
-		private readonly Dictionary<DeviceId, DeviceInfo> _deviceById;
-		private readonly List<DeviceInfo> _devicesByIndex;
+		private readonly Dictionary<DeviceId, DeviceReferenceBufferFieldWrapper> _deviceById;
+		private readonly List<DeviceReferenceBufferFieldWrapper> _devicesByIndex;
 
 		private readonly BufferFieldUInt16 _deviceCount;
 		private readonly BufferFieldLogFileId _lastLogFileId;
@@ -39,8 +39,8 @@ namespace Zen.Trunk.Storage.Log
 		/// </summary>
 		public MasterLogRootPage()
 		{
-			_deviceById = new Dictionary<DeviceId, DeviceInfo>();
-			_devicesByIndex = new List<DeviceInfo>();
+			_deviceById = new Dictionary<DeviceId, DeviceReferenceBufferFieldWrapper>();
+			_devicesByIndex = new List<DeviceReferenceBufferFieldWrapper>();
 
 			_deviceCount = new BufferFieldUInt16(base.LastHeaderField);
 			_lastLogFileId = new BufferFieldLogFileId(_deviceCount);
@@ -199,11 +199,11 @@ namespace Zen.Trunk.Storage.Log
 		/// <summary>
 		/// Adds the device to the root page record.
 		/// </summary>
-		/// <param name="deviceInfo"></param>
-		public void AddDevice(DeviceInfo deviceInfo)
+		/// <param name="deviceReference"></param>
+		public void AddDevice(DeviceReferenceBufferFieldWrapper deviceReference)
 		{
-			_deviceById.Add(deviceInfo.Id, deviceInfo);
-			_devicesByIndex.Add(deviceInfo);
+			_deviceById.Add(deviceReference.Id, deviceReference);
+			_devicesByIndex.Add(deviceReference);
 
 			// We are dirty...
 			SetHeaderDirty();
@@ -215,7 +215,7 @@ namespace Zen.Trunk.Storage.Log
         /// </summary>
         /// <param name="deviceId">The device identifier.</param>
         /// <returns></returns>
-        public DeviceInfo GetDeviceById(DeviceId deviceId)
+        public DeviceReferenceBufferFieldWrapper GetDeviceById(DeviceId deviceId)
 		{
 			return _deviceById[deviceId];
 		}
@@ -225,9 +225,9 @@ namespace Zen.Trunk.Storage.Log
         /// </summary>
         /// <param name="index">The index.</param>
         /// <returns>
-        /// A <see cref="DeviceInfo"/> object containing device information.
+        /// A <see cref="DeviceReferenceBufferFieldWrapper"/> object containing device information.
         /// </returns>
-        public DeviceInfo GetDeviceByIndex(int index)
+        public DeviceReferenceBufferFieldWrapper GetDeviceByIndex(int index)
 		{
 			return _devicesByIndex[index];
 		}
@@ -380,7 +380,7 @@ namespace Zen.Trunk.Storage.Log
 			{
 				for (byte index = 0; index < _deviceCount.Value; ++index)
 				{
-					var info = new DeviceInfo();
+					var info = new DeviceReferenceBufferFieldWrapper();
 					info.Read(streamManager);
 
 					_deviceById.Add(info.Id, info);

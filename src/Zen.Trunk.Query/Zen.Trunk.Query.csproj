@@ -62,26 +62,23 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Threading.Tasks.Dataflow, Version=4.5.24.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.Tpl.Dataflow.4.5.24\lib\portable-net45+win8+wpa81\System.Threading.Tasks.Dataflow.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="System.Transactions" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ChildSymbolScope.cs" />
+    <Compile Include="DatabaseSymbol.cs" />
+    <Compile Include="DatabaseSymbolScope.cs" />
+    <Compile Include="DataTypeSymbol.cs" />
+    <Compile Include="NamedSymbolScope.cs" />
     <Compile Include="QueryExecutionContext.cs" />
     <Compile Include="FunctionSymbol.cs" />
-    <Compile Include="FunctionSymbolScope.cs" />
+    <Compile Include="MethodSymbolScope.cs" />
     <Compile Include="GlobalSymbolScope.cs" />
     <Compile Include="LocalSymbolScope.cs" />
     <Compile Include="ParameterSymbol.cs" />
     <Compile Include="ProcedureSymbol.cs" />
+    <Compile Include="SchemaSymbol.cs" />
+    <Compile Include="SchemaSymbolScope.cs" />
     <Compile Include="SqlBatchOperationBuilder.cs" />
     <Compile Include="Symbol.cs" />
     <Compile Include="SymbolScope.cs" />
@@ -99,6 +96,10 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Zen.Trunk.StorageEngine.Interfaces\Zen.Trunk.StorageEngine.Interfaces.csproj">
+      <Project>{72BEECC4-72E1-4A9F-BEF5-B93AF54250AA}</Project>
+      <Name>Zen.Trunk.StorageEngine.Interfaces</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Zen.Trunk.StorageEngine\Zen.Trunk.StorageEngine.csproj">
       <Project>{2f2a3e61-960a-4da0-a087-d45c89b33099}</Project>
       <Name>Zen.Trunk.StorageEngine</Name>

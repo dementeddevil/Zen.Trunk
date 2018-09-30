@@ -229,7 +229,6 @@ namespace Zen.Trunk.Storage.Data
 
         private readonly ExtentInfo[] _extents;
         private List<uint> _lockedExtents;
-        private ObjectLockType _distributionLock = ObjectLockType.IntentShared;
         #endregion
 
         #region Public Constructors
@@ -253,7 +252,7 @@ namespace Zen.Trunk.Storage.Data
         /// <value>
         /// The distribution lock.
         /// </value>
-        public ObjectLockType DistributionLock => _distributionLock;
+        public ObjectLockType DistributionLock { get; private set; } = ObjectLockType.IntentShared;
 
         /// <summary>
         /// Gets/sets the page type.
@@ -274,17 +273,17 @@ namespace Zen.Trunk.Storage.Data
         /// <returns></returns>
         public async Task SetDistributionLockAsync(ObjectLockType value)
         {
-            if (_distributionLock != value)
+            if (DistributionLock != value)
             {
-                var oldLock = _distributionLock;
+                var oldLock = DistributionLock;
                 try
                 {
-                    _distributionLock = value;
+                    DistributionLock = value;
                     await LockPageAsync().ConfigureAwait(false);
                 }
                 catch
                 {
-                    _distributionLock = oldLock;
+                    DistributionLock = oldLock;
                     throw;
                 }
             }
@@ -409,8 +408,6 @@ namespace Zen.Trunk.Storage.Data
             // Mark this instance as dirty and force save to underlying page buffer
             SetDirty();
             Save();
-            //WriteData();
-            //SetHeaderDirty();
 
             return virtPageId;
         }

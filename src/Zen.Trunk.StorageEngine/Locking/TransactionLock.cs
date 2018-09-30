@@ -13,7 +13,7 @@ namespace Zen.Trunk.Storage.Locking
     /// </summary>
     /// <typeparam name="TLockTypeEnum"></typeparam>
     public abstract class TransactionLock<TLockTypeEnum> :
-        TransactionLockBase, IReferenceLock
+        TransactionLockBase, ITransactionLock<TLockTypeEnum>
         where TLockTypeEnum : struct, IComparable, IConvertible, IFormattable // enum
     {
         #region Lock Messages
@@ -815,7 +815,7 @@ namespace Zen.Trunk.Storage.Locking
             AddRefLock();
         }
 
-        void IReferenceLock.ReleaseLock()
+        void IReferenceLock.ReleaseRefLock()
         {
             ReleaseRefLock();
         }

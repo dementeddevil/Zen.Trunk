@@ -5,7 +5,8 @@ using System.Text;
 namespace Zen.Trunk.IO
 {
     /// <summary>
-    /// 
+    /// <c>SwitchingBinaryWriter</c> behaves just like a BinaryWriter however
+    /// the encoding scheme used for writing strings can be changed dynamically.
     /// </summary>
     /// <seealso cref="System.IDisposable" />
     public class SwitchingBinaryWriter : IDisposable
@@ -56,28 +57,17 @@ namespace Zen.Trunk.IO
 
         /// <summary>
         /// Gets/sets a boolean value controlling whether text strings
-        /// are read or written using ASCII or UNICODE encoding.
+        /// are written using ASCII or UNICODE encoding.
         /// </summary>
         public bool UseUnicode
         {
-            get
-            {
-                return _useUnicode;
-            }
+            get => _useUnicode;
             set
             {
-                if (_useUnicode != value)
-                {
-                    _useUnicode = value;
-                    if (_useUnicode)
-                    {
-                        _currentEncoding = Encoding.Unicode;
-                    }
-                    else
-                    {
-                        _currentEncoding = Encoding.ASCII;
-                    }
-                }
+                if (_useUnicode == value) return;
+
+                _useUnicode = value;
+                _currentEncoding = _useUnicode ? Encoding.Unicode : Encoding.ASCII;
             }
         }
         #endregion
