@@ -19,7 +19,7 @@ namespace Zen.Trunk.VirtualMemory
     /// by exposing Win32 Scatter/Gather I/O capabilities and incorporating
     /// sparse file technology when file is backed onto an NTFS volume.
     /// </summary>
-    public class AdvancedFileStream : Stream
+    public class AdvancedFileStream : AdvancedStream
     {
         #region Internal Objects
         internal static class Win32
@@ -221,9 +221,8 @@ namespace Zen.Trunk.VirtualMemory
             bool enableScatterGather,
             FileSecurity fileSecurity)
         {
-            object pinningHandle;
             var secAttrs = GetSecAttrs(
-                share, fileSecurity, out pinningHandle);
+                share, fileSecurity, out var pinningHandle);
             try
             {
                 Init(path, mode, access, 0, false, share, bufferSize,
@@ -664,7 +663,7 @@ namespace Zen.Trunk.VirtualMemory
         /// <param name="state">The state object.</param>
         /// <returns>An <see cref="T:IAsyncResult"/> object.</returns>
         [HostProtection(SecurityAction.LinkDemand, ExternalThreading = true)]
-        public virtual IAsyncResult BeginReadScatter(
+        public override IAsyncResult BeginReadScatter(
             IVirtualBuffer[] buffers, AsyncCallback callback, object state)
         {
             if (buffers == null || buffers.Length == 0)
@@ -787,7 +786,7 @@ namespace Zen.Trunk.VirtualMemory
         /// <param name="state">The state object.</param>
         /// <returns>An <see cref="T:IAsyncResult"/> object.</returns>
         [HostProtection(SecurityAction.LinkDemand, ExternalThreading = true)]
-        public virtual IAsyncResult BeginWriteGather(
+        public override IAsyncResult BeginWriteGather(
             IVirtualBuffer[] buffers, AsyncCallback callback, object state)
         {
             if (buffers == null || buffers.Length == 0)
@@ -882,7 +881,7 @@ namespace Zen.Trunk.VirtualMemory
         /// <exception cref="T:System.ArgumentNullException">
         /// asyncResult is null.
         /// </exception>
-        public virtual unsafe int EndReadScatter(IAsyncResult asyncResult)
+        public override unsafe int EndReadScatter(IAsyncResult asyncResult)
         {
             if (asyncResult == null)
             {
@@ -982,7 +981,7 @@ namespace Zen.Trunk.VirtualMemory
         /// <param name="asyncResult">A reference to the outstanding asynchronous I/O request.</param>
         /// <exception cref="T:System.ArgumentNullException">asyncResult is null. </exception>
         /// <exception cref="T:System.ArgumentException">asyncResult did not originate from a <see cref="M:System.IO.Stream.BeginWrite(System.Byte[],System.Int32,System.Int32,System.AsyncCallback,System.Object)"></see> method on the current stream. </exception>
-        public virtual unsafe void EndWriteGather(IAsyncResult asyncResult)
+        public override unsafe void EndWriteGather(IAsyncResult asyncResult)
         {
             if (asyncResult == null)
             {

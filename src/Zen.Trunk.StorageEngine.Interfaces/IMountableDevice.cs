@@ -6,7 +6,6 @@ namespace Zen.Trunk.Storage
     /// <summary>
     /// 
     /// </summary>
-    [CLSCompliant(false)]
 	public interface IMountableDevice
 	{
         /// <summary>

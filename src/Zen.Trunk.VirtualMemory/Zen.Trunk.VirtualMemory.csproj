@@ -76,6 +76,7 @@
     <Reference Include="System.Threading.Tasks" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AdvancedStream.cs" />
     <Compile Include="AdvancedStreamAsyncResult.cs" />
     <Compile Include="BufferDevice.cs" />
     <Compile Include="BufferDeviceFactory.cs" />
