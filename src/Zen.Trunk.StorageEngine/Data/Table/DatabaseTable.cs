@@ -370,10 +370,9 @@ namespace Zen.Trunk.Storage.Data.Table
             }
             #endregion
         }
-        #endregion
 
+        #endregion
         #region Private Fields
-        private readonly FileGroupDevice _owner;
         private readonly ILifetimeScope _lifetimeScope;
 
         private readonly List<TableSchemaPage> _schemaPages = new List<TableSchemaPage>();
@@ -394,9 +393,11 @@ namespace Zen.Trunk.Storage.Data.Table
         /// Initializes a new instance of the <see cref="DatabaseTable"/> class.
         /// </summary>
         /// <param name="parentLifetimeScope">The parent lifetime scope.</param>
+        /// <param name="objectId"></param>
+        /// <param name="isNewTable"></param>
         public DatabaseTable(ILifetimeScope parentLifetimeScope, ObjectId objectId, bool isNewTable)
         {
-            _owner = parentLifetimeScope.Resolve<FileGroupDevice>();
+            Owner = parentLifetimeScope.Resolve<FileGroupDevice>();
             _lifetimeScope = parentLifetimeScope.BeginLifetimeScope(
                 builder =>
                 {
@@ -423,13 +424,13 @@ namespace Zen.Trunk.Storage.Data.Table
         /// Gets the file group id.
         /// </summary>
         /// <value>The file group id.</value>
-        public FileGroupId FileGroupId => _owner.FileGroupId;
+        public FileGroupId FileGroupId => Owner.FileGroupId;
 
         /// <summary>
         /// Gets the name of the file group.
         /// </summary>
         /// <value>The name of the file group.</value>
-        public string FileGroupName => _owner.FileGroupName;
+        public string FileGroupName => Owner.FileGroupName;
 
         /// <summary>
         /// Gets the table object ID.
@@ -625,11 +626,11 @@ namespace Zen.Trunk.Storage.Data.Table
         /// Gets the owner filegroup.
         /// </summary>
         /// <value>The database.</value>
-        public FileGroupDevice Owner => _owner;
+        public FileGroupDevice Owner { get; }
         #endregion
 
         #region Internal Properties
-        internal IDatabaseLockManager LockingManager => _owner.LifetimeScope.Resolve<IDatabaseLockManager>();
+        internal IDatabaseLockManager LockingManager => Owner.LifetimeScope.Resolve<IDatabaseLockManager>();
         #endregion
 
         #region Public Methods
@@ -1425,7 +1426,7 @@ namespace Zen.Trunk.Storage.Data.Table
         {
             var schemaPage = CreateSchemaPage(isFirstSchemaPage);
             schemaPage.ReadOnly = false;
-            await _owner
+            await Owner
                 .InitDataPageAsync(new InitDataPageParameters(schemaPage, true, true, true, true))
                 .ConfigureAwait(true);
             return schemaPage;
@@ -1460,7 +1461,7 @@ namespace Zen.Trunk.Storage.Data.Table
             await schemaPage.SetObjectLockAsync(ObjectLockType.Shared).ConfigureAwait(false);
             await schemaPage.SetSchemaLockAsync(SchemaLockType.SchemaStability).ConfigureAwait(false);
 
-            await _owner
+            await Owner
                 .LoadDataPageAsync(new LoadDataPageParameters(schemaPage, false, true))
                 .ConfigureAwait(false);
             return schemaPage;
@@ -1489,7 +1490,7 @@ namespace Zen.Trunk.Storage.Data.Table
                     {
                         currentReadPage = new TableDataPage();
                         currentReadPage.LogicalPageId = readLogicalPageId;
-                        await _owner
+                        await Owner
                             .LoadDataPageAsync(new LoadDataPageParameters(currentReadPage, false, true))
                             .ConfigureAwait(false);
                     }
@@ -1498,7 +1499,7 @@ namespace Zen.Trunk.Storage.Data.Table
                     if (currentWritePage == null)
                     {
                         currentWritePage = new TableDataPage();
-                        await _owner
+                        await Owner
                             .InitDataPageAsync(new InitDataPageParameters(currentWritePage, true, true, true, true))
                             .ConfigureAwait(false);
                     }

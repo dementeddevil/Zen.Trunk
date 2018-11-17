@@ -143,8 +143,7 @@ namespace Zen.Trunk.Storage.Data
 				{
 					try
 					{
-                        LogicalPageId logicalId;
-						if (!_virtualToLogical.TryGetValue(request.VirtualPageId, out logicalId))
+                        if (!_virtualToLogical.TryGetValue(request.VirtualPageId, out LogicalPageId logicalId))
 						{
 							throw new ArgumentException("Virtual page identifier not found.");
 						}
@@ -167,8 +166,7 @@ namespace Zen.Trunk.Storage.Data
 				{
 					try
 					{
-						VirtualPageId pageId;
-						if (!_logicalToVirtual.TryGetValue(request.LogicalPageId, out pageId))
+						if (!_logicalToVirtual.TryGetValue(request.LogicalPageId, out VirtualPageId pageId))
 						{
 							throw new ArgumentException("Logical page identifier not found.");
 						}
