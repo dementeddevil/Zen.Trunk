@@ -55,30 +55,27 @@ When buffers are written,
 Then scatter/gather I/O operations occur as appropriate")]
         public async Task ScatterGatherWriteTest()
         {
-            using (var tracker = new TempFileTracker())
+            var testFile = GlobalTracker.Get("SGWT.bin");
+            using (var stream = new AdvancedFileStream(
+                testFile, FileMode.Create, FileAccess.ReadWrite, FileShare.None, 8192,
+                FileOptions.Asynchronous | FileOptions.RandomAccess | FileOptions.WriteThrough, true))
             {
-                var testFile = tracker.Get("SGWT.bin");
-                using (var stream = new AdvancedFileStream(
-                    testFile, FileMode.Create, FileAccess.ReadWrite, FileShare.None, 8192,
-                    FileOptions.Asynchronous | FileOptions.RandomAccess | FileOptions.WriteThrough, true))
+                stream.SetLength(8192 * 16);
+
+                using (var transfer = new ScatterGatherRequestQueue(stream, new ScatterGatherRequestQueueSettings()))
                 {
-                    stream.SetLength(8192 * 16);
+                    await transfer.WriteBufferAsync(0, BufferFactory.AllocateAndFill(0)).ConfigureAwait(true);
+                    await transfer.WriteBufferAsync(1, BufferFactory.AllocateAndFill(1)).ConfigureAwait(true);
+                    await transfer.WriteBufferAsync(2, BufferFactory.AllocateAndFill(2)).ConfigureAwait(true);
+                    await transfer.WriteBufferAsync(3, BufferFactory.AllocateAndFill(3)).ConfigureAwait(true);
 
-                    using (var transfer = new ScatterGatherRequestQueue(stream))
-                    {
-                        await transfer.WriteBufferAsync(0, BufferFactory.AllocateAndFill(0)).ConfigureAwait(true);
-                        await transfer.WriteBufferAsync(1, BufferFactory.AllocateAndFill(1)).ConfigureAwait(true);
-                        await transfer.WriteBufferAsync(2, BufferFactory.AllocateAndFill(2)).ConfigureAwait(true);
-                        await transfer.WriteBufferAsync(3, BufferFactory.AllocateAndFill(3)).ConfigureAwait(true);
+                    await transfer.WriteBufferAsync(10, BufferFactory.AllocateAndFill(0)).ConfigureAwait(true);
+                    await transfer.WriteBufferAsync(11, BufferFactory.AllocateAndFill(1)).ConfigureAwait(true);
+                    await transfer.WriteBufferAsync(12, BufferFactory.AllocateAndFill(2)).ConfigureAwait(true);
+                    await transfer.WriteBufferAsync(13, BufferFactory.AllocateAndFill(3)).ConfigureAwait(true);
 
-                        await transfer.WriteBufferAsync(10, BufferFactory.AllocateAndFill(0)).ConfigureAwait(true);
-                        await transfer.WriteBufferAsync(11, BufferFactory.AllocateAndFill(1)).ConfigureAwait(true);
-                        await transfer.WriteBufferAsync(12, BufferFactory.AllocateAndFill(2)).ConfigureAwait(true);
-                        await transfer.WriteBufferAsync(13, BufferFactory.AllocateAndFill(3)).ConfigureAwait(true);
-
-                        await transfer.WriteBufferAsync(6, BufferFactory.AllocateAndFill(6)).ConfigureAwait(true);
-                        await transfer.WriteBufferAsync(7, BufferFactory.AllocateAndFill(7)).ConfigureAwait(true);
-                    }
+                    await transfer.WriteBufferAsync(6, BufferFactory.AllocateAndFill(6)).ConfigureAwait(true);
+                    await transfer.WriteBufferAsync(7, BufferFactory.AllocateAndFill(7)).ConfigureAwait(true);
                 }
             }
         }

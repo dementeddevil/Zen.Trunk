@@ -134,8 +134,8 @@ namespace Zen.Trunk.VirtualMemory
 				// Cleanup cancellation object
 				_shutdown.Dispose();
 				
-				// Force final flush
-				Flush();
+				// Force final synchronous flush
+				Flush().GetAwaiter().GetResult();
 			}
 		}
 		#endregion
