@@ -135,13 +135,20 @@ namespace Zen.Trunk.VirtualMemory
 				task = stream.ReadScatterAsync(buffers);
 			}
 
-			try
+		    try
+		    {
+		        await task.ConfigureAwait(false);
+		    }
+		    catch (OperationCanceledException)
+		    {
+		        foreach (var callback in _callbackInfo)
+		        {
+		            callback.TrySetCanceled();
+		        }
+		        return;
+		    }
+            catch (Exception e)
 			{
-				await task.ConfigureAwait(false);
-			}
-			catch (Exception e)
-			{
-				// Pass error back to each caller
 				foreach (var callback in _callbackInfo)
 				{
 					callback.TrySetException(e);
@@ -191,9 +198,16 @@ namespace Zen.Trunk.VirtualMemory
 			{
 				await task.ConfigureAwait(false);
 			}
+			catch (OperationCanceledException)
+			{
+			    foreach (var callback in _callbackInfo)
+			    {
+			        callback.TrySetCanceled();
+			    }
+			    return;
+			}
 			catch (Exception e)
 			{
-				// Pass error back to each caller
 				foreach (var callback in _callbackInfo)
 				{
 					callback.TrySetException(e);
