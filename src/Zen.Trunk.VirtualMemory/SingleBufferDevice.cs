@@ -276,7 +276,8 @@ namespace Zen.Trunk.VirtualMemory
                     FileOptions.RandomAccess |
                     FileOptions.WriteThrough,
                     true);
-                _requestQueue = new ScatterGatherRequestQueue(_scatterGatherStream);
+                _requestQueue = new ScatterGatherRequestQueue(
+                    _scatterGatherStream, new ScatterGatherRequestQueueSettings());
 
                 if (RequiresCreate)
                 {

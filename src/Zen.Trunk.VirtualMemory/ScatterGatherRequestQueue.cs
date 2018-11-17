@@ -8,11 +8,12 @@ namespace Zen.Trunk.VirtualMemory
 {
     /// <summary>
     /// <c>ScatterGatherRequestQueue</c> optimises buffer persistence by
-    /// grouping reads and writes on consequetive buffers together and so
+    /// grouping reads and writes on consecutive buffers together and so
     /// that the I/O can be performed in one overlapped operation.
     /// </summary>
     /// <remarks>
-    /// Separate request queues are maintained for reads and writes.
+    /// A single request queue instance is assumed to hold either reads or
+    /// write requests and never both kinds.
     /// </remarks>
     public sealed class ScatterGatherRequestQueue : IDisposable
 	{
@@ -24,15 +25,21 @@ namespace Zen.Trunk.VirtualMemory
 		#endregion
 
 		#region Public Constructors
-		/// <summary>
-		/// Initializes a new instance of the 
-		/// <see cref="T:ScatterGatherReaderWriter"/> class.
-		/// </summary>
-		/// <param name="stream">Underlying stream object.</param>
-		public ScatterGatherRequestQueue(AdvancedFileStream stream)
+
+	    /// <summary>
+	    /// Initializes a new instance of the 
+	    /// <see cref="T:ScatterGatherReaderWriter"/> class.
+	    /// </summary>
+	    /// <param name="stream">Underlying stream object.</param>
+	    /// <param name="settings">Settings to control request queue.</param>
+	    public ScatterGatherRequestQueue(
+		    AdvancedFileStream stream, ScatterGatherRequestQueueSettings settings)
 		{
-			_readQueue = new StreamScatterGatherRequestQueue(stream, true);
-			_writeQueue = new StreamScatterGatherRequestQueue(stream, false);
+			_readQueue = new StreamScatterGatherRequestQueue(
+			    stream, settings.ReadSettings, true);
+			_writeQueue = new StreamScatterGatherRequestQueue(
+			    stream, settings.WriteSettings, false);
+
 			_shutdown = new CancellationTokenSource ();
 
 			_cleanupTask = Task.Factory.StartNew(
@@ -40,7 +47,7 @@ namespace Zen.Trunk.VirtualMemory
 				{
 					while (!_shutdown.IsCancellationRequested)
 					{
-						await Task.Delay(200).ConfigureAwait(false);
+						await Task.Delay(settings.AutomaticFlushPeriod).ConfigureAwait(false);
 						await _readQueue.OptimisedFlushAsync().ConfigureAwait(false);
 						await _writeQueue.OptimisedFlushAsync().ConfigureAwait(false);
 					}
@@ -100,15 +107,18 @@ namespace Zen.Trunk.VirtualMemory
         public Task Flush(bool flushReads = true, bool flushWrites = true)
 		{
 			var tasks = new List<Task>();
-			if (flushReads)
+
+		    if (flushReads)
 			{
 				tasks.Add(_readQueue.FlushAsync());
 			}
-			if (flushWrites)
+
+		    if (flushWrites)
 			{
 				tasks.Add(_writeQueue.FlushAsync());
 			}
-			return TaskExtra.WhenAllOrEmpty(tasks.ToArray());
+
+		    return TaskExtra.WhenAllOrEmpty(tasks.ToArray());
 		}
 		#endregion
 

@@ -1,12 +1,15 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Zen.Trunk.Extensions;
 
 namespace Zen.Trunk.VirtualMemory
 {
     /// <summary>
-    /// 
+    /// <c>StreamScatterGatherRequestQueue</c> builds blocks of requests that
+    /// represent pending reads or pending writes requests on an underlying
+    /// store.
     /// </summary>
     public class StreamScatterGatherRequestQueue
 	{
@@ -14,10 +17,10 @@ namespace Zen.Trunk.VirtualMemory
 		private readonly AdvancedFileStream _stream;
 		private readonly bool _isReader;
 
-		private readonly TimeSpan _maximumWriteAge = TimeSpan.FromMilliseconds(500);
-		private readonly TimeSpan _coalesceRequestsPeriod = TimeSpan.FromMilliseconds(100);
-		private readonly int _maximumArraySize = 16;
-		private readonly int _maximumNumberOfArrays = 5;
+		private readonly TimeSpan _maximumRequestAge;
+		private readonly TimeSpan _coalesceRequestsPeriod;
+		private readonly int _maximumRequestBlockLength;
+		private readonly int _maximumRequestBlocks;
 
 		private DateTime _lastCoalescedAt;
 		private DateTime _lastScavengeAt;
@@ -28,16 +31,25 @@ namespace Zen.Trunk.VirtualMemory
         #endregion
 
         #region Public Constructors
-        /// <summary>
-        /// Initializes a new instance of the <see cref="StreamScatterGatherRequestQueue"/> class.
-        /// </summary>
-        /// <param name="stream">The advanced file stream.</param>
-        /// <param name="isReader">
-        /// <c>true</c> if the helper is to work in read-mode; otherwise <c>false</c>.
-        /// </param>
-        public StreamScatterGatherRequestQueue(AdvancedFileStream stream, bool isReader)
+
+	    /// <summary>
+	    /// Initializes a new instance of the <see cref="StreamScatterGatherRequestQueue"/> class.
+	    /// </summary>
+	    /// <param name="stream">The advanced file stream.</param>
+	    /// <param name="settings">The request queue settings.</param>
+	    /// <param name="isReader">
+	    /// <c>true</c> if the helper is to work in read-mode; otherwise <c>false</c>.
+	    /// </param>
+	    public StreamScatterGatherRequestQueue(
+            AdvancedFileStream stream,
+            StreamScatterGatherRequestQueueSettings settings,
+            bool isReader)
 		{
 			_stream = stream;
+		    _maximumRequestAge = settings.MaximumRequestAge;
+		    _coalesceRequestsPeriod = settings.CoalesceRequestsPeriod;
+		    _maximumRequestBlockLength = settings.MaximumRequestBlockLength;
+		    _maximumRequestBlocks = settings.MaximumRequestBlocks;
 			_isReader = isReader;
 		}
 		#endregion
@@ -51,7 +63,7 @@ namespace Zen.Trunk.VirtualMemory
 		/// <returns></returns>
 		/// <remarks>
 		/// Internally buffers are placed into groups such that a given group
-		///	will be composed of buffers of adjecent storage areas.
+		///	will be composed of buffers of adjacent storage areas.
 		///	If a suitable group does not exist for the specified buffer then a
 		///	new one will be created without flushing any existing groups.
 		/// </remarks>
@@ -72,6 +84,7 @@ namespace Zen.Trunk.VirtualMemory
 						break;
 					}
 				}
+
 				if (!added)
 				{
 					_requests.Add(new ScatterGatherRequestArray(request));
@@ -82,12 +95,12 @@ namespace Zen.Trunk.VirtualMemory
 		}
 
 		/// <summary>
-		/// Flushes the buffers stored in this instance to the underlying
+		/// Flushes the buffers stored in this instance to the underlying store
 		/// </summary>
 		public async Task FlushAsync()
 		{
 			// Obtain the completion objects to be flushed
-			List<ScatterGatherRequestArray> arrayList = null;
+			List<ScatterGatherRequestArray> workToDo = null;
 		    // ReSharper disable once InconsistentlySynchronizedField
 			if (_requests.Count > 0)
 			{
@@ -96,24 +109,16 @@ namespace Zen.Trunk.VirtualMemory
 					if (_requests.Count > 0)
 					{
 						// Get array of buffers to be persisted.
-						arrayList = new List<ScatterGatherRequestArray>();
-						arrayList.AddRange(_requests);
+						workToDo = new List<ScatterGatherRequestArray>();
+						workToDo.AddRange(_requests);
 						_requests.Clear();
 					}
 				}
 			}
 
-			// If we have work to do...
-			if (arrayList != null)
+			if (workToDo != null)
 			{
-				// Build list of async tasks from the flush action for each array
-				var flushList = new List<Task>();
-				foreach (var array in arrayList)
-				{
-					flushList.Add(FlushArray(array));
-				}
-
-				// Use a single await operation to wait for the flush to finish
+			    var flushList = workToDo.Select(FlushArray);
 				await Task.WhenAll(flushList.ToArray()).ConfigureAwait(false);
 			}
 		}
@@ -150,45 +155,40 @@ namespace Zen.Trunk.VirtualMemory
 
 		private async Task FlushIfNeeded()
 		{
-			List<ScatterGatherRequestArray> candidates = null;
+			List<ScatterGatherRequestArray> workToDo = null;
 		    // ReSharper disable once InconsistentlySynchronizedField
-			while (_requests.Count > _maximumNumberOfArrays)
+			while (_requests.Count > _maximumRequestBlocks)
 			{
 				lock (_syncCallback)
 				{
-					if (_requests.Count > _maximumNumberOfArrays)
+					if (_requests.Count > _maximumRequestBlocks)
 					{
-						if (candidates == null)
+						if (workToDo == null)
 						{
-							candidates = new List<ScatterGatherRequestArray>();
+							workToDo = new List<ScatterGatherRequestArray>();
 						}
-						candidates.Add(_requests[0]);
+
+						workToDo.Add(_requests[0]);
 						_requests.RemoveAt(0);
 					}
 				}
 			}
 
-			if (candidates != null)
+			if (workToDo != null)
 			{
-				var flushList = new List<Task>();
-				foreach (var array in candidates)
-				{
-					flushList.Add(FlushArray(array));
-				}
+			    var flushList = workToDo.Select(FlushArray);
 				await Task.WhenAll(flushList.ToArray()).ConfigureAwait(false);
 			}
 		}
 
 		private Task ScavengeIfNeeded()
 		{
-			if ((DateTime.UtcNow - _lastScavengeAt) > _maximumWriteAge)
+		    if ((DateTime.UtcNow - _lastScavengeAt) > _maximumRequestAge)
 			{
 				return ScavengeRequests();
 			}
-			else
-			{
-				return CompletedTask.Default;
-			}
+
+		    return CompletedTask.Default;
 		}
 
 		private void CoalesceRequests()
@@ -212,6 +212,7 @@ namespace Zen.Trunk.VirtualMemory
 							{
 								++candidateRequest;
 							}
+
 							if (candidateRequest >= _requests.Count)
 							{
 								++primaryRequest;
@@ -221,32 +222,30 @@ namespace Zen.Trunk.VirtualMemory
 					}
 				}
 			}
+
 			_lastCoalescedAt = DateTime.UtcNow;
 		}
 
 		private async Task ScavengeRequests()
 		{
-			List<ScatterGatherRequestArray> candidates = null;
+			List<ScatterGatherRequestArray> workToDo = null;
 			lock (_syncCallback)
 			{
-				while (_requests.Count > 0 && _requests[0].RequiresFlush(_maximumWriteAge, _maximumArraySize))
+				while (_requests.Count > 0 && _requests[0].RequiresFlush(_maximumRequestAge, _maximumRequestBlockLength))
 				{
-					if (candidates == null)
+					if (workToDo == null)
 					{
-						candidates = new List<ScatterGatherRequestArray>();
+						workToDo = new List<ScatterGatherRequestArray>();
 					}
-					candidates.Add(_requests[0]);
+
+					workToDo.Add(_requests[0]);
 					_requests.RemoveAt(0);
 				}
 			}
 
-			if (candidates != null)
+			if (workToDo != null)
 			{
-				var flushList = new List<Task>();
-				foreach (var array in candidates)
-				{
-					flushList.Add(FlushArray(array));
-				}
+				var flushList = workToDo.Select(FlushArray);
 				await Task.WhenAll(flushList.ToArray()).ConfigureAwait(false);
 			}
 
@@ -257,15 +256,11 @@ namespace Zen.Trunk.VirtualMemory
 		{
 			if (array != null)
 			{
-				if (_isReader)
-				{
-					return array.FlushAsReadAsync(_stream);
-				}
-				else
-				{
-					return array.FlushAsWriteAsync(_stream);
-				}
+			    return _isReader 
+			        ? array.FlushAsReadAsync(_stream)
+			        : array.FlushAsWriteAsync(_stream);
 			}
+
 			return CompletedTask.Default;
 		}
 		#endregion

@@ -86,6 +86,8 @@
     <Compile Include="ScatterGatherRequestQueue.cs" />
     <Compile Include="ScatterGatherRequest.cs" />
     <Compile Include="ScatterGatherRequestArray.cs" />
+    <Compile Include="ScatterGatherRequestQueueSettings.cs" />
+    <Compile Include="StreamScatterGatherRequestQueueSettings.cs" />
     <Compile Include="StreamScatterGatherRequestQueue.cs" />
     <Compile Include="VirtualBuffer.cs" />
     <Compile Include="VirtualBufferCache.cs" />
