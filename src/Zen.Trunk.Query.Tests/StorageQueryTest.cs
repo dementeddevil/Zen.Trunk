@@ -4,12 +4,12 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+using Autofac;
 using System;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using System.Transactions;
-using Autofac;
 using Xunit;
 using Zen.Trunk.Storage.Locking;
 using Zen.Trunk.Storage.Query;
@@ -26,24 +26,21 @@ namespace Zen.Trunk.Storage
         [Fact(DisplayName = "Create master device using default values")]
         public async Task CreateMasterDeviceWithDefaultsTest()
         {
-            using (var tracker = new TempFileTracker())
+            using (var manager = Scope.Resolve<MasterDatabaseDevice>())
             {
-                using (var manager = Scope.Resolve<MasterDatabaseDevice>())
-                {
-                    manager.InitialiseDeviceLifetimeScope(Scope);
+                manager.InitialiseDeviceLifetimeScope(Scope);
 
-                    var executive = new QueryExecutive(manager);
+                var executive = new QueryExecutive(manager);
 
-                    var batch = new StringBuilder();
-                    batch.AppendLine("create database master");
+                var batch = new StringBuilder();
+                batch.AppendLine("create database master");
 
-                    manager.BeginTransaction(TimeSpan.FromMinutes(15));
-                    //await executive.ExecuteAsync(batch.ToString()).ConfigureAwait(true);
-                    await manager.OpenAsync(true).ConfigureAwait(true);
-                    await TrunkTransactionContext.CommitAsync().ConfigureAwait(true);
+                manager.BeginTransaction(TimeSpan.FromMinutes(15));
+                //await executive.ExecuteAsync(batch.ToString()).ConfigureAwait(true);
+                await manager.OpenAsync(true).ConfigureAwait(true);
+                await TrunkTransactionContext.CommitAsync().ConfigureAwait(true);
 
-                    await manager.CloseAsync().ConfigureAwait(true);
-                }
+                await manager.CloseAsync().ConfigureAwait(true);
             }
         }
 
@@ -115,22 +112,19 @@ namespace Zen.Trunk.Storage
         public async Task SetTransaction(
             string requestedIsolationLevel, IsolationLevel expectedIsolationLevel)
         {
-            using (var tracker = new TempFileTracker())
+            using (var manager = new MasterDatabaseDevice())
             {
-                using (var manager = new MasterDatabaseDevice())
-                {
-                    manager.InitialiseDeviceLifetimeScope(Scope);
-                    var executive = new QueryExecutive(manager);
+                manager.InitialiseDeviceLifetimeScope(Scope);
+                var executive = new QueryExecutive(manager);
 
-                    var batch = new StringBuilder();
-                    batch.AppendLine(
-                        $"SET TRANSACTION ISOLATION LEVEL {requestedIsolationLevel};");
-                    batch.AppendLine("GO");
+                var batch = new StringBuilder();
+                batch.AppendLine(
+                    $"SET TRANSACTION ISOLATION LEVEL {requestedIsolationLevel};");
+                batch.AppendLine("GO");
 
-                    //await executive.ExecuteAsync(batch.ToString()).ConfigureAwait(true);
+                //await executive.ExecuteAsync(batch.ToString()).ConfigureAwait(true);
 
-                    //executive.Batches.FirstOrDefault().
-                }
+                //executive.Batches.FirstOrDefault().
             }
         }
 

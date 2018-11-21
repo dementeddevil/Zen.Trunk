@@ -31,7 +31,7 @@ namespace Zen.Trunk.Storage.Locking
 			{
 				if (_parentLock != value)
 				{
-				    ((IReferenceLock) _parentLock)?.ReleaseRefLock();
+				    _parentLock?.ReleaseRefLock();
 				    _parentLock = value;
 				    _parentLock?.AddRefLock();
 				}
