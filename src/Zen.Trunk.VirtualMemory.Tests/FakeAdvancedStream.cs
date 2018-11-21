@@ -100,8 +100,6 @@ namespace Zen.Trunk.VirtualMemory.Tests
                 .ContinueWith(
                     t =>
                     {
-                        callback?.Invoke(tcs.Task);
-
                         if (t.IsCanceled)
                         {
                             tcs.SetCanceled();
@@ -115,6 +113,8 @@ namespace Zen.Trunk.VirtualMemory.Tests
                         {
                             tcs.SetResult(true);
                         }
+
+                        callback?.Invoke(tcs.Task);
                     });
             return tcs.Task;
         }

@@ -124,10 +124,10 @@
     <Compile Include="MultipleDeviceUnitTest.cs" />
     <Compile Include="SingleDeviceUnitTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="AutofacContainerUnitTest.cs" />
+    <Compile Include="TestFixture.cs" />
     <Compile Include="TempFileTracker.cs" />
     <Compile Include="VirtualBufferFactoryExtensions.cs" />
-    <Compile Include="AutofacVirtualMemoryUnitTests.cs" />
+    <Compile Include="VirtualMemoryTestFixture.cs" />
     <Compile Include="VirtualMemoryUnitTest.cs" />
   </ItemGroup>
   <ItemGroup>

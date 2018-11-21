@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using FluentAssertions;
 using Xunit;
 
 namespace Zen.Trunk.VirtualMemory.Tests
@@ -13,8 +13,15 @@ namespace Zen.Trunk.VirtualMemory.Tests
     /// </summary>
     [Trait("Subsystem", "Virtual Memory")]
     [Trait("Class", "Single Device")]
-    public class VirtualMemoryUnitTests : AutofacVirtualMemoryUnitTests
+    public class VirtualMemoryUnitTests : IClassFixture<VirtualMemoryTestFixture>
     {
+        private readonly VirtualMemoryTestFixture _fixture;
+
+        public VirtualMemoryUnitTests(VirtualMemoryTestFixture fixture)
+        {
+            _fixture = fixture;
+        }
+
         [Fact(DisplayName = @"
 Given a virtual buffer factory,
 When 9 threads allocate and deallocate 1000 buffers simultaneously,
@@ -32,7 +39,7 @@ Then no corruption or deadlocks occur")]
                         {
                             for (var index = 0; index < 1000; ++index)
                             {
-                                bufferList.Add(BufferFactory.AllocateBuffer());
+                                bufferList.Add(_fixture.BufferFactory.AllocateBuffer());
                             }
                         }
                         catch (OutOfMemoryException)
@@ -49,33 +56,34 @@ Then no corruption or deadlocks occur")]
             Task.WaitAll(parallelRequests.ToArray());
         }
 
-        [Fact(DisplayName = @"
-Given an advanced file stream instance,
-When buffers are written,
-Then scatter/gather I/O operations occur as appropriate")]
-        public async Task ScatterGatherWriteTest()
+        [Fact(DisplayName = 
+            @"Given a ScatterGatherRequestQueue configured to auto-flush after 5 seconds
+              When data is written to queue
+              Then data is not written immediately but only after timeout has occurred")]
+        public async Task WriteBufferAsync_WritesToStreamAfterTimeout()
         {
-            var testFile = GlobalTracker.Get("SGWT.bin");
-            using (var stream = new AdvancedFileStream(
-                testFile, FileMode.Create, FileAccess.ReadWrite, FileShare.None, 8192,
-                FileOptions.Asynchronous | FileOptions.RandomAccess | FileOptions.WriteThrough, true))
+            using (var stream = new FakeAdvancedStream())
             {
-                stream.SetLength(8192 * 16);
-
-                using (var transfer = new ScatterGatherRequestQueue(stream, new ScatterGatherRequestQueueSettings()))
+                var settings =
+                    new ScatterGatherRequestQueueSettings
+                    {
+                        AutomaticFlushPeriod = TimeSpan.FromSeconds(5)
+                    };
+                using (var sut = new ScatterGatherRequestQueue(stream, settings))
                 {
-                    await transfer.WriteBufferAsync(0, BufferFactory.AllocateAndFill(0)).ConfigureAwait(true);
-                    await transfer.WriteBufferAsync(1, BufferFactory.AllocateAndFill(1)).ConfigureAwait(true);
-                    await transfer.WriteBufferAsync(2, BufferFactory.AllocateAndFill(2)).ConfigureAwait(true);
-                    await transfer.WriteBufferAsync(3, BufferFactory.AllocateAndFill(3)).ConfigureAwait(true);
+                    var tasks =
+                        new[]
+                        {
+                            sut.WriteBufferAsync(0, _fixture.BufferFactory.AllocateAndFill(0)),
+                            sut.WriteBufferAsync(1, _fixture.BufferFactory.AllocateAndFill(1)),
+                            sut.WriteBufferAsync(2, _fixture.BufferFactory.AllocateAndFill(2)),
+                            sut.WriteBufferAsync(3, _fixture.BufferFactory.AllocateAndFill(3))
+                        };
 
-                    await transfer.WriteBufferAsync(10, BufferFactory.AllocateAndFill(0)).ConfigureAwait(true);
-                    await transfer.WriteBufferAsync(11, BufferFactory.AllocateAndFill(1)).ConfigureAwait(true);
-                    await transfer.WriteBufferAsync(12, BufferFactory.AllocateAndFill(2)).ConfigureAwait(true);
-                    await transfer.WriteBufferAsync(13, BufferFactory.AllocateAndFill(3)).ConfigureAwait(true);
-
-                    await transfer.WriteBufferAsync(6, BufferFactory.AllocateAndFill(6)).ConfigureAwait(true);
-                    await transfer.WriteBufferAsync(7, BufferFactory.AllocateAndFill(7)).ConfigureAwait(true);
+                    stream.BuffersWritten.Should().BeEmpty();
+                    await Task.Delay(7).ConfigureAwait(true);
+                    await Task.WhenAll(tasks).ConfigureAwait(true);
+                    stream.BuffersWritten.Should().NotBeEmpty();
                 }
             }
         }
@@ -83,7 +91,7 @@ Then scatter/gather I/O operations occur as appropriate")]
         [Fact(DisplayName = "Given buffer, when GetBufferStream is called and released, then no exception is thrown")]
         public void VirtualBufferGetAndReleaseStream()
         {
-            using (var buffer = BufferFactory.AllocateBuffer())
+            using (var buffer = _fixture.BufferFactory.AllocateBuffer())
             {
                 using (var stream = buffer.GetBufferStream(0, 1024, true))
                 {

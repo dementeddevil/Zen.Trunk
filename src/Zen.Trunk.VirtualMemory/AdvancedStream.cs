@@ -14,6 +14,12 @@ namespace Zen.Trunk.VirtualMemory
     public abstract class AdvancedStream : Stream
     {
         /// <summary>
+        /// Gets the sync root.
+        /// </summary>
+        /// <value>The sync root.</value>
+        public object SyncRoot { get; } = new object();
+
+        /// <summary>
         /// Begins an asynchronous write that will write the associated buffer
         /// collection in a single NTFS gathered write operation.
         /// </summary>

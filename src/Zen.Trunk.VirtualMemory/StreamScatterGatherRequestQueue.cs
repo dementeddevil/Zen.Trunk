@@ -14,7 +14,7 @@ namespace Zen.Trunk.VirtualMemory
     public class StreamScatterGatherRequestQueue
 	{
 		#region Private Fields
-		private readonly AdvancedFileStream _stream;
+		private readonly AdvancedStream _stream;
 		private readonly bool _isReader;
 
 		private readonly TimeSpan _maximumRequestAge;
@@ -31,7 +31,6 @@ namespace Zen.Trunk.VirtualMemory
         #endregion
 
         #region Public Constructors
-
 	    /// <summary>
 	    /// Initializes a new instance of the <see cref="StreamScatterGatherRequestQueue"/> class.
 	    /// </summary>
@@ -41,7 +40,7 @@ namespace Zen.Trunk.VirtualMemory
 	    /// <c>true</c> if the helper is to work in read-mode; otherwise <c>false</c>.
 	    /// </param>
 	    public StreamScatterGatherRequestQueue(
-            AdvancedFileStream stream,
+            AdvancedStream stream,
             StreamScatterGatherRequestQueueSettings settings,
             bool isReader)
 		{

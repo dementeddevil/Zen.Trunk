@@ -3,23 +3,23 @@ using Autofac;
 
 namespace Zen.Trunk.VirtualMemory.Tests
 {
-    public class AutofacContainerUnitTests : IDisposable
+    public class TestFixture : IDisposable
     {
         private TempFileTracker _globalTracker;
 
-        protected AutofacContainerUnitTests()
+        protected TestFixture()
         {
             InitializeScope();
         }
 
-        ~AutofacContainerUnitTests()
+        ~TestFixture()
         {
             Dispose(false);
         }
 
-        protected ILifetimeScope Scope { get; private set; }
+        public ILifetimeScope Scope { get; private set; }
 
-        protected TempFileTracker GlobalTracker => _globalTracker ?? (_globalTracker = new TempFileTracker());
+        public TempFileTracker GlobalTracker => _globalTracker ?? (_globalTracker = new TempFileTracker());
 
         public void Dispose()
         {

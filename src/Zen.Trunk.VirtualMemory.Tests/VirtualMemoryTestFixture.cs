@@ -2,7 +2,7 @@
 
 namespace Zen.Trunk.VirtualMemory.Tests
 {
-    public class AutofacVirtualMemoryUnitTests : AutofacContainerUnitTests
+    public class VirtualMemoryTestFixture : TestFixture
     {
         public IVirtualBufferFactory BufferFactory => Scope.Resolve<IVirtualBufferFactory>();
 

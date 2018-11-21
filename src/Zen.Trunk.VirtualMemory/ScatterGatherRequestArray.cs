@@ -113,7 +113,7 @@ namespace Zen.Trunk.VirtualMemory
         /// </summary>
         /// <param name="stream">The stream.</param>
         /// <returns></returns>
-        public async Task FlushAsReadAsync(AdvancedFileStream stream)
+        public async Task FlushAsReadAsync(AdvancedStream stream)
 		{
 		    if (Logger.IsDebugEnabled())
 		    {
@@ -170,7 +170,7 @@ namespace Zen.Trunk.VirtualMemory
         /// </summary>
         /// <param name="stream">The stream.</param>
         /// <returns></returns>
-        public async Task FlushAsWriteAsync(AdvancedFileStream stream)
+        public async Task FlushAsWriteAsync(AdvancedStream stream)
 		{
             if (Logger.IsDebugEnabled())
             {

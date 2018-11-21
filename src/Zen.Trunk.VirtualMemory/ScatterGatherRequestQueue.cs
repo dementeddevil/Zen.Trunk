@@ -33,7 +33,7 @@ namespace Zen.Trunk.VirtualMemory
 	    /// <param name="stream">Underlying stream object.</param>
 	    /// <param name="settings">Settings to control request queue.</param>
 	    public ScatterGatherRequestQueue(
-		    AdvancedFileStream stream, ScatterGatherRequestQueueSettings settings)
+		    AdvancedStream stream, ScatterGatherRequestQueueSettings settings)
 		{
 			_readQueue = new StreamScatterGatherRequestQueue(
 			    stream, settings.ReadSettings, true);
@@ -42,17 +42,20 @@ namespace Zen.Trunk.VirtualMemory
 
 			_shutdown = new CancellationTokenSource ();
 
-			_cleanupTask = Task.Factory.StartNew(
-				async () =>
-				{
-					while (!_shutdown.IsCancellationRequested)
-					{
-						await Task.Delay(settings.AutomaticFlushPeriod).ConfigureAwait(false);
-						await _readQueue.OptimisedFlushAsync().ConfigureAwait(false);
-						await _writeQueue.OptimisedFlushAsync().ConfigureAwait(false);
-					}
-				},
-				_shutdown.Token);
+		    if (settings.AutomaticFlushPeriod > TimeSpan.Zero)
+		    {
+			    _cleanupTask = Task.Factory.StartNew(
+				    async () =>
+				    {
+					    while (!_shutdown.IsCancellationRequested)
+					    {
+						    await Task.Delay(settings.AutomaticFlushPeriod).ConfigureAwait(false);
+						    await _readQueue.OptimisedFlushAsync().ConfigureAwait(false);
+						    await _writeQueue.OptimisedFlushAsync().ConfigureAwait(false);
+					    }
+				    },
+				    _shutdown.Token);
+		    }
 		}
         #endregion
 

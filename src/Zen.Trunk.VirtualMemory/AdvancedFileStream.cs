@@ -121,7 +121,6 @@ namespace Zen.Trunk.VirtualMemory
         private string _fileName;
         private SafeFileHandle _handle;
         private FileInfo _fileInfo;
-        private readonly object _syncObject = new object();
 
         private long _appendStart;
         private byte[] _buffer;
@@ -247,12 +246,6 @@ namespace Zen.Trunk.VirtualMemory
         #endregion
 
         #region Public Properties
-        /// <summary>
-        /// Gets the sync root.
-        /// </summary>
-        /// <value>The sync root.</value>
-        public object SyncRoot => _syncObject;
-
         /// <summary>
         /// When overridden in a derived class, gets a value indicating whether the current stream supports reading.
         /// </summary>

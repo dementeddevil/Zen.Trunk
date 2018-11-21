@@ -9,8 +9,15 @@ namespace Zen.Trunk.VirtualMemory.Tests
     /// </summary>
     [Trait("Subsystem", "Virtual Memory")]
     [Trait("Class", "Single Device")]
-    public class SingleDeviceUnitTest : AutofacVirtualMemoryUnitTests
+    public class SingleDeviceUnitTest : IClassFixture<VirtualMemoryTestFixture>
     {
+        private readonly VirtualMemoryTestFixture _fixture;
+
+        public SingleDeviceUnitTest(VirtualMemoryTestFixture fixture)
+        {
+            _fixture = fixture;
+        }
+
         [Theory(DisplayName = @"
 Given a newly created single-device
 When 128 buffers are written and then read into separate buffers
@@ -21,15 +28,15 @@ Then the buffer contents are the same")]
             // Arrange
             var initBuffers = new List<IVirtualBuffer>();
             var loadBuffers = new List<IVirtualBuffer>();
-            var testFile = GlobalTracker.Get("sdt.bin");
-            using (var device = BufferDeviceFactory.CreateSingleBufferDevice("test", testFile, pageCount, true))
+            var testFile = _fixture.GlobalTracker.Get("sdt.bin");
+            using (var device = _fixture.BufferDeviceFactory.CreateSingleBufferDevice("test", testFile, pageCount, true))
             {
                 await device.OpenAsync().ConfigureAwait(true);
 
                 var subTasks = new List<Task>();
                 for (var index = 0; index < pageCount; ++index)
                 {
-                    var buffer = BufferFactory.AllocateAndFill((byte)index);
+                    var buffer = _fixture.BufferFactory.AllocateAndFill((byte)index);
                     initBuffers.Add(buffer);
                     subTasks.Add(device.SaveBufferAsync((uint)index, buffer));
                 }
@@ -39,7 +46,7 @@ Then the buffer contents are the same")]
                 subTasks.Clear();
                 for (var index = 0; index < pageCount; ++index)
                 {
-                    var buffer = BufferFactory.AllocateBuffer();
+                    var buffer = _fixture.BufferFactory.AllocateBuffer();
                     loadBuffers.Add(buffer);
                     subTasks.Add(device.LoadBufferAsync((uint)index, buffer));
                 }

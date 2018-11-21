@@ -9,8 +9,15 @@ namespace Zen.Trunk.VirtualMemory.Tests
     /// </summary>
     [Trait("Subsystem", "Virtual Memory")]
     [Trait("Class", "Multiple Device")]
-    public class MultipleDeviceUnitTest : AutofacVirtualMemoryUnitTests
+    public class MultipleDeviceUnitTest : IClassFixture<VirtualMemoryTestFixture>
     {
+        private readonly VirtualMemoryTestFixture _fixture;
+
+        public MultipleDeviceUnitTest(VirtualMemoryTestFixture fixture)
+        {
+            _fixture = fixture;
+        }
+
         [Theory(DisplayName = @"
 Given a newly created multi-device with 16 sub-files
 When 128 buffers are written to each sub-file and then read into separate buffers
@@ -20,13 +27,13 @@ Then the buffer contents are the same")]
         {
             var saveBuffers = new List<IVirtualBuffer>();
             var loadBuffers = new List<IVirtualBuffer>();
-            using (var device = BufferDeviceFactory.CreateMultipleBufferDevice(true))
+            using (var device = _fixture.BufferDeviceFactory.CreateMultipleBufferDevice(true))
             {
                 var deviceIds = new List<DeviceId>();
                 for (int deviceIndex = 0; deviceIndex < deviceCount; ++deviceIndex)
                 {
                     var filename = $"mdt{deviceIndex}.bin";
-                    var pathName = GlobalTracker.Get(filename);
+                    var pathName = _fixture.GlobalTracker.Get(filename);
                     var deviceId = await device
                         .AddDeviceAsync(filename, pathName, DeviceId.Zero, pagesPerDevice)
                         .ConfigureAwait(true);
@@ -41,7 +48,7 @@ Then the buffer contents are the same")]
                 {
                     for (var index = 0; index < pagesPerDevice; ++index)
                     {
-                        var buffer = BufferFactory.AllocateAndFill((byte)index);
+                        var buffer = _fixture.BufferFactory.AllocateAndFill((byte)index);
                         saveBuffers.Add(buffer);
                         subTasks.Add(device.SaveBufferAsync(
                             new VirtualPageId(deviceId, (uint)index), buffer));
@@ -55,7 +62,7 @@ Then the buffer contents are the same")]
                 {
                     for (var index = 0; index < pagesPerDevice; ++index)
                     {
-                        var buffer = BufferFactory.AllocateBuffer();
+                        var buffer = _fixture.BufferFactory.AllocateBuffer();
                         loadBuffers.Add(buffer);
                         subTasks.Add(device.LoadBufferAsync(
                             new VirtualPageId(deviceId, (uint)index), buffer));

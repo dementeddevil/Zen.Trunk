@@ -81,7 +81,7 @@
     <Compile Include="BufferDevice.cs" />
     <Compile Include="BufferDeviceFactory.cs" />
     <Compile Include="AdvancedFileStream.cs" />
-    <Compile Include="AdvancedFileStreamExtensions.cs" />
+    <Compile Include="AdvancedStreamExtensions.cs" />
     <Compile Include="SafeCommitableMemoryHandle.cs" />
     <Compile Include="SafeMemoryHandle.cs" />
     <Compile Include="ScatterGatherRequestQueue.cs" />
