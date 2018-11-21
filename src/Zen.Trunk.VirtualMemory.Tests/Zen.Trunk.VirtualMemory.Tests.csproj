@@ -120,6 +120,7 @@
     <Otherwise />
   </Choose>
   <ItemGroup>
+    <Compile Include="FakeAdvancedStream.cs" />
     <Compile Include="MultipleDeviceUnitTest.cs" />
     <Compile Include="SingleDeviceUnitTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
