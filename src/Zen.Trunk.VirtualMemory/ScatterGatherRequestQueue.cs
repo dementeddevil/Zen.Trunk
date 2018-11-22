@@ -36,9 +36,13 @@ namespace Zen.Trunk.VirtualMemory
 		    AdvancedStream stream, ScatterGatherRequestQueueSettings settings)
 		{
 			_readQueue = new StreamScatterGatherRequestQueue(
-			    stream, settings.ReadSettings, (s, a) => a.FlushAsReadAsync(s));
+			    stream,
+			    settings.ReadSettings,
+			    (s, a) => a.FlushAsReadAsync(s));
 			_writeQueue = new StreamScatterGatherRequestQueue(
-			    stream, settings.WriteSettings, (s, a) => a.FlushAsWriteAsync(s));
+			    stream,
+			    settings.WriteSettings,
+			    (s, a) => a.FlushAsWriteAsync(s));
 
 			_shutdown = new CancellationTokenSource ();
 

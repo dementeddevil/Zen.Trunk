@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Autofac;
 using Moq;
@@ -10,15 +11,31 @@ using Zen.Trunk.VirtualMemory;
 namespace Zen.Trunk.Storage
 {
     [Trait("Subsystem", "Storage Engine")]
-    public class CachingPageBufferDeviceUnitTests : AutofacStorageEngineUnitTests
+    public class CachingPageBufferDeviceUnitTests : IClassFixture<StorageEngineTestFixture>, IDisposable
     {
+        private readonly StorageEngineTestFixture _fixture;
+        private readonly ILifetimeScope _scope;
         private readonly List<IVirtualBuffer> _primaryDeviceBuffers = new List<IVirtualBuffer>();
         private readonly List<IVirtualBuffer> _secondaryDeviceBuffers = new List<IVirtualBuffer>();
         private ICachingPageBufferDevice _pageBufferDevice;
 
-        public CachingPageBufferDeviceUnitTests()
+        public CachingPageBufferDeviceUnitTests(StorageEngineTestFixture fixture)
         {
-            var bufferFactory = Scope.Resolve<IVirtualBufferFactory>();
+            _fixture = fixture;
+
+            _scope = _fixture.Scope.BeginLifetimeScope(
+                builder =>
+                {
+                    builder
+                        .Register(scope =>
+                            new CachingPageBufferDevice(
+                                MockedMultipleBufferDevice.Object,
+                                scope.Resolve<CachingPageBufferDeviceSettings>()))
+                        .As<ICachingPageBufferDevice>()
+                        .SingleInstance();
+                });
+
+            var bufferFactory = _scope.Resolve<IVirtualBufferFactory>();
             for (int index = 0; index < 16; ++index)
             {
                 _primaryDeviceBuffers.Add(bufferFactory.AllocateBuffer());
@@ -87,22 +104,10 @@ namespace Zen.Trunk.Storage
             {
                 if (_pageBufferDevice == null)
                 {
-                    _pageBufferDevice = Scope.Resolve<ICachingPageBufferDevice>();
+                    _pageBufferDevice = _scope.Resolve<ICachingPageBufferDevice>();
                 }
                 return _pageBufferDevice;
             }
-        }
-
-        protected override void InitializeContainerBuilder(ContainerBuilder builder)
-        {
-            base.InitializeContainerBuilder(builder);
-            builder
-                .Register(scope =>
-                    new CachingPageBufferDevice(
-                        MockedMultipleBufferDevice.Object,
-                        scope.Resolve<CachingPageBufferDeviceSettings>()))
-                .As<ICachingPageBufferDevice>()
-                .SingleInstance();
         }
 
         [Theory(DisplayName = "Given a valid load request, when flush is called, then the load method on MBD is called.")]
@@ -128,7 +133,7 @@ namespace Zen.Trunk.Storage
         [MemberData(nameof(TestCases.GetValidDevicePages), MemberType = typeof(TestCases))]
         public async Task GivenAValidSaveRequest_WhenFlushIsCalled_ThenTheLoadMethodOnMBDIsCalled(DeviceId deviceId, uint physicalPage)
         {
-            TrunkTransactionContext.BeginTransaction(Scope);
+            TrunkTransactionContext.BeginTransaction(_scope);
 
             // Arrange
             var pb = await Sut
@@ -154,17 +159,13 @@ namespace Zen.Trunk.Storage
                 .Verify(mbd => mbd.LoadBufferAsync(new VirtualPageId(deviceId, physicalPage), It.IsAny<IVirtualBuffer>()), Times.Once);
         }
 
-        protected override void Dispose(bool disposing)
+        public void Dispose()
         {
-            if (disposing)
+            if (_pageBufferDevice != null)
             {
-                if (_pageBufferDevice != null)
-                {
-                    _pageBufferDevice.Dispose();
-                    _pageBufferDevice = null;
-                }
+                _pageBufferDevice.Dispose();
+                _pageBufferDevice = null;
             }
-            base.Dispose(disposing);
         }
     }
 

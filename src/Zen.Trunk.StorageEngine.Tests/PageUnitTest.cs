@@ -13,8 +13,15 @@ namespace Zen.Trunk.Storage
 {
     [Trait("Subsystem", "Storage Engine")]
     [Trait("Class", "Page")]
-    public class PageUnitTest : AutofacStorageEngineUnitTests
+    public class PageUnitTest : IClassFixture<StorageEngineTestFixture>
     {
+        private readonly StorageEngineTestFixture _fixture;
+
+        public PageUnitTest(StorageEngineTestFixture fixture)
+        {
+            _fixture = fixture;
+        }
+
         private class MockPageDevice : PageDevice, IMultipleBufferDevice
         {
             private readonly DevicePageTracker _pageTracker;
@@ -95,7 +102,7 @@ When the 129th extent is allocated,
 Then the allocation fails.")]
         public async Task DistributionValidExtentNonMixedTest()
         {
-            var pageDevice = new MockPageDevice(Scope);
+            var pageDevice = new MockPageDevice(_fixture.Scope);
 
             pageDevice.BeginTransaction();
 

@@ -15,8 +15,15 @@ namespace Zen.Trunk.Storage
 {
     [Trait("Subsystem", "Storage Engine")]
     [Trait("Class", "Database Device")]
-    public class StorageEngineUnitTest : AutofacStorageEngineUnitTests
+    public class StorageEngineUnitTest : IClassFixture<StorageEngineTestFixture>
     {
+        private readonly StorageEngineTestFixture _fixture;
+
+        public StorageEngineUnitTest(StorageEngineTestFixture fixture)
+        {
+            _fixture = fixture;
+        }
+
         [Fact(DisplayName = "Validate create database under transaction works as expected")]
         public async Task DatabaseCreateTxnTest()
         {
@@ -25,9 +32,9 @@ namespace Zen.Trunk.Storage
                 var masterDataPathName = tracker.Get("master.mddf");
                 var masterLogPathName = tracker.Get("master.mlf");
 
-                using (var dbDevice = new DatabaseDevice(PrimaryDatabaseId))
+                using (var dbDevice = new DatabaseDevice(StorageEngineTestFixture.PrimaryDatabaseId))
                 {
-                    dbDevice.InitialiseDeviceLifetimeScope(Scope);
+                    dbDevice.InitialiseDeviceLifetimeScope(_fixture.Scope);
 
                     var addFgDevice =
                         new AddFileGroupDeviceParameters(
@@ -65,9 +72,9 @@ namespace Zen.Trunk.Storage
                 var masterDataPathName = tracker.Get("master.mddf");
                 var masterLogPathName = tracker.Get("master.mlf");
 
-                using (var dbDevice = new DatabaseDevice(PrimaryDatabaseId))
+                using (var dbDevice = new DatabaseDevice(StorageEngineTestFixture.PrimaryDatabaseId))
                 {
-                    dbDevice.InitialiseDeviceLifetimeScope(Scope);
+                    dbDevice.InitialiseDeviceLifetimeScope(_fixture.Scope);
                     //dbDevice.BeginTransaction(); // transaction scope here is unnecessary as it is done inside open call on DatabaseDevice
                     bool rollback = false;
                     try
@@ -202,11 +209,11 @@ namespace Zen.Trunk.Storage
                 var masterDataPathName = tracker.Get("master.mddf");
                 var masterLogPathName = tracker.Get("master.mlf");
 
-                using (var dbDevice = new DatabaseDevice(PrimaryDatabaseId))
+                using (var dbDevice = new DatabaseDevice(StorageEngineTestFixture.PrimaryDatabaseId))
                 {
                     try
                     {
-                        dbDevice.InitialiseDeviceLifetimeScope(Scope);
+                        dbDevice.InitialiseDeviceLifetimeScope(_fixture.Scope);
 
                         var addFgDevice =
                             new AddFileGroupDeviceParameters(
@@ -298,11 +305,11 @@ namespace Zen.Trunk.Storage
                 var masterDataPathName = tracker.Get("master.mddf");
                 var masterLogPathName = tracker.Get("master.mlf");
 
-                using (var dbDevice = new DatabaseDevice(PrimaryDatabaseId))
+                using (var dbDevice = new DatabaseDevice(StorageEngineTestFixture.PrimaryDatabaseId))
                 {
                     try
                     {
-                        dbDevice.InitialiseDeviceLifetimeScope(Scope);
+                        dbDevice.InitialiseDeviceLifetimeScope(_fixture.Scope);
                         var addFgDevice =
                             new AddFileGroupDeviceParameters(
                                 FileGroupId.Primary,
@@ -438,7 +445,7 @@ namespace Zen.Trunk.Storage
 
                     using (var dbDevice = new MasterDatabaseDevice())
                     {
-                        dbDevice.InitialiseDeviceLifetimeScope(Scope);
+                        dbDevice.InitialiseDeviceLifetimeScope(_fixture.Scope);
 
                         var addFgDevice =
                             new AddFileGroupDeviceParameters(

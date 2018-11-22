@@ -21,7 +21,7 @@ namespace Zen.Trunk.Storage
     /// TODO: Update summary.
     /// </summary>
     [Trait("Subsystem", "Storage Engine Query")]
-    public class StorageQueryTest : AutofacStorageEngineUnitTests
+    public class StorageQueryTest : StorageEngineTestFixture
     {
         [Fact(DisplayName = "Create master device using default values")]
         public async Task CreateMasterDeviceWithDefaultsTest()

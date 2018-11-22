@@ -14,8 +14,11 @@ namespace Zen.Trunk.Storage
 {
     [Trait("Subsystem", "Storage Engine")]
     [Trait("Class", "Index Manager")]
-    public class StorageIndexUnitTest : AutofacStorageEngineUnitTests
+    public class StorageIndexUnitTest : IClassFixture<StorageEngineTestFixture>, IDisposable
     {
+        private readonly StorageEngineTestFixture _fixture;
+        private readonly ILifetimeScope _scope;
+
         private class TestIndexManager : IndexManager<RootIndexInfo>
         {
             public TestIndexManager(ILifetimeScope parentLifetimeScope)
@@ -160,74 +163,79 @@ namespace Zen.Trunk.Storage
             }
         }
 
+        public StorageIndexUnitTest(StorageEngineTestFixture fixture)
+        {
+            _fixture = fixture;
+            _scope = _fixture.Scope.BeginLifetimeScope(
+                builder =>
+                {
+                    builder.RegisterType<DatabaseDevice>()
+                        .WithParameter("dbId", DatabaseId.Master)
+                        .SingleInstance()
+                        .OnActivated(e => e.Instance.InitialiseDeviceLifetimeScope(_fixture.Scope));
+                });
+        }
+
         [Fact(DisplayName = "Index test add pages")]
         public async Task IndexTestAddPages()
         {
-            using (var fileTracker = new TempFileTracker())
+            var masterDataPathName = _fixture.GlobalTracker.Get("master.mddf");
+            var masterLogPathName = _fixture.GlobalTracker.Get("master.mlf");
+
+            var dbDevice = CreateDatabaseDevice();
+            try
             {
-                var masterDataPathName = fileTracker.Get("master.mddf");
-                var masterLogPathName = fileTracker.Get("master.mlf");
+                var addFgDevice =
+                    new AddFileGroupDeviceParameters(
+                        FileGroupId.Primary,
+                        "PRIMARY",
+                        "master",
+                        masterDataPathName,
+                        DeviceId.Zero,
+                        128,
+                        true);
+                await dbDevice.AddFileGroupDeviceAsync(addFgDevice).ConfigureAwait(true);
 
-                var dbDevice = CreateDatabaseDevice();
-                try
+                var addLogDevice =
+                    new AddLogDeviceParameters(
+                        "MASTER_LOG",
+                        masterLogPathName,
+                        DeviceId.Zero,
+                        2);
+                await dbDevice.AddLogDeviceAsync(addLogDevice).ConfigureAwait(true);
+
+                await dbDevice.OpenAsync(true).ConfigureAwait(true);
+
+                dbDevice.BeginTransaction(TimeSpan.FromMinutes(10));
+
+                var manager = new TestIndexManager(_fixture.Scope);
+                var indexInfo = new RootIndexInfo
                 {
-                    var addFgDevice =
-                        new AddFileGroupDeviceParameters(
-                            FileGroupId.Primary,
-                            "PRIMARY",
-                            "master",
-                            masterDataPathName,
-                            DeviceId.Zero,
-                            128,
-                            true);
-                    await dbDevice.AddFileGroupDeviceAsync(addFgDevice).ConfigureAwait(true);
+                    Name = "PK_Test",
+                    ObjectId = new ObjectId(100),
+                    RootIndexDepth = 0,
+                    IndexFileGroupId = addFgDevice.FileGroupId,
+                };
+                manager.CreateIndex(indexInfo);
+                //manager.AddIndexInfo();
 
-                    var addLogDevice =
-                        new AddLogDeviceParameters(
-                            "MASTER_LOG",
-                            masterLogPathName,
-                            DeviceId.Zero,
-                            2);
-                    await dbDevice.AddLogDeviceAsync(addLogDevice).ConfigureAwait(true);
-
-                    await dbDevice.OpenAsync(true).ConfigureAwait(true);
-
-                    dbDevice.BeginTransaction(TimeSpan.FromMinutes(10));
-
-                    var manager = new TestIndexManager(Scope);
-                    var indexInfo = new RootIndexInfo
-                    {
-                        Name = "PK_Test",
-                        ObjectId = new ObjectId(100),
-                        RootIndexDepth = 0,
-                        IndexFileGroupId = addFgDevice.FileGroupId,
-                    };
-                    manager.CreateIndex(indexInfo);
-                    //manager.AddIndexInfo();
-
-                    await TrunkTransactionContext.CommitAsync().ConfigureAwait(true);
-                }
-                finally
-                {
-                    await dbDevice.CloseAsync().ConfigureAwait(true);
-                    dbDevice.Dispose();
-                }
+                await TrunkTransactionContext.CommitAsync().ConfigureAwait(true);
+            }
+            finally
+            {
+                await dbDevice.CloseAsync().ConfigureAwait(true);
+                dbDevice.Dispose();
             }
         }
 
-        protected override void InitializeContainerBuilder(ContainerBuilder builder)
+        public void Dispose()
         {
-            base.InitializeContainerBuilder(builder);
-
-            builder.RegisterType<DatabaseDevice>()
-                .WithParameter("dbId", DatabaseId.Master)
-                .SingleInstance()
-                .OnActivated(e => e.Instance.InitialiseDeviceLifetimeScope(Scope));
+            _scope.Dispose();
         }
 
         private DatabaseDevice CreateDatabaseDevice()
         {
-            return Scope.Resolve<DatabaseDevice>();
+            return _scope.Resolve<DatabaseDevice>();
         }
     }
 }

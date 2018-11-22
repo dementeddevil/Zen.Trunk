@@ -10,13 +10,13 @@ using Zen.Trunk.VirtualMemory.Tests;
 
 namespace Zen.Trunk.Storage
 {
-    public class AutofacStorageEngineUnitTests : AutofacContainerUnitTests
+    public class StorageEngineTestFixture : TestFixture
     {
         private IDisposable _ambientSessionScope;
 
         public static readonly DatabaseId PrimaryDatabaseId = new DatabaseId(1);
 
-        public AutofacStorageEngineUnitTests()
+        public StorageEngineTestFixture()
         {
             var config = new LoggerConfiguration();
             Serilog.Log.Logger = config

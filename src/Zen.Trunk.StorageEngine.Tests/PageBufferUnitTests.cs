@@ -10,9 +10,16 @@ namespace Zen.Trunk.Storage
 {
     [Trait("Subsystem", "Storage Engine")]
     [Trait("Class", "Page Buffer")]
-    public class PageBufferUnitTests : AutofacStorageEngineUnitTests
+    public class PageBufferUnitTests : IClassFixture<StorageEngineTestFixture>
     {
-        public IBufferDeviceFactory BufferDeviceFactory => Scope.Resolve<IBufferDeviceFactory>();
+        private readonly StorageEngineTestFixture _fixture;
+
+        public PageBufferUnitTests(StorageEngineTestFixture fixture)
+        {
+            _fixture = fixture;
+        }
+
+        public IBufferDeviceFactory BufferDeviceFactory => _fixture.Scope.Resolve<IBufferDeviceFactory>();
 
         [Fact(DisplayName = "Validate page buffer switches state when init then free")]
         public async Task ValidatePageBufferFreeThenInit()
@@ -22,7 +29,7 @@ namespace Zen.Trunk.Storage
                 using (var device = BufferDeviceFactory.CreateSingleBufferDevice(
                     "master", tracker.Get("master.dat"), 8, true))
                 {
-                    TrunkTransactionContext.BeginTransaction(Scope);
+                    TrunkTransactionContext.BeginTransaction(_fixture.Scope);
 
                     // Create buffer and call addref
                     using (var pageBuffer = new PageBuffer(device))
@@ -61,7 +68,7 @@ namespace Zen.Trunk.Storage
                 {
                     await device.OpenAsync().ConfigureAwait(true);
 
-                    TrunkTransactionContext.BeginTransaction(Scope);
+                    TrunkTransactionContext.BeginTransaction(_fixture.Scope);
 
                     // Create buffer and call addref
                     using (var pageBuffer = new PageBuffer(device))
@@ -107,7 +114,7 @@ namespace Zen.Trunk.Storage
                 {
                     await device.OpenAsync().ConfigureAwait(true);
 
-                    TrunkTransactionContext.BeginTransaction(Scope);
+                    TrunkTransactionContext.BeginTransaction(_fixture.Scope);
 
                     // Create buffer and call addref
                     using (var pageBuffer = new PageBuffer(device))

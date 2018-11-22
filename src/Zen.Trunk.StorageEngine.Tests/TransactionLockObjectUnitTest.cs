@@ -7,7 +7,7 @@ namespace Zen.Trunk.Storage
 {
     [Trait("Subsystem", "Storage Engine")]
     [Trait("Class", "Transaction Lock Object")]
-    public class TransactionLockObjectUnitTest : AutofacStorageEngineUnitTests
+    public class TransactionLockObjectUnitTest : IClassFixture<StorageEngineTestFixture>
     {
         /// <summary>
         /// Tests the acquiring, release and escalation of DataLock instance

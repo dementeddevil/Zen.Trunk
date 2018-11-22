@@ -10,8 +10,28 @@ namespace Zen.Trunk.Storage
 {
     [Trait("Subsystem", "Storage Engine")]
     [Trait("Class", "Transaction Lock Block")]
-    public class TransactionLockBlockUnitTest : AutofacStorageEngineUnitTests
+    public class TransactionLockBlockUnitTest : IClassFixture<StorageEngineTestFixture>, IDisposable
     {
+        private readonly StorageEngineTestFixture _fixture;
+        private readonly ILifetimeScope _scope;
+
+        public TransactionLockBlockUnitTest(StorageEngineTestFixture fixture)
+        {
+            _fixture = fixture;
+            _scope = _fixture.Scope.BeginLifetimeScope(
+                builder =>
+                {
+                    // ** Master log page device is needed to getting the atomic transaction id
+                    // TODO: Change MasterLogPageDevice to use interface so we can mock
+                    //	and implement the single method call we need...
+                    var pathName = _fixture.GlobalTracker.Get("LogDevice.mlb");
+                    builder.RegisterType<MasterLogPageDevice>()
+                        .WithParameter("pathName", pathName)
+                        .As<IMasterLogPageDevice>()
+                        .SingleInstance();
+                });
+        }
+
         /// <summary>
         /// Test transaction escalation with lock owner blocks.
         /// </summary>
@@ -22,11 +42,11 @@ Then the attempt to gain an exclusive lock fails.")]
         public async Task LockOwnerBlockTryGetExclusiveTest()
         {
             // Setup minimal service container we need to get trunk transactions to work
-            var dlm = Scope.Resolve<IDatabaseLockManager>();
+            var dlm = _scope.Resolve<IDatabaseLockManager>();
 
             // Create two transaction objects
-            ITrunkTransaction firstTransaction = new TrunkTransaction(Scope, IsolationLevel.ReadCommitted, TimeSpan.FromSeconds(10));
-            ITrunkTransaction secondTransaction = new TrunkTransaction(Scope, IsolationLevel.ReadCommitted, TimeSpan.FromSeconds(10));
+            ITrunkTransaction firstTransaction = new TrunkTransaction(_scope, IsolationLevel.ReadCommitted, TimeSpan.FromSeconds(10));
+            ITrunkTransaction secondTransaction = new TrunkTransaction(_scope, IsolationLevel.ReadCommitted, TimeSpan.FromSeconds(10));
             Assert.NotEqual(firstTransaction.TransactionId, secondTransaction.TransactionId);
 
             // We need access to the Lock Owner Block (LOB) for each transaction
@@ -71,11 +91,11 @@ Then the attempt to gain an exclusive lock fails.")]
         public async Task LockOwnerBlockTryEscalateLock()
         {
             // Setup minimal service container we need to get trunk transactions to work
-            var dlm = Scope.Resolve<IDatabaseLockManager>();
+            var dlm = _scope.Resolve<IDatabaseLockManager>();
 
             // Create two transaction objects
-            ITrunkTransaction firstTransaction = new TrunkTransaction(Scope, IsolationLevel.ReadCommitted, TimeSpan.FromSeconds(10));
-            ITrunkTransaction secondTransaction = new TrunkTransaction(Scope, IsolationLevel.ReadCommitted, TimeSpan.FromSeconds(10));
+            ITrunkTransaction firstTransaction = new TrunkTransaction(_scope, IsolationLevel.ReadCommitted, TimeSpan.FromSeconds(10));
+            ITrunkTransaction secondTransaction = new TrunkTransaction(_scope, IsolationLevel.ReadCommitted, TimeSpan.FromSeconds(10));
             Assert.NotEqual(firstTransaction.TransactionId, secondTransaction.TransactionId);
 
             // We need access to the Lock Owner Block (LOB) for each transaction
@@ -142,18 +162,9 @@ Then the attempt to gain an exclusive lock fails.")]
             }
         }
 
-        protected override void InitializeContainerBuilder(ContainerBuilder builder)
+        public void Dispose()
         {
-            base.InitializeContainerBuilder(builder);
-
-            // ** Master log page device is needed to getting the atomic transaction id
-            // TODO: Change MasterLogPageDevice to use interface so we can mock
-            //	and implement the single method call we need...
-            var pathName = GlobalTracker.Get("LogDevice.mlb");
-            builder.RegisterType<MasterLogPageDevice>()
-                .WithParameter("pathName", pathName)
-                .As<IMasterLogPageDevice>()
-                .SingleInstance();
+            _scope.Dispose();
         }
     }
 }

@@ -102,11 +102,12 @@ namespace Zen.Trunk.VirtualMemory
 		/// </remarks>
 		public async Task FlushAsync()
 		{
-			List<ScatterGatherRequestArray> workToDo = null;
 		    // ReSharper disable once InconsistentlySynchronizedField
 			if (_requests.Count > 0)
 			{
-				lock (_syncCallback)
+			    List<ScatterGatherRequestArray> workToDo = null;
+
+			    lock (_syncCallback)
 				{
                     CoalesceRequests();
 
@@ -117,12 +118,12 @@ namespace Zen.Trunk.VirtualMemory
 						_requests.Clear();
 					}
 				}
-			}
 
-			if (workToDo != null)
-			{
-			    var flushList = workToDo.Select(FlushArray);
-				await Task.WhenAll(flushList.ToArray()).ConfigureAwait(false);
+			    if (workToDo != null)
+			    {
+			        var flushList = workToDo.Select(FlushArray);
+				    await Task.WhenAll(flushList.ToArray()).ConfigureAwait(false);
+			    }
 			}
 		}
 
@@ -165,6 +166,7 @@ namespace Zen.Trunk.VirtualMemory
 		private async Task FlushIfNeeded()
 		{
 			List<ScatterGatherRequestArray> workToDo = null;
+
 		    // ReSharper disable once InconsistentlySynchronizedField
 			while (_requests.Count > _maximumRequestBlocks)
 			{
