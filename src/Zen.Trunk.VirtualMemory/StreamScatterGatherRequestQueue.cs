@@ -15,7 +15,7 @@ namespace Zen.Trunk.VirtualMemory
 	{
 		#region Private Fields
 		private readonly AdvancedStream _stream;
-		private readonly bool _isReader;
+	    private readonly Func<AdvancedStream, ScatterGatherRequestArray, Task> _flushStrategy;
 
 		private readonly TimeSpan _maximumRequestAge;
 		private readonly TimeSpan _coalesceRequestsPeriod;
@@ -31,25 +31,24 @@ namespace Zen.Trunk.VirtualMemory
         #endregion
 
         #region Public Constructors
+
 	    /// <summary>
 	    /// Initializes a new instance of the <see cref="StreamScatterGatherRequestQueue"/> class.
 	    /// </summary>
 	    /// <param name="stream">The advanced file stream.</param>
 	    /// <param name="settings">The request queue settings.</param>
-	    /// <param name="isReader">
-	    /// <c>true</c> if the helper is to work in read-mode; otherwise <c>false</c>.
-	    /// </param>
+	    /// <param name="flushStrategy">The strategy used to flush a given scatter/gather array.</param>
 	    public StreamScatterGatherRequestQueue(
             AdvancedStream stream,
             StreamScatterGatherRequestQueueSettings settings,
-            bool isReader)
+            Func<AdvancedStream, ScatterGatherRequestArray, Task> flushStrategy)
 		{
 			_stream = stream;
 		    _maximumRequestAge = settings.MaximumRequestAge;
 		    _coalesceRequestsPeriod = settings.CoalesceRequestsPeriod;
 		    _maximumRequestBlockLength = settings.MaximumRequestBlockLength;
 		    _maximumRequestBlocks = settings.MaximumRequestBlocks;
-			_isReader = isReader;
+		    _flushStrategy = flushStrategy;
 		}
 		#endregion
 
@@ -96,18 +95,23 @@ namespace Zen.Trunk.VirtualMemory
 		/// <summary>
 		/// Flushes the buffers stored in this instance to the underlying store
 		/// </summary>
+		/// <remarks>
+		/// Prior to flushing the arrays, this method will coalesce arrays into
+		/// longer chains if possible in order to minimise the number of I/O calls
+		/// required.
+		/// </remarks>
 		public async Task FlushAsync()
 		{
-			// Obtain the completion objects to be flushed
 			List<ScatterGatherRequestArray> workToDo = null;
 		    // ReSharper disable once InconsistentlySynchronizedField
 			if (_requests.Count > 0)
 			{
 				lock (_syncCallback)
 				{
+                    CoalesceRequests();
+
 					if (_requests.Count > 0)
 					{
-						// Get array of buffers to be persisted.
 						workToDo = new List<ScatterGatherRequestArray>();
 						workToDo.AddRange(_requests);
 						_requests.Clear();
@@ -122,22 +126,28 @@ namespace Zen.Trunk.VirtualMemory
 			}
 		}
 
-		/// <summary>
-		/// Flushes only the data necessary.
-		/// </summary>
-		/// <returns></returns>
-		/// <remarks>
-		/// The helper stores all received requests in arrays and will try to
-		/// create longer block chains before issuing the scatter/gather call
-		/// to transfer data.
-		/// This method should be called periodically to ensure timely handling
-		/// of requests
-		/// </remarks>
-		[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly",
+        /// <summary>
+        /// Flushes only the data necessary.
+        /// </summary>
+        /// <returns></returns>
+        /// <remarks>
+        /// This method performs the following actions;
+        /// 1. If the Coalesce Period has expired, this method will
+        /// coalesce arrays into longer chains if possible.
+        /// 2. If the number arrays are greater than Max Array limit then the
+        /// oldest arrays will be flushed.
+        /// 3. If any arrays contain requests older than Max Request Age or
+        /// have more requests than the Max Array Length limit, then these
+        /// will be flushed.
+        /// This method should be called periodically to ensure timely handling
+        /// of requests.
+        /// </remarks>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly",
 			MessageId = "Optimised", Justification = "English spelling")]
 		public async Task OptimisedFlushAsync()
 		{
 			CoalesceIfNeeded();
+
 			await FlushIfNeeded().ConfigureAwait(false);
 			await ScavengeIfNeeded().ConfigureAwait(false);
 		}
@@ -253,14 +263,7 @@ namespace Zen.Trunk.VirtualMemory
 
 		private Task FlushArray(ScatterGatherRequestArray array)
 		{
-			if (array != null)
-			{
-			    return _isReader 
-			        ? array.FlushAsReadAsync(_stream)
-			        : array.FlushAsWriteAsync(_stream);
-			}
-
-			return CompletedTask.Default;
+		    return array != null ? _flushStrategy(_stream, array) : CompletedTask.Default;
 		}
 		#endregion
 	}
