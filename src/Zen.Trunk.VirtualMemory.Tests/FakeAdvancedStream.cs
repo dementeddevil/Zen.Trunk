@@ -7,16 +7,17 @@ namespace Zen.Trunk.VirtualMemory.Tests
 {
     public class FakeAdvancedStream : AdvancedStream
     {
+        private readonly MemoryStream _innerStream = new MemoryStream();
         private readonly List<string> _buffersRead = new List<string>();
         private readonly List<string> _buffersWritten = new List<string>();
 
-        public override bool CanRead => true;
+        public override bool CanRead => _innerStream.CanRead;
 
-        public override bool CanSeek => true;
+        public override bool CanSeek => _innerStream.CanSeek;
 
-        public override bool CanWrite => true;
+        public override bool CanWrite => _innerStream.CanWrite;
 
-        public override long Length => 65536;
+        public override long Length => _innerStream.Length;
 
         public override long Position { get; set; }
 
@@ -26,40 +27,27 @@ namespace Zen.Trunk.VirtualMemory.Tests
 
         public override void Flush()
         {
+            _innerStream.Flush();
         }
 
         public override long Seek(long offset, SeekOrigin origin)
         {
-            switch (origin)
-            {
-                case SeekOrigin.Begin:
-                    Position = offset;
-                    break;
-                case SeekOrigin.Current:
-                    Position += offset;
-                    break;
-                case SeekOrigin.End:
-                    Position = Length - offset;
-                    break;
-            }
-
-            return Position;
+            return _innerStream.Seek(offset, origin);
         }
 
         public override void SetLength(long value)
         {
-            throw new NotImplementedException();
+            _innerStream.SetLength(value);
         }
 
         public override int Read(byte[] buffer, int offset, int count)
         {
-            Position += count;
-            return count;
+            return _innerStream.Read(buffer, offset, count);
         }
 
         public override void Write(byte[] buffer, int offset, int count)
         {
-            Position += count;
+            _innerStream.Write(buffer, offset, count);
         }
 
         public override IAsyncResult BeginReadScatter(IVirtualBuffer[] buffers, AsyncCallback callback, object state)
@@ -130,9 +118,16 @@ namespace Zen.Trunk.VirtualMemory.Tests
 
             foreach (var buffer in buffers)
             {
+                var bufferSize = buffer.BufferSize;
+                var block = new byte[bufferSize];
+                using (var bufferStream = buffer.GetBufferStream(0, bufferSize, true))
+                {
+                    await _innerStream.ReadAsync(block, 0, bufferSize).ConfigureAwait(false);
+                    await bufferStream.WriteAsync(block, 0, bufferSize).ConfigureAwait(false);
+                }
+
                 _buffersRead.Add(buffer.BufferId);
                 await Task.Delay(20).ConfigureAwait(false);
-                Position += buffer.BufferSize;
                 bytesRead += buffer.BufferSize;
             }
 
@@ -143,6 +138,14 @@ namespace Zen.Trunk.VirtualMemory.Tests
         {
             foreach (var buffer in buffers)
             {
+                var bufferSize = buffer.BufferSize;
+                var block = new byte[bufferSize];
+                using (var bufferStream = buffer.GetBufferStream(0, bufferSize, false))
+                {
+                    await bufferStream.ReadAsync(block, 0, bufferSize).ConfigureAwait(false);
+                    await _innerStream.WriteAsync(block, 0, bufferSize).ConfigureAwait(false);
+                }
+
                 _buffersWritten.Add(buffer.BufferId);
                 await Task.Delay(20).ConfigureAwait(false);
                 Position += buffer.BufferSize;
