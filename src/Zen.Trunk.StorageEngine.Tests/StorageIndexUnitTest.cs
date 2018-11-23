@@ -171,6 +171,7 @@ namespace Zen.Trunk.Storage
                 {
                     builder.RegisterType<DatabaseDevice>()
                         .WithParameter("dbId", DatabaseId.Master)
+                        .As<IDatabaseDevice>()
                         .SingleInstance()
                         .OnActivated(e => e.Instance.InitialiseDeviceLifetimeScope(_fixture.Scope));
                 });
@@ -179,8 +180,8 @@ namespace Zen.Trunk.Storage
         [Fact(DisplayName = "Index test add pages")]
         public async Task IndexTestAddPages()
         {
-            var masterDataPathName = _fixture.GlobalTracker.Get("master.mddf");
-            var masterLogPathName = _fixture.GlobalTracker.Get("master.mlf");
+            var masterDataPathName = _fixture.GlobalTracker.Get("master_indextest.mddf");
+            var masterLogPathName = _fixture.GlobalTracker.Get("master_indextest.mlf");
 
             var dbDevice = CreateDatabaseDevice();
             try
@@ -233,9 +234,9 @@ namespace Zen.Trunk.Storage
             _scope.Dispose();
         }
 
-        private DatabaseDevice CreateDatabaseDevice()
+        private IDatabaseDevice CreateDatabaseDevice()
         {
-            return _scope.Resolve<DatabaseDevice>();
+            return _scope.Resolve<IDatabaseDevice>();
         }
     }
 }

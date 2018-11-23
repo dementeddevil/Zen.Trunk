@@ -122,7 +122,7 @@ namespace Zen.Trunk.Storage.Locking
                 }
 
                 // Force rollback of the current transaction
-                RollbackAsync().Wait(DefaultTransactionTimeout);
+                RollbackAsync().GetAwaiter().GetResult();
             }
         }
 

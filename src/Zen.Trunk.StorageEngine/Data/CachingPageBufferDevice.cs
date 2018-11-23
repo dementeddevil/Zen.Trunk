@@ -298,7 +298,7 @@ namespace Zen.Trunk.Storage.Data
         /// </summary>
         public void Dispose()
         {
-            CloseAsync().Wait();
+            CloseAsync().GetAwaiter().GetResult();
         }
 
         /// <summary>
