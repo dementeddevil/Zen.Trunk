@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
@@ -264,8 +265,9 @@ namespace Zen.Trunk.Storage.Data.Table
                 })
             {
                 await Database
-                    .InitFileGroupPageAsync(new InitFileGroupPageParameters(
-                        null, rootPage, true, false, true))
+                    .InitFileGroupPageAsync(
+                        new InitFileGroupPageParameters(
+                            null, rootPage, true, false, true))
                     .ConfigureAwait(false);
 
                 // Setup root index page
@@ -456,19 +458,85 @@ namespace Zen.Trunk.Storage.Data.Table
             splitPage.FileGroupId = currentPage.FileGroupId;
             splitPage.ObjectId = currentPage.ObjectId;
             splitPage.IndexId = currentPage.IndexId;
-            await Database.InitFileGroupPageAsync(
-                new InitFileGroupPageParameters(null, splitPage)).ConfigureAwait(false);
-
-            bool updateParentPage;
+            await Database
+                .InitFileGroupPageAsync(
+                    new InitFileGroupPageParameters(null, splitPage))
+                .ConfigureAwait(false);
 
             // Root page splits have extra operations...
+            var result = await SplitRootPageIfNecessary(
+                request, currentPage, splitPage).ConfigureAwait(false);
+            parentPage = result.Item1;
+            var updateParentPage = result.Item2;
+
+            // Sanity check - no root index pages beyond this point
+            Debug.Assert(!currentPage.IsRootIndex);
+            Debug.Assert(parentPage != null);
+
+            // Setup linkage following split (double linked list)
+            splitPage.PrevLogicalPageId = currentPage.LogicalPageId;
+            splitPage.NextLogicalPageId = currentPage.NextLogicalPageId;
+            currentPage.NextLogicalPageId = splitPage.LogicalPageId;
+            splitPage.ParentLogicalPageId = parentPage.LogicalPageId;
+
+            // If the next logical id is non-zero on the split page
+            //	then we need to load the page and rewire the prev id
+            if (splitPage.NextLogicalPageId != LogicalPageId.Zero)
+            {
+                // Prepare page for loading
+                var pageAfterSplit =
+                    new TableIndexPage
+                    {
+                        FileGroupId = currentPage.FileGroupId,
+                        LogicalPageId = splitPage.NextLogicalPageId
+                    };
+                await Database
+                    .LoadFileGroupPageAsync(
+                        new LoadFileGroupPageParameters(
+                            null, pageAfterSplit, false, true))
+                    .ConfigureAwait(false);
+
+                // Update the previous logical index
+                pageAfterSplit.PrevLogicalPageId = splitPage.LogicalPageId;
+            }
+
+            // Setup remaining header info
+            splitPage.Depth = currentPage.Depth;
+            splitPage.IndexType = currentPage.IndexType;
+
+            // Move half entries to new page
+            var startIndex = currentPage.IndexCount / 2;
+            while (startIndex < currentPage.IndexCount)
+            {
+                splitPage.IndexEntries.Add(currentPage.IndexEntries[startIndex]);
+                currentPage.IndexEntries.RemoveAt(startIndex);
+            }
+
+            // Setup pointer to new page in parent page
+            parentPage.AddLinkToPage(splitPage, out updateParentPage);
+
+            // The caller may need to fix-up the parent page
+            return updateParentPage;
+        }
+
+        private async Task<Tuple<TableIndexPage, bool>> SplitRootPageIfNecessary(
+            SplitTableIndexPageRequest request,
+            TableIndexPage currentPage,
+            TableIndexPage splitPage)
+        {
+            TableIndexPage parentPage = null;
+            var updateParentPage = false;
+
             if (currentPage.IsRootIndex)
             {
                 // Initialise new page
-                var newRootPage = new TableIndexPage();
-                newRootPage.FileGroupId = currentPage.FileGroupId;
-                newRootPage.ObjectId = currentPage.ObjectId;
-                newRootPage.IndexId = currentPage.IndexId;
+                var newRootPage =
+                    new TableIndexPage
+                    {
+                        FileGroupId = currentPage.FileGroupId,
+                        ObjectId = currentPage.ObjectId,
+                        IndexId = currentPage.IndexId
+                    };
                 await Database
                     .InitFileGroupPageAsync(new InitFileGroupPageParameters(null, newRootPage))
                     .ConfigureAwait(false);
@@ -482,7 +550,7 @@ namespace Zen.Trunk.Storage.Data.Table
                 currentPage.ParentLogicalPageId = newRootPage.LogicalPageId;
 
                 // Setup index page depth and type
-                newRootPage.Depth = (byte)(currentPage.Depth + 1);
+                newRootPage.Depth = (byte) (currentPage.Depth + 1);
                 newRootPage.IndexType = IndexType.Root;
 
                 // Setup index page type for current page
@@ -509,50 +577,7 @@ namespace Zen.Trunk.Storage.Data.Table
                 parentPage = newRootPage;
             }
 
-            // Sanity check - no root index pages beyond this point
-            System.Diagnostics.Debug.Assert(!currentPage.IsRootIndex);
-
-            // Setup linkage following split.
-            // Intermediate and leaf page splits are easier...
-            // Hookup page to logical chain.
-            splitPage.PrevLogicalPageId = currentPage.LogicalPageId;
-            splitPage.NextLogicalPageId = currentPage.NextLogicalPageId;
-            splitPage.ParentLogicalPageId = parentPage.LogicalPageId;
-
-            // If the next logical id is non-zero on the split page
-            //	then we need to load the page and rewire the prev id
-            if (splitPage.NextLogicalPageId != LogicalPageId.Zero)
-            {
-                // Prepare page for loading
-                var pageAfterSplit = new TableIndexPage();
-                pageAfterSplit.FileGroupId = currentPage.FileGroupId;
-                pageAfterSplit.LogicalPageId = splitPage.NextLogicalPageId;
-                await Database.LoadFileGroupPageAsync(
-                    new LoadFileGroupPageParameters(null, pageAfterSplit, false, true)).ConfigureAwait(false);
-
-                // Update the previous logical index
-                pageAfterSplit.PrevLogicalPageId = splitPage.LogicalPageId;
-            }
-
-            // Setup index page depth
-            splitPage.Depth = currentPage.Depth;
-
-            // Setup index page type
-            splitPage.IndexType = currentPage.IndexType;
-
-            // Move half entries to new page
-            var startIndex = currentPage.IndexCount / 2;
-            while (startIndex < currentPage.IndexCount)
-            {
-                splitPage.IndexEntries.Add(currentPage.IndexEntries[startIndex]);
-                currentPage.IndexEntries.RemoveAt(startIndex);
-            }
-
-            // Setup pointer to new page in parent page
-            parentPage.AddLinkToPage(splitPage, out updateParentPage);
-
-            // The caller may need to fixup the parent page
-            return true;
+            return new Tuple<TableIndexPage, bool>(parentPage, updateParentPage);
         }
 
         private async Task<bool> MergePagesHandlerAsync(MergeTableIndexPagesRequest request)
@@ -584,7 +609,9 @@ namespace Zen.Trunk.Storage.Data.Table
 
             // Free the merged page
             await Database
-                .DeallocateFileGroupPageAsync(new DeallocateFileGroupDataPageParameters(string.Empty, mergePage))
+                .DeallocateFileGroupPageAsync(
+                    new DeallocateFileGroupDataPageParameters(
+                        string.Empty, mergePage))
                 .ConfigureAwait(false);
 
             // TODO: If the parent page is the root page and this is the last
@@ -608,136 +635,110 @@ namespace Zen.Trunk.Storage.Data.Table
         {
             TableIndexPage prevPage = null, parentPage = null;
             var logicalId = request.Message.RootInfo.RootLogicalPageId;
-            bool isForInsert = request.Message.IsForInsert, found = false;
+            var isForInsert = request.Message.IsForInsert;
+            var findInfo = new TableIndexInfo(request.Message.Keys);
 
             // Main find loop
-            while (!found)
+            while (true)
             {
                 // Load the current index page
-                var indexPage = new TableIndexPage
-                {
-                    FileGroupId = request.Message.RootInfo.IndexFileGroupId,
-                    LogicalPageId = logicalId
-                };
+                var indexPage = 
+                    new TableIndexPage
+                    {
+                        FileGroupId = request.Message.RootInfo.IndexFileGroupId,
+                        LogicalPageId = logicalId
+                    };
                 await Database
-                    .LoadFileGroupPageAsync(new LoadFileGroupPageParameters(null, indexPage, false, true))
+                    .LoadFileGroupPageAsync(
+                        new LoadFileGroupPageParameters(
+                            null, indexPage, false, true))
                     .ConfigureAwait(false);
 
-                // Perform crab-search through index table entries
-                // If we are inserting then split page as required
-                Task splitTask = null;
-                if (isForInsert)
+                // Perform crab-search through index table entries and split
+                //  as necessary
+                if (isForInsert && indexPage.IndexCount >= (indexPage.MaxIndexEntries - 2))
                 {
-                    if (indexPage.IndexCount >= (indexPage.MaxIndexEntries - 2))
+                    var newPage = new TableIndexPage();
+                    var split = new SplitTableIndexPageParameters(
+                        parentPage, indexPage, newPage);
+                    var updateParentPageAfterSplit = await SplitPageAsync(split)
+                        .ConfigureAwait(false);
+                    if (updateParentPageAfterSplit && parentPage != null)
                     {
-                        // Split the index page
-                        var newPage = new TableIndexPage();
-                        var split = new SplitTableIndexPageParameters(
-                            parentPage, indexPage, newPage);
-                        splitTask = SplitPageAsync(split);
+
                     }
                 }
 
                 // Check whether we were supposed to go via prev page.
-                var findInfo = new TableIndexInfo(request.Message.Keys);
-                //if (prevPage != null && indexPage.IndexCount > 0)
-                //{
-                //    // If current page's first index is past cursor
-                //    //	then backtrack
-                //    if (indexPage.CompareIndex(0, request.Message.Keys) > 0)
-                //    {
-                //        // Dispose parent page (will unlock)
-                //        if (parentPage != null)
-                //        {
-                //            parentPage.Dispose();
-                //            parentPage = null;
-                //        }
-
-                //        // Dispose of index page (will unlock)
-                //        indexPage.Dispose();
-                        
-                //        // Backtrack to previous page
-                //        indexPage = prevPage;
-                //        prevPage = null;
-
-                //        // When we reach depth of zero we are finished
-                //        if (indexPage.Depth == 0)
-                //        {
-                //            // Wait for split if we started one
-                //            if (splitTask != null)
-                //            {
-                //                await splitTask.ConfigureAwait(false);
-                //            }
-
-                //            // Return whatever we found
-                //            return new FindTableIndexResult(
-                //                indexPage,
-                //                (TableIndexLeafInfo)indexPage.IndexEntries[indexPage.IndexCount - 1]);
-                //        }
-
-                //        // Iterate down stack
-                //        var logicalInfo = (TableIndexLogicalInfo)
-                //            parentPage.IndexEntries[parentPage.IndexCount - 1];
-                //        parentPage = indexPage;
-                //        logicalId = logicalInfo.LogicalPageId;
-                //        indexPage = null;
-
-                //        // Start async load on decendant index page
-                //        continue;
-                //    }
-
-                //    // Dispose previous page (will unlock)
-                //    if (prevPage != null)
-                //    {
-                //        prevPage.Dispose();
-                //        prevPage = null;
-                //    }
-                //}
-
-                // Search for descent point
-                for (var index = 0; indexPage != null &&
-                    index < indexPage.IndexCount; --index)
+                if (prevPage != null && indexPage.IndexCount > 0)
                 {
-                    var lhs = indexPage.IndexEntries[index];
-                    TableIndexInfo rhs = null;
-                    if (index < indexPage.IndexCount - 1)
+                    // If current page's first index is past cursor
+                    //	then backtrack
+                    if (indexPage.CompareIndex(0, findInfo) > 0)
                     {
-                        rhs = indexPage.IndexEntries[index + 1];
-                    }
-
-                    var compLower = lhs.CompareTo(findInfo);
-                    var compHigher = rhs?.CompareTo(findInfo) ?? -1;
-
-                    if (compLower < 0 && compHigher < 0)
-                    {
-                        if (indexPage.Depth == 0)
+                        // Dispose parent page (will unlock)
+                        if (parentPage != null)
                         {
-                            // Wait for split if we started one
-                            if (splitTask != null)
-                            {
-                                await splitTask.ConfigureAwait(false);
-                            }
-
-                            // We have a result
-                            return new FindTableIndexResult(
-                                indexPage, (TableIndexLeafInfo)lhs);
+                            parentPage.Dispose();
+                            parentPage = null;
                         }
 
-                        // Determine new logical id and make this current
-                        //	page the new parent page.
-                        logicalId = ((TableIndexLogicalInfo)lhs).LogicalPageId;
+                        // Dispose of index page (will unlock)
+                        indexPage.Dispose();
+
+                        // Backtrack to previous page
+                        indexPage = prevPage;
+                        prevPage = null;
+
+                        // When we reach depth of zero we are finished
+                        if (indexPage.Depth == 0)
+                        {
+                            // Return whatever we found
+                            return new FindTableIndexResult(
+                                indexPage,
+                                (TableIndexLeafInfo)indexPage.IndexEntries[indexPage.IndexCount - 1]);
+                        }
+
+                        // Iterate down stack
+                        var logicalInfo = (TableIndexLogicalInfo)
+                            indexPage.IndexEntries[indexPage.IndexCount - 1];
                         parentPage = indexPage;
-                        indexPage = null;
+                        logicalId = logicalInfo.LogicalPageId;
+                        continue;
                     }
+
+                    // Dispose previous page (will unlock)
+                    prevPage.Dispose();
+                    prevPage = null;
                 }
 
-                // If we split the page then ensure page split has been completed
-                if (splitTask != null)
+                // Search for descent point
+                for (var index = 0;
+                    indexPage != null && index < indexPage.IndexCount;
+                    ++index)
                 {
-                    await splitTask.ConfigureAwait(false);
+                    // Is this the descent point for the current index page
+                    var compLower = indexPage.CompareIndex(index, findInfo);
+                    var compHigher = indexPage.CompareIndex(index + 1, findInfo);
+                    if (compLower >= 0 || compHigher >= 0) continue;
+
+                    // If this is a leaf index page then we are finished
+                    if (indexPage.TryGetIndexEntryLeafInfo(index, out var leaf))
+                    {
+                        return new FindTableIndexResult(indexPage, leaf);
+                    }
+
+                    // Determine new logical id of child page and descend
+                    indexPage.TryGetIndexEntryLogicalPageId(index, out logicalId);
+                    parentPage = indexPage;
+
+                    // Cause index scan of this page to terminate
+                    indexPage = null;
                 }
 
-                // If we have a next page then go
+                // If current index page is still valid and we have a next page then go
+                // NOTE: Typically this should never occur but due to page splits we
+                //  cannot fully discount this as a possibility...
                 if (indexPage != null &&
                     indexPage.NextLogicalPageId != LogicalPageId.Zero)
                 {
@@ -757,61 +758,60 @@ namespace Zen.Trunk.Storage.Data.Table
 
         private async Task<bool> EnumerateIndexEntriesHandlerAsync(EnumerateIndexEntriesRequest request)
         {
-            var success = false;
             var find = new FindTableIndexParameters(
                 request.Message.Index,
                 request.Message.FromKeys);
             var result = await FindIndexAsync(find).ConfigureAwait(false);
-            if (result != null)
-            {
-                var indexPage = result.Page;
-                var endIndexInfo = new TableIndexInfo(request.Message.ToKeys);
-                var entryIndex = indexPage.IndexEntries.IndexOf(result.Entry);
-                var iterationIndex = 0;
-                while (true)
-                {
-                    if (entryIndex >= indexPage.IndexEntries.Count)
-                    {
-                        // Have we reached the last page of index?
-                        if (indexPage.NextLogicalPageId == LogicalPageId.Zero)
-                        {
-                            break;
-                        }
+            if (result == null) return false;
 
-                        // Load the next page
-                        var nextPage = new TableIndexPage
+            var indexPage = result.Page;
+            var endIndexInfo = new TableIndexInfo(request.Message.ToKeys);
+            var entryIndex = indexPage.IndexEntries.IndexOf(result.Entry);
+            var iterationIndex = 0;
+            while (true)
+            {
+                // Check for reaching end of index entry list
+                if (entryIndex >= indexPage.IndexEntries.Count)
+                {
+                    // Have we reached the last page of index?
+                    if (indexPage.NextLogicalPageId == LogicalPageId.Zero)
+                    {
+                        break;
+                    }
+
+                    // Load the next page and switch
+                    var nextPage =
+                        new TableIndexPage
                         {
                             FileGroupId = indexPage.FileGroupId,
                             LogicalPageId = indexPage.NextLogicalPageId
                         };
-                        var loadParams = new LoadFileGroupPageParameters(null, nextPage, false, true);
-                        await Database.LoadFileGroupPageAsync(loadParams).ConfigureAwait(false);
+                    var loadParams = new LoadFileGroupPageParameters(
+                        null, nextPage, false, true);
+                    await Database
+                        .LoadFileGroupPageAsync(loadParams)
+                        .ConfigureAwait(false);
 
-                        // Switch pages
-                        indexPage.Dispose();
-                        indexPage = nextPage;
-                        entryIndex = 0;
-                    }
-
-                    // Compare with end index
-                    var comp = indexPage.IndexEntries[entryIndex].CompareTo(endIndexInfo);
-                    if (comp > 0)
-                    {
-                        break;
-                    }
-
-                    var continueIter = request.Message.OnIteration(indexPage, (TableIndexLeafInfo)indexPage.IndexEntries[entryIndex], iterationIndex++);
-                    if (!continueIter)
-                    {
-                        break;
-                    }
-
-                    ++entryIndex;
+                    indexPage.Dispose();
+                    indexPage = nextPage;
+                    entryIndex = 0;
                 }
 
-                success = true;
+                // Compare with end index
+                var comp = indexPage.IndexEntries[entryIndex].CompareTo(endIndexInfo);
+                if (comp > 0 ||
+                    !request.Message.OnIteration(
+                        indexPage,
+                        (TableIndexLeafInfo)indexPage.IndexEntries[entryIndex],
+                        iterationIndex++))
+                {
+                    break;
+                }
+
+                ++entryIndex;
             }
-            return success;
+
+            return true;
         }
         #endregion
     }

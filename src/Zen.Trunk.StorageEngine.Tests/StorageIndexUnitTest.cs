@@ -5,6 +5,7 @@ using Xunit;
 using Zen.Trunk.IO;
 using Zen.Trunk.Storage.BufferFields;
 using Zen.Trunk.Storage.Data.Index;
+using Zen.Trunk.Storage.Data.Table;
 using Zen.Trunk.Storage.Locking;
 using Zen.Trunk.Storage.Log;
 using Zen.Trunk.VirtualMemory;
@@ -171,7 +172,6 @@ namespace Zen.Trunk.Storage
                 {
                     builder.RegisterType<DatabaseDevice>()
                         .WithParameter("dbId", DatabaseId.Master)
-                        .As<IDatabaseDevice>()
                         .SingleInstance()
                         .OnActivated(e => e.Instance.InitialiseDeviceLifetimeScope(_fixture.Scope));
                 });
@@ -209,7 +209,7 @@ namespace Zen.Trunk.Storage
 
                 dbDevice.BeginTransaction(TimeSpan.FromMinutes(10));
 
-                var manager = new TestIndexManager(_fixture.Scope);
+                var manager = new TestIndexManager(_scope);
                 var indexInfo = new RootIndexInfo
                 {
                     Name = "PK_Test",
@@ -218,7 +218,16 @@ namespace Zen.Trunk.Storage
                     IndexFileGroupId = addFgDevice.FileGroupId,
                 };
                 manager.CreateIndex(indexInfo);
-                //manager.AddIndexInfo();
+                for (var index = 0; index < 1000; ++index)
+                {
+                    manager.
+                    manager.AddIndexInfo(
+                        new TestIndexInfo(
+                            new DateTime(2018, 1, 1).AddDays(index),
+                            index,
+                            1000 + index));
+
+                }
 
                 await TrunkTransactionContext.CommitAsync().ConfigureAwait(true);
             }
@@ -234,9 +243,9 @@ namespace Zen.Trunk.Storage
             _scope.Dispose();
         }
 
-        private IDatabaseDevice CreateDatabaseDevice()
+        private DatabaseDevice CreateDatabaseDevice()
         {
-            return _scope.Resolve<IDatabaseDevice>();
+            return _scope.Resolve<DatabaseDevice>();
         }
     }
 }

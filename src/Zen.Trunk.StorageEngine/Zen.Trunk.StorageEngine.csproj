@@ -63,7 +63,9 @@
     <Reference Include="System.Transactions" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DatabaseDeviceMessages.cs" />
     <Compile Include="Data\Table\DatabaseTableFactory.cs" />
+    <Compile Include="Data\Table\FileGroupDeviceMessages.cs" />
     <Compile Include="Data\Table\IDatabaseTable.cs" />
     <Compile Include="Data\Table\IDatabaseTableFactory.cs" />
     <Compile Include="Locking\ILockHandler.cs" />
@@ -94,8 +96,6 @@
     <Compile Include="CoreException.cs" />
     <Compile Include="Data\CachingPageBufferDeviceSettings.cs" />
     <Compile Include="DatabaseDevice.cs" />
-    <Compile Include="DatabaseDeviceMessages.cs" />
-    <Compile Include="Data\FileGroupDeviceMessages.cs" />
     <Compile Include="Data\FileSize.cs" />
     <Compile Include="Data\ICachingPageBufferDevice.cs" />
     <Compile Include="Data\ILogicalVirtualManager.cs" />
