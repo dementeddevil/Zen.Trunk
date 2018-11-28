@@ -277,6 +277,18 @@ namespace Zen.Trunk.Storage.Locking
         protected abstract TLockTypeEnum NoneLockType { get; }
         #endregion
 
+        #region Private Properties
+        private SessionId CurrentSessionId =>
+            (TrunkSessionContext.Current != null)
+                ? TrunkSessionContext.Current.SessionId
+                : SessionId.Zero;
+
+        private TransactionId CurrentTransactionId =>
+            TrunkTransactionContext.Current != null
+                ? TrunkTransactionContext.Current.TransactionId
+                : TransactionId.Zero;
+        #endregion
+
         #region Public Methods
         /// <summary>
         /// Initialises the lock object.
@@ -329,7 +341,7 @@ namespace Zen.Trunk.Storage.Locking
             // Retrieve connection id and create request object.
             // Will throw if no connection information is available for the
             //  calling thread.
-            var lockOwnerIdent = GetThreadLockOwnerIdentity(true);
+            var lockOwnerIdent = GetThreadLockOwnerIdentityAndThrowIfMissing();
             return HasLockAsync(lockOwnerIdent, lockType);
         }
 
@@ -353,7 +365,7 @@ namespace Zen.Trunk.Storage.Locking
             // Retrieve connection id and create request object.
             // Will throw if no connection information is available for the
             //  calling thread.
-            var lockOwner = GetThreadLockOwnerIdentity(true);
+            var lockOwner = GetThreadLockOwnerIdentityAndThrowIfMissing();
             return LockAsync(lockOwner, lockType, timeout);
         }
 
@@ -380,7 +392,7 @@ namespace Zen.Trunk.Storage.Locking
             // Retrieve connection id and create request object.
             // Will throw if no connection information is available for the
             //  calling thread.
-            var lockOwner = GetThreadLockOwnerIdentity(true);
+            var lockOwner = GetThreadLockOwnerIdentityAndThrowIfMissing();
             return UnlockAsync(lockOwner, newLockType);
         }
         #endregion
@@ -390,7 +402,10 @@ namespace Zen.Trunk.Storage.Locking
         {
             // Post lock acquisition message
             var request = new AcquireLock(lockType, lockOwner);
-            _acquireLockAction.Post(request);
+            if (!_acquireLockAction.Post(request))
+            {
+                throw new LockRejectedException();
+            }
 
             // Wait for task to complete
             bool addRefLock;
@@ -400,7 +415,7 @@ namespace Zen.Trunk.Storage.Locking
             }
             catch (OperationCanceledException)
             {
-                throw new TimeoutException("Lock timeout occurred.");
+                throw new LockTimeoutException("Lock timeout occurred.", timeout);
             }
 
             // Increment reference count on lock
@@ -414,13 +429,13 @@ namespace Zen.Trunk.Storage.Locking
         {
             // Post lock acquisition message
             var request = new ReleaseLock(newLockType, lockOwner);
-            _releaseLockAction.Post(request);
+            if (!_releaseLockAction.Post(request))
+            {
+                throw new LockRejectedException();
+            }
 
             // Wait for task to complete
-            var releaseLock = await request.Task.ConfigureAwait(false);
-
-            // Release reference count on lock
-            if (releaseLock)
+            if (await request.Task.ConfigureAwait(false))
             {
                 ReleaseRefLock();
             }
@@ -435,7 +450,7 @@ namespace Zen.Trunk.Storage.Locking
         /// <returns></returns>
         protected override string GetTracePrefix()
         {
-            return $"{base.GetTracePrefix()} ID: {Id} Rc: {_referenceCount} Txn:{GetThreadLockOwnerIdentity(false)}";
+            return $"{base.GetTracePrefix()} ID: {Id} Rc: {_referenceCount} Txn:{GetThreadLockOwnerIdentity()}";
         }
 #endif
 
@@ -452,7 +467,10 @@ namespace Zen.Trunk.Storage.Locking
         {
             // Post lock acquisition message
             var request = new QueryLock(lockType, lockOwner);
-            _queryLockAction.Post(request);
+            if (!_queryLockAction.Post(request))
+            {
+                throw new LockRejectedException();
+            }
             return request.Task;
         }
 
@@ -484,12 +502,13 @@ namespace Zen.Trunk.Storage.Locking
         }
 
         /// <summary>
-        /// Sets the active request.
+        /// Adds or updates the active request for the request's lock owner identity.
         /// </summary>
         /// <param name="request">The request.</param>
-        protected void SetActiveRequest(AcquireLock request)
+        protected void UpsertActiveRequest(AcquireLock request)
         {
             var activeLockOwner = GetActiveLockOwner(request.LockOwner);
+
             var addRefLock = false;
             if (activeLockOwner != null)
             {
@@ -500,8 +519,10 @@ namespace Zen.Trunk.Storage.Locking
                 _activeRequests.Add(request.LockOwner, request);
                 addRefLock = true;
             }
+
             if (!request.TrySetResult(addRefLock))
             {
+                // Original request must have been cancelled or timed-out
                 _activeRequests.Remove(request.LockOwner);
             }
         }
@@ -673,24 +694,23 @@ namespace Zen.Trunk.Storage.Locking
             }
         }
 
-        // ReSharper disable once ParameterOnlyUsedForPreconditionCheck.Local
-        private LockOwnerIdentity GetThreadLockOwnerIdentity(bool throwIfMissing)
+        private LockOwnerIdentity GetThreadLockOwnerIdentity()
         {
-            var sessionId = SessionId.Zero;
-            var transactionId = TransactionId.Zero;
-            if (TrunkSessionContext.Current != null)
-            {
-                sessionId = TrunkSessionContext.Current.SessionId;
-            }
-            if (TrunkTransactionContext.Current != null)
-            {
-                transactionId = TrunkTransactionContext.Current.TransactionId;
-            }
+            var sessionId = CurrentSessionId;
+            var transactionId = CurrentTransactionId;
+            return new LockOwnerIdentity(sessionId, transactionId);
+        }
 
-            if (throwIfMissing && sessionId == SessionId.Zero && transactionId == TransactionId.Zero)
+        private LockOwnerIdentity GetThreadLockOwnerIdentityAndThrowIfMissing()
+        {
+            var sessionId = CurrentSessionId;
+            var transactionId = CurrentTransactionId;
+
+            if (sessionId == SessionId.Zero && transactionId == TransactionId.Zero)
             {
                 throw new LockException("Current thread has no transaction context!");
             }
+
             return new LockOwnerIdentity(sessionId, transactionId);
         }
 
@@ -786,16 +806,15 @@ namespace Zen.Trunk.Storage.Locking
                 return true;
             }
 
-            // If this lock is compatable then add to active list
-            //	and release waiting request.
-            if (_currentState.CanAcquireLock(this, request))
+            // Check for incompatible locks
+            if (!_currentState.CanAcquireLock(this, request))
             {
-                SetActiveRequest(request);
-                return true;
+                return false;
             }
 
-            // Incompatable lock.
-            return false;
+            // Lock is compatible so add to active list
+            UpsertActiveRequest(request);
+            return true;
         }
 
         private bool IsDowngradedLock(TLockTypeEnum currentLock, TLockTypeEnum newLock)

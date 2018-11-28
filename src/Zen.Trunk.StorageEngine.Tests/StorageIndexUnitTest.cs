@@ -220,13 +220,11 @@ namespace Zen.Trunk.Storage
                 manager.CreateIndex(indexInfo);
                 for (var index = 0; index < 1000; ++index)
                 {
-                    manager.
-                    manager.AddIndexInfo(
-                        new TestIndexInfo(
-                            new DateTime(2018, 1, 1).AddDays(index),
-                            index,
-                            1000 + index));
-
+                    //manager.AddIndexInfo(
+                    //    new TestIndexInfo(
+                    //        new DateTime(2018, 1, 1).AddDays(index),
+                    //        index,
+                    //        1000 + index));
                 }
 
                 await TrunkTransactionContext.CommitAsync().ConfigureAwait(true);

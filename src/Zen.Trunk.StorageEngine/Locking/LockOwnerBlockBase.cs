@@ -70,7 +70,7 @@ namespace Zen.Trunk.Storage.Locking
 		private readonly ItemLockDictionary _readLocks = new ItemLockDictionary();
 		private readonly ItemLockDictionary _updateLocks = new ItemLockDictionary();
 		private readonly ItemLockDictionary _writeLocks = new ItemLockDictionary();
-        private IObjectLock _ownerLock;
+        private Lazy<IObjectLock> _ownerLock;
 	    private uint _ownerLockCount;
 	    private bool _isDisposed;
 		#endregion
@@ -85,6 +85,7 @@ namespace Zen.Trunk.Storage.Locking
 		{
 			LockManager = manager;
 			_maxItemLocks = maxItemLocks;
+            _ownerLock = new Lazy<IObjectLock>(GetOwnerLock);
 		}
         #endregion
 
@@ -95,17 +96,7 @@ namespace Zen.Trunk.Storage.Locking
         /// <value>
         /// The owner lock.
         /// </value>
-        protected IObjectLock OwnerLock
-	    {
-	        get
-	        {
-	            if (_ownerLock == null)
-	            {
-	                _ownerLock = GetOwnerLock();
-	            }
-	            return _ownerLock;
-	        }
-	    }
+        protected IObjectLock OwnerLock => _ownerLock.Value;
 
 		/// <summary>
 		/// Gets the lock manager.
@@ -320,9 +311,9 @@ namespace Zen.Trunk.Storage.Locking
 		/// </summary>
 		protected virtual void Dispose(bool disposing)
 		{
-			if (disposing)
+			if (disposing && _ownerLock.IsValueCreated)
 			{
-                _ownerLock?.ReleaseRefLock();
+                _ownerLock.Value.ReleaseRefLock();
 			}
 
             _ownerLock = null;

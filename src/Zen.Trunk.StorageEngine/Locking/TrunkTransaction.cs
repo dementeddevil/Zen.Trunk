@@ -112,7 +112,7 @@ namespace Zen.Trunk.Storage.Locking
         private readonly List<IPageEnlistmentNotification> _subEnlistments = new List<IPageEnlistmentNotification>();
         private readonly List<TransactionLogEntry> _transactionLogs = new List<TransactionLogEntry>();
         private readonly Dictionary<DatabaseId, TransactionLockOwnerBlock> _transactionLockOwnerBlocks = new Dictionary<DatabaseId, TransactionLockOwnerBlock>();
-        private TransactionOptions _options;
+        private readonly TransactionOptions _options;
         private bool _isBeginLogWritten;
         private TransactionId _transactionId = TransactionId.Zero;
         private int _transactionCount = 1;
@@ -275,12 +275,14 @@ namespace Zen.Trunk.Storage.Locking
             {
                 throw new InvalidOperationException("Cannot enlist after transaction has completed.");
             }
+
             if (!_subEnlistments.Contains(notify))
             {
                 if (_isCompleting)
                 {
                     throw new InvalidOperationException("Cannot enlist during commit/rollback.");
                 }
+
                 _subEnlistments.Add(notify);
             }
         }
@@ -338,7 +340,7 @@ namespace Zen.Trunk.Storage.Locking
 
             // If we haven't written the start transaction mark and we don't
             //	have any enlisted pages then release locks and exit since we
-            //	haven't done any transactable work
+            //	haven't done any transaction-able work
             if (!_isBeginLogWritten && _subEnlistments.Count == 0)
             {
                 await ReleaseAsync().ConfigureAwait(false);
@@ -558,7 +560,7 @@ namespace Zen.Trunk.Storage.Locking
             }
 
             // If we haven't written the start transaction mark then exit
-            //	since we haven't done any transactionable work
+            //	since we haven't done any transaction-able work
             if (!_isBeginLogWritten && _subEnlistments.Count == 0)
             {
                 return true;
@@ -672,11 +674,7 @@ namespace Zen.Trunk.Storage.Locking
             // Cleanup enlistments that implement IDisposable
             foreach (var enlistment in _subEnlistments)
             {
-                var disp = enlistment as IDisposable;
-                if (disp != null)
-                {
-                    //disp.Dispose();
-                }
+                (enlistment as IDisposable)?.Dispose();
             }
             _subEnlistments.Clear();
 

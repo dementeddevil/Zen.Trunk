@@ -121,7 +121,7 @@ namespace Zen.Trunk.Storage.Locking
 			{
                 if (_rootLocks.TryRemove(
                     _rootLocks.Keys.First(),
-                    out IFileGroupLock lockObject))
+                    out var lockObject))
                 {
                     await lockObject.UnlockAsync().ConfigureAwait(false);
                     lockObject.ReleaseRefLock();
@@ -132,7 +132,7 @@ namespace Zen.Trunk.Storage.Locking
 			{
                 if (_schemaLocks.TryRemove(
                     _schemaLocks.Keys.First(),
-                    out ISchemaLock lockObject))
+                    out var lockObject))
                 {
                     await lockObject.UnlockAsync().ConfigureAwait(false);
                     lockObject.ReleaseRefLock();
@@ -143,7 +143,7 @@ namespace Zen.Trunk.Storage.Locking
 			{
                 if (_distributionOwnerBlocks.TryRemove(
                     _distributionOwnerBlocks.Keys.First(),
-                    out DistributionLockOwnerBlock block))
+                    out var block))
                 {
                     await block.ReleaseLocksAsync().ConfigureAwait(false);
                     block.Dispose();
@@ -154,7 +154,7 @@ namespace Zen.Trunk.Storage.Locking
 			{
                 if (_dataOwnerBlocks.TryRemove(
                     _dataOwnerBlocks.Keys.First(),
-                    out DataLockOwnerBlock block))
+                    out var block))
                 {
                     await block.ReleaseLocksAsync().ConfigureAwait(false);
                     block.Dispose();

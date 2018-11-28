@@ -57,8 +57,7 @@ namespace Zen.Trunk.Storage.Locking
         /// <returns></returns>
         public TransactionLockOwnerBlock GetTransactionLockOwnerBlock(IDatabaseLockManager lockManager)
         {
-            TransactionLockOwnerBlock block;
-            if (!_transactionLockOwnerBlocks.TryGetValue(lockManager.DatabaseId, out block))
+            if (!_transactionLockOwnerBlocks.TryGetValue(lockManager.DatabaseId, out var block))
             {
                 block = new TransactionLockOwnerBlock(lockManager);
                 _transactionLockOwnerBlocks.Add(lockManager.DatabaseId, block);
