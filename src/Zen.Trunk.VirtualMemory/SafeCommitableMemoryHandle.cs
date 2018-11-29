@@ -39,10 +39,7 @@ namespace Zen.Trunk.VirtualMemory
         {
             [ReliabilityContract(Consistency.WillNotCorruptState, Cer.Success)]
             [PrePrepareMethod]
-            get
-            {
-                return (handle == IntPtr.Zero);
-            }
+            get => handle == IntPtr.Zero;
         }
 
         /// <summary>

@@ -57,13 +57,13 @@ namespace Zen.Trunk.VirtualMemory
 			for (var index = 0; index < _bufferCacheSize; ++index)
 			{
 				var buffer = Interlocked.Exchange(ref _buffers[index], null);
-				if (buffer != null)
-				{
-					buffer.Allocate();
-					Interlocked.Increment(ref _usedBuffers);
-					return buffer;
-				}
+			    if (buffer == null) continue;
+
+			    buffer.Allocate();
+			    Interlocked.Increment(ref _usedBuffers);
+			    return buffer;
 			}
+
 			return null;
 		}
 
