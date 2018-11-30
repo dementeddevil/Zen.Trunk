@@ -38,7 +38,7 @@ Then the buffer contents are the same")]
                 {
                     var buffer = _fixture.BufferFactory.AllocateAndFill((byte)index);
                     initBuffers.Add(buffer);
-                    subTasks.Add(device.SaveBufferAsync((uint)index, buffer));
+                    subTasks.Add(device.SaveBufferAsync(new VirtualPageId(0, (uint)index), buffer));
                 }
                 await device.FlushBuffersAsync(true, true).ConfigureAwait(true);
                 await Task.WhenAll(subTasks.ToArray()).ConfigureAwait(true);
@@ -48,7 +48,7 @@ Then the buffer contents are the same")]
                 {
                     var buffer = _fixture.BufferFactory.AllocateBuffer();
                     loadBuffers.Add(buffer);
-                    subTasks.Add(device.LoadBufferAsync((uint)index, buffer));
+                    subTasks.Add(device.LoadBufferAsync(new VirtualPageId(0, (uint)index), buffer));
                 }
                 await device.FlushBuffersAsync(true, true).ConfigureAwait(true);
                 await Task.WhenAll(subTasks.ToArray()).ConfigureAwait(true);

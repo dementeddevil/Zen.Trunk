@@ -125,7 +125,7 @@ namespace Zen.Trunk.VirtualMemory
         /// When scatter/gather I/O is enabled then the load is deferred until
         /// pending requests are flushed via <see cref="FlushBuffersAsync"/>.
         /// </remarks>
-        public async Task LoadBufferAsync(VirtualPageId pageId, IVirtualBuffer buffer)
+        public override async Task LoadBufferAsync(VirtualPageId pageId, IVirtualBuffer buffer)
         {
             if (IsScatterGatherIoEnabled)
             {
@@ -159,7 +159,7 @@ namespace Zen.Trunk.VirtualMemory
         /// When scatter/gather I/O is enabled then the save is deferred until
         /// pending requests are flushed via <see cref="FlushBuffersAsync"/>.
         /// </remarks>
-        public async Task SaveBufferAsync(VirtualPageId pageId, IVirtualBuffer buffer)
+        public override async Task SaveBufferAsync(VirtualPageId pageId, IVirtualBuffer buffer)
         {
             if (IsScatterGatherIoEnabled)
             {

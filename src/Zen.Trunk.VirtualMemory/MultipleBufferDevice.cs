@@ -200,7 +200,7 @@ namespace Zen.Trunk.VirtualMemory
         /// When scatter/gather I/O is enabled then the save is deferred until
         /// pending requests are flushed via <see cref="FlushBuffersAsync" />.
         /// </remarks>
-        public Task LoadBufferAsync(VirtualPageId pageId, IVirtualBuffer buffer)
+        public override Task LoadBufferAsync(VirtualPageId pageId, IVirtualBuffer buffer)
 		{
 			var device = GetDevice(pageId.DeviceId);
 			return device.LoadBufferAsync(pageId, buffer);
@@ -212,7 +212,7 @@ namespace Zen.Trunk.VirtualMemory
         /// <param name="pageId">The virtual page identifier.</param>
         /// <param name="buffer">The buffer.</param>
         /// <returns></returns>
-        public Task SaveBufferAsync(VirtualPageId pageId, IVirtualBuffer buffer)
+        public override Task SaveBufferAsync(VirtualPageId pageId, IVirtualBuffer buffer)
 		{
 			var device = GetDevice(pageId.DeviceId);
 			return device.SaveBufferAsync(pageId, buffer);
