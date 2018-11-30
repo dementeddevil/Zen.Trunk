@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 using Zen.Trunk.Extensions;
 using Zen.Trunk.Logging;
@@ -393,9 +391,9 @@ namespace Zen.Trunk.Storage.Data
 				}
 
 				// Write log record to underlying device.
-			    if (TrunkTransactionContext.Current is ITrunkTransactionPrivate privTxn)
+			    if (TrunkTransactionContext.Current is ITrunkTransactionPrivate privateContext)
 				{
-					await privTxn.WriteLogEntryAsync(entry).ConfigureAwait(false);
+					await privateContext.WriteLogEntryAsync(entry).ConfigureAwait(false);
 				}
 
 				// Update new/delete status bits
@@ -444,33 +442,6 @@ namespace Zen.Trunk.Storage.Data
 				return ((PageBuffer)instance).SwitchStateAsync(PageBufferStateType.Dirty);
 			}
 		}
-
-		private class StateChangeTrigger
-		{
-			private readonly PageBufferStateType[] _triggers;
-			private readonly TaskCompletionSource<object> _task;
-
-			public StateChangeTrigger(PageBufferStateType[] triggers, object state)
-			{
-				_triggers = triggers;
-				_task = new TaskCompletionSource<object>(state);
-			}
-
-			public Guid Id { get; } = Guid.NewGuid();
-
-		    public Task Task => _task.Task;
-
-		    public bool CompleteTrigger(PageBufferStateType state)
-			{
-				var result = false;
-				if (_triggers.Any(item => item == state))
-				{
-					_task.TrySetResult(null);
-					result = true;
-				}
-				return result;
-			}
-		}
         #endregion
 
         #region Private Fields
@@ -481,8 +452,6 @@ namespace Zen.Trunk.Storage.Data
 		private IVirtualBuffer _newBuffer;
 		private TransactionId _currentTransactionId;
 		private long _timestamp;
-		private readonly ConcurrentDictionary<Guid, StateChangeTrigger> _triggers =
-			new ConcurrentDictionary<Guid, StateChangeTrigger>();
 		#endregion
 
 		#region Public Constructors
@@ -776,31 +745,6 @@ namespace Zen.Trunk.Storage.Data
 	    private Task SwitchStateAsync(PageBufferStateType newState, object userState = null)
 		{
 			return SwitchStateAsync(PageBufferStateFactory.GetState(newState), userState);
-		}
-
-	    // ReSharper disable once UnusedMember.Local
-		private Task WaitForAnyStateAsync(params PageBufferStateType[] states)
-		{
-			if (states.Any(item => item == CurrentStateType))
-			{
-				return CompletedTask.Default;
-			}
-
-			var trigger = new StateChangeTrigger(states, null);
-			_triggers.TryAdd(trigger.Id, trigger);
-			return trigger.Task;
-		}
-
-	    // ReSharper disable once UnusedMember.Local
-		private void RaiseStateTriggers(PageBufferStateType state)
-		{
-			foreach (var trigger in _triggers.Values.ToArray())
-			{
-				if (trigger.CompleteTrigger(state))
-				{
-					_triggers.TryRemove(trigger.Id, out var _);
-				}
-			}
 		}
 		#endregion
 
