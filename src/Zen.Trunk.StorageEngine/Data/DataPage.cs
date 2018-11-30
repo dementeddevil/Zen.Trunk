@@ -144,20 +144,14 @@ namespace Zen.Trunk.Storage.Data
 		/// </exception>
 		public override VirtualPageId VirtualPageId
 		{
-			get
-			{
-				if (_buffer != null)
-				{
-					return _buffer.PageId;
-				}
-				return base.VirtualPageId;
-			}
-			set
+			get => _buffer?.PageId ?? base.VirtualPageId;
+		    set
 			{
 				if (_buffer != null)
 				{
 					throw new InvalidOperationException("Cannot change virtual ID once buffer has been set.");
 				}
+
 				base.VirtualPageId = value;
 			}
 		}
@@ -316,7 +310,7 @@ namespace Zen.Trunk.Storage.Data
 		{
 		    if (Logger.IsDebugEnabled())
 		    {
-		        var readOnlyState = readOnly ? "read-only" : "writeable";
+		        var readOnlyState = readOnly ? "read-only" : "writable";
 		        Logger.Debug($"CreateHeaderStream as {readOnlyState}");
 		    }
 
@@ -333,7 +327,7 @@ namespace Zen.Trunk.Storage.Data
 		{
             if (Logger.IsDebugEnabled())
             {
-                var readOnlyState = readOnly ? "read-only" : "writeable";
+                var readOnlyState = readOnly ? "read-only" : "writable";
                 Logger.Debug($"CreateDataStream as {readOnlyState}");
             }
 
@@ -393,30 +387,30 @@ namespace Zen.Trunk.Storage.Data
 		{
 			await base.OnPreLoadAsync(e).ConfigureAwait(false);
 
-			// Enable the locking system
 			IsLockingEnabled = true;
+		    if (TrunkTransactionContext.Current == null)
+		    {
+		        return;
+		    }
 
-			if (TrunkTransactionContext.Current != null)
-			{
-				switch (TrunkTransactionContext.Current.IsolationLevel)
-				{
-					case IsolationLevel.ReadUncommitted:
-						break;
+		    switch (TrunkTransactionContext.Current.IsolationLevel)
+		    {
+		        case IsolationLevel.ReadUncommitted:
+		            break;
 
-					case IsolationLevel.ReadCommitted:
-						await LockPageAsync().ConfigureAwait(false);
-						break;
+		        case IsolationLevel.ReadCommitted:
+		            await LockPageAsync().ConfigureAwait(false);
+		            break;
 
-					case IsolationLevel.RepeatableRead:
-					case IsolationLevel.Serializable:
-						HoldLock = true;
-						await LockPageAsync().ConfigureAwait(false);
-						break;
+		        case IsolationLevel.RepeatableRead:
+		        case IsolationLevel.Serializable:
+		            HoldLock = true;
+		            await LockPageAsync().ConfigureAwait(false);
+		            break;
 
-					default:
-						throw new InvalidOperationException();
-				}
-			}
+		        default:
+		            throw new InvalidOperationException();
+		    }
 		}
 
         /// <summary>
@@ -429,29 +423,31 @@ namespace Zen.Trunk.Storage.Data
 		{
 			await base.OnPostLoadAsync(e).ConfigureAwait(false);
 
-			if (TrunkTransactionContext.Current != null)
-			{
-				switch (TrunkTransactionContext.Current.IsolationLevel)
-				{
-					case IsolationLevel.ReadUncommitted:
-						break;
+		    if (TrunkTransactionContext.Current == null)
+		    {
+		        return;
+		    }
 
-					case IsolationLevel.ReadCommitted:
-						if (!HoldLock)
-						{
-							await UnlockPageAsync().ConfigureAwait(false);
-						}
-						break;
+		    switch (TrunkTransactionContext.Current.IsolationLevel)
+		    {
+		        case IsolationLevel.ReadUncommitted:
+		            break;
 
-					case IsolationLevel.RepeatableRead:
-					case IsolationLevel.Serializable:
-						// These locks are held until the end of the transaction
-						break;
+		        case IsolationLevel.ReadCommitted:
+		            if (!HoldLock)
+		            {
+		                await UnlockPageAsync().ConfigureAwait(false);
+		            }
+		            break;
 
-					default:
-						throw new InvalidOperationException();
-				}
-			}
+		        case IsolationLevel.RepeatableRead:
+		        case IsolationLevel.Serializable:
+		            // These locks are always held until the end of the transaction
+		            break;
+
+		        default:
+		            throw new InvalidOperationException();
+		    }
 		}
 
 		/// <summary>
@@ -528,7 +524,6 @@ namespace Zen.Trunk.Storage.Data
 		{
 			if (IsLockingEnabled)
 			{
-				// Get instance of lock manager
 				var lm = GetService<IDatabaseLockManager>();
 				if (lm != null)
 				{
@@ -551,7 +546,6 @@ namespace Zen.Trunk.Storage.Data
 		{
 			if (IsLockingEnabled && !HoldLock)
 			{
-                // Get instance of lock manager
                 var lm = GetService<IDatabaseLockManager>();
                 if (lm != null)
 				{

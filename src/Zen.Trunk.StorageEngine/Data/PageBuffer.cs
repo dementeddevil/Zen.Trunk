@@ -17,7 +17,7 @@ namespace Zen.Trunk.Storage.Data
 	/// </summary>
 	/// <remarks>
 	/// State support for database pages requires the following;
-	/// 1. Seperation of readers and writers where appropriate
+	/// 1. Separation of readers and writers where appropriate
 	/// 2. Delay writing until log-writer has written change information
 	/// 3. Load and save of data page to the underlying device
 	/// </remarks>
@@ -594,19 +594,17 @@ namespace Zen.Trunk.Storage.Data
         /// <exception cref="InvalidOperationException">Page buffer modification must occur within a transaction.</exception>
         public void EnlistInTransaction()
 		{
-			// Sanity check
 			if (TrunkTransactionContext.Current == null)
 			{
 				throw new InvalidOperationException(
 					"Page buffer modification must occur within a transaction.");
 			}
-
-			var priv = TrunkTransactionContext.Current as ITrunkTransactionPrivate;
-		    priv?.Enlist(this);
+		    
+		    (TrunkTransactionContext.Current as ITrunkTransactionPrivate)?.Enlist(this);
 		}
 
         /// <summary>
-        /// Initializes the asynchronous.
+        /// Performs asynchronous initialisation of the page buffer.
         /// </summary>
         /// <param name="pageId">The page identifier.</param>
         /// <param name="logicalId">The logical identifier.</param>
@@ -617,18 +615,23 @@ namespace Zen.Trunk.Storage.Data
 		}
 
         /// <summary>
-        /// Requests the load asynchronous.
+        /// Queues a request-to-load for this page buffer using the specified
+        /// virtual page or logical page identifiers.
         /// </summary>
         /// <param name="pageId">The page identifier.</param>
         /// <param name="logicalId">The logical identifier.</param>
         /// <returns></returns>
+        /// <remarks>
+        /// The request is queued and will be completed when the underlying
+        /// device has it's read requests flushed.
+        /// </remarks>
         public Task RequestLoadAsync(VirtualPageId pageId, LogicalPageId logicalId)
 		{
 			return CurrentPageBufferState.RequestLoad(this, pageId, logicalId);
 		}
 
         /// <summary>
-        /// Loads the asynchronous.
+        /// Performs an asynchronous load of this page buffer.
         /// </summary>
         /// <returns></returns>
         public Task LoadAsync()
@@ -637,7 +640,7 @@ namespace Zen.Trunk.Storage.Data
 		}
 
         /// <summary>
-        /// Saves the asynchronous.
+        /// Performs an asynchronous save of this page buffer.
         /// </summary>
         /// <returns></returns>
         public Task SaveAsync()
@@ -677,7 +680,8 @@ namespace Zen.Trunk.Storage.Data
 				throw new InvalidOperationException("Buffer is locked.");
 			}*/
 
-            // Get transaction ID
+            // Get transaction identifier and check whether this is an
+            //  uncommitted read (aka dirty read)
             var transactionId = TransactionId.Zero;
 			var isReadUncommittedTxn = false;
 			if (TrunkTransactionContext.Current != null)
@@ -713,7 +717,6 @@ namespace Zen.Trunk.Storage.Data
 					_currentTransactionId = transactionId;
 				}
 
-                // Always return copy of current working buffer.
 			    if (Logger.IsDebugEnabled())
 			    {
 			        Logger.Debug($"GetBufferStream backed by current buffer {_newBuffer.BufferId}");
@@ -721,23 +724,21 @@ namespace Zen.Trunk.Storage.Data
 			    return _newBuffer.GetBufferStream(offset, count, writable);
 			}
 
-			// Everything else uses the old buffer.
-			if (_oldBuffer != null)
-			{
-				if (writable)
-				{
-					throw new InvalidOperationException(
-						"Another transaction already has write access.");
-				}
+			// Everything else uses the old buffer in read mode...
+		    if (_oldBuffer == null)
+		    {
+		        throw new InvalidOperationException("Stream is unavailable.");
+		    }
+		    if (writable)
+		    {
+		        throw new InvalidOperationException("Another transaction already has write access.");
+		    }
 
-			    if (Logger.IsDebugEnabled())
-			    {
-			        Logger.Debug($"GetBufferStream backed by old buffer {_oldBuffer.BufferId}");
-			    }
-			    return _oldBuffer.GetBufferStream(offset, count, false);
-			}
-
-			throw new InvalidOperationException("Stream is unavailable.");
+		    if (Logger.IsDebugEnabled())
+		    {
+		        Logger.Debug($"GetBufferStream backed by old buffer {_oldBuffer.BufferId}");
+		    }
+		    return _oldBuffer.GetBufferStream(offset, count, false);
 		}
 		#endregion
 
