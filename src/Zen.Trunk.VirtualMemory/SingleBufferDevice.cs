@@ -116,7 +116,7 @@ namespace Zen.Trunk.VirtualMemory
         /// <summary>
         /// Loads the page data from the physical page into the supplied buffer.
         /// </summary>
-        /// <param name="physicalPageId">The physical page identifier.</param>
+        /// <param name="pageId">The virtual page identifier.</param>
         /// <param name="buffer">The buffer.</param>
         /// <returns>
         /// A <see cref="Task"/> representing the asynchronous operation.
@@ -150,7 +150,7 @@ namespace Zen.Trunk.VirtualMemory
         /// <summary>
         /// Saves the page data from the supplied buffer to the physical page.
         /// </summary>
-        /// <param name="physicalPageId">The physical page identifier.</param>
+        /// <param name="pageId">The virtual page identifier.</param>
         /// <param name="buffer">The buffer.</param>
         /// <returns>
         /// A <see cref="Task"/> representing the asynchronous operation.
