@@ -77,12 +77,14 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AddDeviceParameters.cs" />
+    <Compile Include="DefaultSystemClock.cs" />
     <Compile Include="FlushCachingDeviceParameters.cs" />
     <Compile Include="FlushDeviceParameters.cs" />
     <Compile Include="IBufferDeviceInfo.cs" />
     <Compile Include="FlushParameters.cs" />
     <Compile Include="BufferDeviceShuttingDownException.cs" />
     <Compile Include="IBufferDeviceFactory.cs" />
+    <Compile Include="ISystemClock.cs" />
     <Compile Include="IVirtualBuffer.cs" />
     <Compile Include="RemoveDeviceParameters.cs" />
     <Compile Include="IBufferDevice.cs" />

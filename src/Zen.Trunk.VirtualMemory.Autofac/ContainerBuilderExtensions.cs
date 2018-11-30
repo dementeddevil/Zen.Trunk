@@ -8,7 +8,7 @@ namespace Zen.Trunk.VirtualMemory
     public static class ContainerBuilderExtensions
     {
         /// <summary>
-        /// Registers a virtual buffer factory with the autofac container.
+        /// Registers a virtual buffer factory with the container.
         /// </summary>
         /// <param name="builder">The builder.</param>
         /// <param name="bufferSize">Size of the buffer.</param>
@@ -26,7 +26,7 @@ namespace Zen.Trunk.VirtualMemory
         }
 
         /// <summary>
-        /// Registers a buffer device factory with the autofac container.
+        /// Registers a buffer device factory with the container.
         /// </summary>
         /// <param name="builder">The builder.</param>
         /// <returns></returns>
@@ -34,6 +34,19 @@ namespace Zen.Trunk.VirtualMemory
         {
             builder.RegisterType<BufferDeviceFactory>()
                 .As<IBufferDeviceFactory>()
+                .SingleInstance();
+            return builder;
+        }
+
+        /// <summary>
+        /// Registers the default system reference clock with the container.
+        /// </summary>
+        /// <param name="builder"></param>
+        /// <returns></returns>
+        public static ContainerBuilder WithDefaultSystemClock(this ContainerBuilder builder)
+        {
+            builder.RegisterType<DefaultSystemClock>()
+                .As<ISystemClock>()
                 .SingleInstance();
             return builder;
         }

@@ -29,6 +29,7 @@
             string name, string pathname, uint createPageCount, bool enableScatterGatherIo)
         {
             return new SingleBufferDevice(
+                new DefaultSystemClock(),
                 _bufferFactory, name, pathname, createPageCount, enableScatterGatherIo);
         }
 

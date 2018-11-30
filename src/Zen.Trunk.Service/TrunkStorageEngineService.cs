@@ -63,7 +63,8 @@ namespace Zen.Trunk.Service
                             .GetValue(ConfigurationNames.VirtualMemory.ReservationInMegaBytes, 1024);
                         builder
                             .WithVirtualBufferFactory(8192, reservationInMegaBytes)
-                            .WithBufferDeviceFactory();
+                            .WithBufferDeviceFactory()
+                            .WithDefaultSystemClock();
                     });
         }
 

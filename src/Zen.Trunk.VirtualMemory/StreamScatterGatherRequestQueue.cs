@@ -14,7 +14,9 @@ namespace Zen.Trunk.VirtualMemory
     public class StreamScatterGatherRequestQueue
 	{
 		#region Private Fields
-		private readonly AdvancedStream _stream;
+
+	    private readonly ISystemClock _systemClock;
+	    private readonly AdvancedStream _stream;
 	    private readonly Func<AdvancedStream, ScatterGatherRequestArray, Task> _flushStrategy;
 
 		private readonly TimeSpan _maximumRequestAge;
@@ -35,20 +37,24 @@ namespace Zen.Trunk.VirtualMemory
 	    /// <summary>
 	    /// Initializes a new instance of the <see cref="StreamScatterGatherRequestQueue"/> class.
 	    /// </summary>
+	    /// <param name="systemClock"></param>
 	    /// <param name="stream">The advanced file stream.</param>
 	    /// <param name="settings">The request queue settings.</param>
 	    /// <param name="flushStrategy">The strategy used to flush a given scatter/gather array.</param>
 	    public StreamScatterGatherRequestQueue(
+            ISystemClock systemClock,
             AdvancedStream stream,
             StreamScatterGatherRequestQueueSettings settings,
             Func<AdvancedStream, ScatterGatherRequestArray, Task> flushStrategy)
 		{
-			_stream = stream;
+		    _systemClock = systemClock ?? throw new ArgumentNullException(nameof(systemClock));
+		    _stream = stream ?? throw new ArgumentNullException(nameof(stream));
+		    if (settings == null) throw new ArgumentNullException(nameof(settings));
 		    _maximumRequestAge = settings.MaximumRequestAge;
 		    _coalesceRequestsPeriod = settings.CoalesceRequestsPeriod;
 		    _maximumRequestBlockLength = settings.MaximumRequestBlockLength;
 		    _maximumRequestBlocks = settings.MaximumRequestBlocks;
-		    _flushStrategy = flushStrategy;
+		    _flushStrategy = flushStrategy ?? throw new ArgumentNullException(nameof(flushStrategy));
 		}
 		#endregion
 
@@ -85,7 +91,7 @@ namespace Zen.Trunk.VirtualMemory
 
 				if (!added)
 				{
-					_requests.Add(new ScatterGatherRequestArray(request));
+					_requests.Add(new ScatterGatherRequestArray(_systemClock, request));
 				}
 			}
 
@@ -157,7 +163,7 @@ namespace Zen.Trunk.VirtualMemory
 		#region Private Methods
 		private void CoalesceIfNeeded()
 		{
-			if ((DateTime.UtcNow - _lastCoalescedAt) > _coalesceRequestsPeriod)
+			if ((_systemClock.UtcNow - _lastCoalescedAt) > _coalesceRequestsPeriod)
 			{
 				CoalesceRequests();
 			}
@@ -194,7 +200,7 @@ namespace Zen.Trunk.VirtualMemory
 
 		private Task ScavengeIfNeeded()
 		{
-		    if ((DateTime.UtcNow - _lastScavengeAt) > _maximumRequestAge)
+		    if ((_systemClock.UtcNow - _lastScavengeAt) > _maximumRequestAge)
 			{
 				return ScavengeRequests();
 			}
@@ -234,7 +240,7 @@ namespace Zen.Trunk.VirtualMemory
 				}
 			}
 
-			_lastCoalescedAt = DateTime.UtcNow;
+			_lastCoalescedAt = _systemClock.UtcNow;
 		}
 
 		private async Task ScavengeRequests()
@@ -260,7 +266,7 @@ namespace Zen.Trunk.VirtualMemory
 				await Task.WhenAll(flushList.ToArray()).ConfigureAwait(false);
 			}
 
-			_lastScavengeAt = DateTime.UtcNow;
+			_lastScavengeAt = _systemClock.UtcNow;
 		}
 
 		private Task FlushArray(ScatterGatherRequestArray array)

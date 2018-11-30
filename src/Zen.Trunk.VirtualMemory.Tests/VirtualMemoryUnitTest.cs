@@ -69,7 +69,7 @@ Then no corruption or deadlocks occur")]
                     {
                         AutomaticFlushPeriod = TimeSpan.FromSeconds(5)
                     };
-                using (var sut = new ScatterGatherRequestQueue(stream, settings))
+                using (var sut = new ScatterGatherRequestQueue(new DefaultSystemClock(), stream, settings))
                 {
                     var tasks =
                         new[]

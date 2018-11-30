@@ -13,6 +13,7 @@ namespace Zen.Trunk.VirtualMemory
     /// </summary>
     public class ScatterGatherRequestArray
     {
+        private readonly ISystemClock _systemClock;
         private static readonly ILog Logger = LogProvider.For<ScatterGatherRequestArray>();
 
 		private readonly DateTime _createdDate;
@@ -23,11 +24,13 @@ namespace Zen.Trunk.VirtualMemory
         /// <summary>
         /// Initializes a new instance of the <see cref="ScatterGatherRequestArray"/> class.
         /// </summary>
+        /// <param name="systemClock">Reference clock.</param>
         /// <param name="request">The request.</param>
         [CLSCompliant(false)]
-		public ScatterGatherRequestArray(ScatterGatherRequest request)
+		public ScatterGatherRequestArray(ISystemClock systemClock, ScatterGatherRequest request)
 		{
-			_createdDate = DateTime.UtcNow;
+		    _systemClock = systemClock;
+		    _createdDate = _systemClock.UtcNow;
 			_startBlockNo = _endBlockNo = request.PhysicalPageId;
 			_callbackInfo.Add(request);
 		}
@@ -73,7 +76,7 @@ namespace Zen.Trunk.VirtualMemory
 				return true;
 			}
 
-            if ((DateTime.UtcNow - _createdDate) > maximumAge)
+            if ((_systemClock.UtcNow - _createdDate) > maximumAge)
 			{
 				return true;
 			}
@@ -126,6 +129,10 @@ namespace Zen.Trunk.VirtualMemory
 				.ToArray();
 			var bufferSize = buffers[0].BufferSize;
 
+		    // TODO: We should be able to call Scatter/gather API with an
+		    //  overlapped structure set in such a way as to obviate the need
+		    //  to do a seek operation (and therefore never needing the
+		    //  stream lock synchronisation step)
 			Task task;
 			lock (stream.SyncRoot)
 			{
@@ -183,7 +190,10 @@ namespace Zen.Trunk.VirtualMemory
 				.ToArray();
 			var bufferSize = buffers[0].BufferSize;
 
-			// Lock stream until we start async operation
+            // TODO: We should be able to call Scatter/gather API with an
+            //  overlapped structure set in such a way as to obviate the need
+            //  to do a seek operation (and therefore never needing the
+            //  stream lock synchronisation step)
 			Task task;
 			lock (stream.SyncRoot)
 			{

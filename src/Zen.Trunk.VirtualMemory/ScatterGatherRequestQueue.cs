@@ -17,29 +17,37 @@ namespace Zen.Trunk.VirtualMemory
     /// </remarks>
     public sealed class ScatterGatherRequestQueue : IDisposable
 	{
-		#region Private Fields
+	    private readonly ISystemClock _systemClock;
+
+	    #region Private Fields
 		private readonly StreamScatterGatherRequestQueue _readQueue;
 		private readonly StreamScatterGatherRequestQueue _writeQueue;
 		private readonly CancellationTokenSource _shutdown;
 		private readonly Task _cleanupTask;
-		#endregion
+        #endregion
 
-		#region Public Constructors
+        #region Public Constructors
 
-	    /// <summary>
-	    /// Initializes a new instance of the 
-	    /// <see cref="T:ScatterGatherReaderWriter"/> class.
-	    /// </summary>
-	    /// <param name="stream">Underlying stream object.</param>
-	    /// <param name="settings">Settings to control request queue.</param>
-	    public ScatterGatherRequestQueue(
-		    AdvancedStream stream, ScatterGatherRequestQueueSettings settings)
+        /// <summary>
+        /// Initializes a new instance of the 
+        /// <see cref="T:ScatterGatherReaderWriter"/> class.
+        /// </summary>
+        /// <param name="systemClock">System reference clock.</param>
+        /// <param name="stream">Underlying stream object.</param>
+        /// <param name="settings">Settings to control request queue.</param>
+        public ScatterGatherRequestQueue(
+            ISystemClock systemClock,
+		    AdvancedStream stream,
+            ScatterGatherRequestQueueSettings settings)
 		{
-			_readQueue = new StreamScatterGatherRequestQueue(
+		    _systemClock = systemClock;
+		    _readQueue = new StreamScatterGatherRequestQueue(
+                systemClock,
 			    stream,
 			    settings.ReadSettings,
 			    (s, a) => a.FlushAsReadAsync(s));
 			_writeQueue = new StreamScatterGatherRequestQueue(
+			    systemClock, 
 			    stream,
 			    settings.WriteSettings,
 			    (s, a) => a.FlushAsWriteAsync(s));
@@ -53,9 +61,17 @@ namespace Zen.Trunk.VirtualMemory
 				    {
 					    while (!_shutdown.IsCancellationRequested)
 					    {
-						    await Task.Delay(settings.AutomaticFlushPeriod).ConfigureAwait(false);
-						    await _readQueue.OptimisedFlushAsync().ConfigureAwait(false);
-						    await _writeQueue.OptimisedFlushAsync().ConfigureAwait(false);
+						    await _systemClock
+						        .DelayAsync(settings.AutomaticFlushPeriod, _shutdown.Token)
+						        .ConfigureAwait(false);
+
+					        await _readQueue
+					            .OptimisedFlushAsync()
+					            .ConfigureAwait(false);
+
+					        await _writeQueue
+						        .OptimisedFlushAsync()
+						        .ConfigureAwait(false);
 					    }
 				    },
 				    _shutdown.Token);
@@ -136,7 +152,7 @@ namespace Zen.Trunk.VirtualMemory
 			{
 				// Signal shutdown and wait
 				_shutdown.Cancel();
-				_cleanupTask.Wait();
+				_cleanupTask.GetAwaiter().GetResult();
 
 				// Cleanup cancellation object
 				_shutdown.Dispose();
