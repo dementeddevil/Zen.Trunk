@@ -750,35 +750,14 @@ namespace Zen.Trunk.Storage.Data
 
 		private Task LoadBufferAsync(IVirtualBuffer buffer)
 		{
-		    if (_bufferDevice is IMultipleBufferDevice mbd)
-			{
-				return mbd.LoadBufferAsync(PageId, buffer);
-			}
-
-		    if (_bufferDevice is ISingleBufferDevice sbd)
-		    {
-		        return sbd.LoadBufferAsync(PageId.PhysicalPageId, buffer);
-		    }
-
-		    throw new InvalidOperationException();
+			return _bufferDevice.LoadBufferAsync(PageId, buffer);
 		}
 
 		private async Task SaveBufferThenDisposeAsync(IVirtualBuffer buffer)
 		{
 		    try
 		    {
-		        if (_bufferDevice is IMultipleBufferDevice mbd)
-			    {
-				    await mbd.SaveBufferAsync(PageId, buffer).ConfigureAwait(false);
-			    }
-			    else if (_bufferDevice is ISingleBufferDevice sbd)
-			    {
-				    await sbd.SaveBufferAsync(PageId.PhysicalPageId, buffer).ConfigureAwait(false);
-			    }
-			    else
-			    {
-				    throw new InvalidOperationException();
-			    }
+		        await _bufferDevice.SaveBufferAsync(PageId, buffer).ConfigureAwait(false);
 		    }
 		    finally
 		    {

@@ -125,12 +125,12 @@ namespace Zen.Trunk.VirtualMemory
         /// When scatter/gather I/O is enabled then the load is deferred until
         /// pending requests are flushed via <see cref="FlushBuffersAsync"/>.
         /// </remarks>
-        public async Task LoadBufferAsync(uint physicalPageId, IVirtualBuffer buffer)
+        public async Task LoadBufferAsync(VirtualPageId pageId, IVirtualBuffer buffer)
         {
             if (IsScatterGatherIoEnabled)
             {
                 await _requestQueue
-                    .ReadBufferAsync(physicalPageId, buffer)
+                    .ReadBufferAsync(pageId.PhysicalPageId, buffer)
                     .ConfigureAwait(false);
             }
             else
@@ -139,7 +139,7 @@ namespace Zen.Trunk.VirtualMemory
                 var rawBuffer = new byte[_bufferFactory.BufferSize];
                 lock (_fileStream)
                 {
-                    _fileStream.Seek(physicalPageId * _bufferFactory.BufferSize, SeekOrigin.Begin);
+                    _fileStream.Seek(pageId.PhysicalPageId * _bufferFactory.BufferSize, SeekOrigin.Begin);
                     task = _fileStream.ReadAsync(rawBuffer, 0, _bufferFactory.BufferSize);
                 }
                 await task.ConfigureAwait(false);
@@ -159,12 +159,12 @@ namespace Zen.Trunk.VirtualMemory
         /// When scatter/gather I/O is enabled then the save is deferred until
         /// pending requests are flushed via <see cref="FlushBuffersAsync"/>.
         /// </remarks>
-        public async Task SaveBufferAsync(uint physicalPageId, IVirtualBuffer buffer)
+        public async Task SaveBufferAsync(VirtualPageId pageId, IVirtualBuffer buffer)
         {
             if (IsScatterGatherIoEnabled)
             {
                 await _requestQueue
-                    .WriteBufferAsync(physicalPageId, buffer)
+                    .WriteBufferAsync(pageId.PhysicalPageId, buffer)
                     .ConfigureAwait(false);
             }
             else
@@ -174,7 +174,7 @@ namespace Zen.Trunk.VirtualMemory
                 buffer.CopyTo(rawBuffer);
                 lock (_fileStream)
                 {
-                    _fileStream.Seek(physicalPageId * _bufferFactory.BufferSize, SeekOrigin.Begin);
+                    _fileStream.Seek(pageId.PhysicalPageId * _bufferFactory.BufferSize, SeekOrigin.Begin);
                     task = _fileStream.WriteAsync(rawBuffer, 0, _bufferFactory.BufferSize);
                 }
                 await task.ConfigureAwait(false);

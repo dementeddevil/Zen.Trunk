@@ -203,7 +203,7 @@ namespace Zen.Trunk.VirtualMemory
         public Task LoadBufferAsync(VirtualPageId pageId, IVirtualBuffer buffer)
 		{
 			var device = GetDevice(pageId.DeviceId);
-			return device.LoadBufferAsync(pageId.PhysicalPageId, buffer);
+			return device.LoadBufferAsync(pageId, buffer);
 		}
 
         /// <summary>
@@ -215,7 +215,7 @@ namespace Zen.Trunk.VirtualMemory
         public Task SaveBufferAsync(VirtualPageId pageId, IVirtualBuffer buffer)
 		{
 			var device = GetDevice(pageId.DeviceId);
-			return device.SaveBufferAsync(pageId.PhysicalPageId, buffer);
+			return device.SaveBufferAsync(pageId, buffer);
 		}
 
         /// <summary>
