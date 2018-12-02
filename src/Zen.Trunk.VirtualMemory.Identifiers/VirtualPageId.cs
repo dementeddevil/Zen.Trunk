@@ -220,7 +220,7 @@ namespace Zen.Trunk.VirtualMemory
 			{
 				return true;
 			}
-			else if (left.DeviceId < right.DeviceId)
+			if (left.DeviceId < right.DeviceId)
 			{
 				return false;
 			}

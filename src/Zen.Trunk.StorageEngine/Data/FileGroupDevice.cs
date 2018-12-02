@@ -643,15 +643,25 @@ namespace Zen.Trunk.Storage.Data
             if (previousPage.NextLogicalPageId != LogicalPageId.Zero)
             {
                 // Load the next page and return
-                var nextPage = new TPageType { LogicalPageId = previousPage.NextLogicalPageId };
-                await LoadDataPageAsync(new LoadDataPageParameters(nextPage, false, true))
+                var nextPage =
+                    new TPageType
+                    {
+                        LogicalPageId = previousPage.NextLogicalPageId
+                    };
+                await LoadDataPageAsync(
+                        new LoadDataPageParameters(nextPage, false, true))
                     .ConfigureAwait(false);
                 return nextPage;
             }
 
             // Create new next page and link up
-            var newPage = new TPageType { PrevLogicalPageId = previousPage.LogicalPageId };
-            await InitDataPageAsync(new InitDataPageParameters(newPage, true, true, true))
+            var newPage =
+                new TPageType
+                {
+                    PrevLogicalPageId = previousPage.LogicalPageId
+                };
+            await InitDataPageAsync(
+                    new InitDataPageParameters(newPage, true, true, true))
                 .ConfigureAwait(false);
             previousPage.NextLogicalPageId = newPage.LogicalPageId;
 
@@ -830,8 +840,12 @@ namespace Zen.Trunk.Storage.Data
 
         private List<DeviceId> GetDistributionPageDeviceKeys()
         {
-            var deviceIds = new List<DeviceId>();
-            deviceIds.Add(_primaryDevice.DeviceId);
+            var deviceIds = 
+                new List<DeviceId>
+                {
+                    _primaryDevice.DeviceId
+                };
+
             deviceIds.AddRange(_devices.Keys);
             return deviceIds;
         }
@@ -842,16 +856,16 @@ namespace Zen.Trunk.Storage.Data
             var priFileGroupDevice = _devices.Count == 0;
 
             // Determine file-extension for DBF
-            var extn = StorageConstants.SecondaryDeviceFileExtension;
+            var fileExtension = StorageConstants.SecondaryDeviceFileExtension;
             if (priFileGroupDevice)
             {
                 if (IsPrimaryFileGroup)
                 {
-                    extn = StorageConstants.PrimaryFileGroupPrimaryDeviceFileExtension;
+                    fileExtension = StorageConstants.PrimaryFileGroupPrimaryDeviceFileExtension;
                 }
                 else
                 {
-                    extn = StorageConstants.PrimaryDeviceFileExtension;
+                    fileExtension = StorageConstants.PrimaryDeviceFileExtension;
                 }
             }
 
@@ -859,11 +873,11 @@ namespace Zen.Trunk.Storage.Data
             string fileName;
             if (IsPrimaryFileGroup && priFileGroupDevice)
             {
-                fileName = StorageConstants.PrimaryFileGroupPrimaryDeviceFilename + extn;
+                fileName = StorageConstants.PrimaryFileGroupPrimaryDeviceFilename + fileExtension;
             }
             else
             {
-                fileName = Path.GetFileNameWithoutExtension(request.Message.PathName) + extn;
+                fileName = Path.GetFileNameWithoutExtension(request.Message.PathName) + fileExtension;
             }
 
             // Determine the folder for the data file
@@ -967,7 +981,9 @@ namespace Zen.Trunk.Storage.Data
             if (logicalPage != null && request.Message.GenerateLogicalPageId)
             {
                 // Get next logical id from the logical/virtual manager
-                logicalPage.LogicalPageId = await LogicalVirtualManager.GetNewLogicalPageIdAsync().ConfigureAwait(false);
+                logicalPage.LogicalPageId = await LogicalVirtualManager
+                    .GetNewLogicalPageIdAsync()
+                    .ConfigureAwait(false);
             }
 
             // Stage #2: Assign virtual id
@@ -1000,7 +1016,9 @@ namespace Zen.Trunk.Storage.Data
                 (request.Message.AssignLogicalPageId || request.Message.GenerateLogicalPageId))
             {
                 // Post request to logical/virtual manager
-                await LogicalVirtualManager.AddLookupAsync(pageId, logicalPage.LogicalPageId).ConfigureAwait(false);
+                await LogicalVirtualManager
+                    .AddLookupAsync(pageId, logicalPage.LogicalPageId)
+                    .ConfigureAwait(false);
             }
 
             // Stage #3: Initialise page object passed in request
@@ -1150,10 +1168,15 @@ namespace Zen.Trunk.Storage.Data
             {
                 // Load the root page and obtain update lock before we start
                 var pageDevice = GetDistributionPageDevice(request.Message.DeviceId);
-                rootPage = await pageDevice.LoadRootPageAsync().ConfigureAwait(false);
-                await rootPage.SetRootLockAsync(FileGroupRootLockType.Shared).ConfigureAwait(false);
+                rootPage = await pageDevice
+                    .LoadRootPageAsync()
+                    .ConfigureAwait(false);
+                await rootPage
+                    .SetRootLockAsync(FileGroupRootLockType.Shared)
+                    .ConfigureAwait(false);
 
-                await ExpandDeviceCoreAsync(request.Message.DeviceId, rootPage, request.Message.PageCount).ConfigureAwait(false);
+                await ExpandDeviceCoreAsync(request.Message.DeviceId, rootPage, request.Message.PageCount)
+                    .ConfigureAwait(false);
             }
             else
             {
@@ -1169,7 +1192,9 @@ namespace Zen.Trunk.Storage.Data
                         .ConfigureAwait(false);
                     if (rootPage.IsExpandable)
                     {
-                        await rootPage.SetRootLockAsync(FileGroupRootLockType.Shared).ConfigureAwait(false);
+                        await rootPage
+                            .SetRootLockAsync(FileGroupRootLockType.Shared)
+                            .ConfigureAwait(false);
                         rootPages.Add(deviceId, rootPage);
                     }
                     else
@@ -1246,7 +1271,9 @@ namespace Zen.Trunk.Storage.Data
                 try
                 {
                     // Attempt to allocate (may fail)
-                    return await pageDevice.AllocateDataPageAsync(request.Message).ConfigureAwait(false);
+                    return await pageDevice
+                        .AllocateDataPageAsync(request.Message)
+                        .ConfigureAwait(false);
                 }
                 catch
                 {
@@ -1363,12 +1390,17 @@ namespace Zen.Trunk.Storage.Data
                 {
                 }
 
-                // Failed to add to existing root page; prepare to load/create new rootpage
-                var nextRootPage = await LoadOrCreateNextLinkedPageAsync(rootPage).ConfigureAwait(false);
+                // Failed to add to existing root page; prepare to load/create new root page
+                var nextRootPage = await LoadOrCreateNextLinkedPageAsync(rootPage)
+                    .ConfigureAwait(false);
 
                 // Crab lock page and try again
-                await nextRootPage.SetRootLockAsync(FileGroupRootLockType.Exclusive).ConfigureAwait(false);
-                await rootPage.SetRootLockAsync(FileGroupRootLockType.None).ConfigureAwait(false);
+                await nextRootPage
+                    .SetRootLockAsync(FileGroupRootLockType.Exclusive)
+                    .ConfigureAwait(false);
+                await rootPage
+                    .SetRootLockAsync(FileGroupRootLockType.None)
+                    .ConfigureAwait(false);
                 rootPage = nextRootPage;
             }
         }
@@ -1429,8 +1461,7 @@ namespace Zen.Trunk.Storage.Data
                         .Where(c => string.Equals(c.Name, member.Key, StringComparison.OrdinalIgnoreCase))
                         .Select(c => (ushort)c.Id)
                         .First();
-                    members.Add(new Tuple<ushort, TableIndexSortDirection>(
-                        columnId, member.Value));
+                    members.Add(new Tuple<ushort, TableIndexSortDirection>(columnId, member.Value));
                 }
 
                 // Create index
@@ -1444,7 +1475,8 @@ namespace Zen.Trunk.Storage.Data
             }
         }
 
-        private async Task ExpandDeviceCoreAsync(DeviceId deviceId, RootPage rootPage, uint growthPages)
+        private async Task ExpandDeviceCoreAsync(
+            DeviceId deviceId, RootPage rootPage, uint growthPages)
         {
             // Check device can be expanded
             if (!rootPage.IsExpandable)
@@ -1493,11 +1525,15 @@ namespace Zen.Trunk.Storage.Data
             uint newPageCount;
 
             // Place root page into update mode
-            await rootPage.SetRootLockAsync(FileGroupRootLockType.Update).ConfigureAwait(false);
+            await rootPage
+                .SetRootLockAsync(FileGroupRootLockType.Update)
+                .ConfigureAwait(false);
             try
             {
                 // Transition root page into exclusive mode
-                await rootPage.SetRootLockAsync(FileGroupRootLockType.Exclusive).ConfigureAwait(false);
+                await rootPage
+                    .SetRootLockAsync(FileGroupRootLockType.Exclusive)
+                    .ConfigureAwait(false);
 
                 // Delegate the request to the underlying device
                 var bufferDevice = GetService<IMultipleBufferDevice>();
@@ -1509,14 +1545,18 @@ namespace Zen.Trunk.Storage.Data
             {
                 // Assume expand failed and revert lock
                 //	don't know if I really have to do this now
-                await rootPage.SetRootLockAsync(FileGroupRootLockType.Shared).ConfigureAwait(false);
+                await rootPage
+                    .SetRootLockAsync(FileGroupRootLockType.Shared)
+                    .ConfigureAwait(false);
                 throw;
             }
 
             // Create distribution pages as necessary
             if (newPageCount > oldPageCount)
             {
-                await CreateDistributionPagesAsync(deviceId, oldPageCount, newPageCount - 1).ConfigureAwait(false);
+                await CreateDistributionPagesAsync(
+                        deviceId, oldPageCount, newPageCount - 1)
+                    .ConfigureAwait(false);
             }
 
             // Finally update the root page.

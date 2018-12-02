@@ -40,7 +40,7 @@ namespace Zen.Trunk.Storage
         /// <returns></returns>
         public override string ToString()
         {
-            return $"ConnectionId[{Value:X8}]";
+            return $"SessionId[{Value:X8}]";
         }
 
         /// <summary>
