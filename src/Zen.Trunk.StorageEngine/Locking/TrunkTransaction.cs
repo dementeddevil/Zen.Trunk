@@ -672,10 +672,12 @@ namespace Zen.Trunk.Storage.Locking
             _transactionLockOwnerBlocks.Clear();
 
             // Cleanup enlistments that implement IDisposable
-            foreach (var enlistment in _subEnlistments)
-            {
-                (enlistment as IDisposable)?.Dispose();
-            }
+            // NOTE: Never dispose sub-enlistments as PageBuffer objects have
+            //  a lifetime that exists beyond transaction boundaries.
+            //foreach (var enlistment in _subEnlistments)
+            //{
+            //    (enlistment as IDisposable)?.Dispose();
+            //}
             _subEnlistments.Clear();
 
             // Throw away transaction context

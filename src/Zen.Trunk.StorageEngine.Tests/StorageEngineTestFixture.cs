@@ -24,8 +24,8 @@ namespace Zen.Trunk.Storage
                 .Enrich.With<TransactionEnricher>()
                 .MinimumLevel.Verbose()
                 .WriteTo.Debug(
-                    LogEventLevel.Verbose,
-                    "[{Timestamp:HH:mm:ss} {Level:u3} {SessionId} {TransactionId}] {Message:lj} {NewLine} {Exception}\r\n")
+                    LogEventLevel.Verbose/*,
+                    "[{Timestamp:HH:mm:ss} {Level:u3} {SessionId} {TransactionId}] {Message:lj} {NewLine} {Exception}\r\n"*/)
                 .CreateLogger();
             _ambientSessionScope = TrunkSessionContext.SwitchSessionContext(
                 new TrunkSession(new SessionId(11002), TimeSpan.FromSeconds(60)));

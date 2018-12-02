@@ -1289,6 +1289,41 @@ namespace Zen.Trunk.Storage.Data
             var devices = request.Message.Devices?.ToList();
             var objects = request.Message.Objects?.ToList();
 
+            // When we have a first page creator function then we need to give
+            //  the caller a valid object identifier so that the initial
+            //  resource can be created and we can write an appropriate entry
+            //  into the root page object table somewhere.
+            if (request.Message.FirstPageFunc != null)
+            {
+                // TODO: This logic must be moved to exclusive update handler
+                //  so we avoid the possibility of assigning two callers the
+                //  same object identifier
+                var objectId = _nextObjectId;
+                var nextObjectId = new ObjectId(_nextObjectId.Value + 1);
+
+                var firstLogicalPageId = await request.Message
+                    .FirstPageFunc(objectId)
+                    .ConfigureAwait(false);
+                _nextObjectId = nextObjectId;
+
+                var objectReference =
+                    new ObjectReferenceBufferFieldWrapper
+                    {
+                        ObjectId = objectId,
+                        FileGroupId = FileGroupId,
+                        FirstLogicalPageId = firstLogicalPageId,
+                        Name = request.Message.Name,
+                        ObjectType = request.Message.ObjectType
+                    };
+
+                if (objects == null)
+                {
+                    objects = new List<ObjectReferenceBufferFieldWrapper>();
+                }
+
+                objects.Add(objectReference);
+            }
+
             // Load primary file-group root page
             var rootPage = (PrimaryFileGroupRootPage)await _primaryDevice
                 .LoadRootPageAsync()
