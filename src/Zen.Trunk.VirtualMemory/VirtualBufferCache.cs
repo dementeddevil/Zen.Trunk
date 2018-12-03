@@ -1,7 +1,11 @@
+using System.Diagnostics;
 using System.Threading;
 
 namespace Zen.Trunk.VirtualMemory
 {
+    [DebuggerDisplay(
+        "Used={" + nameof(UsedSpacePercent) + "}%",
+        Name = "Cache [{" + nameof(CacheId) + "}]")]
     internal class VirtualBufferCache
 	{
 		#region Private Fields
@@ -19,7 +23,10 @@ namespace Zen.Trunk.VirtualMemory
 		/// <param name="baseAddress">The base address.</param>
 		/// <param name="bufferSize">Size of the buffer.</param>
 		/// <param name="bufferSlots">The buffer slots.</param>
-		public VirtualBufferCache(SafeCommitableMemoryHandle baseAddress, int bufferSize, int bufferSlots)
+		public VirtualBufferCache(
+		    SafeCommitableMemoryHandle baseAddress,
+		    int bufferSize,
+		    int bufferSlots)
 		{
 			CacheId = Interlocked.Increment(ref _nextCacheId);
 			BaseAddress = baseAddress;
@@ -30,7 +37,8 @@ namespace Zen.Trunk.VirtualMemory
 			{
 				var buffer = new VirtualBuffer(baseAddress, bufferSize, this, index);
 				_buffers[index] = buffer;
-				baseAddress = SafeNativeMethods.GetCommitableMemoryHandle(baseAddress, bufferSize, bufferSize);
+				baseAddress = SafeNativeMethods
+				    .GetCommitableMemoryHandle(baseAddress, bufferSize, bufferSize);
 			}
 			NextBaseAddress = baseAddress;
 		}
@@ -39,38 +47,40 @@ namespace Zen.Trunk.VirtualMemory
 		#region Internal Properties
 		internal int CacheId { get; }
 
-	    internal bool IsHalfFull => UsedSpace > 50;
+	    internal bool IsHalfFull => UsedSpacePercent > 50;
 
-	    internal bool IsNearlyFull => UsedSpace > 75;
+	    internal bool IsNearlyFull => UsedSpacePercent > 75;
 
-	    internal bool IsFull => UsedSpace > 97;
+	    internal bool IsFull => UsedSpacePercent > 97;
 
-	    internal int UsedSpace => (_usedBuffers * 100) / _bufferCacheSize;
+	    internal int UsedSpacePercent => (_usedBuffers * 100) / _bufferCacheSize;
 
 	    internal SafeCommitableMemoryHandle BaseAddress { get; }
 
 	    internal SafeCommitableMemoryHandle NextBaseAddress { get; }
-	    #endregion
+        #endregion
 
-		public VirtualBuffer AllocateBuffer()
-		{
-			for (var index = 0; index < _bufferCacheSize; ++index)
-			{
-				var buffer = Interlocked.Exchange(ref _buffers[index], null);
-			    if (buffer == null) continue;
+        #region Public Methods
+        public VirtualBuffer AllocateBuffer()
+        {
+            for (var index = 0; index < _bufferCacheSize; ++index)
+            {
+                var buffer = Interlocked.Exchange(ref _buffers[index], null);
+                if (buffer == null) continue;
 
-			    buffer.Allocate();
-			    Interlocked.Increment(ref _usedBuffers);
-			    return buffer;
-			}
+                buffer.Allocate();
+                Interlocked.Increment(ref _usedBuffers);
+                return buffer;
+            }
 
-			return null;
-		}
+            return null;
+        }
 
-		public void FreeBuffer(VirtualBuffer buffer)
-		{
-			Interlocked.Exchange(ref _buffers[buffer.CacheSlot], buffer);
-			Interlocked.Decrement(ref _usedBuffers);
-		}
-	}
+        public void FreeBuffer(VirtualBuffer buffer)
+        {
+            Interlocked.Exchange(ref _buffers[buffer.CacheSlot], buffer);
+            Interlocked.Decrement(ref _usedBuffers);
+        } 
+        #endregion
+    }
 }

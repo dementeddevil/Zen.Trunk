@@ -256,7 +256,7 @@ namespace Zen.Trunk.Storage.Data.Table
         /// <summary>
         /// Adds the row.
         /// </summary>
-        /// <param name="columnIDs">The column i ds.</param>
+        /// <param name="columnIDs">The column identifiers.</param>
         /// <param name="rowData">The row data.</param>
         /// <returns></returns>
         Task AddRow(uint[] columnIDs, object[] rowData);

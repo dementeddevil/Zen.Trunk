@@ -402,6 +402,7 @@ namespace Zen.Trunk.Storage
                     }
 
                     // Insert table data
+                    Trace.WriteLine(("*** Insert data ***"));
                     //dbDevice.BeginTransaction();
                     //try
                     //{

@@ -17,9 +17,9 @@ namespace Zen.Trunk.VirtualMemory
     /// </remarks>
     public sealed class ScatterGatherRequestQueue : IDisposable
 	{
-	    private readonly ISystemClock _systemClock;
-
 	    #region Private Fields
+	    // ReSharper disable once PrivateFieldCanBeConvertedToLocalVariable
+	    private readonly ISystemClock _systemClock;
 		private readonly StreamScatterGatherRequestQueue _readQueue;
 		private readonly StreamScatterGatherRequestQueue _writeQueue;
 		private readonly CancellationTokenSource _shutdown;

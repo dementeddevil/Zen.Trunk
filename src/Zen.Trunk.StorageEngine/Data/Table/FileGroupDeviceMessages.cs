@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 using Zen.Trunk.Storage.BufferFields;
 using Zen.Trunk.Storage.Data.Table;
@@ -579,5 +580,21 @@ namespace Zen.Trunk.Storage.Data
         /// The first page function.
         /// </value>
         public Func<ObjectId, Task<LogicalPageId>> FirstPageFunc { get; }
+    }
+
+    public class InsertTableDataParameters
+    {
+        public InsertTableDataParameters(ObjectId objectId, string columnNames, Stream rowData)
+        {
+            ObjectId = objectId;
+            ColumnNames = columnNames;
+            RowData = rowData;
+        }
+
+        public ObjectId ObjectId { get; }
+
+        public string ColumnNames { get; }
+
+        public Stream RowData { get; }
     }
 }

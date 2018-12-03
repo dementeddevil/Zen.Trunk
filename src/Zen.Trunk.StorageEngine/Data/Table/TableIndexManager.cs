@@ -752,8 +752,6 @@ namespace Zen.Trunk.Storage.Data.Table
                 // Sanity check
                 System.Diagnostics.Debug.Assert(indexPage == null);
             }
-
-            return null;
         }
 
         private async Task<bool> EnumerateIndexEntriesHandlerAsync(EnumerateIndexEntriesRequest request)

@@ -372,6 +372,7 @@ namespace Zen.Trunk.Storage.Data.Table
         }
 
         #endregion
+
         #region Private Fields
         private readonly ILifetimeScope _lifetimeScope;
 
@@ -1091,12 +1092,15 @@ namespace Zen.Trunk.Storage.Data.Table
             // Sanity checks
             if (columnIDs == null)
             {
+                throw new ArgumentNullException(nameof(columnIDs));
             }
             if (rowData == null)
             {
+                throw new ArgumentNullException(nameof(rowData));
             }
             if (columnIDs.Length != rowData.Length)
             {
+                throw new ArgumentException("Mismatch in array size between column identifier and row data.");
             }
 
             // Setup buffer for building row data

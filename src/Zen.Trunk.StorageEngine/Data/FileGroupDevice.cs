@@ -150,6 +150,16 @@ namespace Zen.Trunk.Storage.Data
             #endregion
         }
 
+        private class InsertTableDataRequest : TransactionContextTaskRequest<InsertTableDataParameters, bool>
+        {
+            #region Public Constructors
+            public InsertTableDataRequest(InsertTableDataParameters tableDataParams)
+                : base(tableDataParams)
+            {
+            } 
+            #endregion
+        }
+
         private class InsertReferenceInformationRequest : TransactionContextTaskRequest<InsertReferenceInformationRequestParameters, bool>
         {
             #region Public Constructors
@@ -264,7 +274,14 @@ namespace Zen.Trunk.Storage.Data
                 {
                     TaskScheduler = taskInterleave.ExclusiveScheduler
                 });
+            InsertTableDataPort = new TransactionContextActionBlock<InsertTableDataRequest, bool>(
+                request => InsertTableDataHandlerAsync(request),
+                new ExecutionDataflowBlockOptions
+                {
+                    TaskScheduler = taskInterleave.ConcurrentScheduler
+                });
         }
+
         #endregion
 
         #region Public Properties
@@ -326,83 +343,31 @@ namespace Zen.Trunk.Storage.Data
         #endregion
 
         #region Private Properties
-        /// <summary>
-        /// Gets the add data device port.
-        /// </summary>
-        /// <value>The add data device port.</value>
         private ITargetBlock<AddDataDeviceRequest> AddDataDevicePort { get; }
 
-        /// <summary>
-        /// Gets the remove data device port.
-        /// </summary>
-        /// <value>The remove data device port.</value>
         private ITargetBlock<RemoveDataDeviceRequest> RemoveDataDevicePort { get; }
 
-        /// <summary>
-        /// Gets the init data page port.
-        /// </summary>
-        /// <value>The init data page port.</value>
         private ITargetBlock<InitDataPageRequest> InitDataPagePort { get; }
 
-        /// <summary>
-        /// Gets the load data page port.
-        /// </summary>
-        /// <value>The load data page port.</value>
         private ITargetBlock<LoadDataPageRequest> LoadDataPagePort { get; }
 
-        /// <summary>
-        /// Gets the create distribution pages port.
-        /// </summary>
-        /// <value>The create distribution pages port.</value>
         private ITargetBlock<CreateDistributionPagesRequest> CreateDistributionPagesPort { get; }
 
-        /// <summary>
-        /// Gets the expand data device port.
-        /// </summary>
-        /// <value>The expand data device port.</value>
         private ITargetBlock<ExpandDataDeviceRequest> ExpandDataDevicePort { get; }
 
-        /// <summary>
-        /// Gets the allocate data page port.
-        /// </summary>
-        /// <value>The allocate data page port.</value>
         private ITargetBlock<AllocateDataPageRequest> AllocateDataPagePort { get; }
 
-        /// <summary>
-        /// Gets the deallocate data page port.
-        /// </summary>
-        /// <value>
-        /// The deallocate data page port.
-        /// </value>
         private ITargetBlock<DeallocateDataPageRequest> DeallocateDataPagePort { get; }
 
-        /// <summary>
-        /// Gets the process distribution page port.
-        /// </summary>
-        /// <value>The import distribution page.</value>
         private ITargetBlock<ProcessDistributionPageRequest> ProcessDistributionPagePort { get; }
 
-        /// <summary>
-        /// Gets the create object reference port.
-        /// </summary>
-        /// <value>
-        /// The create object reference port.
-        /// </value>
         private ITargetBlock<InsertReferenceInformationRequest> CreateObjectReferencePort { get; }
 
-        /// <summary>
-        /// Gets the add table port.
-        /// </summary>
-        /// <value>The add table port.</value>
         private ITargetBlock<AddTableRequest> AddTablePort { get; }
 
-        /// <summary>
-        /// Gets the add table index port.
-        /// </summary>
-        /// <value>
-        /// The add table index port.
-        /// </value>
         private ITargetBlock<AddTableIndexRequest> AddTableIndexPort { get; }
+
+        private ITargetBlock<InsertTableDataRequest> InsertTableDataPort { get; }
 
         private DatabaseDevice Owner
         {
@@ -619,6 +584,23 @@ namespace Zen.Trunk.Storage.Data
             {
                 throw new BufferDeviceShuttingDownException();
             }
+            return request.Task;
+        }
+
+        /// <summary>
+        /// Adds the table data stream to the table associated with the specific
+        /// object-identifier.
+        /// </summary>
+        /// <param name="tableDataParams"></param>
+        /// <returns></returns>
+        public Task<bool> InsertTableData(InsertTableDataParameters tableDataParams)
+        {
+            var request = new InsertTableDataRequest(tableDataParams);
+            if (!InsertTableDataPort.Post(request))
+            {
+                throw new BufferDeviceShuttingDownException();
+            }
+
             return request.Task;
         }
 
@@ -840,7 +822,7 @@ namespace Zen.Trunk.Storage.Data
 
         private List<DeviceId> GetDistributionPageDeviceKeys()
         {
-            var deviceIds = 
+            var deviceIds =
                 new List<DeviceId>
                 {
                     _primaryDevice.DeviceId
@@ -1367,7 +1349,7 @@ namespace Zen.Trunk.Storage.Data
                 try
                 {
                     DeviceReferenceBufferFieldWrapper device;
-                    while((device = devices?.FirstOrDefault()) != null)
+                    while ((device = devices?.FirstOrDefault()) != null)
                     {
                         rootPage.Devices.Add(device);
                         rootPage.Save();
@@ -1473,6 +1455,62 @@ namespace Zen.Trunk.Storage.Data
                         members);
                 return await table.CreateIndexAsync(createParams).ConfigureAwait(false);
             }
+        }
+
+        private async Task<bool> InsertTableDataHandlerAsync(InsertTableDataRequest request)
+        {
+            // Determine first logical page identifier for the table schema
+            var objRef = _objects[request.Message.ObjectId];
+            var firstLogicalPageId = objRef.FirstLogicalPageId;
+
+            // Load table schema
+            var tableFactory = GetService<IDatabaseTableFactory>();
+            using (var table = tableFactory.GetTableScopeForExistingTable(request.Message.ObjectId))
+            {
+                await table.LoadSchemaAsync(firstLogicalPageId).ConfigureAwait(false);
+
+                // Get column information
+                var columnNames = request.Message.ColumnNames.Split(',');
+                var columns = new List<TableColumnInfo>();
+                var columnIdentifiers = new List<uint>();
+                foreach (var name in columnNames)
+                {
+                    var column = table
+                        .Columns
+                        .First(c => c.Name.Equals(
+                            name,
+                            StringComparison.OrdinalIgnoreCase));
+
+                    columns.Add(column);
+                    columnIdentifiers.Add(column.Id);
+                }
+
+                // Setup partial row reader
+                var streamReader = new TableRowReader(request.Message.RowData, columns);
+                var columnIds = columnIdentifiers.ToArray();
+                var rowData = new object[columnNames.Length];
+                while (true)
+                {
+                    // Read row data from the stream reader
+                    try
+                    {
+                        streamReader.Read();
+                        for (var index = 0; index < columnNames.Length; ++index)
+                        {
+                            rowData[index] = streamReader[index];
+                        }
+                    }
+                    catch (EndOfStreamException)
+                    {
+                        break;
+                    }
+
+                    // Add row to the table
+                    await table.AddRow(columnIds, rowData).ConfigureAwait(false);
+                }
+            }
+
+            return true;
         }
 
         private async Task ExpandDeviceCoreAsync(
