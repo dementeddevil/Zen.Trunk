@@ -20,8 +20,8 @@ namespace Zen.Trunk.VirtualMemory
 	    #region Private Fields
 	    // ReSharper disable once PrivateFieldCanBeConvertedToLocalVariable
 	    private readonly ISystemClock _systemClock;
-		private readonly StreamScatterGatherRequestQueue _readQueue;
-		private readonly StreamScatterGatherRequestQueue _writeQueue;
+		private readonly StreamScatterGatherRequestQueue<ReadScatterRequestArray> _readQueue;
+		private readonly StreamScatterGatherRequestQueue<WriteGatherRequestArray> _writeQueue;
 		private readonly CancellationTokenSource _shutdown;
 		private readonly Task _cleanupTask;
         #endregion
@@ -41,16 +41,16 @@ namespace Zen.Trunk.VirtualMemory
             ScatterGatherRequestQueueSettings settings)
 		{
 		    _systemClock = systemClock;
-		    _readQueue = new StreamScatterGatherRequestQueue(
+
+            _readQueue = new StreamScatterGatherRequestQueue<ReadScatterRequestArray>(
                 systemClock,
-			    stream,
 			    settings.ReadSettings,
-			    (s, a) => a.FlushAsReadAsync(s));
-			_writeQueue = new StreamScatterGatherRequestQueue(
+			    (request) => new ReadScatterRequestArray(systemClock, stream, request));
+
+			_writeQueue = new StreamScatterGatherRequestQueue<WriteGatherRequestArray>(
 			    systemClock, 
-			    stream,
 			    settings.WriteSettings,
-			    (s, a) => a.FlushAsWriteAsync(s));
+			    (request) => new WriteGatherRequestArray(systemClock, stream, request));
 
 			_shutdown = new CancellationTokenSource ();
 

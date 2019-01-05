@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 using Zen.Trunk.Logging;
 
@@ -11,7 +9,7 @@ namespace Zen.Trunk.VirtualMemory
     /// <c>ScatterGatherRequestArray</c> encapsulates a number of scatter/gather
     /// requests into a batch of operations to be performed simultaneously.
     /// </summary>
-    public class ScatterGatherRequestArray
+    public abstract class ScatterGatherRequestArray
     {
         private readonly ISystemClock _systemClock;
         private static readonly ILog Logger = LogProvider.For<ScatterGatherRequestArray>();
@@ -25,15 +23,25 @@ namespace Zen.Trunk.VirtualMemory
         /// Initializes a new instance of the <see cref="ScatterGatherRequestArray"/> class.
         /// </summary>
         /// <param name="systemClock">Reference clock.</param>
+        /// <param name="stream">The <see cref="AdvancedStream"/></param>
         /// <param name="request">The request.</param>
         [CLSCompliant(false)]
-		public ScatterGatherRequestArray(ISystemClock systemClock, ScatterGatherRequest request)
+		public ScatterGatherRequestArray(ISystemClock systemClock, AdvancedStream stream, ScatterGatherRequest request)
 		{
 		    _systemClock = systemClock;
-		    _createdDate = _systemClock.UtcNow;
+            Stream = stream;
+            _createdDate = _systemClock.UtcNow;
 			_startBlockNo = _endBlockNo = request.PhysicalPageId;
 			_callbackInfo.Add(request);
+
+            Logger.Debug($"New array created [PageId: {request.PhysicalPageId}]");
 		}
+
+        protected AdvancedStream Stream { get; }
+
+        protected uint StartBlockNo => _startBlockNo;
+
+        protected ICollection<ScatterGatherRequest> CallbackInfo => _callbackInfo.AsReadOnly();
 
         /// <summary>
         /// Adds the request.
@@ -47,6 +55,8 @@ namespace Zen.Trunk.VirtualMemory
 			{
 				_startBlockNo = request.PhysicalPageId;
 				_callbackInfo.Insert(0, request);
+
+                Logger.Debug($"Request [PageId: {request.PhysicalPageId}] prepended to array [StartPageId: {_startBlockNo}, EndPageId: {_endBlockNo}]");
 				return true;
 			}
 
@@ -54,30 +64,8 @@ namespace Zen.Trunk.VirtualMemory
 			{
 				_endBlockNo = request.PhysicalPageId;
 				_callbackInfo.Add(request);
-				return true;
-			}
 
-            return false;
-		}
-
-        /// <summary>
-        /// Determines whether a flush of the underlying stream is required given
-        /// the specified maximum request age and/or maximum count of requests
-        /// </summary>
-        /// <param name="maximumAge">The maximum age.</param>
-        /// <param name="maximumLength">The maximum length.</param>
-        /// <returns>
-        /// <c>true</c> if a flush is required; otherwise <c>false</c>.
-        /// </returns>
-        public bool RequiresFlush(TimeSpan maximumAge, int maximumLength)
-		{
-			if ((_endBlockNo - _startBlockNo + 1) > maximumLength)
-			{
-				return true;
-			}
-
-            if ((_systemClock.UtcNow - _createdDate) > maximumAge)
-			{
+                Logger.Debug($"Request [PageId: {request.PhysicalPageId}] appended to array [StartPageId: {_startBlockNo}, EndPageId: {_endBlockNo}]");
 				return true;
 			}
 
@@ -97,6 +85,8 @@ namespace Zen.Trunk.VirtualMemory
 			{
 				_endBlockNo = other._endBlockNo;
 				_callbackInfo.AddRange(other._callbackInfo);
+
+                Logger.Debug($"Source array [StartPageId: {other._startBlockNo}, EndPageId: {other._endBlockNo}] prepended to array [StartPageId: {_startBlockNo}, EndPageId: {_endBlockNo}]");
 				return true;
 			}
 
@@ -104,6 +94,8 @@ namespace Zen.Trunk.VirtualMemory
 			{
 				_startBlockNo = other._startBlockNo;
 				_callbackInfo.InsertRange(0, other._callbackInfo);
+
+                Logger.Debug($"Source array [StartPageId: {other._startBlockNo}, EndPageId: {other._endBlockNo}] appended to array [StartPageId: {_startBlockNo}, EndPageId: {_endBlockNo}]");
 				return true;
 			}
 
@@ -111,126 +103,73 @@ namespace Zen.Trunk.VirtualMemory
 		}
 
         /// <summary>
-        /// Flushes the request array under the assumption that each element
-        /// relates to a pending read from the underlying stream.
+        /// Determines whether a flush of the underlying stream is required given
+        /// the specified maximum request age and/or maximum count of requests
         /// </summary>
-        /// <param name="stream">The stream.</param>
-        /// <returns></returns>
-        public async Task FlushAsReadAsync(AdvancedStream stream)
+        /// <param name="maximumAge">The maximum age.</param>
+        /// <param name="maximumLength">The maximum length.</param>
+        /// <returns>
+        /// <c>true</c> if a flush is required; otherwise <c>false</c>.
+        /// </returns>
+        public bool RequiresFlush(TimeSpan maximumAge, int maximumLength)
 		{
-		    if (Logger.IsDebugEnabled())
-		    {
-		        Logger.Debug($"Reading {_callbackInfo.Count} memory blocks from disk");
-		    }
-
-			// Prepare buffer array
-			var buffers = _callbackInfo
-				.Select(item => item.Buffer)
-				.ToArray();
-			var bufferSize = buffers[0].BufferSize;
-
-		    // TODO: We should be able to call Scatter/gather API with an
-		    //  overlapped structure set in such a way as to obviate the need
-		    //  to do a seek operation (and therefore never needing the
-		    //  stream lock synchronisation step)
-			Task task;
-			lock (stream.SyncRoot)
+			if ((_endBlockNo - _startBlockNo + 1) > maximumLength)
 			{
-				// Adjust the file position and perform scatter/gather
-				//	operation
-				stream.Seek(_startBlockNo * bufferSize, SeekOrigin.Begin);
-				task = stream.ReadScatterAsync(buffers);
+                Logger.Debug($"Flush required as array exceeds maximum length");
+				return true;
 			}
 
-		    try
-		    {
-		        await task.ConfigureAwait(false);
-		    }
-		    catch (OperationCanceledException)
-		    {
-		        foreach (var callback in _callbackInfo)
-		        {
-		            callback.TrySetCanceled();
-		        }
-		        return;
-		    }
-            catch (Exception e)
+            if ((_systemClock.UtcNow - _createdDate) > maximumAge)
 			{
-				foreach (var callback in _callbackInfo)
-				{
-					callback.TrySetException(e);
-				}
-				return;
+                Logger.Debug($"Flush required as array exceeds maximum age");
+				return true;
 			}
 
-			// Notify each callback that we are now finished
-			foreach (var callback in _callbackInfo)
-			{
-				callback.Buffer.ClearDirty();
-				callback.TrySetResult(null);
-			}
+            return false;
 		}
 
         /// <summary>
-        /// Flushes the request array under the assumption that each element
-        /// relates to a pending write to the underlying stream.
+        /// Flushes the request array via the specified stream.
         /// </summary>
-        /// <param name="stream">The stream.</param>
-        /// <returns></returns>
-        public async Task FlushAsWriteAsync(AdvancedStream stream)
-		{
-            if (Logger.IsDebugEnabled())
+        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+        public abstract Task FlushAsync();
+
+
+        /// <summary>
+        /// Executes the specified I/O operation and completes all requests
+        /// associated with the array with an appropriate response.
+        /// </summary>
+        /// <param name="asyncIo">A function returning a <see cref="Task"/> representing the I/O operation.</param>
+        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+        protected async Task ExecuteIoOperationAsync(Func<Task> asyncIo)
+        {
+            try
             {
-                Logger.Debug($"Writing {_callbackInfo.Count} memory blocks to disk");
+                await asyncIo().ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+                foreach (var callback in _callbackInfo)
+                {
+                    callback.TrySetCanceled();
+                }
+                return;
+            }
+            catch (Exception e)
+            {
+                foreach (var callback in _callbackInfo)
+                {
+                    callback.TrySetException(e);
+                }
+                return;
             }
 
-            // Prepare buffer array
-            var buffers = _callbackInfo
-				.Select(item => item.Buffer)
-				.ToArray();
-			var bufferSize = buffers[0].BufferSize;
-
-            // TODO: We should be able to call Scatter/gather API with an
-            //  overlapped structure set in such a way as to obviate the need
-            //  to do a seek operation (and therefore never needing the
-            //  stream lock synchronisation step)
-			Task task;
-			lock (stream.SyncRoot)
-			{
-				// Adjust the file position and perform scatter/gather
-				//	operation
-				stream.Seek(_startBlockNo * bufferSize, SeekOrigin.Begin);
-				task = stream.WriteGatherAsync(buffers);
-			}
-
-			// Wait for completion
-			try
-			{
-				await task.ConfigureAwait(false);
-			}
-			catch (OperationCanceledException)
-			{
-			    foreach (var callback in _callbackInfo)
-			    {
-			        callback.TrySetCanceled();
-			    }
-			    return;
-			}
-			catch (Exception e)
-			{
-				foreach (var callback in _callbackInfo)
-				{
-					callback.TrySetException(e);
-				}
-				return;
-			}
-
-			// Notify each callback that we are now finished
-			foreach (var callback in _callbackInfo)
-			{
-				callback.Buffer.ClearDirty();
-				callback.TrySetResult(null);
-			}
-		}
-	}
+            // Notify each callback that we are now finished
+            foreach (var callback in _callbackInfo)
+            {
+                callback.Buffer.ClearDirty();
+                callback.TrySetResult(null);
+            }
+        }
+    }
 }
