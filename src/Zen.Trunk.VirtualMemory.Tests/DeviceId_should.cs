@@ -31,9 +31,9 @@ namespace Zen.Trunk.VirtualMemory.Tests
         }
 
         [Theory]
-        [InlineData(3, 4, 1)]
+        [InlineData(3, 4, -1)]
         [InlineData(4, 4, 0)]
-        [InlineData(5, 4, -1)]
+        [InlineData(5, 4, 1)]
         public void CompareCorrectly(ushort lhs, ushort rhs, int expected)
         {
             new DeviceId(lhs).CompareTo(new DeviceId(rhs)).Should().Be(expected);
