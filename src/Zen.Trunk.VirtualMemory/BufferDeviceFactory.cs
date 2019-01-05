@@ -6,14 +6,19 @@
     /// <seealso cref="IBufferDeviceFactory" />
     public class BufferDeviceFactory : IBufferDeviceFactory
     {
+        private readonly ISystemClock _systemClock;
         private readonly IVirtualBufferFactory _bufferFactory;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="BufferDeviceFactory"/> class.
         /// </summary>
+        /// <param name="systemClock">The system clock.</param>
         /// <param name="bufferFactory">The buffer factory.</param>
-        public BufferDeviceFactory(IVirtualBufferFactory bufferFactory)
+        public BufferDeviceFactory(
+            ISystemClock systemClock,
+            IVirtualBufferFactory bufferFactory)
         {
+            _systemClock = systemClock;
             _bufferFactory = bufferFactory;
         }
 
@@ -29,8 +34,12 @@
             string name, string pathname, uint createPageCount, bool enableScatterGatherIo)
         {
             return new SingleBufferDevice(
-                new DefaultSystemClock(),
-                _bufferFactory, name, pathname, createPageCount, enableScatterGatherIo);
+                _systemClock,
+                _bufferFactory,
+                name,
+                pathname,
+                createPageCount,
+                enableScatterGatherIo);
         }
 
         /// <summary>

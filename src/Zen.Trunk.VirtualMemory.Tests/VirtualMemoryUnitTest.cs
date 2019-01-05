@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using Autofac;
 using FluentAssertions;
 using Xunit;
 
@@ -69,7 +70,7 @@ Then no corruption or deadlocks occur")]
                     {
                         AutomaticFlushPeriod = TimeSpan.FromSeconds(5)
                     };
-                using (var sut = new ScatterGatherRequestQueue(new DefaultSystemClock(), stream, settings))
+                using (var sut = new ScatterGatherRequestQueue(_fixture.Scope.Resolve<ISystemClock>(), stream, settings))
                 {
                     var tasks =
                         new[]

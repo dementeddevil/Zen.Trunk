@@ -5,11 +5,12 @@ namespace Zen.Trunk.VirtualMemory.Tests
 {
     public class TestFixture : IDisposable
     {
+        private readonly Lazy<ILifetimeScope> _scope;
         private TempFileTracker _globalTracker;
 
         protected TestFixture()
         {
-            InitializeScope();
+            _scope = new Lazy<ILifetimeScope>(InitializeScope);
         }
 
         ~TestFixture()
@@ -17,7 +18,7 @@ namespace Zen.Trunk.VirtualMemory.Tests
             Dispose(false);
         }
 
-        public ILifetimeScope Scope { get; private set; }
+        public ILifetimeScope Scope => _scope.Value;
 
         public TempFileTracker GlobalTracker => _globalTracker ?? (_globalTracker = new TempFileTracker());
 
@@ -25,13 +26,6 @@ namespace Zen.Trunk.VirtualMemory.Tests
         {
             Dispose(true);
             GC.SuppressFinalize(this);
-        }
-
-        protected void InitializeScope()
-        {
-            var builder = new ContainerBuilder();
-            InitializeContainerBuilder(builder);
-            Scope = builder.Build();
         }
 
         protected virtual void InitializeContainerBuilder(ContainerBuilder builder)
@@ -42,12 +36,22 @@ namespace Zen.Trunk.VirtualMemory.Tests
         {
             if (disposing)
             {
-                Scope?.Dispose();
+                if (_scope.IsValueCreated)
+                {
+                    _scope.Value.Dispose();
+                }
+
                 _globalTracker?.Dispose();
             }
 
-            Scope = null;
             _globalTracker = null;
+        }
+
+        private ILifetimeScope InitializeScope()
+        {
+            var builder = new ContainerBuilder();
+            InitializeContainerBuilder(builder);
+            return builder.Build();
         }
     }
 }

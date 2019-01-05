@@ -14,7 +14,6 @@ namespace Zen.Trunk.VirtualMemory
     public class SingleBufferDevice : BufferDevice, ISingleBufferDevice
     {
         #region Private Fields
-
         private readonly ISystemClock _systemClock;
         private readonly IVirtualBufferFactory _bufferFactory;
         private FileStream _fileStream;
@@ -23,14 +22,13 @@ namespace Zen.Trunk.VirtualMemory
         #endregion
 
         #region Public Constructors
-
         /// <summary>
         /// Initializes a new instance of the <see cref="SingleBufferDevice" /> class.
         /// </summary>
         /// <param name="systemClock">System reference clock.</param>
         /// <param name="bufferFactory">The buffer factory.</param>
         /// <param name="name">The device name.</param>
-        /// <param name="pathName">The location of the physical file.</param>
+        /// <param name="pathname">The location of the physical file.</param>
         /// <param name="createPageCount">The create page count.</param>
         /// <param name="enableScatterGatherIo">
         /// if set to <c>true</c> then scatter-gather I/O will be enabled;
@@ -46,14 +44,14 @@ namespace Zen.Trunk.VirtualMemory
             ISystemClock systemClock,
             IVirtualBufferFactory bufferFactory,
             string name,
-            string pathName,
+            string pathname,
             uint createPageCount,
             bool enableScatterGatherIo)
         {
             _systemClock = systemClock;
             _bufferFactory = bufferFactory;
             Name = name;
-            Pathname = pathName;
+            Pathname = pathname;
             RequiresCreate = createPageCount > 0;
             PageCount = createPageCount;
             IsScatterGatherIoEnabled = enableScatterGatherIo;

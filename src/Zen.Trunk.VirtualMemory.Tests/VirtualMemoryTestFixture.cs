@@ -8,9 +8,16 @@ namespace Zen.Trunk.VirtualMemory.Tests
 
         public IBufferDeviceFactory BufferDeviceFactory => Scope.Resolve<IBufferDeviceFactory>();
 
+        public bool UseDefaultSystemClock { get; set; } = true;
+
         protected override void InitializeContainerBuilder(ContainerBuilder builder)
         {
             base.InitializeContainerBuilder(builder);
+
+            if (UseDefaultSystemClock)
+            {
+                builder.WithDefaultSystemClock();
+            }
 
             builder
                 .WithVirtualBufferFactory()
