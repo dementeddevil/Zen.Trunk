@@ -267,7 +267,7 @@ namespace Zen.Trunk.Storage.Query
                 Expression.Call(
                     GetQueryExecutionContextMasterDatabaseExpression(),
                     nameof(MasterDatabaseDevice.AttachDatabaseAsync),
-                    new[] {typeof(AttachDatabaseParameters)},
+                    null,
                     Expression.Constant(attachDatabaseParameters)));
         }
 
@@ -364,7 +364,7 @@ namespace Zen.Trunk.Storage.Query
         {
             return Expression.Property(
                 _executionContextParameterExpression,
-                typeof(MasterDatabaseDevice),
+                typeof(QueryExecutionContext),
                 nameof(QueryExecutionContext.MasterDatabase));
         }
 
@@ -372,7 +372,7 @@ namespace Zen.Trunk.Storage.Query
         {
             return Expression.Property(
                 _executionContextParameterExpression,
-                typeof(DatabaseDevice),
+                typeof(QueryExecutionContext),
                 nameof(QueryExecutionContext.ActiveDatabase));
         }
 
@@ -380,7 +380,7 @@ namespace Zen.Trunk.Storage.Query
         {
             return Expression.Property(
                 _executionContextParameterExpression,
-                typeof(IsolationLevel),
+                typeof(QueryExecutionContext),
                 nameof(QueryExecutionContext.IsolationLevel));
         }
 
@@ -510,9 +510,9 @@ namespace Zen.Trunk.Storage.Query
             return Expression.DebugInfo(
                 _documentInfo,
                 context.Start.Line,
-                context.Start.Column,
+                Math.Max(1, context.Start.Column),
                 context.Stop.Line,
-                context.Stop.Column);
+                Math.Max(1, context.Stop.Column));
         }
     }
 }
