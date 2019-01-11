@@ -330,9 +330,9 @@ namespace Zen.Trunk.Storage.Query
         protected override Expression AggregateResult(
             Expression aggregate, Expression childToAdd)
         {
-            if (aggregate == null)
+            if (childToAdd != null && aggregate == null)
             {
-                aggregate = Expression.Block();
+                return childToAdd;
             }
 
             if (childToAdd == null)
