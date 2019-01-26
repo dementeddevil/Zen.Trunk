@@ -57,23 +57,6 @@ namespace Zen.Trunk.Storage.Data.Index
         }
 
         /// <summary>
-        /// Gets/sets the page type.
-        /// </summary>
-        /// <value></value>
-        public sealed override PageType PageType
-        {
-            protected set
-            {
-                // Check 
-                if (value != PageType.New && value != PageType.Index)
-                {
-                    throw new ArgumentException("Invalid page type for index.");
-                }
-                base.PageType = value;
-            }
-        }
-
-        /// <summary>
         /// Gets the max index entries.
         /// </summary>
         /// <value>The max index entries.</value>

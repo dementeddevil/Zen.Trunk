@@ -242,6 +242,8 @@ namespace Zen.Trunk.Storage.Data
             {
                 _extents[index] = new ExtentInfo();
             }
+
+            PageType = PageType.Distribution;
         }
         #endregion
 
@@ -253,11 +255,6 @@ namespace Zen.Trunk.Storage.Data
         /// The distribution lock.
         /// </value>
         public ObjectLockType DistributionLock { get; private set; } = ObjectLockType.IntentShared;
-
-        /// <summary>
-        /// Gets/sets the page type.
-        /// </summary>
-        public override PageType PageType => PageType.Distribution;
         #endregion
 
         #region Private Properties

@@ -32,28 +32,12 @@ namespace Zen.Trunk.Storage.Data.Table
 			_columnCount = new BufferFieldByte(base.LastHeaderField);
 			_constraintCount = new BufferFieldByte(_columnCount);
 			_indexCount = new BufferFieldByte(_constraintCount);
-		}
+
+            PageType = PageType.Table;
+        }
 		#endregion
 
 		#region Public Properties
-		/// <summary>
-		/// Gets/sets the page type.
-		/// </summary>
-		/// <value></value>
-		public override PageType PageType
-		{
-		    get => base.PageType;
-		    protected set
-			{
-				if (value != PageType.New &&
-					value != PageType.Table)
-				{
-					throw new ArgumentException("PageType must be New or Table.");
-				}
-				base.PageType = value;
-			}
-		}
-
 		/// <summary>
 		/// Gets the minimum number of bytes required for the header block.
 		/// </summary>

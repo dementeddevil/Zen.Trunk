@@ -10,11 +10,12 @@ namespace Zen.Trunk.Storage
 {
     [Trait("Subsystem", "Storage Engine")]
     [Trait("Class", "Page Buffer")]
-    public class PageBufferUnitTests : IClassFixture<StorageEngineTestFixture>
+    // ReSharper disable once InconsistentNaming
+    public class PageBuffer_should : IClassFixture<StorageEngineTestFixture>
     {
         private readonly StorageEngineTestFixture _fixture;
 
-        public PageBufferUnitTests(StorageEngineTestFixture fixture)
+        public PageBuffer_should(StorageEngineTestFixture fixture)
         {
             _fixture = fixture;
         }
@@ -22,7 +23,7 @@ namespace Zen.Trunk.Storage
         public IBufferDeviceFactory BufferDeviceFactory => _fixture.Scope.Resolve<IBufferDeviceFactory>();
 
         [Fact(DisplayName = "Validate page buffer switches state when init then free")]
-        public async Task ValidatePageBufferFreeThenInit()
+        public async Task change_state_from_free_to_allocated_when_initialised()
         {
             using (var tracker = new TempFileTracker())
             {
@@ -59,7 +60,7 @@ namespace Zen.Trunk.Storage
         }
 
         [Fact(DisplayName = "Validate page buffer switches state when init then load")]
-        public async Task ValidatePageBufferFreeThenLoad()
+        public async Task change_state_appropriately_when_loaded_and_freed()
         {
             using (var tracker = new TempFileTracker())
             {

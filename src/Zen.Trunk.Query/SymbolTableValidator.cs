@@ -339,6 +339,8 @@ namespace Zen.Trunk.Storage.Query
 
             if (string.IsNullOrEmpty(schemaName))
             {
+                // TODO: The default schema is a property of the active connection
+                //  and by default this is [dbo]
                 schemaName = "dbo";
             }
 

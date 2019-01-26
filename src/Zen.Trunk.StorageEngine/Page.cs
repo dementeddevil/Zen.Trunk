@@ -21,43 +21,6 @@ namespace Zen.Trunk.Storage
 	/// </remarks>
 	public abstract class Page : IDisposable
 	{
-		#region Internal Objects
-		private class NewPageInterceptorField : BufferField
-		{
-			private readonly Page _owner;
-
-			public NewPageInterceptorField(BufferField prev, Page owner)
-				: base(prev)
-			{
-				_owner = owner;
-			}
-
-			public override ushort MaxElements => 0;
-
-		    public override int DataSize => 0;
-
-		    public override int FieldLength => 0;
-
-		    protected override bool CanContinue(bool isReading)
-			{
-				if (isReading && _owner.PageType == PageType.New)
-				{
-					_owner.IsNewPage = true;
-					return false;
-				}
-				return true;
-			}
-
-			protected override void OnRead(SwitchingBinaryReader reader)
-			{
-			}
-
-			protected override void OnWrite(SwitchingBinaryWriter writer)
-			{
-			}
-		}
-		#endregion
-
 		#region Private Fields
 	    private static readonly ILog Logger = LogProvider.For<Page>();
 
@@ -71,7 +34,6 @@ namespace Zen.Trunk.Storage
 	    private ILifetimeScope _lifetimeScope;
 
 	    private readonly BufferFieldBitVector32 _status;
-		private readonly NewPageInterceptorField _newPageField;
 		private BitVector32.Section _pageType;
 		private bool _managedData = true;
 		private bool _headerDirty;
@@ -138,7 +100,6 @@ namespace Zen.Trunk.Storage
 		    }
 
 			_status = new BufferFieldBitVector32();
-			_newPageField = new NewPageInterceptorField(_status, this);
 
 			CreateStatus(0);
 		}
@@ -168,7 +129,7 @@ namespace Zen.Trunk.Storage
 	    /// <summary>
 		/// Gets/sets the page type.
 		/// </summary>
-		public virtual PageType PageType
+		public PageType PageType
 		{
 			get => (PageType)_status.Value[_pageType];
 	        protected set
@@ -251,7 +212,7 @@ namespace Zen.Trunk.Storage
         /// <value>
         /// The last header field.
         /// </value>
-        protected virtual BufferField LastHeaderField => _newPageField;
+        protected virtual BufferField LastHeaderField => _status;
 	    #endregion
 
 		#region Public Methods

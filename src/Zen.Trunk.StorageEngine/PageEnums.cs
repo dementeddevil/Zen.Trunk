@@ -8,11 +8,6 @@ namespace Zen.Trunk.Storage
 	public enum PageType : byte
 	{
 		/// <summary>
-		/// Indicates the page is new and uninitialised.
-		/// </summary>
-		New = 0,
-
-		/// <summary>
 		/// Indicates the page is a generic data page.
 		/// </summary>
 		Data = 1,

@@ -53,7 +53,9 @@ namespace Zen.Trunk.Storage.Data
 			_maximumPages = new BufferFieldUInt32(_allocatedPages);
 			_growthPages = new BufferFieldUInt32(_maximumPages);
 			_growthPercent = new BufferFieldDouble(_growthPages);
-		}
+
+            PageType = PageType.Root;
+        }
 		#endregion
 
 		#region Public Properties
@@ -63,12 +65,6 @@ namespace Zen.Trunk.Storage.Data
 	    /// </summary>
 	    /// <value>The type of the lock.</value>
 	    public FileGroupRootLockType FileGroupLock { get; private set; }
-
-	    /// <summary>
-		/// Overridden. Gets/sets the page status.
-		/// </summary>
-		/// <value></value>
-		public override PageType PageType => PageType.Root;
 
 	    /// <summary>
 		/// Overridden. Returns boolean true indicating this is a root page.
