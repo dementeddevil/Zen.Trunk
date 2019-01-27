@@ -33,6 +33,16 @@ namespace Zen.Trunk.Storage
         /// </summary>
         [CLSCompliant(false)]
         public ulong Value { get; }
+
+        /// <summary>
+        /// Gets a <see cref="LogicalPageId"/> representing the previous logical page.
+        /// </summary>
+        public LogicalPageId Previous => Value > 0 ? new LogicalPageId(Value - 1) : throw new ArgumentOutOfRangeException();
+
+        /// <summary>
+        /// Gets a <see cref="LogicalPageId"/> representing the next logical page.
+        /// </summary>
+        public LogicalPageId Next => Value < ulong.MaxValue ? new LogicalPageId(Value + 1) : throw new ArgumentOutOfRangeException();
         #endregion
 
         #region Public Methods
