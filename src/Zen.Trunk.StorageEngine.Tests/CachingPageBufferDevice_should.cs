@@ -11,19 +11,16 @@ using Zen.Trunk.VirtualMemory;
 namespace Zen.Trunk.Storage
 {
     [Trait("Subsystem", "Storage Engine")]
-    public class CachingPageBufferDeviceUnitTests : IClassFixture<StorageEngineTestFixture>, IDisposable
+    // ReSharper disable once InconsistentNaming
+    public class CachingPageBufferDevice_should : IClassFixture<StorageEngineTestFixture>
     {
-        private readonly StorageEngineTestFixture _fixture;
         private readonly ILifetimeScope _scope;
         private readonly List<IVirtualBuffer> _primaryDeviceBuffers = new List<IVirtualBuffer>();
         private readonly List<IVirtualBuffer> _secondaryDeviceBuffers = new List<IVirtualBuffer>();
-        private ICachingPageBufferDevice _pageBufferDevice;
 
-        public CachingPageBufferDeviceUnitTests(StorageEngineTestFixture fixture)
+        public CachingPageBufferDevice_should(StorageEngineTestFixture fixture)
         {
-            _fixture = fixture;
-
-            _scope = _fixture.Scope.BeginLifetimeScope(
+            _scope = fixture.Scope.BeginLifetimeScope(
                 builder =>
                 {
                     builder
@@ -98,74 +95,58 @@ namespace Zen.Trunk.Storage
 
         private Mock<IMultipleBufferDevice> MockedMultipleBufferDevice { get; }
 
-        private ICachingPageBufferDevice Sut
-        {
-            get
-            {
-                if (_pageBufferDevice == null)
-                {
-                    _pageBufferDevice = _scope.Resolve<ICachingPageBufferDevice>();
-                }
-                return _pageBufferDevice;
-            }
-        }
-
-        [Theory(DisplayName = "Given a valid load request, when flush is called, then the load method on MBD is called.")]
+        [Theory(DisplayName = nameof(CachingPageBufferDevice_should) + "_" + nameof(verify_load_on_buffer_device_is_called_when_load_request_is_flushed))]
         [MemberData(nameof(TestCases.GetValidDevicePages), MemberType = typeof(TestCases))]
-        public async Task GivenAValidLoadRequest_WhenFlushIsCalled_ThenTheLoadMethodOnMBDIsCalled(DeviceId deviceId, uint physicalPage)
+        public async Task verify_load_on_buffer_device_is_called_when_load_request_is_flushed(DeviceId deviceId, uint physicalPage)
         {
             // Arrange
-            // Act
-            await Sut
-                .LoadPageAsync(new VirtualPageId(deviceId, physicalPage))
-                .ConfigureAwait(true);
-            await Sut
-                .FlushPagesAsync(
-                    new FlushCachingDeviceParameters(true, false, DeviceId.Zero))
-                .ConfigureAwait(true);
+            using (var sut = _scope.Resolve<ICachingPageBufferDevice>())
+            {
+                // Act
+                await sut
+                        .LoadPageAsync(new VirtualPageId(deviceId, physicalPage))
+                        .ConfigureAwait(true);
+                await sut
+                    .FlushPagesAsync(
+                        new FlushCachingDeviceParameters(true, false, DeviceId.Zero))
+                    .ConfigureAwait(true);
+            }
 
             // Assert
             MockedMultipleBufferDevice
                 .Verify(mbd => mbd.LoadBufferAsync(new VirtualPageId(deviceId, physicalPage), It.IsAny<IVirtualBuffer>()));
         }
 
-        [Theory(DisplayName = "Given a valid loaded and dirty buffer, when the current transaction is committed and flush is called, then the save method on MBD is called.")]
+        [Theory(DisplayName = nameof(CachingPageBufferDevice_should) + "_" + nameof(verify_save_on_buffer_device_is_called_when_save_request_is_flushed))]
         [MemberData(nameof(TestCases.GetValidDevicePages), MemberType = typeof(TestCases))]
-        public async Task GivenAValidSaveRequest_WhenFlushIsCalled_ThenTheLoadMethodOnMBDIsCalled(DeviceId deviceId, uint physicalPage)
+        public async Task verify_save_on_buffer_device_is_called_when_save_request_is_flushed(DeviceId deviceId, uint physicalPage)
         {
-            TrunkTransactionContext.BeginTransaction(_scope);
-
             // Arrange
-            var pb = await Sut
-                .LoadPageAsync(new VirtualPageId(deviceId, physicalPage))
-                .ConfigureAwait(true);
-            await Sut
-                .FlushPagesAsync(
-                    new FlushCachingDeviceParameters(true, false, DeviceId.Zero))
-                .ConfigureAwait(true);
+            TrunkTransactionContext.BeginTransaction(_scope);
+            using (var sut = _scope.Resolve<ICachingPageBufferDevice>())
+            {
+                var pb = await sut
+                        .LoadPageAsync(new VirtualPageId(deviceId, physicalPage))
+                        .ConfigureAwait(true);
+                await sut
+                    .FlushPagesAsync(
+                        new FlushCachingDeviceParameters(true, false, DeviceId.Zero))
+                    .ConfigureAwait(true);
 
-            // Act
-            await pb.SetDirtyAsync().ConfigureAwait(true);
-            await TrunkTransactionContext.CommitAsync().ConfigureAwait(true);
-            await Sut
-                .FlushPagesAsync(
-                    new FlushCachingDeviceParameters(false, true, DeviceId.Zero))
-                .ConfigureAwait(true);
+                // Act
+                await pb.SetDirtyAsync().ConfigureAwait(true);
+                await TrunkTransactionContext.CommitAsync().ConfigureAwait(true);
+                await sut
+                    .FlushPagesAsync(
+                        new FlushCachingDeviceParameters(false, true, DeviceId.Zero))
+                    .ConfigureAwait(true);
+            }
 
             // Assert
             MockedMultipleBufferDevice
                 .Verify(mbd => mbd.LoadBufferAsync(new VirtualPageId(deviceId, physicalPage), It.IsAny<IVirtualBuffer>()), Times.Once);
             MockedMultipleBufferDevice
                 .Verify(mbd => mbd.LoadBufferAsync(new VirtualPageId(deviceId, physicalPage), It.IsAny<IVirtualBuffer>()), Times.Once);
-        }
-
-        public void Dispose()
-        {
-            if (_pageBufferDevice != null)
-            {
-                _pageBufferDevice.Dispose();
-                _pageBufferDevice = null;
-            }
         }
     }
 

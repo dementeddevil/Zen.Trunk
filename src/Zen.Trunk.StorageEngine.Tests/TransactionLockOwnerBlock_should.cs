@@ -1,4 +1,21 @@
-﻿using System;
+﻿// --------------------------------------------------------------------------------------------------------------------
+// <copyright file="TransactionLockOwnerBlock_should.cs" company="Zen Design Software">
+//   Copyright © Zen Design Software 2019
+// </copyright>
+// <summary>
+//   Zen.Trunk.NoInstaller.Zen.Trunk.StorageEngine.Tests.TrunkTransactionExtensions.cs
+//   Author:   Adrian Lewis
+//   Created:  10:28 28/01/2019
+//   Updated:  10:28 28/01/2019
+// 
+//   Summary description
+//   Runs unit tests related to transaction lock owner blocks
+//   NOTE: Since Xunit will run these tests in parallel you must ensure each test uses non-overlapping logical id page
+//      ranges and where applicable unique object identifiers to avoid unexpected side-effects.
+// </summary>
+// --------------------------------------------------------------------------------------------------------------------
+
+using System;
 using System.Threading.Tasks;
 using System.Transactions;
 using Autofac;
@@ -39,9 +56,10 @@ namespace Zen.Trunk.Storage
         {
             var objectId = new ObjectId(1);
             var startLogicalId = new LogicalPageId(10);
+            uint maxPageLocks = 5;
 
             // Setup minimal service container we need to get trunk transactions to work
-            var dlm = _scope.Resolve<IDatabaseLockManager>();
+            var databaseLockManager = _scope.Resolve<IDatabaseLockManager>();
 
             // Create two transaction objects
             ITrunkTransaction firstTransaction = new TrunkTransaction(_scope, IsolationLevel.ReadCommitted, TimeSpan.FromSeconds(10));
@@ -49,15 +67,15 @@ namespace Zen.Trunk.Storage
             Assert.NotEqual(firstTransaction.TransactionId, secondTransaction.TransactionId);
 
             // We need access to the Lock Owner Block (LOB) for each transaction
-            var firstTransactionLob = firstTransaction.GetTransactionLockOwnerBlock(dlm);
-            var secondTransactionLob = secondTransaction.GetTransactionLockOwnerBlock(dlm);
+            var firstTransactionLob = firstTransaction.GetTransactionLockOwnerBlock(databaseLockManager);
+            var secondTransactionLob = secondTransaction.GetTransactionLockOwnerBlock(databaseLockManager);
 
             // Locking semantics use transaction id held on current thread each lock/unlock needs scope
 
             // Lock for shared read on txn 1
             using (TrunkTransactionContext.SwitchTransactionContext(firstTransaction))
             {
-                var dataLockOwnerBlock = firstTransactionLob.GetOrCreateDataLockOwnerBlock(objectId, 5);
+                var dataLockOwnerBlock = firstTransactionLob.GetOrCreateDataLockOwnerBlock(objectId, maxPageLocks);
                 await dataLockOwnerBlock
                     .LockItemAsync(startLogicalId, DataLockType.Shared, TimeSpan.FromSeconds(5))
                     .ConfigureAwait(true);
@@ -66,7 +84,7 @@ namespace Zen.Trunk.Storage
             // Lock for shared read on txn 2
             using (TrunkTransactionContext.SwitchTransactionContext(secondTransaction))
             {
-                var dataLockOwnerBlock = secondTransactionLob.GetOrCreateDataLockOwnerBlock(objectId, 5);
+                var dataLockOwnerBlock = secondTransactionLob.GetOrCreateDataLockOwnerBlock(objectId, maxPageLocks);
                 await dataLockOwnerBlock
                     .LockItemAsync(startLogicalId, DataLockType.Shared, TimeSpan.FromSeconds(5))
                     .ConfigureAwait(true);
@@ -79,7 +97,7 @@ namespace Zen.Trunk.Storage
                         // Attempt to get exclusive lock on txn 2 (update succeeds but exclusive fails)
                         using (TrunkTransactionContext.SwitchTransactionContext(secondTransaction))
                         {
-                            var dataLockOwnerBlock = secondTransactionLob.GetOrCreateDataLockOwnerBlock(objectId, 5);
+                            var dataLockOwnerBlock = secondTransactionLob.GetOrCreateDataLockOwnerBlock(objectId, maxPageLocks);
                             await dataLockOwnerBlock
                                 .LockItemAsync(startLogicalId, DataLockType.Update, TimeSpan.FromSeconds(5))
                                 .ConfigureAwait(true);
@@ -98,12 +116,13 @@ namespace Zen.Trunk.Storage
         [Fact(DisplayName = nameof(TransactionLockOwnerBlock_should) + "_" + nameof(verify_lock_escalation_occurs_when_granular_lock_limit_exceeded))]
         public async Task verify_lock_escalation_occurs_when_granular_lock_limit_exceeded()
         {
+            uint maxPageLocks = 5;
             var objectId = new ObjectId(2);
             var startLogicalId = new LogicalPageId(20);
-            var endLogicalId = new LogicalPageId(25);
+            var endLogicalId = new LogicalPageId(20 + maxPageLocks);
 
             // Setup minimal service container we need to get trunk transactions to work
-            var dlm = _scope.Resolve<IDatabaseLockManager>();
+            var databaseLockManager = _scope.Resolve<IDatabaseLockManager>();
 
             // Create two transaction objects
             ITrunkTransaction firstTransaction = new TrunkTransaction(_scope, IsolationLevel.ReadCommitted, TimeSpan.FromSeconds(10));
@@ -111,14 +130,14 @@ namespace Zen.Trunk.Storage
             Assert.NotEqual(firstTransaction.TransactionId, secondTransaction.TransactionId);
 
             // We need access to the Lock Owner Block (LOB) for each transaction
-            var firstTransactionLob = firstTransaction.GetTransactionLockOwnerBlock(dlm);
+            var firstTransactionLob = firstTransaction.GetTransactionLockOwnerBlock(databaseLockManager);
 
             // Locking semantics use transaction id held on current thread each lock/unlock needs scope
 
             // Lock for shared read on txn 1
             using (TrunkTransactionContext.SwitchTransactionContext(firstTransaction))
             {
-                var dataLockOwnerBlock = firstTransactionLob.GetOrCreateDataLockOwnerBlock(objectId, 5);
+                var dataLockOwnerBlock = firstTransactionLob.GetOrCreateDataLockOwnerBlock(objectId, maxPageLocks);
                 for (var logicalId = startLogicalId; logicalId < endLogicalId; logicalId = logicalId.Next)
                 {
                     await dataLockOwnerBlock
@@ -161,12 +180,13 @@ namespace Zen.Trunk.Storage
         [Fact(DisplayName = nameof(TransactionLockOwnerBlock_should) + "_" + nameof(verify_no_escalation_on_txn2_when_escalated_on_txn1))]
         public async Task verify_no_escalation_on_txn2_when_escalated_on_txn1()
         {
+            uint maxPageLocks = 5;
             var objectId = new ObjectId(3);
             var startLogicalId = new LogicalPageId(30);
-            var endLogicalId = new LogicalPageId(35);
+            var endLogicalId = new LogicalPageId(30 + maxPageLocks);
 
             // Setup minimal service container we need to get trunk transactions to work
-            var dlm = _scope.Resolve<IDatabaseLockManager>();
+            var databaseLockManager = _scope.Resolve<IDatabaseLockManager>();
 
             // Create two transaction objects
             ITrunkTransaction firstTransaction = new TrunkTransaction(_scope, IsolationLevel.ReadCommitted, TimeSpan.FromSeconds(10));
@@ -174,15 +194,15 @@ namespace Zen.Trunk.Storage
             Assert.NotEqual(firstTransaction.TransactionId, secondTransaction.TransactionId);
 
             // We need access to the Lock Owner Block (LOB) for each transaction
-            var firstTransactionLob = firstTransaction.GetTransactionLockOwnerBlock(dlm);
-            var secondTransactionLob = secondTransaction.GetTransactionLockOwnerBlock(dlm);
+            var firstTransactionLob = firstTransaction.GetTransactionLockOwnerBlock(databaseLockManager);
+            var secondTransactionLob = secondTransaction.GetTransactionLockOwnerBlock(databaseLockManager);
 
             // Locking semantics use transaction id held on current thread each lock/unlock needs scope
 
             // Lock for shared read on txn 1
             using (TrunkTransactionContext.SwitchTransactionContext(firstTransaction))
             {
-                var dataLockOwnerBlock = firstTransactionLob.GetOrCreateDataLockOwnerBlock(objectId, 5);
+                var dataLockOwnerBlock = firstTransactionLob.GetOrCreateDataLockOwnerBlock(objectId, maxPageLocks);
                 for (var logicalId = startLogicalId; logicalId < endLogicalId; logicalId = logicalId.Next)
                 {
                     await dataLockOwnerBlock
@@ -208,7 +228,7 @@ namespace Zen.Trunk.Storage
             // Lock for shared read on txn 2
             using (TrunkTransactionContext.SwitchTransactionContext(secondTransaction))
             {
-                var dataLockOwnerBlock = secondTransactionLob.GetOrCreateDataLockOwnerBlock(objectId, 5);
+                var dataLockOwnerBlock = secondTransactionLob.GetOrCreateDataLockOwnerBlock(objectId, maxPageLocks);
                 await dataLockOwnerBlock
                     .LockItemAsync(startLogicalId, DataLockType.Shared, TimeSpan.FromSeconds(5))
                     .ConfigureAwait(true);
@@ -225,7 +245,7 @@ namespace Zen.Trunk.Storage
             //	an object-level escalation.
             using (TrunkTransactionContext.SwitchTransactionContext(secondTransaction))
             {
-                var dataLockOwnerBlock = secondTransactionLob.GetOrCreateDataLockOwnerBlock(objectId, 5);
+                var dataLockOwnerBlock = secondTransactionLob.GetOrCreateDataLockOwnerBlock(objectId, maxPageLocks);
                 await Assert
                     .ThrowsAsync<LockTimeoutException>(
                         async () =>

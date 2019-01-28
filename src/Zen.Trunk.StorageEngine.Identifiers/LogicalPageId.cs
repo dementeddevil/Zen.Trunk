@@ -47,6 +47,34 @@ namespace Zen.Trunk.Storage
 
         #region Public Methods
         /// <summary>
+        /// Gets a <see cref="LogicalPageId"/> that is the specified number
+        /// of pages away from the current instance.
+        /// </summary>
+        /// <param name="relativePages"></param>
+        /// <returns></returns>
+        public LogicalPageId Offset(int relativePages)
+        {
+            if (relativePages == 0)
+            {
+                return this;
+            }
+
+            try
+            {
+                if (relativePages > 0)
+                {
+                    return new LogicalPageId(Value + (uint)relativePages);
+                }
+
+                return new LogicalPageId(Value - (uint)relativePages);
+            }
+            catch (OverflowException exception)
+            {
+                throw new ArgumentOutOfRangeException(nameof(relativePages), exception);
+            }
+        }
+
+        /// <summary>
         /// Overridden. Gets a string representation of the type.
         /// </summary>
         /// <returns></returns>

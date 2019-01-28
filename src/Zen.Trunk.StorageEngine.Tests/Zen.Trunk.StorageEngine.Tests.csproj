@@ -160,7 +160,7 @@
     <Compile Include="TransactionLockObjectUnitTest.cs" />
     <Compile Include="StorageIndexUnitTest.cs" />
     <Compile Include="PageBuffer_should.cs" />
-    <Compile Include="CachingPageBufferDeviceUnitTests.cs" />
+    <Compile Include="CachingPageBufferDevice_should.cs" />
     <Compile Include="TrunkTransactionExtensions.cs" />
     <Compile Include="VirtualLogStreamUnitTests.cs" />
   </ItemGroup>
