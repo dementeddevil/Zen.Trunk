@@ -161,6 +161,7 @@
     <Compile Include="StorageIndexUnitTest.cs" />
     <Compile Include="PageBuffer_should.cs" />
     <Compile Include="CachingPageBufferDeviceUnitTests.cs" />
+    <Compile Include="TrunkTransactionExtensions.cs" />
     <Compile Include="VirtualLogStreamUnitTests.cs" />
   </ItemGroup>
   <ItemGroup>

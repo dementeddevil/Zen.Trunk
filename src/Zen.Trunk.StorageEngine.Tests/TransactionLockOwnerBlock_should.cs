@@ -13,19 +13,17 @@ namespace Zen.Trunk.Storage
     // ReSharper disable once InconsistentNaming
     public class TransactionLockOwnerBlock_should : IClassFixture<StorageEngineTestFixture>, IDisposable
     {
-        private readonly StorageEngineTestFixture _fixture;
         private readonly ILifetimeScope _scope;
 
         public TransactionLockOwnerBlock_should(StorageEngineTestFixture fixture)
         {
-            _fixture = fixture;
-            _scope = _fixture.Scope.BeginLifetimeScope(
+            _scope = fixture.Scope.BeginLifetimeScope(
                 builder =>
                 {
                     // ** Master log page device is needed to getting the atomic transaction id
                     // TODO: Change MasterLogPageDevice to use interface so we can mock
                     //	and implement the single method call we need...
-                    var pathName = _fixture.GlobalTracker.Get("LogDevice.mlb");
+                    var pathName = fixture.GlobalTracker.Get("LogDevice.mlb");
                     builder.RegisterType<MasterLogPageDevice>()
                         .WithParameter("pathName", pathName)
                         .As<IMasterLogPageDevice>()
@@ -262,15 +260,6 @@ namespace Zen.Trunk.Storage
         public void Dispose()
         {
             _scope.Dispose();
-        }
-    }
-
-    public static class TrunkTransactionExtensions
-    {
-        internal static TransactionLockOwnerBlock GetTransactionLockOwnerBlock(
-            this ITrunkTransaction transaction, IDatabaseLockManager lockManager)
-        {
-            return ((ITrunkTransactionPrivate) transaction).GetTransactionLockOwnerBlock(lockManager);
         }
     }
 }
