@@ -43,6 +43,7 @@ namespace Zen.Trunk.Storage
                 .WithBufferDeviceFactory()
                 .WithGlobalLockManager()
                 .WithDatabaseLockManager(PrimaryDatabaseId);
+            builder.WithDefaultSystemClock();
             builder.RegisterInstance(CachingPageBufferDeviceSettings)
                 .AsSelf();
         }

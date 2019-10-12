@@ -152,15 +152,16 @@
     <Compile Include="MultipleBufferDeviceBuilder.cs" />
     <Compile Include="TableRowPersistenceUnitTest.cs" />
     <Compile Include="TransactionEnricher.cs" />
-    <Compile Include="TransactionLockBlockUnitTest.cs" />
+    <Compile Include="TransactionLockOwnerBlock_should.cs" />
     <Compile Include="PageUnitTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="StorageEngineUnitTest.cs" />
     <Compile Include="TransactionLockHierarchyBuilder.cs" />
     <Compile Include="TransactionLockObjectUnitTest.cs" />
     <Compile Include="StorageIndexUnitTest.cs" />
-    <Compile Include="PageBufferUnitTests.cs" />
-    <Compile Include="CachingPageBufferDeviceUnitTests.cs" />
+    <Compile Include="PageBuffer_should.cs" />
+    <Compile Include="CachingPageBufferDevice_should.cs" />
+    <Compile Include="TrunkTransactionExtensions.cs" />
     <Compile Include="VirtualLogStreamUnitTests.cs" />
   </ItemGroup>
   <ItemGroup>

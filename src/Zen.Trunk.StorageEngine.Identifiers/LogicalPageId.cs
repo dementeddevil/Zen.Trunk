@@ -33,9 +33,47 @@ namespace Zen.Trunk.Storage
         /// </summary>
         [CLSCompliant(false)]
         public ulong Value { get; }
+
+        /// <summary>
+        /// Gets a <see cref="LogicalPageId"/> representing the previous logical page.
+        /// </summary>
+        public LogicalPageId Previous => Value > 0 ? new LogicalPageId(Value - 1) : throw new ArgumentOutOfRangeException();
+
+        /// <summary>
+        /// Gets a <see cref="LogicalPageId"/> representing the next logical page.
+        /// </summary>
+        public LogicalPageId Next => Value < ulong.MaxValue ? new LogicalPageId(Value + 1) : throw new ArgumentOutOfRangeException();
         #endregion
 
         #region Public Methods
+        /// <summary>
+        /// Gets a <see cref="LogicalPageId"/> that is the specified number
+        /// of pages away from the current instance.
+        /// </summary>
+        /// <param name="relativePages"></param>
+        /// <returns></returns>
+        public LogicalPageId Offset(int relativePages)
+        {
+            if (relativePages == 0)
+            {
+                return this;
+            }
+
+            try
+            {
+                if (relativePages > 0)
+                {
+                    return new LogicalPageId(Value + (uint)relativePages);
+                }
+
+                return new LogicalPageId(Value - (uint)relativePages);
+            }
+            catch (OverflowException exception)
+            {
+                throw new ArgumentOutOfRangeException(nameof(relativePages), exception);
+            }
+        }
+
         /// <summary>
         /// Overridden. Gets a string representation of the type.
         /// </summary>
