@@ -548,9 +548,15 @@ namespace Zen.Trunk.Storage.Data
 
                 if (!_shutdownToken.IsCancellationRequested)
                 {
-                    await Task
-                        .Delay(_cacheSettings.CacheFlushInterval, _shutdownToken.Token)
-                        .ConfigureAwait(false);
+                    try
+                    {
+                        await Task
+                            .Delay(_cacheSettings.CacheFlushInterval, _shutdownToken.Token)
+                            .ConfigureAwait(false);
+                    }
+                    catch (OperationCanceledException)
+                    {
+                    }
                 }
             }
 
@@ -588,9 +594,15 @@ namespace Zen.Trunk.Storage.Data
                 while (!_shutdownToken.IsCancellationRequested &&
                     _freePagePool.Count > _cacheSettings.MinimumFreePoolSize)
                 {
-                    await Task
-                        .Delay(_cacheSettings.FreePoolMonitorInterval, _shutdownToken.Token)
-                        .ConfigureAwait(false);
+                    try
+                    {
+                        await Task
+                            .Delay(_cacheSettings.FreePoolMonitorInterval, _shutdownToken.Token)
+                            .ConfigureAwait(false);
+                    }
+                    catch (OperationCanceledException)
+                    {
+                    }
                 }
             }
 

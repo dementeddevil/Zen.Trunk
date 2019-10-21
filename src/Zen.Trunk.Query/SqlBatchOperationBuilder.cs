@@ -25,12 +25,16 @@ namespace Zen.Trunk.Storage.Query
     {
         private SymbolDocumentInfo _documentInfo = Expression.SymbolDocument("blank.sql");
 
-        private int _transactionDepth;
-        private readonly List<Expression<Func<QueryExecutionContext, Task>>> _operations =
-            new List<Expression<Func<QueryExecutionContext, Task>>>();
-
         private readonly ParameterExpression _executionContextParameterExpression =
             Expression.Parameter(typeof(QueryExecutionContext), "executionContext");
+
+        public Func<QueryExecutionContext, Task> Compile(TrunkSqlParser.BatchContext context)
+        {
+            var expression = context.Accept(this);
+            var runner = Expression.Lambda<Func<QueryExecutionContext, Task>>(
+                expression, _executionContextParameterExpression);
+            return runner.Compile();
+        }
 
         /// <summary>
         /// Gets the default value returned by visitor methods.

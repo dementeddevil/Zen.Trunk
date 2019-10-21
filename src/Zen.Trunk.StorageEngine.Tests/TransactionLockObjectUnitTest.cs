@@ -55,7 +55,7 @@ namespace Zen.Trunk.Storage
                     await dataLock.LockAsync(firstLockOwner, DataLockType.Update, TimeSpan.FromSeconds(5)).ConfigureAwait(true);
                     Assert.True(false, "First transaction should not be able to acquire update lock.");
                 }
-                catch (TimeoutException)
+                catch (LockTimeoutException)
                 {
                 }
 
@@ -64,7 +64,7 @@ namespace Zen.Trunk.Storage
                     await dataLock.LockAsync(secondLockOwner, DataLockType.Exclusive, TimeSpan.FromSeconds(5)).ConfigureAwait(true);
                     Assert.True(false, "Second transaction should not be able to acquire exclusive lock.");
                 }
-                catch (TimeoutException)
+                catch (LockTimeoutException)
                 {
                 }
 
@@ -76,7 +76,7 @@ namespace Zen.Trunk.Storage
                     await dataLock.LockAsync(secondLockOwner, DataLockType.Exclusive, TimeSpan.FromSeconds(5)).ConfigureAwait(true);
                     Assert.True(await dataLock.HasLockAsync(secondLockOwner, DataLockType.Exclusive).ConfigureAwait(true));
                 }
-                catch (TimeoutException)
+                catch (LockTimeoutException)
                 {
                     Assert.True(false, "Failed to acquire exclusive lock.");
                 }

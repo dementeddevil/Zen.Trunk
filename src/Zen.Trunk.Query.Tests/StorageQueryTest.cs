@@ -75,7 +75,6 @@ namespace Zen.Trunk.Storage
                     batch.AppendFormat("filename=\'{0}\',\n", logFile);
                     batch.AppendLine("size=1024KB");
                     batch.AppendLine(")");
-                    batch.AppendLine("go");
                     var compiledBatch = executive.CompileBatch(batch.ToString());
                     
                     var context = new QueryExecutionContext(manager);
@@ -122,7 +121,6 @@ namespace Zen.Trunk.Storage
                 var batch = new StringBuilder();
                 batch.AppendLine(
                     $"SET TRANSACTION ISOLATION LEVEL {requestedIsolationLevel};");
-                batch.AppendLine("GO");
 
                 //await executive.ExecuteAsync(batch.ToString()).ConfigureAwait(true);
 

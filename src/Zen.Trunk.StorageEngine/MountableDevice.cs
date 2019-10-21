@@ -272,7 +272,7 @@ namespace Zen.Trunk.Storage
                 ref _deviceState, (int)newState, (int)currentState) != (int)currentState)
             {
                 throw new InvalidOperationException(
-                    "Buffer device is in unexpected state.");
+                    $"Buffer device is in unexpected state; cannot transition from {currentState} to {newState}; device is currently {(MountableDeviceState)_deviceState}");
             }
         }
         #endregion
