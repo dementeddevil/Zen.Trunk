@@ -29,7 +29,6 @@ namespace Zen.Trunk.VirtualMemory
         /// Flushes the request array under the assumption that each element
         /// relates to a pending read from the underlying stream.
         /// </summary>
-        /// <param name="stream">The stream.</param>
         /// <returns></returns>
         public override async Task FlushAsync()
         {

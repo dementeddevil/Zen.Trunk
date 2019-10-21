@@ -4,7 +4,7 @@ namespace Zen.Trunk.VirtualMemory
 {
     /// <summary>
     /// <c>StreamScatterGatherRequestQueueSettings</c> contains settings used
-    /// to configure a <see cref="StreamScatterGatherRequestQueue"/>.
+    /// to configure a <see cref="StreamScatterGatherRequestQueue{TScatterGatherRequestArray}"/>.
     /// </summary>
     public class StreamScatterGatherRequestQueueSettings
     {

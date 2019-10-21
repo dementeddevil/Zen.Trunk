@@ -1,10 +1,8 @@
-﻿using Zen.Trunk.Storage.BufferFields;
+﻿using System.Collections.Specialized;
+using Zen.Trunk.Storage.BufferFields;
 
 namespace Zen.Trunk.Storage.Data.Index
 {
-    using System;
-    using System.Collections.Specialized;
-
     /// <summary>
     /// <c>IndexPage</c> is a base class for pages needing indexing capability.
     /// </summary>

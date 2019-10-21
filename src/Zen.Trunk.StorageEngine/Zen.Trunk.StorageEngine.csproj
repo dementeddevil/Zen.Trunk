@@ -83,7 +83,7 @@
   <ItemGroup>
     <Compile Include="DatabaseDeviceMessages.cs" />
     <Compile Include="Data\Table\DatabaseTableFactory.cs" />
-    <Compile Include="Data\Table\FileGroupDeviceMessages.cs" />
+    <Compile Include="Data\FileGroupDeviceMessages.cs" />
     <Compile Include="Data\Table\IDatabaseTable.cs" />
     <Compile Include="Data\Table\IDatabaseTableFactory.cs" />
     <Compile Include="Locking\ILockHandler.cs" />

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.IO;
 using System.Threading.Tasks;
 using Autofac;
 using Serilog.Context;
@@ -25,7 +24,7 @@ namespace Zen.Trunk.Service
         private readonly string _masterDataPathname;
         private readonly string _masterLogPathname;
 
-        private ILifetimeScope _globalLifetmeScope;
+        private ILifetimeScope _globalLifetimeScope;
         private ILifetimeScope _serviceLifetimeScope;
         private IDisposable _serviceNameEnricher;
 
@@ -42,7 +41,7 @@ namespace Zen.Trunk.Service
             DatabasePathInformation pathInformation)
         {
             _hostSettings = hostSettings;
-            _globalLifetmeScope = container;
+            _globalLifetimeScope = container;
             _masterDataPathname = pathInformation.DataPathName;
             _masterLogPathname = pathInformation.LogPathName;
             _errorLogPathname = pathInformation.ErrorPathName;
@@ -138,8 +137,8 @@ namespace Zen.Trunk.Service
             // Teardown IoC
             _serviceLifetimeScope.Dispose();
             _serviceLifetimeScope = null;
-            _globalLifetmeScope.Dispose();
-            _globalLifetmeScope = null;
+            _globalLifetimeScope.Dispose();
+            _globalLifetimeScope = null;
             _serviceNameEnricher.Dispose();
             _serviceNameEnricher = null;
         }
