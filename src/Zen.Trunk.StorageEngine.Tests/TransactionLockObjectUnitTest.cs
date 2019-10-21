@@ -33,53 +33,71 @@ namespace Zen.Trunk.Storage
                 var secondLockOwner = new LockOwnerIdentity(
                     SessionId.Zero, new TransactionId(6));
 
-                await dataLock.LockAsync(firstLockOwner, DataLockType.Shared, TimeSpan.FromSeconds(30)).ConfigureAwait(true);
-                Assert.True(await dataLock.HasLockAsync(firstLockOwner, DataLockType.Shared).ConfigureAwait(true));
-                await dataLock.LockAsync(firstLockOwner, DataLockType.Update, TimeSpan.FromSeconds(30)).ConfigureAwait(true);
-                Assert.True(await dataLock.HasLockAsync(firstLockOwner, DataLockType.Update).ConfigureAwait(true));
-                await dataLock.LockAsync(firstLockOwner, DataLockType.Exclusive, TimeSpan.FromSeconds(30)).ConfigureAwait(true);
-                Assert.True(await dataLock.HasLockAsync(firstLockOwner, DataLockType.Exclusive).ConfigureAwait(true));
+                await dataLock
+                    .LockAsync(firstLockOwner, DataLockType.Shared, TimeSpan.FromSeconds(30))
+                    .ConfigureAwait(true);
+                Assert.True(await dataLock
+                    .HasLockAsync(firstLockOwner, DataLockType.Shared)
+                    .ConfigureAwait(true));
 
-                await dataLock.UnlockAsync(firstLockOwner, DataLockType.None).ConfigureAwait(true);
-                Assert.False(await dataLock.HasLockAsync(firstLockOwner, DataLockType.None).ConfigureAwait(true));
+                await dataLock
+                    .LockAsync(firstLockOwner, DataLockType.Update, TimeSpan.FromSeconds(30))
+                    .ConfigureAwait(true);
+                Assert.True(await dataLock
+                    .HasLockAsync(firstLockOwner, DataLockType.Update)
+                    .ConfigureAwait(true));
 
-                await dataLock.LockAsync(firstLockOwner, DataLockType.Shared, TimeSpan.FromSeconds(30)).ConfigureAwait(true);
-                Assert.True(await dataLock.HasLockAsync(firstLockOwner, DataLockType.Shared).ConfigureAwait(true));
-                await dataLock.LockAsync(secondLockOwner, DataLockType.Shared, TimeSpan.FromSeconds(30)).ConfigureAwait(true);
-                Assert.True(await dataLock.HasLockAsync(secondLockOwner, DataLockType.Shared).ConfigureAwait(true));
+                await dataLock
+                    .LockAsync(firstLockOwner, DataLockType.Exclusive, TimeSpan.FromSeconds(30))
+                    .ConfigureAwait(true);
+                Assert.True(await dataLock
+                    .HasLockAsync(firstLockOwner, DataLockType.Exclusive)
+                    .ConfigureAwait(true));
+
+                await dataLock
+                    .UnlockAsync(firstLockOwner, DataLockType.None)
+                    .ConfigureAwait(true);
+                Assert.False(await dataLock
+                    .HasLockAsync(firstLockOwner, DataLockType.None)
+                    .ConfigureAwait(true));
+
+                await dataLock
+                    .LockAsync(firstLockOwner, DataLockType.Shared, TimeSpan.FromSeconds(30))
+                    .ConfigureAwait(true);
+                Assert.True(await dataLock
+                    .HasLockAsync(firstLockOwner, DataLockType.Shared)
+                    .ConfigureAwait(true));
+
+                await dataLock
+                    .LockAsync(secondLockOwner, DataLockType.Shared, TimeSpan.FromSeconds(30))
+                    .ConfigureAwait(true);
+                Assert.True(await dataLock
+                    .HasLockAsync(secondLockOwner, DataLockType.Shared)
+                    .ConfigureAwait(true));
 
                 await dataLock.LockAsync(secondLockOwner, DataLockType.Update, TimeSpan.FromSeconds(5)).ConfigureAwait(true);
                 Assert.True(await dataLock.HasLockAsync(secondLockOwner, DataLockType.Update).ConfigureAwait(true));
-                try
-                {
-                    await dataLock.LockAsync(firstLockOwner, DataLockType.Update, TimeSpan.FromSeconds(5)).ConfigureAwait(true);
-                    Assert.True(false, "First transaction should not be able to acquire update lock.");
-                }
-                catch (TimeoutException)
-                {
-                }
+                await Assert.ThrowsAsync<LockTimeoutException>(
+                    async () =>
+                    {
+                        await dataLock
+                            .LockAsync(firstLockOwner, DataLockType.Update, TimeSpan.FromSeconds(5))
+                            .ConfigureAwait(true);
+                    });
 
-                try
-                {
-                    await dataLock.LockAsync(secondLockOwner, DataLockType.Exclusive, TimeSpan.FromSeconds(5)).ConfigureAwait(true);
-                    Assert.True(false, "Second transaction should not be able to acquire exclusive lock.");
-                }
-                catch (TimeoutException)
-                {
-                }
+                await Assert.ThrowsAsync<LockTimeoutException>(
+                    async () =>
+                    {
+                        await dataLock
+                            .LockAsync(secondLockOwner, DataLockType.Exclusive, TimeSpan.FromSeconds(5))
+                            .ConfigureAwait(true);
+                    });
 
                 await dataLock.UnlockAsync(firstLockOwner, DataLockType.None).ConfigureAwait(true);
                 Assert.False(await dataLock.HasLockAsync(firstLockOwner, DataLockType.None).ConfigureAwait(true));
 
-                try
-                {
-                    await dataLock.LockAsync(secondLockOwner, DataLockType.Exclusive, TimeSpan.FromSeconds(5)).ConfigureAwait(true);
-                    Assert.True(await dataLock.HasLockAsync(secondLockOwner, DataLockType.Exclusive).ConfigureAwait(true));
-                }
-                catch (TimeoutException)
-                {
-                    Assert.True(false, "Failed to acquire exclusive lock.");
-                }
+                await dataLock.LockAsync(secondLockOwner, DataLockType.Exclusive, TimeSpan.FromSeconds(5)).ConfigureAwait(true);
+                Assert.True(await dataLock.HasLockAsync(secondLockOwner, DataLockType.Exclusive).ConfigureAwait(true));
 
                 await dataLock.UnlockAsync(secondLockOwner, DataLockType.None).ConfigureAwait(true);
                 Assert.False(await dataLock.HasLockAsync(secondLockOwner, DataLockType.None).ConfigureAwait(true));

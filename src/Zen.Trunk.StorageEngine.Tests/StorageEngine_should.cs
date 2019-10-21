@@ -14,17 +14,18 @@ namespace Zen.Trunk.Storage
 {
     [Trait("Subsystem", "Storage Engine")]
     [Trait("Class", "Database Device")]
-    public class StorageEngineUnitTest : IClassFixture<StorageEngineTestFixture>
+    // ReSharper disable once InconsistentNaming
+    public class StorageEngine_should : IClassFixture<StorageEngineTestFixture>
     {
         private readonly StorageEngineTestFixture _fixture;
 
-        public StorageEngineUnitTest(StorageEngineTestFixture fixture)
+        public StorageEngine_should(StorageEngineTestFixture fixture)
         {
             _fixture = fixture;
         }
 
-        [Fact(DisplayName = "Validate create database under transaction works as expected")]
-        public async Task DatabaseCreateTxnTest()
+        [Fact(DisplayName = nameof(StorageEngine_should) + "_" + nameof(create_database_under_transaction))]
+        public async Task create_database_under_transaction()
         {
             var masterDataPathName = _fixture.GlobalTracker.Get("master1.mddf");
             var masterLogPathName = _fixture.GlobalTracker.Get("master1.mlf");
@@ -60,8 +61,8 @@ namespace Zen.Trunk.Storage
             }
         }
 
-        [Fact(DisplayName = "Validate create database and streaming data into several pages under transaction works as expected")]
-        public async Task DatabaseCreateStreamTxnTest()
+        [Fact(DisplayName = nameof(StorageEngine_should) + "_" + nameof(support_streaming_data_into_multiple_pages_and_commit_successfully))]
+        public async Task support_streaming_data_into_multiple_pages_and_commit_successfully()
         {
             var masterDataPathName = _fixture.GlobalTracker.Get("master2.mddf");
             var masterLogPathName = _fixture.GlobalTracker.Get("master2.mlf");
@@ -194,9 +195,8 @@ namespace Zen.Trunk.Storage
             }
         }
 
-
-        [Fact(DisplayName = "Validate that creating database table under transaction works as expected.")]
-        public async Task DatabaseCreateTableTxnTest()
+        [Fact(DisplayName = nameof(StorageEngine_should) + "_" + nameof(create_a_table_and_commit_successfully))]
+        public async Task create_a_table_and_commit_successfully()
         {
             var masterDataPathName = _fixture.GlobalTracker.Get("master3.mddf");
             var masterLogPathName = _fixture.GlobalTracker.Get("master3.mlf");
@@ -288,8 +288,8 @@ namespace Zen.Trunk.Storage
             }
         }
 
-        [Fact(DisplayName = "Validate that creating database table and set of indicies under transaction works as expected.")]
-        public async Task DatabaseCreateTableAndIndiciesTxnTest()
+        [Fact(DisplayName = nameof(StorageEngine_should) + "_" + nameof(create_table_and_index_and_commit_successfully))]
+        public async Task create_table_and_index_and_commit_successfully()
         {
             var masterDataPathName = _fixture.GlobalTracker.Get("master4.mddf");
             var masterLogPathName = _fixture.GlobalTracker.Get("master4.mlf");
@@ -421,8 +421,8 @@ namespace Zen.Trunk.Storage
             }
         }
 
-        [Fact(DisplayName = "Verify USE DATABASE statement creates shared database lock.")]
-        public async Task UseDatabaseLockTest()
+        [Fact(DisplayName = nameof(StorageEngine_should) + "_" + nameof(create_session_lock_with_use_database_entrypoint))]
+        public async Task create_session_lock_with_use_database_entrypoint()
         {
             using (TrunkSessionContext.SwitchSessionContext(
                 new TrunkSession(new SessionId(1), TimeSpan.FromSeconds(60))))

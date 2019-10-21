@@ -5,7 +5,9 @@ using Zen.Trunk.Storage.Data.Table;
 
 namespace Zen.Trunk.Storage
 {
-    public class TableRowPersistenceUnitTest
+    [Trait("Subsystem", "Storage Engine")]
+    [Trait("Class", "Table Row")]
+    public class TableRowPersistence_should
     {
         public List<TableColumnInfo> ColumnDefinition { get; } =
             new List<TableColumnInfo>
@@ -16,8 +18,8 @@ namespace Zen.Trunk.Storage
                 new TableColumnInfo("block", TableColumnDataType.Int)
             };
 
-        [Fact(DisplayName = "Given a column definition, When 10 rows are written, Then the same data can be read")]
-        public void TableRowReadWriteTest()
+        [Fact(DisplayName = nameof(TableRowPersistence_should) + "_" + nameof(read_the_same_data_that_is_written_to_a_stream))]
+        public void read_the_same_data_that_is_written_to_a_stream()
         {
             using (var stream = new MemoryStream())
             {

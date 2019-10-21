@@ -13,11 +13,11 @@ namespace Zen.Trunk.Storage
 {
     [Trait("Subsystem", "Storage Engine")]
     [Trait("Class", "Page")]
-    public class PageUnitTest : IClassFixture<StorageEngineTestFixture>
+    public class Page_should : IClassFixture<StorageEngineTestFixture>
     {
         private readonly StorageEngineTestFixture _fixture;
 
-        public PageUnitTest(StorageEngineTestFixture fixture)
+        public Page_should(StorageEngineTestFixture fixture)
         {
             _fixture = fixture;
         }
@@ -96,11 +96,8 @@ namespace Zen.Trunk.Storage
             }
         }
 
-        [Fact(DisplayName = @"
-Given a distribution page that can store 128 extents with 128 allocated extents
-When the 129th extent is allocated,
-Then the allocation fails.")]
-        public async Task DistributionValidExtentNonMixedTest()
+        [Fact(DisplayName = nameof(Page_should) + "_" + nameof(fail_allocation_when_distribution_page_extents_are_exhausted))]
+        public async Task fail_allocation_when_distribution_page_extents_are_exhausted()
         {
             var pageDevice = new MockPageDevice(_fixture.Scope);
 
@@ -143,8 +140,8 @@ Then the allocation fails.")]
             await TrunkTransactionContext.CommitAsync().ConfigureAwait(true);
         }
 
-        [Fact(DisplayName = "All concrete page classes have header block no larger than maximum permitted.")]
-        public void PageSizeTest()
+        [Fact(DisplayName = nameof(Page_should) + "_" + nameof(verify_all_concrete_page_classes_have_header_block_smaller_than_maximum))]
+        public void verify_all_concrete_page_classes_have_header_block_smaller_than_maximum()
         {
             var concretePages = typeof(Page)
                 .Assembly

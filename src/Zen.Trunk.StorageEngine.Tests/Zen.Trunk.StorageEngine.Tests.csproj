@@ -150,12 +150,12 @@
     <Compile Include="IRootLockBuilder.cs" />
     <Compile Include="ITransactionLockHierarchy.cs" />
     <Compile Include="MultipleBufferDeviceBuilder.cs" />
-    <Compile Include="TableRowPersistenceUnitTest.cs" />
+    <Compile Include="TableRowPersistence_should.cs" />
     <Compile Include="TransactionEnricher.cs" />
     <Compile Include="TransactionLockOwnerBlock_should.cs" />
-    <Compile Include="PageUnitTest.cs" />
+    <Compile Include="Page_should.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="StorageEngineUnitTest.cs" />
+    <Compile Include="StorageEngine_should.cs" />
     <Compile Include="TransactionLockHierarchyBuilder.cs" />
     <Compile Include="TransactionLockObjectUnitTest.cs" />
     <Compile Include="StorageIndexUnitTest.cs" />
