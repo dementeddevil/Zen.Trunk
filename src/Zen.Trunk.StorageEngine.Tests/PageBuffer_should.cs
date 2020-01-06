@@ -28,7 +28,7 @@ namespace Zen.Trunk.Storage
             using (var tracker = new TempFileTracker())
             {
                 using (var device = BufferDeviceFactory.CreateSingleBufferDevice(
-                    "master", tracker.Get("master.dat"), 8, true))
+                    "master", tracker.Get($"{nameof(change_state_from_free_to_allocated_when_initialised)}.dat"), 8, true))
                 {
                     TrunkTransactionContext.BeginTransaction(_fixture.Scope);
 
@@ -65,7 +65,7 @@ namespace Zen.Trunk.Storage
             using (var tracker = new TempFileTracker())
             {
                 using (var device = BufferDeviceFactory.CreateSingleBufferDevice(
-                    "master", tracker.Get("master.dat"), 8, true))
+                    "master", tracker.Get($"{nameof(change_state_appropriately_when_loaded_and_freed)}.dat"), 8, true))
                 {
                     await device.OpenAsync().ConfigureAwait(true);
 
@@ -111,7 +111,7 @@ namespace Zen.Trunk.Storage
             using (var tracker = new TempFileTracker())
             {
                 using (var device = BufferDeviceFactory.CreateSingleBufferDevice(
-                    "master", tracker.Get("master.dat"), 8, true))
+                    "master", tracker.Get($"{nameof(ValidatePageBufferFreeThenLoadWriteSave)}.dat"), 8, true))
                 {
                     await device.OpenAsync().ConfigureAwait(true);
 

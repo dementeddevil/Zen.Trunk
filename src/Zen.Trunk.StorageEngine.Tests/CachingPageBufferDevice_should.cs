@@ -95,7 +95,7 @@ namespace Zen.Trunk.Storage
         private Mock<IMultipleBufferDevice> MockedMultipleBufferDevice { get; }
 
         [Theory(DisplayName = nameof(CachingPageBufferDevice_should) + "_" + nameof(verify_load_on_buffer_device_is_called_when_load_request_is_flushed))]
-        [MemberData(nameof(TestCases.GetValidDevicePages), MemberType = typeof(TestCases))]
+        [MemberData(nameof(TestCases.GetValidDevicePagesForLoad), MemberType = typeof(TestCases))]
         public async Task verify_load_on_buffer_device_is_called_when_load_request_is_flushed(DeviceId deviceId, uint physicalPage)
         {
             // Arrange
@@ -117,7 +117,7 @@ namespace Zen.Trunk.Storage
         }
 
         [Theory(DisplayName = nameof(CachingPageBufferDevice_should) + "_" + nameof(verify_save_on_buffer_device_is_called_when_save_request_is_flushed))]
-        [MemberData(nameof(TestCases.GetValidDevicePages), MemberType = typeof(TestCases))]
+        [MemberData(nameof(TestCases.GetValidDevicePagesForSave), MemberType = typeof(TestCases))]
         public async Task verify_save_on_buffer_device_is_called_when_save_request_is_flushed(DeviceId deviceId, uint physicalPage)
         {
             // Arrange
@@ -159,7 +159,7 @@ namespace Zen.Trunk.Storage
 
         public static string SecondaryDeviceName => "foobar";
 
-        public static IEnumerable<object[]> GetValidDevicePages()
+        public static IEnumerable<object[]> GetValidDevicePagesForLoad()
         {
             yield return new object[] { PrimaryDeviceId, 0 };
             yield return new object[] { PrimaryDeviceId, 1 };
@@ -178,6 +178,27 @@ namespace Zen.Trunk.Storage
             yield return new object[] { SecondaryDeviceId, 5 };
             yield return new object[] { SecondaryDeviceId, 6 };
             yield return new object[] { SecondaryDeviceId, 7 };
+        }
+
+        public static IEnumerable<object[]> GetValidDevicePagesForSave()
+        {
+            yield return new object[] { PrimaryDeviceId, 10 };
+            yield return new object[] { PrimaryDeviceId, 11 };
+            yield return new object[] { PrimaryDeviceId, 12 };
+            yield return new object[] { PrimaryDeviceId, 13 };
+            yield return new object[] { PrimaryDeviceId, 14 };
+            yield return new object[] { PrimaryDeviceId, 15 };
+            yield return new object[] { PrimaryDeviceId, 16 };
+            yield return new object[] { PrimaryDeviceId, 17 };
+
+            yield return new object[] { SecondaryDeviceId, 10 };
+            yield return new object[] { SecondaryDeviceId, 11 };
+            yield return new object[] { SecondaryDeviceId, 12 };
+            yield return new object[] { SecondaryDeviceId, 13 };
+            yield return new object[] { SecondaryDeviceId, 14 };
+            yield return new object[] { SecondaryDeviceId, 15 };
+            yield return new object[] { SecondaryDeviceId, 16 };
+            yield return new object[] { SecondaryDeviceId, 17 };
         }
     }
 }
