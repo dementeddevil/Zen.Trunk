@@ -2,8 +2,9 @@
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using Serilog;
+using Serilog.Context;
 using Zen.Trunk.Extensions;
-using Zen.Trunk.Logging;
 
 namespace Zen.Trunk.VirtualMemory
 {
@@ -14,8 +15,7 @@ namespace Zen.Trunk.VirtualMemory
     public abstract class BufferDevice : IBufferDevice
 	{
 		#region Private Fields
-	    private static readonly ILog Logger = LogProvider.For<BufferDevice>();
-
+		private static readonly ILogger Logger = Log.ForContext<BufferDevice>();
 		private int _deviceState = (int)MountableDeviceState.Closed;
 		private bool _disposed;
 		#endregion
@@ -46,21 +46,21 @@ namespace Zen.Trunk.VirtualMemory
 		/// <returns></returns>
 		public async Task OpenAsync()
 		{
-		    using (Logger.BeginDebugTimingLogScope($"{GetType().Name}.OpenAsync"))
-		    {
-		        CheckDisposed();
-		        MutateStateOrThrow(MountableDeviceState.Closed, MountableDeviceState.Opening);
-		        try
-		        {
-		            await OnOpenAsync().ConfigureAwait(false);
-		        }
-		        catch
-		        {
-		            MutateStateOrThrow(MountableDeviceState.Opening, MountableDeviceState.Closed);
-		            throw;
-		        }
-		        MutateStateOrThrow(MountableDeviceState.Opening, MountableDeviceState.Open);
-		    }
+			using (LogContext.PushProperty("Method", nameof(OpenAsync)))
+			{
+				CheckDisposed();
+				MutateStateOrThrow(MountableDeviceState.Closed, MountableDeviceState.Opening);
+				try
+				{
+					await OnOpenAsync().ConfigureAwait(false);
+				}
+				catch
+				{
+					MutateStateOrThrow(MountableDeviceState.Opening, MountableDeviceState.Closed);
+					throw;
+				}
+				MutateStateOrThrow(MountableDeviceState.Opening, MountableDeviceState.Open);
+			}
 		}
 
 		/// <summary>
@@ -69,9 +69,9 @@ namespace Zen.Trunk.VirtualMemory
 		/// <returns></returns>
 		public async Task CloseAsync()
 		{
-		    using (Logger.BeginDebugTimingLogScope($"{GetType().Name}.CloseAsync"))
+            using (LogContext.PushProperty("Method", nameof(CloseAsync)))
 		    {
-		        CheckDisposed();
+				CheckDisposed();
 		        MutateStateOrThrow(MountableDeviceState.Open, MountableDeviceState.Closing);
 		        try
 		        {
@@ -173,8 +173,7 @@ namespace Zen.Trunk.VirtualMemory
 			if (Interlocked.CompareExchange(
 				ref _deviceState, (int)newState, (int)currentState) != (int)currentState)
 			{
-				throw new InvalidOperationException(
-					"Buffer device is in unexpected state.");
+				throw new InvalidOperationException("Buffer device is in unexpected state.");
 			}
 		}
 		#endregion

@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Zen.Trunk.Logging;
+using Serilog;
+using Serilog.Context;
 using Zen.Trunk.Storage.Locking;
 using Zen.Trunk.Utils;
 using Zen.Trunk.VirtualMemory;
@@ -15,7 +16,7 @@ namespace Zen.Trunk.Storage.Data
     public abstract class DistributionPageDevice : PageDevice
     {
         #region Private Fields
-        private static readonly ILog Logger = LogProvider.For<DistributionPageDevice>();
+        private static readonly ILogger Logger = Serilog.Log.ForContext<DistributionPageDevice>();
 
         private FileGroupDevice _fileGroupDevice;
         #endregion
@@ -231,12 +232,11 @@ namespace Zen.Trunk.Storage.Data
                     var deviceInfo = bufferDevice.GetDeviceInfo(DeviceId);
                     rootPage.AllocatedPages = deviceInfo.PageCount;
                     var pageCount = rootPage.AllocatedPages;
-                    if (Logger.IsDebugEnabled())
-                    {
-                        Logger.Debug(
-                            $"Preparing to create distribution pages to cover device {DeviceId} of {pageCount} pages");
-                    }
-
+                    Logger.Debug(
+                        "Preparing to create distribution pages to cover device {DeviceId} of {PageCount} pages",
+                        DeviceId,
+                        pageCount);
+                    
                     var subTasks = new List<Task>();
 
                     // Calculate number of distribution pages to deal with
@@ -257,11 +257,9 @@ namespace Zen.Trunk.Storage.Data
                         }
 
                         // Wait for all pages to init or load and import
-                        if (Logger.IsDebugEnabled())
-                        {
-                            Logger.Debug(
-                                $"Waiting for distribution page creation to complete for device {DeviceId}...");
-                        }
+                        Logger.Debug(
+                            "Waiting for distribution page creation to complete for device {DeviceId}...",
+                            DeviceId);
 
                         await TaskExtra
                             .WhenAllOrEmpty(subTasks.ToArray())
@@ -283,12 +281,11 @@ namespace Zen.Trunk.Storage.Data
                     await LoadRootPageAsync().ConfigureAwait(false))
                 {
                     var pageCount = rootPage.AllocatedPages;
-                    if (Logger.IsDebugEnabled())
-                    {
-                        Logger.Debug(
-                            $"Preparing to load distribution pages to cover device {DeviceId} of {pageCount} pages");
-                    }
-
+                    Logger.Debug(
+                        "Preparing to load distribution pages to cover device {DeviceId} of {PageCount} pages",
+                        DeviceId,
+                        pageCount);
+                    
                     var subTasks = new List<Task>();
 
                     // Calculate number of distribution pages to deal with
@@ -308,11 +305,9 @@ namespace Zen.Trunk.Storage.Data
                         }
 
                         // Wait for all pages to init or load and import
-                        if (Logger.IsDebugEnabled())
-                        {
-                            Logger.Debug(
-                                $"Waiting for distribution page loading to complete for device {DeviceId}...");
-                        }
+                        Logger.Debug(
+                            "Waiting for distribution page loading to complete for device {DeviceId}...",
+                            DeviceId);
 
                         await TaskExtra
                             .WhenAllOrEmpty(subTasks.ToArray())
@@ -342,7 +337,7 @@ namespace Zen.Trunk.Storage.Data
 
         private async Task InitDistributionPage(DistributionPage page, uint distributionPageIndex, uint devicePageCount)
         {
-            using (Logger.BeginDebugTimingLogScope("InitDistributionPage"))
+            using (LogContext.PushProperty("Method", nameof(InitDistributionPage)))
             {
                 try
                 {
@@ -358,11 +353,10 @@ namespace Zen.Trunk.Storage.Data
                     // Setup the page virtual id
                     var pageId = new VirtualPageId(DeviceId, physicalId);
                     page.VirtualPageId = pageId;
-                    if (Logger.IsDebugEnabled())
-                    {
-                        Logger.Debug($"Distribution page at {pageId}");
-                    }
-
+                    Logger.Debug(
+                        "Distribution page at {PageId}",
+                        pageId);
+                    
                     // Issue the sub-ordinate request
                     await FileGroupDevice.InitDataPageAsync(
                         new InitDataPageParameters(page)).ConfigureAwait(false);
@@ -373,10 +367,10 @@ namespace Zen.Trunk.Storage.Data
                 }
                 catch (Exception error)
                 {
-                    if (Logger.IsErrorEnabled())
-                    {
-                        Logger.ErrorException($"Init distribution page failed {error.Message}", error);
-                    }
+                    Logger.Error(
+                        error,
+                        "Init distribution page failed {Message}",
+                        error.Message);
                     throw;
                 }
             }
@@ -384,7 +378,7 @@ namespace Zen.Trunk.Storage.Data
 
         private async Task LoadDistributionPage(DistributionPage page, uint distributionPageIndex)
         {
-            using (Logger.BeginDebugTimingLogScope("LoadDistributionPage"))
+            using (LogContext.PushProperty("Method", nameof(LoadDistributionPage)))
             {
                 try
                 {
@@ -395,10 +389,9 @@ namespace Zen.Trunk.Storage.Data
                     var physicalId = ((distributionPageIndex * (DistributionPage.PageTrackingCount + 1)) + DistributionPageOffset);
                     var pageId = new VirtualPageId(DeviceId, physicalId);
                     page.VirtualPageId = pageId;
-                    if (Logger.IsDebugEnabled())
-                    {
-                        Logger.Debug($"Distribution page at {pageId}");
-                    }
+                    Logger.Debug(
+                        "Distribution page at {PageId}",
+                        pageId);
 
                     // Issue the sub-ordinate request
                     await FileGroupDevice
@@ -407,10 +400,10 @@ namespace Zen.Trunk.Storage.Data
                 }
                 catch (Exception error)
                 {
-                    if (Logger.IsErrorEnabled())
-                    {
-                        Logger.ErrorException($"Load distribution page failed {error.Message}", error);
-                    }
+                    Logger.Error(
+                        error,
+                        "Load distribution page failed {Message}",
+                        error.Message);
                     throw;
                 }
             }

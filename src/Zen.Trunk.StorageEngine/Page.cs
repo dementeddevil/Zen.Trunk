@@ -4,8 +4,8 @@ using System.ComponentModel;
 using System.IO;
 using System.Threading.Tasks;
 using Autofac;
+using Serilog;
 using Zen.Trunk.IO;
-using Zen.Trunk.Logging;
 using Zen.Trunk.Storage.BufferFields;
 using Zen.Trunk.VirtualMemory;
 
@@ -15,15 +15,14 @@ namespace Zen.Trunk.Storage
 	/// <b>Page</b> objects represents a 64Kb buffer block.
 	/// </summary>
 	/// <remarks>
-	/// Pages are seperated into a header section and a data section.
+	/// Pages are separated into a header section and a data section.
 	/// In the base class the header only contains a single byte used to
 	/// track status bits for the page.
 	/// </remarks>
 	public abstract class Page : IDisposable
 	{
 		#region Private Fields
-	    private static readonly ILog Logger = LogProvider.For<Page>();
-
+        private static readonly ILogger Logger = Serilog.Log.ForContext<Page>();
 		private static readonly object InitEvent = new object();
 		private static readonly object LoadEvent = new object();
 		private static readonly object SaveEvent = new object();
@@ -94,11 +93,6 @@ namespace Zen.Trunk.Storage
 		/// </summary>
 		protected Page()
 		{
-		    if (Logger.IsDebugEnabled())
-		    {
-		        Logger.Debug($"{GetType().Name} ctor");
-		    }
-
 			_status = new BufferFieldBitVector32();
 
 			CreateStatus(0);

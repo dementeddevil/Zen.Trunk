@@ -5,8 +5,8 @@ using System.Threading.Tasks;
 using System.Transactions;
 using Autofac;
 using Autofac.Core;
+using Serilog.Context;
 using Zen.Trunk.Extensions;
-using Zen.Trunk.Logging;
 using Zen.Trunk.Storage.Locking;
 using Zen.Trunk.VirtualMemory;
 
@@ -20,8 +20,6 @@ namespace Zen.Trunk.Storage
     public abstract class MountableDevice : IMountableDevice, IDisposable
     {
         #region Private Fields
-        private static readonly ILog Logger = LogProvider.For<MountableDevice>();
-
         private int _deviceState = (int)MountableDeviceState.Closed;
         private bool _disposed;
         #endregion
@@ -71,7 +69,7 @@ namespace Zen.Trunk.Storage
         /// <exception cref="InvalidOperationException"></exception>
         public async Task OpenAsync(bool isCreate)
         {
-            using (Logger.BeginDebugTimingLogScope($"{GetType().Name}.OpenAsync"))
+            using (LogContext.PushProperty("Method", nameof(OpenAsync)))
             {
                 if (LifetimeScope == null)
                 {
@@ -106,7 +104,7 @@ namespace Zen.Trunk.Storage
         /// </returns>
         public async Task CloseAsync()
         {
-            using (Logger.BeginDebugTimingLogScope($"{GetType().Name}.CloseAsync"))
+            using (LogContext.PushProperty("Method", nameof(CloseAsync)))
             {
                 CheckDisposed();
                 MutateStateOrThrow(MountableDeviceState.Open, MountableDeviceState.Closing);

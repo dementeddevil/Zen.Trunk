@@ -90,6 +90,10 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="Serilog, Version=2.0.0.0, Culture=neutral, PublicKeyToken=24c2f752a8e58a10, processorArchitecture=MSIL">
+      <HintPath>..\packages\Serilog.2.9.0\lib\net46\Serilog.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Threading" />
@@ -148,10 +152,6 @@
       <Project>{6ABDFB09-8E8C-47F1-A0B5-A5541EAAD61B}</Project>
       <Name>Zen.Trunk.IO</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Zen.Trunk.Logging\Zen.Trunk.Logging.csproj">
-      <Project>{e7e84aa7-daf9-4285-9f66-1ee692676b60}</Project>
-      <Name>Zen.Trunk.Logging</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Zen.Trunk.Utilities\Zen.Trunk.Utilities.csproj">
       <Project>{f7ed3f65-bfe8-4949-8bde-494f12cc30c6}</Project>
       <Name>Zen.Trunk.Utilities</Name>
@@ -164,6 +164,9 @@
       <Project>{837f9dbd-7e29-4237-add9-1bd32fef965c}</Project>
       <Name>Zen.Trunk.VirtualMemory.Interfaces</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

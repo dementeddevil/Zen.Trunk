@@ -1,5 +1,7 @@
 ﻿using System;
 using Autofac;
+using AutofacSerilogIntegration;
+using Serilog;
 
 namespace Zen.Trunk.VirtualMemory.Tests
 {
@@ -49,7 +51,17 @@ namespace Zen.Trunk.VirtualMemory.Tests
 
         private ILifetimeScope InitializeScope()
         {
+            var logger = new LoggerConfiguration()
+                .Enrich.FromLogContext()
+                .Enrich.WithThreadId()
+                .Enrich.WithThreadName()
+                .WriteTo.Debug()
+                .WriteTo.Trace()
+                .CreateLogger();
+            Log.Logger = logger;
+
             var builder = new ContainerBuilder();
+            builder.RegisterLogger(logger);
             InitializeContainerBuilder(builder);
             return builder.Build();
         }

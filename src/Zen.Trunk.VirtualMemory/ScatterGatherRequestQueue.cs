@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Serilog;
 using Zen.Trunk.Utils;
 
 namespace Zen.Trunk.VirtualMemory
@@ -11,10 +12,6 @@ namespace Zen.Trunk.VirtualMemory
     /// grouping reads and writes on consecutive buffers together and so
     /// that the I/O can be performed in one overlapped operation.
     /// </summary>
-    /// <remarks>
-    /// A single request queue instance is assumed to hold either reads or
-    /// write requests and never both kinds.
-    /// </remarks>
     public sealed class ScatterGatherRequestQueue : IDisposable
 	{
 	    #region Private Fields
@@ -27,7 +24,6 @@ namespace Zen.Trunk.VirtualMemory
         #endregion
 
         #region Public Constructors
-
         /// <summary>
         /// Initializes a new instance of the 
         /// <see cref="T:ScatterGatherReaderWriter"/> class.
@@ -45,12 +41,12 @@ namespace Zen.Trunk.VirtualMemory
             _readQueue = new StreamScatterGatherRequestQueue<ReadScatterRequestArray>(
                 systemClock,
 			    settings.ReadSettings,
-			    (request) => new ReadScatterRequestArray(systemClock, stream, request));
+			    request => new ReadScatterRequestArray(systemClock, stream, request));
 
 			_writeQueue = new StreamScatterGatherRequestQueue<WriteGatherRequestArray>(
 			    systemClock, 
 			    settings.WriteSettings,
-			    (request) => new WriteGatherRequestArray(systemClock, stream, request));
+			    request => new WriteGatherRequestArray(systemClock, stream, request));
 
 			_shutdown = new CancellationTokenSource ();
 

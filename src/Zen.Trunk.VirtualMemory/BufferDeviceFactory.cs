@@ -49,7 +49,10 @@
         /// <returns></returns>
         public IMultipleBufferDevice CreateMultipleBufferDevice(bool enableScatterGatherIo)
         {
-            return new MultipleBufferDevice(_bufferFactory, this, enableScatterGatherIo);
+            return new MultipleBufferDevice(
+                _bufferFactory,
+                this,
+                enableScatterGatherIo);
         }
     }
 }

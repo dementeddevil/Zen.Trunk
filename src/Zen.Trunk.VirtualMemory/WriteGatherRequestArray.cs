@@ -2,17 +2,18 @@
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Zen.Trunk.Logging;
+using Serilog;
 
 namespace Zen.Trunk.VirtualMemory
 {
     public class WriteGatherRequestArray : ScatterGatherRequestArray
     {
-        private static readonly ILog Logger = LogProvider.For<WriteGatherRequestArray>();
+        private static readonly ILogger Logger = Log.ForContext<WriteGatherRequestArray>();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="WriteGatherRequestArray"/> class.
         /// </summary>
+        /// <param name="logger">Logger.</param>
         /// <param name="systemClock">Reference clock.</param>
         /// <param name="stream">The <see cref="AdvancedStream"/>.</param>
         /// <param name="request">The request.</param>
@@ -32,10 +33,9 @@ namespace Zen.Trunk.VirtualMemory
         /// <returns></returns>
         public override async Task FlushAsync()
         {
-            if (Logger.IsDebugEnabled())
-            {
-                Logger.Debug($"Writing {CallbackInfo.Count} memory blocks to disk");
-            }
+            Logger.Debug(
+                "Writing {PageCount} memory blocks to disk",
+                CallbackInfo.Count);
 
             // Prepare buffer array
             var buffers = CallbackInfo

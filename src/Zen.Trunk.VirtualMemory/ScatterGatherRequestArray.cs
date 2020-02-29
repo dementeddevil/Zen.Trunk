@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Zen.Trunk.Logging;
+using Serilog;
 
 namespace Zen.Trunk.VirtualMemory
 {
@@ -11,13 +11,10 @@ namespace Zen.Trunk.VirtualMemory
     /// </summary>
     public abstract class ScatterGatherRequestArray
     {
+        private static readonly ILogger Logger = Log.ForContext<ScatterGatherRequestArray>();
         private readonly ISystemClock _systemClock;
-        private static readonly ILog Logger = LogProvider.For<ScatterGatherRequestArray>();
-
 		private readonly DateTime _createdDate;
 		private readonly List<ScatterGatherRequest> _callbackInfo = new List<ScatterGatherRequest>();
-		private uint _startBlockNo;
-		private uint _endBlockNo;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ScatterGatherRequestArray"/> class.
@@ -26,20 +23,27 @@ namespace Zen.Trunk.VirtualMemory
         /// <param name="stream">The <see cref="AdvancedStream"/></param>
         /// <param name="request">The request.</param>
         [CLSCompliant(false)]
-		public ScatterGatherRequestArray(ISystemClock systemClock, AdvancedStream stream, ScatterGatherRequest request)
+		public ScatterGatherRequestArray(
+            ISystemClock systemClock,
+            AdvancedStream stream,
+            ScatterGatherRequest request)
 		{
-		    _systemClock = systemClock;
+            _systemClock = systemClock;
             Stream = stream;
             _createdDate = _systemClock.UtcNow;
-			_startBlockNo = _endBlockNo = request.PhysicalPageId;
+			StartBlockNo = EndBlockNo = request.PhysicalPageId;
 			_callbackInfo.Add(request);
 
-            Logger.Debug($"New array created [PageId: {request.PhysicalPageId}]");
+            Logger.Debug(
+                "New array created [PageId: {PhysicalPageId}]",
+                request.PhysicalPageId);
 		}
 
         protected AdvancedStream Stream { get; }
 
-        protected uint StartBlockNo => _startBlockNo;
+        protected uint StartBlockNo { get; private set; }
+
+        protected uint EndBlockNo { get; private set; }
 
         protected ICollection<ScatterGatherRequest> CallbackInfo => _callbackInfo.AsReadOnly();
 
@@ -51,21 +55,29 @@ namespace Zen.Trunk.VirtualMemory
         [CLSCompliant(false)]
 		public bool AddRequest(ScatterGatherRequest request)
 		{
-			if (request.PhysicalPageId == _startBlockNo - 1)
+			if (request.PhysicalPageId == StartBlockNo - 1)
 			{
-				_startBlockNo = request.PhysicalPageId;
+				StartBlockNo = request.PhysicalPageId;
 				_callbackInfo.Insert(0, request);
 
-                Logger.Debug($"Request [PageId: {request.PhysicalPageId}] prepended to array [StartPageId: {_startBlockNo}, EndPageId: {_endBlockNo}]");
+                Logger.Debug(
+                    "Request [PageId: {PhysicalPageId}] prepended to array [StartBlock: {StartBlockNumber}, EndPageId: {EndBlockNumber}]",
+                    request.PhysicalPageId,
+                    StartBlockNo,
+                    EndBlockNo);
 				return true;
 			}
 
-            if (request.PhysicalPageId == _endBlockNo + 1)
+            if (request.PhysicalPageId == EndBlockNo + 1)
 			{
-				_endBlockNo = request.PhysicalPageId;
+				EndBlockNo = request.PhysicalPageId;
 				_callbackInfo.Add(request);
 
-                Logger.Debug($"Request [PageId: {request.PhysicalPageId}] appended to array [StartPageId: {_startBlockNo}, EndPageId: {_endBlockNo}]");
+                Logger.Debug(
+                    "Request [PageId: {PhysicalPageId}] appended to array [StartBlock: {StartBlockNumber}, EndPageId: {EndBlockNumber}]",
+                    request.PhysicalPageId,
+                    StartBlockNo,
+                    EndBlockNo);
 				return true;
 			}
 
@@ -81,21 +93,31 @@ namespace Zen.Trunk.VirtualMemory
         /// </returns>
         public bool Consume(ScatterGatherRequestArray other)
 		{
-			if (_endBlockNo == (other._startBlockNo - 1))
+			if (EndBlockNo == (other.StartBlockNo - 1))
 			{
-				_endBlockNo = other._endBlockNo;
+				EndBlockNo = other.EndBlockNo;
 				_callbackInfo.AddRange(other._callbackInfo);
 
-                Logger.Debug($"Source array [StartPageId: {other._startBlockNo}, EndPageId: {other._endBlockNo}] prepended to array [StartPageId: {_startBlockNo}, EndPageId: {_endBlockNo}]");
+                Logger.Debug(
+                    "Source array [StartPageId: {SourceStartBlockNumber}, EndPageId: {SourceEndBlockNo}] prepended to array [StartPageId: {CurrentStartBlockNo}, EndPageId: {CurrentEndBlockNo}]",
+                    other.StartBlockNo,
+                    other.EndBlockNo,
+                    StartBlockNo,
+                    EndBlockNo);
 				return true;
 			}
 
-            if (_startBlockNo == (other._endBlockNo + 1))
+            if (StartBlockNo == (other.EndBlockNo + 1))
 			{
-				_startBlockNo = other._startBlockNo;
+				StartBlockNo = other.StartBlockNo;
 				_callbackInfo.InsertRange(0, other._callbackInfo);
 
-                Logger.Debug($"Source array [StartPageId: {other._startBlockNo}, EndPageId: {other._endBlockNo}] appended to array [StartPageId: {_startBlockNo}, EndPageId: {_endBlockNo}]");
+                Logger.Debug(
+                    "Source array [StartPageId: {SourceStartBlockNumber}, EndPageId: {SourceEndBlockNo}] appended to array [StartPageId: {CurrentStartBlockNo}, EndPageId: {CurrentEndBlockNo}]",
+                    other.StartBlockNo,
+                    other.EndBlockNo,
+                    StartBlockNo,
+                    EndBlockNo);
 				return true;
 			}
 
@@ -113,15 +135,15 @@ namespace Zen.Trunk.VirtualMemory
         /// </returns>
         public bool RequiresFlush(TimeSpan maximumAge, int maximumLength)
 		{
-			if ((_endBlockNo - _startBlockNo + 1) > maximumLength)
+			if ((EndBlockNo - StartBlockNo + 1) > maximumLength)
 			{
-                Logger.Debug($"Flush required as array exceeds maximum length");
+                Logger.Debug("Flush required as array exceeds maximum length");
 				return true;
 			}
 
             if ((_systemClock.UtcNow - _createdDate) > maximumAge)
 			{
-                Logger.Debug($"Flush required as array exceeds maximum age");
+                Logger.Debug("Flush required as array exceeds maximum age");
 				return true;
 			}
 
@@ -133,7 +155,6 @@ namespace Zen.Trunk.VirtualMemory
         /// </summary>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public abstract Task FlushAsync();
-
 
         /// <summary>
         /// Executes the specified I/O operation and completes all requests

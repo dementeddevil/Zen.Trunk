@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 namespace Zen.Trunk.VirtualMemory
 {
     /// <summary>
-    /// <c>SafeMemoryHandle</c> wraps a kernal object representing a memory
+    /// <c>SafeMemoryHandle</c> wraps a kernel object representing a memory
     /// handle returned by the VirtualAlloc family of method calls.
     /// </summary>
     /// <seealso cref="System.Runtime.InteropServices.SafeHandle" />

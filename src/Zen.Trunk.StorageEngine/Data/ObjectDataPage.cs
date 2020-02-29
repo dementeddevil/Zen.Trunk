@@ -1,11 +1,10 @@
+using System;
+using System.Transactions;
 using System.Threading.Tasks;
+using Zen.Trunk.Storage.Locking;
 
 namespace Zen.Trunk.Storage.Data
 {
-	using System;
-	using System.Transactions;
-	using Locking;
-
 	/// <summary>
 	/// <b>ObjectDataPage</b> objects have a concept of being owned by
 	/// another object and to facilitate this they have an associated

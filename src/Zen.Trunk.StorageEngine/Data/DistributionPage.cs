@@ -2,8 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Serilog;
 using Zen.Trunk.IO;
-using Zen.Trunk.Logging;
 using Zen.Trunk.Storage.BufferFields;
 using Zen.Trunk.Storage.Locking;
 using Zen.Trunk.Utils;
@@ -225,7 +225,7 @@ namespace Zen.Trunk.Storage.Data
         #endregion
 
         #region Private Fields
-        private static readonly ILog Logger = LogProvider.For<DistributionPage>();
+        private static readonly ILogger Logger = Serilog.Log.ForContext<DistributionPage>();
 
         private readonly ExtentInfo[] _extents;
         private List<uint> _lockedExtents;
@@ -956,5 +956,4 @@ namespace Zen.Trunk.Storage.Data
         }
         #endregion
     }
-
 }

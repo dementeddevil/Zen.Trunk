@@ -3,9 +3,9 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Threading.Tasks;
 using System.Transactions;
+using Serilog;
 using Zen.Trunk.CoordinationDataStructures;
 using Zen.Trunk.IO;
-using Zen.Trunk.Logging;
 using Zen.Trunk.Storage.BufferFields;
 using Zen.Trunk.Storage.Locking;
 using Zen.Trunk.VirtualMemory;
@@ -111,7 +111,7 @@ namespace Zen.Trunk.Storage.Data
         #endregion
 
         #region Private Fields
-        private static readonly ILog Logger = LogProvider.For<DataPage>();
+        private static readonly ILogger Logger = Serilog.Log.ForContext<DataPage>();
 
 	    private PageBuffer _buffer;
 	    private IDatabaseLockManager _lockManager;
@@ -308,11 +308,9 @@ namespace Zen.Trunk.Storage.Data
         /// <returns></returns>
         protected override Stream CreateHeaderStream(bool readOnly)
 		{
-		    if (Logger.IsDebugEnabled())
-		    {
-		        var readOnlyState = readOnly ? "read-only" : "writable";
-		        Logger.Debug($"CreateHeaderStream as {readOnlyState}");
-		    }
+		    Logger.Debug(
+                "CreateHeaderStream as {ReadOnlyState}",
+                readOnly ? "read-only" : "writable");
 
 			// Return memory stream based on underlying buffer memory
 			return _buffer.GetBufferStream(0, (int)HeaderSize, !readOnly);
@@ -325,11 +323,9 @@ namespace Zen.Trunk.Storage.Data
         /// <returns></returns>
         public override Stream CreateDataStream(bool readOnly)
 		{
-            if (Logger.IsDebugEnabled())
-            {
-                var readOnlyState = readOnly ? "read-only" : "writable";
-                Logger.Debug($"CreateDataStream as {readOnlyState}");
-            }
+            Logger.Debug(
+                "CreateDataStream as {ReadOnlyState}",
+                readOnly ? "read-only" : "writable");
 
 			// Return memory stream based on underlying buffer memory
 			return _buffer.GetBufferStream(

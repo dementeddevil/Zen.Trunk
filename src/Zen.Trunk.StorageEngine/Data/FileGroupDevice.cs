@@ -5,7 +5,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 using Autofac;
-using Zen.Trunk.Logging;
+using Serilog;
+using Serilog.Context;
 using Zen.Trunk.Storage.BufferFields;
 using Zen.Trunk.Storage.Configuration;
 using Zen.Trunk.Storage.Data.Table;
@@ -172,7 +173,7 @@ namespace Zen.Trunk.Storage.Data
         #endregion
 
         #region Private Fields
-        private static readonly ILog Logger = LogProvider.For<FileGroupDevice>();
+        private static readonly ILogger Logger = Serilog.Log.ForContext<FileGroupDevice>();
 
         private DatabaseDevice _owner;
 
@@ -662,7 +663,7 @@ namespace Zen.Trunk.Storage.Data
         protected override async Task OnOpenAsync()
         {
             // Open/create the primary device
-            using (Logger.BeginDebugTimingLogScope("FileGroupDevice => Open Primary Device"))
+            using (LogContext.PushProperty("Method", "PrimaryDevice => OpenAsync"))
             {
                 if (_primaryDevice == null)
                 {
@@ -673,7 +674,7 @@ namespace Zen.Trunk.Storage.Data
                 await _primaryDevice.OpenAsync(IsCreate).ConfigureAwait(false);
             }
 
-            using (Logger.BeginDebugTimingLogScope("FileGroupDevice => Open Secondary Devices"))
+            using (LogContext.PushProperty("Method", "SecondaryDevices => OpenAsync"))
             {
                 if (IsCreate)
                 {

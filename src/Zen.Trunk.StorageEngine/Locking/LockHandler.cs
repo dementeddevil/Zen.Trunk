@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using Serilog;
 using Zen.Trunk.CoordinationDataStructures;
-using Zen.Trunk.Logging;
 
 namespace Zen.Trunk.Storage.Locking
 {
@@ -27,7 +27,7 @@ namespace Zen.Trunk.Storage.Locking
         where TLockClass : TransactionLock<TLockTypeEnum>, ITransactionLock<TLockTypeEnum>, new()
     {
         #region Private Fields
-        private static readonly ILog Logger = LogProvider.For<LockHandler<TLockClass, TLockTypeEnum>>();
+        private static readonly ILogger Logger = Serilog.Log.ForContext<LockHandler<TLockClass, TLockTypeEnum>>();
 
         private int _maxFreeLocks;
         private readonly SpinLockClass _syncLocks = new SpinLockClass();
@@ -111,7 +111,9 @@ namespace Zen.Trunk.Storage.Locking
             _syncLocks.Execute(
                 () =>
                 {
-                    Logger.DebugFormat("Lock final release: {0}", lockObject.Id);
+                    Logger.Debug(
+                        "Lock final release: {LockId}",
+                        lockObject.Id);
 
                     if (!string.IsNullOrEmpty(lockObject.Id))
                     {

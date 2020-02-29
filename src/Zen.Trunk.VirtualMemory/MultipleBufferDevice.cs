@@ -44,7 +44,10 @@ namespace Zen.Trunk.VirtualMemory
 		/// <summary>
 		/// Initializes a new instance of the <see cref="MultipleBufferDevice"/> class.
 		/// </summary>
-		public MultipleBufferDevice(IVirtualBufferFactory bufferFactory, IBufferDeviceFactory bufferDeviceFactory, bool scatterGatherIoEnabled)
+		public MultipleBufferDevice(
+            IVirtualBufferFactory bufferFactory,
+            IBufferDeviceFactory bufferDeviceFactory,
+            bool scatterGatherIoEnabled)
 		{
 		    _bufferFactory = bufferFactory;
 		    _bufferDeviceFactory = bufferDeviceFactory;

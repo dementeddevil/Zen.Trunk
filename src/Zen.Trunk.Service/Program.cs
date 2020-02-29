@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using Autofac;
+using AutofacSerilogIntegration;
 using Serilog;
 using Serilog.Core;
 using Serilog.Events;
@@ -98,6 +99,7 @@ namespace Zen.Trunk.Service
                             .MinimumLevel.Override(typeof(IGlobalLockManager).Namespace, lockingLoggingSwitch)
                             .MinimumLevel.Override(typeof(LogPage).Namespace, logWriterLoggingSwitch);
                         serviceConfig.UseSerilog(loggerConfig);
+                        containerBuilder.RegisterLogger(loggerConfig.CreateLogger());
 
                         // Initialise IoC container
                         var container = InitializeAutofacContainer(containerBuilder);

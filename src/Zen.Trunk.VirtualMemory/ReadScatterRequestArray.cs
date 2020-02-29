@@ -2,13 +2,13 @@
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Zen.Trunk.Logging;
+using Serilog;
 
 namespace Zen.Trunk.VirtualMemory
 {
     public class ReadScatterRequestArray : ScatterGatherRequestArray
     {
-        private static readonly ILog Logger = LogProvider.For<ReadScatterRequestArray>();
+        private static readonly ILogger Logger = Log.ForContext<ReadScatterRequestArray>();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ReadScatterRequestArray"/> class.
@@ -32,10 +32,9 @@ namespace Zen.Trunk.VirtualMemory
         /// <returns></returns>
         public override async Task FlushAsync()
         {
-            if (Logger.IsDebugEnabled())
-            {
-                Logger.Debug($"Reading {CallbackInfo.Count} memory blocks from disk");
-            }
+            Logger.Debug(
+                "Reading {MemoryBlockCount} memory blocks from disk",
+                CallbackInfo.Count);
 
             // Prepare buffer array
             var buffers = CallbackInfo

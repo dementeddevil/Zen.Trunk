@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using Zen.Trunk.Logging;
+using Serilog;
 
 namespace Zen.Trunk.VirtualMemory
 {
@@ -24,8 +24,7 @@ namespace Zen.Trunk.VirtualMemory
     /// </remarks>
     public sealed class VirtualBufferFactory : IVirtualBufferFactory
     {
-        private static readonly ILog Logger = LogProvider.For<VirtualBufferFactory>();
-
+        private static readonly ILogger Logger = Log.ForContext<VirtualBufferFactory>();
         private const int MinimumReservationMb = 16;
         private const long OneMegaByte = 1024L * 1024L;
 
@@ -42,7 +41,9 @@ namespace Zen.Trunk.VirtualMemory
         /// <param name="bufferSize">Size of the buffer.</param>
         /// <param name="reservationMb">The reservation mb.</param>
         /// <exception cref="ArgumentException">Buffer size must be multiple of {VirtualBuffer.SystemPageSize}.</exception>
-        public VirtualBufferFactory(int bufferSize, int reservationMb)
+        public VirtualBufferFactory(
+            int bufferSize,
+            int reservationMb)
         {
             // Buffer size must be multiple of system page size
             if ((bufferSize % VirtualBuffer.SystemPageSize) != 0)
@@ -51,6 +52,7 @@ namespace Zen.Trunk.VirtualMemory
                     $"Buffer size must be multiple of {VirtualBuffer.SystemPageSize}.",
                     nameof(bufferSize));
             }
+
             BufferSize = bufferSize;
 
             // Minimum reservation amount = 16Mb
@@ -71,16 +73,14 @@ namespace Zen.Trunk.VirtualMemory
             _maxCacheElements = totalPages / _cacheBlockSize;
 
             // Debugging information
-            if (Logger.IsDebugEnabled())
-            {
-                Logger.Debug(
-                    $"Virtual buffer factory initialised with reservation of {reservationMb}Mb and buffer size of {bufferSize}");
-            }
-            if (Logger.IsInfoEnabled())
-            {
-                Logger.Info(
-                    $"Virtual buffer factory {totalPages} pages split across {_maxCacheElements} caches available");
-            }
+            Logger.Debug(
+                "Virtual buffer factory initialised with reservation of {ReservationMb}Mb and buffer size of {BufferSize}",
+                reservationMb,
+                bufferSize);
+            Logger.Information(
+                "Virtual buffer factory {TotalPages} pages split across {MaxCacheElements} caches available",
+                totalPages,
+                _maxCacheElements);
         }
 
         /// <summary>
@@ -211,11 +211,8 @@ namespace Zen.Trunk.VirtualMemory
                 // Determine total bytes to reserve
                 var totalBytes = ((ulong)VirtualBuffer.SystemPageSize) * ((ulong)_reservationPages);
 
-                if (Logger.IsInfoEnabled())
-                {
-                    Logger.Info(
-                        $"Reservation of {_reservationPages} pages at {totalBytes} total bytes.");
-                }
+                Logger.Information(
+                    $"Reservation of {_reservationPages} pages at {totalBytes} total bytes.");
 
                 _reservationBaseAddress = SafeNativeMethods.VirtualReserve(
                     new UIntPtr(totalBytes), SafeNativeMethods.PAGE_NOACCESS);
@@ -237,11 +234,8 @@ namespace Zen.Trunk.VirtualMemory
                 var totalBytes = ((ulong)VirtualBuffer.SystemPageSize) *
                     ((ulong)_reservationPages);
 
-                if (Logger.IsInfoEnabled())
-                {
-                    Logger.Info(
-                        $"Release of {_reservationPages} pages at {totalBytes} total bytes.");
-                }
+                Logger.Information(
+                    $"Release of {_reservationPages} pages at {totalBytes} total bytes.");
 
                 _reservationBaseAddress.Dispose();
                 _reservationBaseAddress = null;

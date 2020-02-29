@@ -32,7 +32,6 @@ namespace Zen.Trunk.VirtualMemory
         #endregion
 
         #region Public Constructors
-
         /// <summary>
         /// Initializes a new instance of the <see cref="StreamScatterGatherRequestQueue{TScatterGatherRequestArray}"/> class.
         /// </summary>
@@ -45,13 +44,13 @@ namespace Zen.Trunk.VirtualMemory
             Func<ScatterGatherRequest, TScatterGatherRequestArray> arrayFactory)
 		{
 		    _systemClock = systemClock ?? throw new ArgumentNullException(nameof(systemClock));
+            _arrayFactory = arrayFactory ?? throw new ArgumentNullException(nameof(arrayFactory));
 		    if (settings == null) throw new ArgumentNullException(nameof(settings));
+
 		    _maximumRequestAge = settings.MaximumRequestAge;
 		    _coalesceRequestsPeriod = settings.CoalesceRequestsPeriod;
 		    _maximumRequestBlockLength = settings.MaximumRequestBlockLength;
 		    _maximumRequestBlocks = settings.MaximumRequestBlocks;
-
-            _arrayFactory = arrayFactory ?? throw new ArgumentNullException(nameof(arrayFactory));
 		}
 		#endregion
 
@@ -61,7 +60,7 @@ namespace Zen.Trunk.VirtualMemory
 		/// </summary>
 		/// <param name="physicalPageId">The physical page id.</param>
 		/// <param name="buffer">The buffer.</param>
-		/// <returns></returns>
+		/// <returns>A <see cref="Task"/> that encapsulates the data-transfer operation.</returns>
 		/// <remarks>
 		/// Internally buffers are placed into groups such that a given group
 		///	will be composed of buffers of adjacent storage areas.

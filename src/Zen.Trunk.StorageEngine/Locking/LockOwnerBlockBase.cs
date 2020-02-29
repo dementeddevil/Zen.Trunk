@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Zen.Trunk.Logging;
+using Serilog;
 
 namespace Zen.Trunk.Storage.Locking
 {
@@ -20,7 +20,7 @@ namespace Zen.Trunk.Storage.Locking
 	/// </para>
 	/// <para>
 	/// <b>Note:</b> Read, Update and Exclusive data locks are each counted
-	/// seperately and any of these locks can cause an associated escalation
+	/// separately and any of these locks can cause an associated escalation
 	/// on the owner lock object.
 	/// </para>
 	/// </remarks>
@@ -63,7 +63,7 @@ namespace Zen.Trunk.Storage.Locking
 		#endregion
 
 		#region Private Fields
-	    private static readonly ILog Logger = LogProvider.For<LockOwnerBlockBase<TItemLockIdType>>();
+        private static readonly ILogger Logger = Serilog.Log.ForContext<LockOwnerBlockBase<TItemLockIdType>>();
 
 		private readonly uint _maxItemLocks;
         private readonly TransactionalSpinLock _sync = new TransactionalSpinLock();
@@ -274,7 +274,7 @@ namespace Zen.Trunk.Storage.Locking
 			}
 			else
 			{
-			    Logger.Warn(
+			    Logger.Warning(
                     $"{GetType().Name}: Unlocking lock owner block has been deferred {_ownerLockCount} outstanding locks.");
             }
 		}
@@ -381,11 +381,8 @@ namespace Zen.Trunk.Storage.Locking
 				// Check whether we can escalate this lock
 				if (_readLocks.Count > _maxItemLocks)
 				{
-				    if (Logger.IsDebugEnabled())
-				    {
-				        Logger.Debug($"{GetType().Name}: Attempting lock owner block SHARED lock escalation");
-				    }
-
+				    Logger.Debug($"{GetType().Name}: Attempting lock owner block SHARED lock escalation");
+				    
 					var hasEscalatedLock = false;
 					try
 					{
@@ -535,11 +532,8 @@ namespace Zen.Trunk.Storage.Locking
 			// Check whether we can escalate this lock
 			if (_writeLocks.Count > _maxItemLocks)
 			{
-                if (Logger.IsDebugEnabled())
-                {
-                    Logger.Debug($"{GetType().Name}: Attempting lock owner block EXCLUSIVE lock escalation");
-                }
-
+                Logger.Debug($"{GetType().Name}: Attempting lock owner block EXCLUSIVE lock escalation");
+                
 				var hasEscalated = false;
 				try
 				{

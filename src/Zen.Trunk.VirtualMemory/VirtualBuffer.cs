@@ -25,6 +25,7 @@ namespace Zen.Trunk.VirtualMemory
 	/// manner.
 	/// </para>
 	/// </remarks>
+	[DebuggerDisplay("DebuggerDisplay")]
 	public sealed class VirtualBuffer : IVirtualBuffer
     {
         #region Private Objects
@@ -281,7 +282,6 @@ namespace Zen.Trunk.VirtualMemory
 
         private bool _committed;
         private bool _disposed;
-        private bool _dirty;
 
         private IDictionary<Stream, StreamInfo> _streams;
         #endregion
@@ -343,7 +343,11 @@ namespace Zen.Trunk.VirtualMemory
 		/// <value>
 		/// <c>true</c> if dirty; otherwise, <c>false</c>.
 		/// </value>
-		public bool IsDirty => _dirty;
+		public bool IsDirty { get; private set; }
+        #endregion
+
+        #region Private Properties
+        private string DebuggerDisplay => $"Id:{BufferId}, Size:{BufferSize}, IsDirty:{IsDirty}";
         #endregion
 
         #region Public Methods
@@ -399,6 +403,7 @@ namespace Zen.Trunk.VirtualMemory
             {
                 throw new ArgumentException("Buffer not the same size.");
             }
+
             unsafe
             {
                 MemcpyImpl(Buffer, ((VirtualBuffer)destination).Buffer, BufferSize);
@@ -427,6 +432,7 @@ namespace Zen.Trunk.VirtualMemory
             {
                 throw new ArgumentException("Buffer not the same size.");
             }
+            
             unsafe
             {
                 fixed (byte* pBuffer = buffer)
@@ -457,6 +463,7 @@ namespace Zen.Trunk.VirtualMemory
             {
                 throw new ArgumentException("Buffer not the same size.");
             }
+            
             unsafe
             {
                 fixed (byte* pBuffer = buffer)
@@ -519,7 +526,7 @@ namespace Zen.Trunk.VirtualMemory
         /// </summary>
         public void SetDirty()
         {
-            _dirty = true;
+            IsDirty = true;
         }
 
         /// <summary>
@@ -527,7 +534,7 @@ namespace Zen.Trunk.VirtualMemory
         /// </summary>
         public void ClearDirty()
         {
-            _dirty = false;
+            IsDirty = false;
         }
         #endregion
 
@@ -572,7 +579,7 @@ namespace Zen.Trunk.VirtualMemory
             // If we are committed, then free
             if (_committed)
             {
-                if (_dirty)
+                if (IsDirty)
                 {
                     Trace.TraceWarning("Freeing dirty buffer.");
                 }

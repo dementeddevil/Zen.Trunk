@@ -5,8 +5,8 @@ using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 using System.Transactions;
 using Autofac;
+using Serilog;
 using Zen.Trunk.Extensions;
-using Zen.Trunk.Logging;
 using Zen.Trunk.Storage.BufferFields;
 using Zen.Trunk.Storage.Data;
 using Zen.Trunk.Storage.Locking;
@@ -146,8 +146,7 @@ namespace Zen.Trunk.Storage
         #endregion
 
         #region Private Fields
-        private static readonly ILog Logger = LogProvider.For<DatabaseDevice>();
-
+        private static readonly ILogger Logger = Serilog.Log.ForContext<DatabaseDevice>();
         private readonly DatabaseId _dbId;
 
         // Underlying page buffer storage
@@ -184,35 +183,35 @@ namespace Zen.Trunk.Storage
             var taskInterleave = new ConcurrentExclusiveSchedulerPair(TaskScheduler.Default);
             InitFileGroupPagePort =
                 new TransactionContextActionBlock<InitFileGroupPageRequest, bool>(
-                    request => InitFileGroupPageHandlerAsync(request),
+                    InitFileGroupPageHandlerAsync,
                     new ExecutionDataflowBlockOptions
                     {
                         TaskScheduler = taskInterleave.ConcurrentScheduler
                     });
             LoadFileGroupPagePort =
                 new TransactionContextActionBlock<LoadFileGroupPageRequest, bool>(
-                    request => LoadFileGroupPageHandlerAsync(request),
+                    LoadFileGroupPageHandlerAsync,
                     new ExecutionDataflowBlockOptions
                     {
                         TaskScheduler = taskInterleave.ConcurrentScheduler
                     });
             DeallocateFileGroupPagePort =
                 new TransactionContextActionBlock<DeallocateFileGroupPageRequest, bool>(
-                    request => DeallocateFileGroupPageHandlerAsync(request),
+                    DeallocateFileGroupPageHandlerAsync,
                     new ExecutionDataflowBlockOptions
                     {
                         TaskScheduler = taskInterleave.ConcurrentScheduler
                     });
             AddFileGroupDevicePort =
                 new TransactionContextActionBlock<AddFileGroupDeviceRequest, Tuple<DeviceId, string>>(
-                    request => AddFileGroupDataDeviceHandlerAsync(request),
+                    AddFileGroupDataDeviceHandlerAsync,
                     new ExecutionDataflowBlockOptions
                     {
                         TaskScheduler = taskInterleave.ExclusiveScheduler
                     });
             RemoveFileGroupDevicePort =
                 new TransactionContextActionBlock<RemoveFileGroupDeviceRequest, bool>(
-                    request => RemoveFileGroupDeviceHandlerAsync(request),
+                    RemoveFileGroupDeviceHandlerAsync,
                     new ExecutionDataflowBlockOptions
                     {
                         TaskScheduler = taskInterleave.ExclusiveScheduler
@@ -220,13 +219,13 @@ namespace Zen.Trunk.Storage
 
             FlushPageBuffersPort =
                 new TaskRequestActionBlock<FlushFileGroupRequest, bool>(
-                    request => FlushDeviceBuffersHandlerAsync(request),
+                    FlushDeviceBuffersHandlerAsync,
                     new ExecutionDataflowBlockOptions
                     {
                         TaskScheduler = taskInterleave.ExclusiveScheduler
                     });
             CreateObjectReferencePort = new TransactionContextActionBlock<CreateObjectReferenceRequest, ObjectId>(
-                request => CreateObjectReferenceHandlerAsync(request),
+                CreateObjectReferenceHandlerAsync,
                 new ExecutionDataflowBlockOptions
                 {
                     TaskScheduler = taskInterleave.ConcurrentScheduler
@@ -235,14 +234,14 @@ namespace Zen.Trunk.Storage
             // Table action ports
             AddFileGroupTablePort =
                 new TransactionContextActionBlock<AddFileGroupTableRequest, ObjectId>(
-                    request => AddFileGroupTableHandlerAsync(request),
+                    AddFileGroupTableHandlerAsync,
                     new ExecutionDataflowBlockOptions
                     {
                         TaskScheduler = taskInterleave.ExclusiveScheduler
                     });
             AddFileGroupTableIndexPort =
                 new TransactionContextActionBlock<AddFileGroupTableIndexRequest, IndexId>(
-                    request => AddFileGroupTableIndexHandlerAsync(request),
+                    AddFileGroupTableIndexHandlerAsync,
                     new ExecutionDataflowBlockOptions
                     {
                         TaskScheduler = taskInterleave.ExclusiveScheduler
@@ -250,7 +249,7 @@ namespace Zen.Trunk.Storage
 
             IssueCheckPointPort =
                 new TransactionContextActionBlock<IssueCheckPointRequest, bool>(
-                    request => IssueCheckPointHandlerAsync(request),
+                    IssueCheckPointHandlerAsync,
                     new ExecutionDataflowBlockOptions
                     {
                         TaskScheduler = taskInterleave.ExclusiveScheduler
@@ -258,14 +257,14 @@ namespace Zen.Trunk.Storage
 
             AddLogDevicePort =
                 new TransactionContextActionBlock<AddLogDeviceRequest, Tuple<DeviceId, string>>(
-                    request => AddLogDeviceHandlerAsync(request),
+                    AddLogDeviceHandlerAsync,
                     new ExecutionDataflowBlockOptions
                     {
                         TaskScheduler = taskInterleave.ExclusiveScheduler
                     });
             RemoveLogDevicePort =
                 new TransactionContextActionBlock<RemoveLogDeviceRequest, bool>(
-                    request => RemoveLogDeviceHandlerAsync(request),
+                    RemoveLogDeviceHandlerAsync,
                     new ExecutionDataflowBlockOptions
                     {
                         TaskScheduler = taskInterleave.ExclusiveScheduler
@@ -660,12 +659,12 @@ namespace Zen.Trunk.Storage
         /// is that this method executes without a current transaction context
         /// and therefore relies upon the session context for locking.
         /// </remarks>
-        public Task UseDatabaseAsync(TimeSpan lockTimeout)
+        public async Task UseDatabaseAsync(TimeSpan lockTimeout)
         {
             // Obtain lock on database via session lock - not transaction lock
             using (TrunkTransactionContext.SwitchTransactionContext(null))
             {
-                return LockDatabaseAsync(DatabaseLockType.Shared, lockTimeout);
+                await LockDatabaseAsync(DatabaseLockType.Shared, lockTimeout).ConfigureAwait(false);
             }
         }
 
@@ -680,12 +679,12 @@ namespace Zen.Trunk.Storage
         /// is that this method executes without a current transaction context
         /// and therefore relies upon the session context for locking.
         /// </remarks>
-        public Task UnuseDatabaseAsync()
+        public async Task UnuseDatabaseAsync()
         {
             // Obtain lock on database via session lock - not transaction lock
             using (TrunkTransactionContext.SwitchTransactionContext(null))
             {
-                return UnlockDatabaseAsync();
+                await UnlockDatabaseAsync().ConfigureAwait(false);
             }
         }
 
@@ -780,18 +779,12 @@ namespace Zen.Trunk.Storage
             }
 
             // Mount the underlying device
-            if (Logger.IsDebugEnabled())
-            {
-                Logger.Debug("Opening underlying buffer device...");
-            }
+            Logger.Debug("Opening underlying buffer device...");
             await RawBufferDevice.OpenAsync().ConfigureAwait(false);
 
             // Mount the log device(s) first
             // This is so that transaction log is available when creating database
-            if (Logger.IsDebugEnabled())
-            {
-                Logger.Debug("Opening log device...");
-            }
+            Logger.Debug("Opening log device...");
             await GetService<IMasterLogPageDevice>().OpenAsync(IsCreate).ConfigureAwait(false);
 
             // If this is a create, then we want to create a transaction so
@@ -803,10 +796,7 @@ namespace Zen.Trunk.Storage
             }
 
             // Mount the primary file-group device
-            if (Logger.IsDebugEnabled())
-            {
-                Logger.Debug("Opening primary file-group device...");
-            }
+            Logger.Debug("Opening primary file-group device...");
             await fgDevice.OpenAsync(IsCreate).ConfigureAwait(false);
 
             // At this point the primary file-group is mounted and all
@@ -815,26 +805,17 @@ namespace Zen.Trunk.Storage
             // If this is not create then we need to perform recovery
             if (!IsCreate)
             {
-                if (Logger.IsDebugEnabled())
-                {
-                    Logger.Debug("Initiating recovery...");
-                }
+                Logger.Debug("Initiating recovery...");
                 await GetService<IMasterLogPageDevice>().PerformRecoveryAsync().ConfigureAwait(false);
             }
             else
             {
-                if (Logger.IsDebugEnabled())
-                {
-                    Logger.Debug("Committing created pages on new database...");
-                }
+                Logger.Debug("Committing created pages on new database...");
 
                 // Commit the transaction handling initialisation of new database
                 await TrunkTransactionContext.CommitAsync().ConfigureAwait(false);
 
-                if (Logger.IsDebugEnabled())
-                {
-                    Logger.Debug("Initiating first checkpoint on new database...");
-                }
+                Logger.Debug("Initiating first checkpoint on new database...");
 
                 // Issue full checkpoint
                 await IssueCheckPointAsync().ConfigureAwait(false);
@@ -1178,10 +1159,7 @@ namespace Zen.Trunk.Storage
 
         private async Task ExecuteCheckPoint()
         {
-            if (Logger.IsDebugEnabled())
-            {
-                Logger.Debug("CheckPoint - Begin");
-            }
+            Logger.Debug("CheckPoint - Begin");
 
             // Issue begin checkpoint
             await GetService<IMasterLogPageDevice>()
@@ -1214,17 +1192,11 @@ namespace Zen.Trunk.Storage
             // Throw if we have failed
             if (exception != null)
             {
-                if (Logger.IsDebugEnabled())
-                {
-                    Logger.Debug($"CheckPoint - Exit with exception [{exception.Message}]");
-                }
+                Logger.Debug($"CheckPoint - Exit with exception [{exception.Message}]");
                 throw exception;
             }
 
-            if (Logger.IsDebugEnabled())
-            {
-                Logger.Debug("CheckPoint - Exit");
-            }
+            Logger.Debug("CheckPoint - Exit");
         }
 
         private FileGroupDevice GetPrimaryFileGroupDevice()

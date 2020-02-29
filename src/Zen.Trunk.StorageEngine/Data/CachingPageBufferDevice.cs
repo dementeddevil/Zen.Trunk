@@ -5,8 +5,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
+using Serilog;
 using Zen.Trunk.CoordinationDataStructures;
-using Zen.Trunk.Logging;
 using Zen.Trunk.Partitioners;
 using Zen.Trunk.Utils;
 using Zen.Trunk.VirtualMemory;
@@ -186,8 +186,8 @@ namespace Zen.Trunk.Storage.Data
 
         #region Private Fields
         // ReSharper disable once UnusedMember.Local
-        private static readonly ILog Logger = LogProvider.For<CachingPageBufferDevice>();
-
+        private static readonly ILogger Logger = Serilog.Log.ForContext<CachingPageBufferDevice>();
+        // ReSharper disable once UnusedMember.Local
         private readonly CachingPageBufferDeviceSettings _cacheSettings;
 
         private bool _isDisposed;
@@ -217,6 +217,7 @@ namespace Zen.Trunk.Storage.Data
         #endregion
 
         #region Public Constructors
+
         /// <summary>
         /// Initializes a new instance of the <see cref="CachingPageBufferDevice" /> class.
         /// </summary>

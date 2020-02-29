@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Threading.Tasks;
+using Serilog;
 using Zen.Trunk.Extensions;
 
 namespace Zen.Trunk.VirtualMemory
@@ -14,6 +15,7 @@ namespace Zen.Trunk.VirtualMemory
     public class SingleBufferDevice : BufferDevice, ISingleBufferDevice
     {
         #region Private Fields
+        private static readonly ILogger Logger = Log.ForContext<SingleBufferDevice>();
         private readonly ISystemClock _systemClock;
         private readonly IVirtualBufferFactory _bufferFactory;
         private FileStream _fileStream;
@@ -73,20 +75,13 @@ namespace Zen.Trunk.VirtualMemory
         /// <value>
         /// The page count.
         /// </value>
-        public uint PageCount
-        {
-            get;
-            private set;
-        }
+        public uint PageCount { get; private set; }
 
         /// <summary>
         /// Gets or sets the name.
         /// </summary>
         /// <value>The name.</value>
-        public string Name
-        {
-            get;
-        }
+        public string Name { get; }
 
         /// <summary>
         /// Gets the pathname of the underlying file.
@@ -94,10 +89,7 @@ namespace Zen.Trunk.VirtualMemory
         /// <value>
         /// The pathname.
         /// </value>
-        public string Pathname
-        {
-            get;
-        }
+        public string Pathname { get; }
         #endregion
 
         #region Protected Properties

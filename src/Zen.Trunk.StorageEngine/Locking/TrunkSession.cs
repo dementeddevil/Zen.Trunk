@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Zen.Trunk.Logging;
+using Serilog;
 
 namespace Zen.Trunk.Storage.Locking
 {
@@ -14,7 +14,7 @@ namespace Zen.Trunk.Storage.Locking
     /// <seealso cref="Zen.Trunk.Storage.Locking.ITrunkSessionPrivate" />
     internal class TrunkSession : MarshalByRefObject, ITrunkSessionPrivate
     {
-        private static readonly ILog Logger = LogProvider.For<TrunkTransaction>();
+        private static readonly ILogger Logger = Serilog.Log.ForContext<TrunkTransaction>();
         private readonly Dictionary<DatabaseId, TransactionLockOwnerBlock> _transactionLockOwnerBlocks = new Dictionary<DatabaseId, TransactionLockOwnerBlock>();
         private bool _isCompleting;
         private bool _isCompleted;
@@ -115,11 +115,8 @@ namespace Zen.Trunk.Storage.Locking
         {
             if (disposing && !_isCompleted && !_isCompleting)
             {
-                if (Logger.IsWarnEnabled())
-                {
-                    Logger.Warn($"{SessionId} => In-progress session disposed - performing implicit rollback");
-                }
-
+                Logger.Warning($"{SessionId} => In-progress session disposed - performing implicit rollback");
+                
                 // Force rollback of the current transaction
                 RollbackAsync().GetAwaiter().GetResult();
             }
@@ -142,6 +139,7 @@ namespace Zen.Trunk.Storage.Locking
             {
                 await transactionLock.ReleaseAllAsync().ConfigureAwait(false);
             }
+
             _transactionLockOwnerBlocks.Clear();
 
             _isCompleted = true;

@@ -115,7 +115,7 @@ namespace Zen.Trunk.Storage.Locking
             /// <summary>
             /// Gets an array of lock types that this state allows.
             /// </summary>
-            /// <value>The compatable locks.</value>
+            /// <value>The compatible locks.</value>
             protected abstract TLockTypeEnum[] AllowedLockTypes
             {
                 get;
@@ -166,7 +166,7 @@ namespace Zen.Trunk.Storage.Locking
                 //	2. Active request count is one, the transaction id matches
                 //		the request and the requested lock is different to that
                 //		currently held.
-                //	3. The requested lock is compatable and there are no other
+                //	3. The requested lock is compatible and there are no other
                 //		pending requests.
                 //	4. The requested lock is an exclusive lock, we can enter an
                 //		exclusive lock, the this transaction id is the only
@@ -233,28 +233,19 @@ namespace Zen.Trunk.Storage.Locking
             // Initialise receiver arbiters
             var taskInterleave = new ConcurrentExclusiveSchedulerPair(TaskScheduler.Default);
             _acquireLockAction = new ActionBlock<AcquireLock>(
-                request =>
-                {
-                    AcquireLockRequestHandler(request);
-                },
+                AcquireLockRequestHandler,
                 new ExecutionDataflowBlockOptions
                 {
                     TaskScheduler = taskInterleave.ExclusiveScheduler
                 });
             _releaseLockAction = new ActionBlock<ReleaseLock>(
-                request =>
-                {
-                    ReleaseLockRequestHandler(request);
-                },
+                ReleaseLockRequestHandler,
                 new ExecutionDataflowBlockOptions
                 {
                     TaskScheduler = taskInterleave.ExclusiveScheduler
                 });
             _queryLockAction = new ActionBlock<QueryLock>(
-                request =>
-                {
-                    QueryLockRequestHandler(request);
-                },
+                QueryLockRequestHandler,
                 new ExecutionDataflowBlockOptions
                 {
                     TaskScheduler = taskInterleave.ConcurrentScheduler
@@ -572,8 +563,7 @@ namespace Zen.Trunk.Storage.Locking
                         return;
                     }
 
-                    // We can upgrade the lock only if there are no pending
-                    //	requests
+                    // We can upgrade the lock only if there are no pending requests
                     if (_activeRequests.Count == 1 &&
                         activeLockOwner != null &&
                         _pendingRequests.Count == 0 &&

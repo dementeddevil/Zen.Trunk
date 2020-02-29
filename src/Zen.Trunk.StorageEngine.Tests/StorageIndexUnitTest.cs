@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Autofac;
+using Serilog;
 using Xunit;
 using Zen.Trunk.IO;
 using Zen.Trunk.Storage.BufferFields;
@@ -15,6 +16,13 @@ namespace Zen.Trunk.Storage
     [Trait("Class", "Index Manager")]
     public class StorageIndexUnitTest : IClassFixture<StorageEngineTestFixture>, IDisposable
     {
+        private readonly ILogger _logger = new LoggerConfiguration()
+            .Enrich.FromLogContext()
+            .Enrich.WithThreadId()
+            .Enrich.WithThreadName()
+            .WriteTo.Debug()
+            .WriteTo.Trace()
+            .CreateLogger();
         private readonly StorageEngineTestFixture _fixture;
         private readonly ILifetimeScope _scope;
 
@@ -178,6 +186,8 @@ namespace Zen.Trunk.Storage
         [Fact(DisplayName = "Index test add pages")]
         public async Task IndexTestAddPages()
         {
+            var logger = _logger.ForContext<StorageIndexUnitTest>();
+            logger.Information("IndexTestAddPages - BEGIN");
             var masterDataPathName = _fixture.GlobalTracker.Get("master_indextest.mddf");
             var masterLogPathName = _fixture.GlobalTracker.Get("master_indextest.mlf");
 
@@ -231,6 +241,7 @@ namespace Zen.Trunk.Storage
             {
                 await dbDevice.CloseAsync().ConfigureAwait(true);
                 dbDevice.Dispose();
+                logger.Information("IndexTestAddPages - END");
             }
         }
 

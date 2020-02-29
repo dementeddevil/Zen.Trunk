@@ -1,8 +1,8 @@
 ﻿using System;
 using System.IO;
 using System.Threading.Tasks;
+using Serilog;
 using Zen.Trunk.Extensions;
-using Zen.Trunk.Logging;
 using Zen.Trunk.Storage.Locking;
 using Zen.Trunk.Storage.Log;
 using Zen.Trunk.VirtualMemory;
@@ -445,8 +445,7 @@ namespace Zen.Trunk.Storage.Data
         #endregion
 
         #region Private Fields
-        private static readonly ILog Logger = LogProvider.For<PageBuffer>();
-
+        private static readonly ILogger Logger = Serilog.Log.ForContext<PageBuffer>();
         private readonly IBufferDevice _bufferDevice;
 		private IVirtualBuffer _oldBuffer;
 		private IVirtualBuffer _newBuffer;
@@ -686,10 +685,7 @@ namespace Zen.Trunk.Storage.Data
 					_currentTransactionId = transactionId;
 				}
 
-			    if (Logger.IsDebugEnabled())
-			    {
-			        Logger.Debug($"GetBufferStream backed by current buffer {_newBuffer.BufferId}");
-			    }
+			    Logger.Debug($"GetBufferStream backed by current buffer {_newBuffer.BufferId}");
 			    return _newBuffer.GetBufferStream(offset, count, writable);
 			}
 
@@ -703,10 +699,7 @@ namespace Zen.Trunk.Storage.Data
 		        throw new InvalidOperationException("Another transaction already has write access.");
 		    }
 
-		    if (Logger.IsDebugEnabled())
-		    {
-		        Logger.Debug($"GetBufferStream backed by old buffer {_oldBuffer.BufferId}");
-		    }
+		    Logger.Debug($"GetBufferStream backed by old buffer {_oldBuffer.BufferId}");
 		    return _oldBuffer.GetBufferStream(offset, count, false);
 		}
 		#endregion
