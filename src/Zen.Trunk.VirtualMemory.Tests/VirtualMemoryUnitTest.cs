@@ -58,7 +58,7 @@ Then no corruption or deadlocks occur")]
         }
 
         [Fact(DisplayName = 
-            @"Given a ScatterGatherRequestQueue configured to auto-flush after 5 seconds
+            @"Given a ScatterGatherRequestManager configured to auto-flush after 5 seconds
               When data is written to queue
               Then data is not written immediately but only after timeout has occurred")]
         public async Task WriteBufferAsync_WritesToStreamAfterTimeout()
@@ -70,15 +70,15 @@ Then no corruption or deadlocks occur")]
                     {
                         AutomaticFlushPeriod = TimeSpan.FromSeconds(5)
                     };
-                using (var sut = new ScatterGatherRequestQueue(_fixture.Scope.Resolve<ISystemClock>(), stream, settings))
+                using (var sut = new ScatterGatherRequestManager(_fixture.Scope.Resolve<ISystemClock>(), stream, settings))
                 {
                     var tasks =
                         new[]
                         {
-                            sut.WriteBufferAsync(0, _fixture.BufferFactory.AllocateAndFill(0)),
-                            sut.WriteBufferAsync(1, _fixture.BufferFactory.AllocateAndFill(1)),
-                            sut.WriteBufferAsync(2, _fixture.BufferFactory.AllocateAndFill(2)),
-                            sut.WriteBufferAsync(3, _fixture.BufferFactory.AllocateAndFill(3))
+                            sut.QueueWriteBufferAsync(0, _fixture.BufferFactory.AllocateAndFill(0)),
+                            sut.QueueWriteBufferAsync(1, _fixture.BufferFactory.AllocateAndFill(1)),
+                            sut.QueueWriteBufferAsync(2, _fixture.BufferFactory.AllocateAndFill(2)),
+                            sut.QueueWriteBufferAsync(3, _fixture.BufferFactory.AllocateAndFill(3))
                         };
 
                     stream.BuffersWritten.Should().BeEmpty();

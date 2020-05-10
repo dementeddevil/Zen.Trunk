@@ -7,11 +7,10 @@ using Zen.Trunk.Utils;
 namespace Zen.Trunk.VirtualMemory
 {
     /// <summary>
-    /// <c>ScatterGatherRequestQueue</c> optimises buffer persistence by
-    /// grouping reads and writes on consecutive buffers together and so
-    /// that the I/O can be performed in one overlapped operation.
+    /// <c>ScatterGatherRequestManager</c> optimises buffer persistence by grouping reads and writes on consecutive
+    /// buffers together and so that the I/O can be performed in one overlapped operation.
     /// </summary>
-    public sealed class ScatterGatherRequestQueue : IDisposable
+    public sealed class ScatterGatherRequestManager : IDisposable
 	{
 	    #region Private Fields
 	    // ReSharper disable once PrivateFieldCanBeConvertedToLocalVariable
@@ -20,17 +19,16 @@ namespace Zen.Trunk.VirtualMemory
 		private readonly StreamScatterGatherRequestQueue<WriteGatherRequestArray> _writeQueue;
 		private readonly CancellationTokenSource _shutdown;
 		private readonly Task _cleanupTask;
-        #endregion
+		#endregion
 
-        #region Public Constructors
-        /// <summary>
-        /// Initializes a new instance of the 
-        /// <see cref="T:ScatterGatherReaderWriter"/> class.
-        /// </summary>
-        /// <param name="systemClock">System reference clock.</param>
-        /// <param name="stream">Underlying stream object.</param>
-        /// <param name="settings">Settings to control request queue.</param>
-        public ScatterGatherRequestQueue(
+		#region Public Constructors
+		/// <summary>
+		/// Initializes a new instance of the <see cref="T:ScatterGatherRequestManager"/> class.
+		/// </summary>
+		/// <param name="systemClock">System reference clock.</param>
+		/// <param name="stream">Underlying stream object.</param>
+		/// <param name="settings">Settings to control request queue.</param>
+		public ScatterGatherRequestManager(
             ISystemClock systemClock,
 		    AdvancedStream stream,
             ScatterGatherRequestQueueSettings settings)
@@ -84,38 +82,35 @@ namespace Zen.Trunk.VirtualMemory
 		}
 
         /// <summary>
-        /// Performs an asynchronous write of the specified buffer at the given
-        /// physical page index.
+        /// Queues an asynchronous write of the specified buffer at the given physical page index.
         /// </summary>
         /// <param name="physicalPageId">The physical page id.</param>
         /// <param name="buffer">A <see cref="T:IVirtualBuffer"/> object to be persisted.</param>
         /// <returns>
-        /// A <see cref="Task"/> representing the asynchronous operation.
+        /// A <see cref="Task"/> that will be completed when the write operation has been performed.
         /// </returns>
         [CLSCompliant(false)]
-		public Task WriteBufferAsync(uint physicalPageId, IVirtualBuffer buffer)
+		public Task QueueWriteBufferAsync(uint physicalPageId, IVirtualBuffer buffer)
 		{
-			return _writeQueue.ProcessBufferAsync(physicalPageId, buffer);
+			return _writeQueue.QueueBufferRequestAsync(physicalPageId, buffer);
+		}
+
+		/// <summary>
+		/// Queues an asynchronous read of the specified buffer at the given physical page index.
+		/// </summary>
+		/// <param name="physicalPageId">The physical page id.</param>
+		/// <param name="buffer">A <see cref="T:IVirtualBuffer"/> object to be persisted.</param>
+		/// <returns>
+		/// A <see cref="Task"/> that will be completed when the read operation has been performed.
+        /// </returns>
+		[CLSCompliant(false)]
+		public Task QueueReadBufferAsync(uint physicalPageId, IVirtualBuffer buffer)
+		{
+			return _readQueue.QueueBufferRequestAsync(physicalPageId, buffer);
 		}
 
         /// <summary>
-        /// Performs an asynchronous read of the specified buffer at the given
-        /// physical page address.
-        /// </summary>
-        /// <param name="physicalPageId">The physical page id.</param>
-        /// <param name="buffer">A <see cref="T:IVirtualBuffer"/> object to be persisted.</param>
-        /// <returns>
-        /// A <see cref="Task"/> representing the asynchronous operation.
-        /// </returns>
-        [CLSCompliant(false)]
-		public Task ReadBufferAsync(uint physicalPageId, IVirtualBuffer buffer)
-		{
-			return _readQueue.ProcessBufferAsync(physicalPageId, buffer);
-		}
-
-        /// <summary>
-        /// Flushes all outstanding read and write requests to the underlying
-        /// stream.
+        /// Flushes all outstanding read and/or write requests to the underlying stream.
         /// </summary>
         /// <param name="flushReads">if set to <c>true</c> then flush read queue.</param>
         /// <param name="flushWrites">if set to <c>true</c> then flush write queue.</param>
