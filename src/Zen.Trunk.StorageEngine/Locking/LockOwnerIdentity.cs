@@ -96,5 +96,15 @@
         {
             return $"LOI:[{SessionId}:{TransactionId}]";
         }
+
+        public static bool operator ==(LockOwnerIdentity lhs, LockOwnerIdentity rhs)
+        {
+            return lhs.Equals(rhs);
+        }
+
+        public static bool operator !=(LockOwnerIdentity lhs, LockOwnerIdentity rhs)
+        {
+            return !lhs.Equals(rhs);
+        }
     }
 }

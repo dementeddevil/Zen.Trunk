@@ -11,12 +11,12 @@ namespace Zen.Trunk.Storage
             logEvent.AddOrUpdateProperty(
                 propertyFactory.CreateProperty(
                     "SessionId",
-                    new ScalarValue(TrunkSessionContext.Current?.SessionId.Value.ToString() ?? "N/A")));
+                    new ScalarValue(TrunkSessionContext.Current?.SessionId.Value ?? 0)));
 
             logEvent.AddOrUpdateProperty(
                 propertyFactory.CreateProperty(
                     "TransactionId",
-                    new ScalarValue(TrunkTransactionContext.Current?.TransactionId.Value.ToString() ?? "N/A")));
+                    new ScalarValue(TrunkTransactionContext.Current?.TransactionId.Value ?? 0)));
         }
     }
 }

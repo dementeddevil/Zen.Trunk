@@ -21,6 +21,7 @@ namespace Zen.Trunk.Storage.Query
         public QueryExecutionContext(MasterDatabaseDevice masterDatabase)
         {
             MasterDatabase = masterDatabase;
+            ActiveDatabase = masterDatabase;
         }
 
         /// <summary>

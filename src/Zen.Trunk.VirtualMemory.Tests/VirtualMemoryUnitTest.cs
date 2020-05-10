@@ -5,7 +5,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Autofac;
 using FluentAssertions;
-using Serilog;
 using Xunit;
 
 namespace Zen.Trunk.VirtualMemory.Tests

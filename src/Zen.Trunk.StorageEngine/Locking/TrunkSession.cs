@@ -115,7 +115,9 @@ namespace Zen.Trunk.Storage.Locking
         {
             if (disposing && !_isCompleted && !_isCompleting)
             {
-                Logger.Warning($"{SessionId} => In-progress session disposed - performing implicit rollback");
+                Logger.Warning(
+                    "{SessionId} => In-progress session disposed - performing implicit rollback",
+                    SessionId);
                 
                 // Force rollback of the current transaction
                 RollbackAsync().GetAwaiter().GetResult();

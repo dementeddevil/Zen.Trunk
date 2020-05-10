@@ -269,13 +269,14 @@ namespace Zen.Trunk.Storage.Locking
 
 			if (_ownerLockCount == 0)
 			{
-                Logger.Debug($"{GetType().Name}: Unlocking lock owner block");
+                Logger.Debug("Unlocking lock owner block");
 				await OwnerLock.UnlockAsync().ConfigureAwait(false);
 			}
 			else
 			{
 			    Logger.Warning(
-                    $"{GetType().Name}: Unlocking lock owner block has been deferred {_ownerLockCount} outstanding locks.");
+                    "Unlocking lock owner block has been deferred {OwnerLockCount} outstanding locks.",
+					_ownerLockCount);
             }
 		}
 
@@ -381,7 +382,7 @@ namespace Zen.Trunk.Storage.Locking
 				// Check whether we can escalate this lock
 				if (_readLocks.Count > _maxItemLocks)
 				{
-				    Logger.Debug($"{GetType().Name}: Attempting lock owner block SHARED lock escalation");
+				    Logger.Debug("Attempting lock owner block SHARED lock escalation");
 				    
 					var hasEscalatedLock = false;
 					try
@@ -393,7 +394,7 @@ namespace Zen.Trunk.Storage.Locking
 					catch
 					{
                         // Ignore error - we will attempt escalation on next lock
-                        Logger.Debug($"{GetType().Name}: Lock owner block SHARED lock escalation failed");
+                        Logger.Debug("Lock owner block SHARED lock escalation failed");
                     }
 
                     if (hasEscalatedLock)
@@ -532,7 +533,7 @@ namespace Zen.Trunk.Storage.Locking
 			// Check whether we can escalate this lock
 			if (_writeLocks.Count > _maxItemLocks)
 			{
-                Logger.Debug($"{GetType().Name}: Attempting lock owner block EXCLUSIVE lock escalation");
+                Logger.Debug("Attempting lock owner block EXCLUSIVE lock escalation");
                 
 				var hasEscalated = false;
 				try
@@ -544,7 +545,7 @@ namespace Zen.Trunk.Storage.Locking
 				catch
 				{
                     // Ignore error - we will attempt escalation on next lock
-                    Logger.Debug($"{GetType().Name}: Lock owner block EXCLUSIVE lock escalation failed");
+                    Logger.Debug("Lock owner block EXCLUSIVE lock escalation failed");
                 }
 
                 if (hasEscalated)

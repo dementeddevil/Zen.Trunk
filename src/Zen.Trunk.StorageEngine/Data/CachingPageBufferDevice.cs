@@ -8,6 +8,7 @@ using System.Threading.Tasks.Dataflow;
 using Serilog;
 using Zen.Trunk.CoordinationDataStructures;
 using Zen.Trunk.Partitioners;
+using Zen.Trunk.Storage.Services;
 using Zen.Trunk.Utils;
 using Zen.Trunk.VirtualMemory;
 
@@ -193,6 +194,7 @@ namespace Zen.Trunk.Storage.Data
         private bool _isDisposed;
         private readonly CancellationTokenSource _shutdownToken = new CancellationTokenSource();
         private IMultipleBufferDevice _bufferDevice;
+        private readonly IStorageEngineEventService _storageEngineEventService;
 
         // Buffer load/initialisation
         private readonly ConcurrentDictionary<VirtualPageId, TaskCompletionSource<PageBuffer>> _pendingLoadOrInit =
@@ -222,12 +224,15 @@ namespace Zen.Trunk.Storage.Data
         /// Initializes a new instance of the <see cref="CachingPageBufferDevice" /> class.
         /// </summary>
         /// <param name="bufferDevice">The buffer device that is to be cached.</param>
+        /// <param name="storageEngineEventService">Event service.</param>
         /// <param name="cacheSettings">The cache device settings.</param>
         public CachingPageBufferDevice(
             IMultipleBufferDevice bufferDevice,
+            IStorageEngineEventService storageEngineEventService,
             CachingPageBufferDeviceSettings cacheSettings)
         {
             _bufferDevice = bufferDevice;
+            _storageEngineEventService = storageEngineEventService;
             _cacheSettings = cacheSettings ?? new CachingPageBufferDeviceSettings();
 
             // Initialise the free-buffer pool handler
@@ -248,7 +253,7 @@ namespace Zen.Trunk.Storage.Data
 
             // Initialisation and load handlers make use of common handler
             _initBufferPort = new TransactionContextActionBlock<PreparePageBufferRequest, PageBuffer>(
-                request => HandleLoadOrInit(request, false),
+                request => HandleInit(request),
                 new ExecutionDataflowBlockOptions
                 {
                     TaskScheduler = TaskScheduler.Default,
@@ -257,7 +262,7 @@ namespace Zen.Trunk.Storage.Data
                     CancellationToken = _shutdownToken.Token
                 });
             _loadBufferPort = new TransactionContextActionBlock<PreparePageBufferRequest, PageBuffer>(
-                request => HandleLoadOrInit(request, true),
+                request => HandleLoad(request),
                 new ExecutionDataflowBlockOptions
                 {
                     TaskScheduler = TaskScheduler.Default,
@@ -331,14 +336,7 @@ namespace Zen.Trunk.Storage.Data
                 {
                     foreach (var item in _pendingLoadOrInit.Values)
                     {
-                        try
-                        {
-                            throw new BufferDeviceShuttingDownException();
-                        }
-                        catch (Exception exception)
-                        {
-                            item.TrySetException(exception);
-                        }
+                        item.TrySetException(new BufferDeviceShuttingDownException());
                     }
                     _pendingLoadOrInit.Clear();
                 }
@@ -455,35 +453,41 @@ namespace Zen.Trunk.Storage.Data
             }
         }
 
-        private Task<PageBuffer> HandleLoadOrInit(PreparePageBufferRequest request, bool isLoad)
+        private bool TryGetExistingInitOrLoadTask(VirtualPageId pageId, out Task<PageBuffer> pendingOperation)
         {
-            // Sanity check
-            CheckDisposed();
+            pendingOperation = Task.FromResult<PageBuffer>(null);
 
             // If the same page is already queued for pending init or load
             //  then reuse same completion task
             var isAlreadyPending = false;
             var pendingTaskSource = _pendingLoadOrInit.AddOrUpdate(
-                request.PageId,
+                pageId,
                 new TaskCompletionSource<PageBuffer>(),
                 (key, existingSource) =>
                 {
                     isAlreadyPending = true;
                     return existingSource;
                 });
+
             if (isAlreadyPending)
             {
-                return pendingTaskSource.Task;
+                pendingOperation = pendingTaskSource.Task;
             }
 
-            // Buffer lookup occurs within a lock...
+            return isAlreadyPending;
+        }
+
+        private PageBuffer GetOrAllocatePageBuffer(VirtualPageId pageId, out bool isNewBuffer)
+        {
             PageBuffer buffer = null;
-            var isNewBuffer = false;
+            var newBuffer = false;
+
+            // Buffer lookup occurs within a lock...
             _bufferLookupLock.Execute(
                 () =>
                 {
                     // Check whether the buffer is already in our cache
-                    if (_bufferLookup.TryGetValue(request.PageId, out var cacheInfo))
+                    if (_bufferLookup.TryGetValue(pageId, out var cacheInfo))
                     {
                         // Retrieve cached buffer
                         // NOTE: Buffer is addref'ed in property accessor (naughty)
@@ -500,23 +504,65 @@ namespace Zen.Trunk.Storage.Data
 
                         // Get new buffer from free pool and add to cache
                         buffer = _freePagePool.GetObject();
-                        _bufferLookup.Add(request.PageId, new BufferCacheInfo(buffer));
-                        isNewBuffer = true;
+                        _bufferLookup.Add(pageId, new BufferCacheInfo(buffer));
+                        newBuffer = true;
                     }
                 });
 
+            isNewBuffer = newBuffer;
+            return buffer;
+        }
+
+        private Task<PageBuffer> HandleInit(PreparePageBufferRequest request)
+        {
+            // Sanity check
+            CheckDisposed();
+
+            // If the same page is already queued for pending init or load
+            //  then reuse same completion task
+            if (TryGetExistingInitOrLoadTask(request.PageId, out var pendingTask))
+            {
+                return pendingTask;
+            }
+
+            // Fetch or allocate the buffer (if it's cached we can complete early)
+            PageBuffer buffer = GetOrAllocatePageBuffer(request.PageId, out var isNewBuffer);
             if (!isNewBuffer)
             {
-                // Buffer was in cache so complete the request
                 NotifyWaitersLoadOrInitTaskCompleted(request.PageId, buffer);
             }
             else
             {
-                // Delegate load or init to buffer object
-                RequestLoadOrInitPageBuffer(buffer, isLoad, request.PageId);
+                RequestInitPageBuffer(buffer, request.PageId);
             }
 
-            return pendingTaskSource.Task;
+            return pendingTask;
+        }
+
+        private Task<PageBuffer> HandleLoad(PreparePageBufferRequest request)
+        {
+            // Sanity check
+            CheckDisposed();
+
+            // If the same page is already queued for pending init or load
+            //  then reuse same completion task
+            if (TryGetExistingInitOrLoadTask(request.PageId, out var pendingTask))
+            {
+                return pendingTask;
+            }
+
+            // Fetch or allocate the buffer (if it's cached we can complete early)
+            PageBuffer buffer = GetOrAllocatePageBuffer(request.PageId, out var isNewBuffer);
+            if (!isNewBuffer)
+            {
+                NotifyWaitersLoadOrInitTaskCompleted(request.PageId, buffer);
+            }
+            else
+            {
+                RequestLoadPageBuffer(buffer, request.PageId);
+            }
+
+            return pendingTask;
         }
 
         private async Task PageBufferFlushThread()
@@ -529,6 +575,9 @@ namespace Zen.Trunk.Storage.Data
                     // Determine whether we need to start scavenging
                     if (!IsScavenging && _bufferLookup.Count > _cacheSettings.CacheScavengeOnThreshold)
                     {
+                        _storageEngineEventService.CachingPageBufferFlushScavengeStart(
+                            _bufferLookup.Count,
+                            _cacheSettings.CacheScavengeOnThreshold);
                         IsScavenging = true;
                     }
 
@@ -542,6 +591,9 @@ namespace Zen.Trunk.Storage.Data
                         // Determine whether we have recovered enough pages to stop scavenging
                         if (IsScavenging && _bufferLookup.Count < _cacheSettings.CacheScavengeOffThreshold)
                         {
+                            _storageEngineEventService.CachingPageBufferFlushScavengeStart(
+                                _bufferLookup.Count,
+                                _cacheSettings.CacheScavengeOffThreshold);
                             IsScavenging = false;
                         }
                     }
@@ -735,7 +787,7 @@ namespace Zen.Trunk.Storage.Data
             }
 
             // Process pages we can scavenge
-            else if (cacheInfo.CanFree && IsScavenging)
+            else if (IsScavenging && cacheInfo.CanFree)
             {
                 // Free the buffer (may throw)
                 cacheInfo.BufferInternal.SetFreeAsync();
@@ -760,28 +812,18 @@ namespace Zen.Trunk.Storage.Data
         }
 
         /// <summary>
-        /// Requests the specified buffer is either loaded or initialised.
+        /// Requests the specified buffer is initialised.
         /// </summary>
         /// <param name="buffer">The buffer.</param>
-        /// <param name="isLoad">if set to <c>true</c> [is load].</param>
         /// <param name="pageId">The page identifier.</param>
         /// <remarks>
-        /// Initialisation requests are carried out immediately however load
-        /// requests are deferred until the read-request queue is flushed by
-        /// the cache I/O thread.
+        /// Initialisation requests are carried out immediately.
         /// </remarks>
-        private async void RequestLoadOrInitPageBuffer(PageBuffer buffer, bool isLoad, VirtualPageId pageId)
+        private async void RequestInitPageBuffer(PageBuffer buffer, VirtualPageId pageId)
         {
             try
             {
-                if (isLoad)
-                {
-                    await buffer.RequestLoadAsync(pageId, LogicalPageId.Zero).ConfigureAwait(false);
-                }
-                else
-                {
-                    await buffer.InitAsync(pageId, LogicalPageId.Zero).ConfigureAwait(false);
-                }
+                await buffer.InitAsync(pageId, LogicalPageId.Zero).ConfigureAwait(false);
             }
             catch (OperationCanceledException)
             {
@@ -793,6 +835,35 @@ namespace Zen.Trunk.Storage.Data
                 NotifyWaitersLoadOrInitTaskFailed(pageId, exception);
                 return;
             }
+
+            NotifyWaitersLoadOrInitTaskCompleted(pageId, buffer);
+        }
+
+        /// <summary>
+        /// Requests the specified buffer is loaded from storage.
+        /// </summary>
+        /// <param name="buffer">The buffer.</param>
+        /// <param name="pageId">The page identifier.</param>
+        /// <remarks>
+        /// Load requests are deferred until the read-request queue is flushed.
+        /// </remarks>
+        private async void RequestLoadPageBuffer(PageBuffer buffer, VirtualPageId pageId)
+        {
+            try
+            {
+                await buffer.RequestLoadAsync(pageId, LogicalPageId.Zero).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+                NotifyWaitersLoadOrInitTaskCancelled(pageId);
+                return;
+            }
+            catch (Exception exception)
+            {
+                NotifyWaitersLoadOrInitTaskFailed(pageId, exception);
+                return;
+            }
+
             NotifyWaitersLoadOrInitTaskCompleted(pageId, buffer);
         }
 

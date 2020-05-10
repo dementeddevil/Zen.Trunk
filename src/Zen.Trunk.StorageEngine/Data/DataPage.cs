@@ -171,7 +171,7 @@ namespace Zen.Trunk.Storage.Data
 		/// Gets/sets the lock timeout duration.
 		/// </summary>
 		/// <value>Lock time-span value</value>
-		public TimeSpan LockTimeout { get; set; } = TimeSpan.FromSeconds(10);
+		public TimeSpan LockTimeout { get; set; } = TimeSpan.FromMinutes(10);
 
         /// <summary>
         /// Gets/sets a boolean that indicates whether locks are held until

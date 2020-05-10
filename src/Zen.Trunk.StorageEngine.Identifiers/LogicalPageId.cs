@@ -63,10 +63,10 @@ namespace Zen.Trunk.Storage
             {
                 if (relativePages > 0)
                 {
-                    return new LogicalPageId(Value + (uint)relativePages);
+                    return new LogicalPageId(Value + (ulong)relativePages);
                 }
 
-                return new LogicalPageId(Value - (uint)relativePages);
+                return new LogicalPageId(Value - (ulong)Math.Abs(relativePages));
             }
             catch (OverflowException exception)
             {

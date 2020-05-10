@@ -354,7 +354,7 @@ namespace Zen.Trunk.Storage.Data
                     var pageId = new VirtualPageId(DeviceId, physicalId);
                     page.VirtualPageId = pageId;
                     Logger.Debug(
-                        "Distribution page at {PageId}",
+                        "Distribution page at {VirtualPageId}",
                         pageId);
                     
                     // Issue the sub-ordinate request
@@ -390,7 +390,7 @@ namespace Zen.Trunk.Storage.Data
                     var pageId = new VirtualPageId(DeviceId, physicalId);
                     page.VirtualPageId = pageId;
                     Logger.Debug(
-                        "Distribution page at {PageId}",
+                        "Distribution page at {VirtualPageId}",
                         pageId);
 
                     // Issue the sub-ordinate request

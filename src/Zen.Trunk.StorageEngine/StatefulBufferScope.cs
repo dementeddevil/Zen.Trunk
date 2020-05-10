@@ -21,6 +21,11 @@ namespace Zen.Trunk.Storage
         /// <param name="buffer">The buffer.</param>
         public StatefulBufferScope(TBufferType buffer)
 		{
+            if (buffer == null)
+            {
+                throw new ArgumentNullException(nameof(buffer));
+            }
+
 			Buffer = buffer;
 		}
 

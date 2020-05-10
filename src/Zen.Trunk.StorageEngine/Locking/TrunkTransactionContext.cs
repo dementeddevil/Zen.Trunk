@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Runtime.Remoting.Messaging;
 using System.Threading;
 using System.Threading.Tasks;
@@ -64,8 +63,9 @@ namespace Zen.Trunk.Storage.Locking
                 var threadId = Thread.CurrentThread.ManagedThreadId;
                 var prevTransactionId = prev?.TransactionId.ToString() ?? "N/A";
                 var nextTransactionId = next?.TransactionId.ToString() ?? "N/A";
-                Trace.TraceInformation(
-                    $"{action} transaction scope on thread {threadId} switching transaction from {prevTransactionId} to {nextTransactionId}");
+                Serilog.Log.Information(
+                    "{Action} transaction scope on thread {ThreadId} switching transaction from {PrevTransactionId} to {NextTransactionId}",
+                    action, threadId, prevTransactionId, nextTransactionId);
             }
         }
 

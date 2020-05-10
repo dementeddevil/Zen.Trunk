@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Serilog;
 using Zen.Trunk.Utils;
 
 namespace Zen.Trunk.VirtualMemory

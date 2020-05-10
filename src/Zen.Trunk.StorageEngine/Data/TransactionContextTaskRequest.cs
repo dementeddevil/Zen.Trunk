@@ -55,7 +55,7 @@ namespace Zen.Trunk.Storage.Data
     /// <typeparam name="TResult">The type of the result.</typeparam>
     /// <seealso cref="Zen.Trunk.Utils.TaskRequest{TResult}" />
     /// <seealso cref="Zen.Trunk.Storage.Data.ITransactionContextTaskRequest" />
-    [DebuggerStepThrough]
+    //[DebuggerStepThrough]
     public class TransactionContextTaskRequest<TMessage, TResult> :
         TaskRequest<TMessage, TResult>,
         ITransactionContextTaskRequest
@@ -104,7 +104,7 @@ namespace Zen.Trunk.Storage.Data
     /// <typeparam name="TRequest">The type of the request.</typeparam>
     /// <typeparam name="TResult">The type of the result.</typeparam>
     /// <seealso cref="Zen.Trunk.Utils.TaskRequestActionBlock{TRequest, TResult}" />
-    [DebuggerStepThrough]
+    //[DebuggerStepThrough]
     public class TransactionContextActionBlock<TRequest, TResult> : TaskRequestActionBlock<TRequest, TResult>
         where TRequest : TaskRequest<TResult>, ITransactionContextTaskRequest
     {
@@ -195,7 +195,7 @@ namespace Zen.Trunk.Storage.Data
     /// <typeparam name="TMessage">The type of the message.</typeparam>
     /// <typeparam name="TResult">The type of the result.</typeparam>
     /// <seealso cref="Zen.Trunk.Utils.TaskRequestActionBlock{TRequest, TResult}" />
-    [DebuggerStepThrough]
+    //[DebuggerStepThrough]
     public class TransactionContextActionBlock<TRequest, TMessage, TResult> : TaskRequestActionBlock<TRequest, TResult>
         where TRequest : TaskRequest<TMessage, TResult>, ITransactionContextTaskRequest
     {

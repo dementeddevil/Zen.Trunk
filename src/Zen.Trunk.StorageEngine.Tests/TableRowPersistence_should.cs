@@ -7,6 +7,7 @@ namespace Zen.Trunk.Storage
 {
     [Trait("Subsystem", "Storage Engine")]
     [Trait("Class", "Table Row")]
+    // ReSharper disable once InconsistentNaming
     public class TableRowPersistence_should
     {
         public List<TableColumnInfo> ColumnDefinition { get; } =

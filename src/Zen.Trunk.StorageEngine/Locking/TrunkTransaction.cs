@@ -306,7 +306,9 @@ namespace Zen.Trunk.Storage.Locking
                 entry.RewriteTransactionId(_transactionId);
             }
 
-            Logger.Debug($"{_transactionId} => Writing {entry.LogType} to log");
+            Logger.Debug(
+                "{TransactionId} => Writing {LogType} to log",
+                _transactionId, entry.LogType);
 
             if (LoggingDevice != null)
             {
@@ -354,12 +356,16 @@ namespace Zen.Trunk.Storage.Locking
                 var prepTasks = new List<Task<bool>>();
                 if (_nestedRollbackTriggered)
                 {
-                    Logger.Debug($"{_transactionId} => Rolling back {_subEnlistments.Count} sub-enlistments due to nested transaction failure.");
+                    Logger.Debug(
+                        "{TransactionId} => Rolling back {SubEnlistmentCount} sub-enlistments due to nested transaction failure.",
+                        _transactionId, _subEnlistments.Count);
                     performCommit = false;
                 }
                 else
                 {
-                    Logger.Debug($"{_transactionId} => Preparing commit on {_subEnlistments.Count} sub-enlistments.");
+                    Logger.Debug(
+                        "{TransactionId} => Preparing commit on {SubEnlistmentCount} sub-enlistments.",
+                        _transactionId, _subEnlistments.Count);
 
                     // Prepare our sub-enlistments (pages) for commit operation
                     // Each sub-enlistment can opt out of further work in the commit process if needed
@@ -373,7 +379,10 @@ namespace Zen.Trunk.Storage.Locking
                         }
                         catch (Exception e)
                         {
-                            Logger.Debug($"{_transactionId} => Prepare failed - rolling back\n\t{e.Message}");
+                            Logger.Error(
+                                e,
+                                "{TransactionId} => Prepare failed - rolling back",
+                                _transactionId);
                             performCommit = false;
                         }
                     }
@@ -403,7 +412,10 @@ namespace Zen.Trunk.Storage.Locking
                     }
                     catch (Exception e)
                     {
-                        Logger.Debug($"{_transactionId} => Prepare failed - rolling back\n\t{e.Message}");
+                        Logger.Error(
+                            e,
+                            "{TransactionId} => Prepare failed - rolling back",
+                            _transactionId);
                         performCommit = false;
                     }
                 }
@@ -413,7 +425,9 @@ namespace Zen.Trunk.Storage.Locking
                 if (performCommit)
                 {
                     // Notify all prepared objects that want to commit
-                    Logger.Debug($"{_transactionId} => Committing {commitList.Count} sub-enlistments");
+                    Logger.Debug(
+                        "{TransactionId} => Committing {SubEnlistmentCount} sub-enlistments",
+                        _transactionId, commitList.Count);
                     var commitTasks = new List<Task>();
                     try
                     {
@@ -447,7 +461,9 @@ namespace Zen.Trunk.Storage.Locking
                     }
                     catch (Exception e)
                     {
-                        Logger.Debug($"Commit failed - rolling back\n\t{e.Message}");
+                        Logger.Error(
+                            e,
+                            "Commit failed - rolling back");
                         performCommit = false;
                     }
                 }
@@ -492,11 +508,14 @@ namespace Zen.Trunk.Storage.Locking
                     catch (Exception e)
                     {
                         Logger.Warning(
-                            e, $"Exception caught during transaction completion - this will be ignored\n\t{e.Message}", e);
+                            e,
+                            "Exception caught during transaction completion - this will be ignored");
                     }
                 }
 
-                Logger.Debug($"{_transactionId} => Commit completed - discarding xact scope");
+                Logger.Debug(
+                    "{TransactionId} => Commit completed - discarding xact scope",
+                    _transactionId);
             }
             catch (Exception)
             {
@@ -544,7 +563,9 @@ namespace Zen.Trunk.Storage.Locking
             try
             {
                 _isCompleting = true;
-                Logger.Debug($"{_transactionId} => Preparing rollback on {_subEnlistments.Count} sub-enlistments");
+                Logger.Debug(
+                    "{TransactionId} => Preparing rollback on {SubEnlistmentCount} sub-enlistments",
+                    _transactionId, _subEnlistments.Count);
                 var rollbackTasks = new List<Task>();
                 foreach (var sub in _subEnlistments)
                 {
@@ -608,7 +629,9 @@ namespace Zen.Trunk.Storage.Locking
         {
             if (disposing && !_isCompleted && !_isCompleting)
             {
-                Logger.Warning($"{_transactionId} => In-progress transaction disposed - performing implicit rollback");
+                Logger.Warning(
+                    "{TransactionId} => In-progress transaction disposed - performing implicit rollback",
+                    _transactionId);
 
                 // Force rollback of the current transaction
                 RollbackAsync().GetAwaiter().GetResult();
@@ -679,7 +702,9 @@ namespace Zen.Trunk.Storage.Locking
             if (!_isBeginLogWritten)
             {
                 _isBeginLogWritten = true;
-                Logger.Debug($"{_transactionId} => Writing begin xact to log");
+                Logger.Debug(
+                    "{TransactionId} => Writing begin xact to log",
+                    _transactionId);
 
                 if (LoggingDevice != null)
                 {
@@ -702,7 +727,9 @@ namespace Zen.Trunk.Storage.Locking
             if (_isBeginLogWritten && LoggingDevice != null)
             {
                 var endXactType = commit ? "commit" : "rollback";
-                Logger.Debug($"{_transactionId} => Writing end xact ({endXactType}) to log");
+                Logger.Debug(
+                    "{TransactionId} => Writing end xact ({EndXactType}) to log",
+                    _transactionId, endXactType);
 
                 LogEntry entry;
                 if (commit)

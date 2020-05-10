@@ -4,6 +4,9 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
+using Serilog;
+using Serilog.Core;
+using Serilog.Events;
 using Zen.Trunk.Extensions;
 
 namespace Zen.Trunk.Storage.Locking
@@ -206,6 +209,7 @@ namespace Zen.Trunk.Storage.Locking
         #endregion
 
         #region Private Fields
+        private readonly ILogger _logger = Serilog.Log.ForContext<TransactionLock<TLockTypeEnum>>();
         private readonly ActionBlock<AcquireLock> _acquireLockAction;
         private readonly ActionBlock<ReleaseLock> _releaseLockAction;
         private readonly ActionBlock<QueryLock> _queryLockAction;
@@ -286,16 +290,19 @@ namespace Zen.Trunk.Storage.Locking
         /// </summary>
         public void Initialise()
         {
-            if (_initialised)
+            using (FromLockContext())
             {
-                throw new InvalidOperationException("Lock already initialised.");
-            }
+                if (_initialised)
+                {
+                    throw new InvalidOperationException("Lock already initialised.");
+                }
 
-            // Setup initial state object
-            _currentState = GetStateFromType(NoneLockType);
-            _currentState.OnEnterState(this, null);
-            _initialised = true;
-            TraceVerbose("Initialized");
+                // Setup initial state object
+                _currentState = GetStateFromType(NoneLockType);
+                _currentState.OnEnterState(this, null);
+                _initialised = true;
+                _logger.Verbose("Initialized");
+            }
         }
 
         /// <summary>
@@ -391,59 +398,63 @@ namespace Zen.Trunk.Storage.Locking
         #region Internal Methods
         internal async Task LockAsync(LockOwnerIdentity lockOwner, TLockTypeEnum lockType, TimeSpan timeout)
         {
-            // Post lock acquisition message
-            var request = new AcquireLock(lockType, lockOwner);
-            if (!_acquireLockAction.Post(request))
+            using (FromLockContext())
             {
-                throw new LockRejectedException();
-            }
+                // Post lock acquisition message
+                var request = new AcquireLock(lockType, lockOwner);
+                if (!_acquireLockAction.Post(request))
+                {
+                    throw new LockRejectedException();
+                }
 
-            // Wait for task to complete
-            bool addRefLock;
-            try
-            {
-                addRefLock = await request.Task.WithTimeout(timeout).ConfigureAwait(false);
-            }
-            catch (OperationCanceledException)
-            {
-                throw new LockTimeoutException("Lock timeout occurred.", timeout);
-            }
+                // Wait for task to complete
+                bool addRefLock;
+                try
+                {
+                    addRefLock = await request.Task.WithTimeout(timeout).ConfigureAwait(false);
+                }
+                catch (OperationCanceledException)
+                {
+                    throw new LockTimeoutException("Lock timeout occurred.", timeout);
+                }
 
-            // Increment reference count on lock
-            if (addRefLock)
-            {
-                AddRefLock();
+                // Increment reference count on lock
+                if (addRefLock)
+                {
+                    AddRefLock();
+                }
             }
         }
 
         internal async Task UnlockAsync(LockOwnerIdentity lockOwner, TLockTypeEnum newLockType)
         {
-            // Post lock acquisition message
-            var request = new ReleaseLock(newLockType, lockOwner);
-            if (!_releaseLockAction.Post(request))
+            using (FromLockContext())
             {
-                throw new LockRejectedException();
-            }
+                // Post lock acquisition message
+                var request = new ReleaseLock(newLockType, lockOwner);
+                if (!_releaseLockAction.Post(request))
+                {
+                    throw new LockRejectedException();
+                }
 
-            // Wait for task to complete
-            if (await request.Task.ConfigureAwait(false))
-            {
-                ReleaseRefLock();
+                // Wait for task to complete
+                if (await request.Task.ConfigureAwait(false))
+                {
+                    ReleaseRefLock();
+                }
             }
         }
         #endregion
 
         #region Protected Methods
-#if TRACE
-        /// <summary>
-        /// Gets the trace prefix.
-        /// </summary>
-        /// <returns></returns>
-        protected override string GetTracePrefix()
+        protected override void EnrichLogEvent(LogEvent logEvent, ILogEventPropertyFactory propertyFactory)
         {
-            return $"{base.GetTracePrefix()} ID: {Id} Rc: {_referenceCount} Txn:{GetThreadLockOwnerIdentity()}";
+            base.EnrichLogEvent(logEvent, propertyFactory);
+            logEvent.AddOrUpdateProperty(propertyFactory
+                .CreateProperty("TransactionLockRefCount", _referenceCount));
+            logEvent.AddOrUpdateProperty(propertyFactory
+                .CreateProperty("TransactionLockOwner", GetThreadLockOwnerIdentity()));
         }
-#endif
 
         /// <summary>
         /// Determines whether the transaction associated with the specified
@@ -522,94 +533,99 @@ namespace Zen.Trunk.Storage.Locking
         #region Private Methods
         private void AcquireLockRequestHandler(AcquireLock request)
         {
-            TraceVerbose("AcquireLock - Enter");
-
-            var activeLockOwner = GetActiveLockOwner(request.LockOwner);
-            if (!CanAcquireLock(request))
+            _logger.Verbose("AcquireLock - Enter");
+            try
             {
-                if (_currentState.IsExclusiveLock(request.Lock))
+                var activeLockOwner = GetActiveLockOwner(request.LockOwner);
+                if (CanAcquireLock(request))
                 {
-                    // If we cannot enter exclusive lock from this state
-                    //	or
-                    // If the active request list does not contain this transaction
-                    //	or
-                    // If the active request for this transaction does not match the
-                    //	current state lock
-                    // then we cannot enter exclusive state from this transaction
-                    if (!_currentState.CanEnterExclusiveLock ||
-                        activeLockOwner == null ||
-                        !IsEquivalentLock(_activeRequests[activeLockOwner.Value].Lock, _currentState.Lock))
+                    try
                     {
-                        request.TrySetException(new LockException(
-                            "Cannot enter exclusive lock from current lock state."));
-                        return;
-                    }
+                        // Acquire the lock
+                        var result = false;
+                        if (activeLockOwner != null)
+                        {
+                            _activeRequests[activeLockOwner.Value] = request;
+                        }
+                        else
+                        {
+                            _activeRequests.Add(request.LockOwner, request);
+                            result = true;
+                        }
 
-                    // Save the request (we will try to enter exclusive mode
-                    //	all other requests have been released)
-                    System.Diagnostics.Debug.Assert(_pendingExclusiveRequest == null);
-                    _pendingExclusiveRequest = request;
+                        // Lock acquired.
+                        request.TrySetResult(result);
+                    }
+                    finally
+                    {
+                        UpdateActiveLockState();
+                    }
                 }
                 else
                 {
-                    // Ignore requests for downgraded lock here
-                    if (activeLockOwner != null &&
-                        _activeRequests.ContainsKey(activeLockOwner.Value) &&
-                        IsDowngradedLock(_activeRequests[activeLockOwner.Value].Lock, request.Lock))
+                    if (_currentState.IsExclusiveLock(request.Lock))
                     {
-                        // Simply mark the request as satisfied but to not
-                        //	add to the list of active requests
-                        request.TrySetResult(false);
-                        return;
-                    }
+                        // If we cannot enter exclusive lock from this state
+                        //	or
+                        // If the active request list does not contain this transaction
+                        //	or
+                        // If the active request for this transaction does not match the
+                        //	current state lock
+                        // then we cannot enter exclusive state from this transaction
+                        if (!_currentState.CanEnterExclusiveLock ||
+                            activeLockOwner == null ||
+                            !IsEquivalentLock(_activeRequests[activeLockOwner.Value].Lock, _currentState.Lock))
+                        {
+                            request.TrySetException(new LockException(
+                                "Cannot enter exclusive lock from current lock state."));
+                            return;
+                        }
 
-                    // We can upgrade the lock only if there are no pending requests
-                    if (_activeRequests.Count == 1 &&
-                        activeLockOwner != null &&
-                        _pendingRequests.Count == 0 &&
-                        _pendingExclusiveRequest == null)
-                    {
-                        // Replace the active request and return
-                        _activeRequests[activeLockOwner.Value] = request;
-                        request.TrySetResult(false);
-                        return;
-                    }
-
-                    // Any lock acquisition request not satisfied by
-                    //	the current state object must be queued.
-                    _pendingRequests.Enqueue(request);
-                }
-            }
-            else
-            {
-                try
-                {
-                    // Acquire the lock
-                    var result = false;
-                    if (activeLockOwner != null)
-                    {
-                        _activeRequests[activeLockOwner.Value] = request;
+                        // Save the request (we will try to enter exclusive mode
+                        //	all other requests have been released)
+                        System.Diagnostics.Debug.Assert(_pendingExclusiveRequest == null);
+                        _pendingExclusiveRequest = request;
                     }
                     else
                     {
-                        _activeRequests.Add(request.LockOwner, request);
-                        result = true;
-                    }
+                        // Ignore requests for downgraded lock here
+                        if (activeLockOwner != null &&
+                            _activeRequests.ContainsKey(activeLockOwner.Value) &&
+                            IsDowngradedLock(_activeRequests[activeLockOwner.Value].Lock, request.Lock))
+                        {
+                            // Simply mark the request as satisfied but to not
+                            //	add to the list of active requests
+                            request.TrySetResult(false);
+                            return;
+                        }
 
-                    // Lock acquired.
-                    request.TrySetResult(result);
+                        // We can upgrade the lock only if there are no pending requests
+                        if (_activeRequests.Count == 1 &&
+                            activeLockOwner != null &&
+                            _pendingRequests.Count == 0 &&
+                            _pendingExclusiveRequest == null)
+                        {
+                            // Replace the active request and return
+                            _activeRequests[activeLockOwner.Value] = request;
+                            request.TrySetResult(false);
+                            return;
+                        }
+
+                        // Any lock acquisition request not satisfied by
+                        //	the current state object must be queued.
+                        _pendingRequests.Enqueue(request);
+                    }
                 }
-                finally
-                {
-                    UpdateActiveLockState();
-                }
+            }
+            finally
+            {
+                _logger.Verbose("AcquireLock - Leave");
             }
         }
 
         private void ReleaseLockRequestHandler(ReleaseLock request)
         {
-            TraceVerbose("ReleaseLock - Enter");
-
+            _logger.Verbose("ReleaseLock - Enter");
             try
             {
                 var releaseLock = false;
@@ -618,7 +634,7 @@ namespace Zen.Trunk.Storage.Locking
                 if (activeLockOwner == null)
                 {
                     //throw new InvalidOperationException("Lock not held by transaction.");
-                    TraceVerbose("Release lock called when lock not held.");
+                    _logger.Warning("Release lock called when lock not held.");
                 }
                 else
                 {
@@ -652,6 +668,7 @@ namespace Zen.Trunk.Storage.Locking
             finally
             {
                 ReleaseWaitingRequests();
+                _logger.Verbose("ReleaseLock - Leave");
             }
         }
 
@@ -670,7 +687,8 @@ namespace Zen.Trunk.Storage.Locking
                 //	this must be the case...
                 request.TrySetResult(true);
             }
-            else if (IsEquivalentLock(_currentState.Lock, request.Lock) ||
+            else if (
+                IsEquivalentLock(_currentState.Lock, request.Lock) ||
                 IsDowngradedLock(_currentState.Lock, request.Lock))
             {
                 // Current lock state is the same as or superior to the 

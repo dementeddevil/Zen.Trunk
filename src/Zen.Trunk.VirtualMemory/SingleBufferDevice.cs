@@ -125,12 +125,20 @@ namespace Zen.Trunk.VirtualMemory
         {
             if (IsScatterGatherIoEnabled)
             {
+                Logger.Verbose(
+                    "Queuing load buffer request, VirtualPageId: {VirtualPageId}",
+                    pageId);
+                
                 await _requestQueue
                     .ReadBufferAsync(pageId.PhysicalPageId, buffer)
                     .ConfigureAwait(false);
             }
             else
             {
+                Logger.Verbose(
+                    "Issuing load buffer request, VirtualPageId: {VirtualPageId}",
+                    pageId);
+
                 Task<int> task;
                 var rawBuffer = new byte[_bufferFactory.BufferSize];
                 lock (_fileStream)
@@ -159,12 +167,20 @@ namespace Zen.Trunk.VirtualMemory
         {
             if (IsScatterGatherIoEnabled)
             {
+                Logger.Verbose(
+                    "Queuing save buffer request, VirtualPageId: {VirtualPageId}",
+                    pageId);
+
                 await _requestQueue
                     .WriteBufferAsync(pageId.PhysicalPageId, buffer)
                     .ConfigureAwait(false);
             }
             else
             {
+                Logger.Verbose(
+                    "Issuing save buffer request, VirtualPageId: {VirtualPageId}",
+                    pageId);
+
                 Task task;
                 var rawBuffer = new byte[_bufferFactory.BufferSize];
                 buffer.CopyTo(rawBuffer);
@@ -194,13 +210,23 @@ namespace Zen.Trunk.VirtualMemory
         {
             if (IsScatterGatherIoEnabled)
             {
+                Logger.Verbose(
+                    "Queuing flush request, Reads: {FlushReads}, Writes: {FlushWrites}",
+                    flushReads, flushWrites);
+
                 await _requestQueue
                     .Flush(flushReads, flushWrites)
                     .ConfigureAwait(false);
             }
             else
             {
-                _fileStream.Flush();
+                Logger.Verbose(
+                    "Issuing flush request, Reads: {FlushReads}, Writes: {FlushWrites}",
+                    flushReads, flushWrites);
+
+                await _fileStream
+                    .FlushAsync()
+                    .ConfigureAwait(false);
             }
         }
 

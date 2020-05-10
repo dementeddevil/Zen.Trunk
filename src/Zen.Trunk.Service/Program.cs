@@ -14,6 +14,7 @@ using Zen.Trunk.Storage;
 using Zen.Trunk.Storage.Data;
 using Zen.Trunk.Storage.Locking;
 using Zen.Trunk.Storage.Log;
+using Zen.Trunk.Storage.Services;
 using Zen.Trunk.VirtualMemory;
 
 namespace Zen.Trunk.Service
@@ -122,6 +123,7 @@ namespace Zen.Trunk.Service
         private static ILifetimeScope InitializeAutofacContainer(ContainerBuilder containerBuilder)
         {
             containerBuilder.RegisterType<TrunkStorageEngineService>();
+            containerBuilder.RegisterType<StorageEngineEventService>().As<IStorageEngineEventService>();
 
             // Register master database device
             containerBuilder.RegisterType<MasterDatabaseDevice>()

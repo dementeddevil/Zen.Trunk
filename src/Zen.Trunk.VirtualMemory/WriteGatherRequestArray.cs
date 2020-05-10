@@ -13,7 +13,6 @@ namespace Zen.Trunk.VirtualMemory
         /// <summary>
         /// Initializes a new instance of the <see cref="WriteGatherRequestArray"/> class.
         /// </summary>
-        /// <param name="logger">Logger.</param>
         /// <param name="systemClock">Reference clock.</param>
         /// <param name="stream">The <see cref="AdvancedStream"/>.</param>
         /// <param name="request">The request.</param>

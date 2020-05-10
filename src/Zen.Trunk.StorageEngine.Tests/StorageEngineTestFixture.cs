@@ -1,10 +1,10 @@
 ﻿using System;
 using Autofac;
+using Microsoft.ApplicationInsights.Extensibility;
 using Serilog;
-using Serilog.Enrichers;
-using Serilog.Events;
 using Zen.Trunk.Storage.Data;
 using Zen.Trunk.Storage.Locking;
+using Zen.Trunk.Storage.Services;
 using Zen.Trunk.VirtualMemory;
 using Zen.Trunk.VirtualMemory.Tests;
 
@@ -18,15 +18,6 @@ namespace Zen.Trunk.Storage
 
         public StorageEngineTestFixture()
         {
-            var config = new LoggerConfiguration();
-            Serilog.Log.Logger = config
-                .Enrich.With<ThreadIdEnricher>()
-                .Enrich.With<TransactionEnricher>()
-                .MinimumLevel.Verbose()
-                .WriteTo.Debug(
-                    LogEventLevel.Verbose/*,
-                    "[{Timestamp:HH:mm:ss} {Level:u3} {SessionId} {TransactionId}] {Message:lj} {NewLine} {Exception}\r\n"*/)
-                .CreateLogger();
             _ambientSessionScope = TrunkSessionContext.SwitchSessionContext(
                 new TrunkSession(new SessionId(11002), TimeSpan.FromSeconds(60)));
         }
@@ -39,6 +30,24 @@ namespace Zen.Trunk.Storage
             base.InitializeContainerBuilder(builder);
 
             builder
+                .Register(
+                    serviceProvider =>
+                    {
+                        var eventLogger = new LoggerConfiguration()
+                            .Enrich.FromLogContext()
+                            .Enrich.WithThreadId()
+                            .Enrich.WithThreadName()
+                            .Enrich.With<TransactionEnricher>()
+                            .WriteTo.ApplicationInsights(
+                                serviceProvider.Resolve<TelemetryConfiguration>(),
+                                TelemetryConverter.Events)
+                            .CreateLogger();
+                        return eventLogger;
+                    })
+                .SingleInstance()
+                .Named("EventLogger", typeof(Serilog.Core.Logger));
+
+            builder
                 .WithVirtualBufferFactory()
                 .WithBufferDeviceFactory()
                 .WithGlobalLockManager()
@@ -46,6 +55,7 @@ namespace Zen.Trunk.Storage
             builder.WithDefaultSystemClock();
             builder.RegisterInstance(CachingPageBufferDeviceSettings)
                 .AsSelf();
+            builder.RegisterType<StorageEngineEventService>().As<IStorageEngineEventService>();
         }
 
         protected override void Dispose(bool disposing)
@@ -57,6 +67,13 @@ namespace Zen.Trunk.Storage
             }
 
             base.Dispose(disposing);
+        }
+
+        protected override LoggerConfiguration CreateLoggerConfiguration(TelemetryConfiguration telemetryConfiguration)
+        {
+            return base
+                .CreateLoggerConfiguration(telemetryConfiguration)
+                .Enrich.With<TransactionEnricher>();
         }
     }
 }

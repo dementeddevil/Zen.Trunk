@@ -830,60 +830,65 @@ namespace Zen.Trunk.Storage
         /// </returns>
         protected override async Task OnCloseAsync()
         {
-            TrunkTransactionContext.BeginTransaction(LifetimeScope);
-            var committed = false;
-            try
+            using (Serilog.Context.LogContext.PushProperty("DatabaseDevice.OnCloseAsync", _dbId))
             {
-                // TODO: Skip checkpointing if device is read-only
-                // Issue a checkpoint so we close the database in a known state
-                var request = new IssueCheckPointRequest();
-                if (!IssueCheckPointPort.Post(request))
+                TrunkTransactionContext.BeginTransaction(LifetimeScope);
+                var committed = false;
+                Logger.Debug("Issuing checkpoint...");
+                try
                 {
-                    throw new BufferDeviceShuttingDownException();
+                    // TODO: Skip checkpointing if device is read-only
+                    // Issue a checkpoint so we close the database in a known state
+                    var request = new IssueCheckPointRequest();
+                    if (!IssueCheckPointPort.Post(request))
+                    {
+                        throw new BufferDeviceShuttingDownException();
+                    }
+                    await request.Task.ConfigureAwait(false);
+
+                    await TrunkTransactionContext.CommitAsync().ConfigureAwait(false);
+                    committed = true;
                 }
-                await request.Task.ConfigureAwait(false);
+                // ReSharper disable once EmptyGeneralCatchClause
+                catch
+                {
+                }
+                if (!committed)
+                {
+                    await TrunkTransactionContext.RollbackAsync().ConfigureAwait(false);
+                }
 
-                await TrunkTransactionContext.CommitAsync().ConfigureAwait(false);
-                committed = true;
+                // Close the caching page device
+                Logger.Debug("Closing caching buffer device...");
+                await CachingBufferDevice.CloseAsync().ConfigureAwait(false);
+
+                // Close all secondary file-groups in parallel
+                var secondaryDeviceTasks = _fileGroupByName.Values
+                    .Where(item => !item.IsPrimaryFileGroup)
+                    .Select(item => Task.Run(item.CloseAsync))
+                    .ToArray();
+                await TaskExtra
+                    .WhenAllOrEmpty(secondaryDeviceTasks)
+                    .ConfigureAwait(false);
+
+                // Close the primary file-group last
+                var primaryDevice = _fileGroupByName.Values
+                    .FirstOrDefault(item => item.IsPrimaryFileGroup);
+                if (primaryDevice != null)
+                {
+                    await primaryDevice.CloseAsync().ConfigureAwait(false);
+                }
+
+                // Close the log device
+                await GetService<IMasterLogPageDevice>().CloseAsync().ConfigureAwait(false);
+
+                // Close underlying buffer device
+                await RawBufferDevice.CloseAsync().ConfigureAwait(false);
+
+                // Invalidate objects
+                _dataBufferDevice = null;
+                _bufferDevice = null;
             }
-            // ReSharper disable once EmptyGeneralCatchClause
-            catch
-            {
-            }
-            if (!committed)
-            {
-                await TrunkTransactionContext.RollbackAsync().ConfigureAwait(false);
-            }
-
-            // Close all secondary file-groups in parallel
-            var secondaryDeviceTasks = _fileGroupByName.Values
-                .Where(item => !item.IsPrimaryFileGroup)
-                .Select(item => Task.Run(item.CloseAsync))
-                .ToArray();
-            await TaskExtra
-                .WhenAllOrEmpty(secondaryDeviceTasks)
-                .ConfigureAwait(false);
-
-            // Close the primary file-group last
-            var primaryDevice = _fileGroupByName.Values
-                .FirstOrDefault(item => item.IsPrimaryFileGroup);
-            if (primaryDevice != null)
-            {
-                await primaryDevice.CloseAsync().ConfigureAwait(false);
-            }
-
-            // Close the caching page device
-            await CachingBufferDevice.CloseAsync().ConfigureAwait(false);
-
-            // Close the log device
-            await GetService<IMasterLogPageDevice>().CloseAsync().ConfigureAwait(false);
-
-            // Close underlying buffer device
-            await RawBufferDevice.CloseAsync().ConfigureAwait(false);
-
-            // Invalidate objects
-            _dataBufferDevice = null;
-            _bufferDevice = null;
         }
         #endregion
 

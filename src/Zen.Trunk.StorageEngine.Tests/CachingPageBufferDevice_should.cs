@@ -26,6 +26,7 @@ namespace Zen.Trunk.Storage
                         .Register(scope =>
                             new CachingPageBufferDevice(
                                 MockedMultipleBufferDevice.Object,
+                                new Zen.Trunk.Storage.Services.StorageEngineEventService(Serilog.Log.Logger),
                                 scope.Resolve<CachingPageBufferDeviceSettings>()))
                         .As<ICachingPageBufferDevice>()
                         .SingleInstance();

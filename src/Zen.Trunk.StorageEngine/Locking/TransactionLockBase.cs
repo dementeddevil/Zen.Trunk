@@ -1,5 +1,7 @@
-﻿using System.Threading;
-using Serilog;
+﻿using System;
+using System.Threading;
+using Serilog.Core;
+using Serilog.Events;
 
 namespace Zen.Trunk.Storage.Locking
 {
@@ -9,7 +11,21 @@ namespace Zen.Trunk.Storage.Locking
     /// </summary>
     public abstract class TransactionLockBase
     {
-        private static readonly ILogger Logger = Serilog.Log.ForContext<TransactionLockBase>();
+        private class TransactionLockLogEventEnricher : ILogEventEnricher
+        {
+            private readonly TransactionLockBase _owner;
+
+            public TransactionLockLogEventEnricher(TransactionLockBase owner)
+            {
+                _owner = owner;
+            }
+
+            public void Enrich(LogEvent logEvent, ILogEventPropertyFactory propertyFactory)
+            {
+                _owner.EnrichLogEvent(logEvent, propertyFactory);
+            }
+        }
+
         private static int _nextTransactionLockId;
         private readonly int _transactionLockId;
 
@@ -21,61 +37,17 @@ namespace Zen.Trunk.Storage.Locking
             _transactionLockId = Interlocked.Increment(ref _nextTransactionLockId);
         }
 
-        /// <summary>
-        /// Gets the trace prefix.
-        /// </summary>
-        /// <returns></returns>
-        protected virtual string GetTracePrefix()
+        protected IDisposable FromLockContext()
         {
-            return $"[{GetType().Name} {_transactionLockId:X8}]";
+            return Serilog.Context.LogContext.Push(new TransactionLockLogEventEnricher(this));
         }
 
-        /// <summary>
-        /// Traces the error.
-        /// </summary>
-        /// <param name="format">The format.</param>
-        /// <param name="args">The arguments.</param>
-        protected void TraceError(string format, params object[] args)
+        protected virtual void EnrichLogEvent(LogEvent logEvent, ILogEventPropertyFactory propertyFactory)
         {
-            var prefix = GetTracePrefix();
-            var message = string.Format(format, args);
-            Logger.Error($"{prefix} {message}");
-        }
-
-        /// <summary>
-        /// Traces the warning.
-        /// </summary>
-        /// <param name="format">The format.</param>
-        /// <param name="args">The arguments.</param>
-        protected void TraceWarning(string format, params object[] args)
-        {
-            var prefix = GetTracePrefix();
-            var message = string.Format(format, args);
-            Logger.Warning($"{prefix} {message}");
-        }
-
-        /// <summary>
-        /// Traces the information.
-        /// </summary>
-        /// <param name="format">The format.</param>
-        /// <param name="args">The arguments.</param>
-        protected void TraceInformation(string format, params object[] args)
-        {
-            var prefix = GetTracePrefix();
-            var message = string.Format(format, args);
-            Logger.Information($"{prefix} {message}");
-        }
-
-        /// <summary>
-        /// Traces the verbose.
-        /// </summary>
-        /// <param name="format">The format.</param>
-        /// <param name="args">The arguments.</param>
-        protected void TraceVerbose(string format, params object[] args)
-        {
-            var prefix = GetTracePrefix();
-            var message = string.Format(format, args);
-            Logger.Debug($"{prefix} {message}");
+            logEvent.AddOrUpdateProperty(propertyFactory
+                .CreateProperty("TransactionLockType", GetType().Name));
+            logEvent.AddOrUpdateProperty(propertyFactory
+                .CreateProperty("TransactionLockId", _transactionLockId.ToString("X8")));
         }
     }
 }

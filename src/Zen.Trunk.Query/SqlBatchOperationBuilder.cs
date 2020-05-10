@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Transactions;
 using Antlr4.Runtime;
 using Antlr4.Runtime.Misc;
+using Antlr4.Runtime.Tree;
 using Zen.Trunk.Storage.Data;
 
 namespace Zen.Trunk.Storage.Query
@@ -323,6 +324,12 @@ namespace Zen.Trunk.Storage.Query
         {
             var nativeId = GetNativeId(context.GetText());
             return Expression.Constant(nativeId);
+        }
+
+        public override Expression VisitChildren(IRuleNode node)
+        {
+            var expression = base.VisitChildren(node);
+            return expression;
         }
 
         /// <summary>

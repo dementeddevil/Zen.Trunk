@@ -1,6 +1,11 @@
 ﻿using System;
+using System.Threading.Tasks;
 using Autofac;
 using AutofacSerilogIntegration;
+using Microsoft.ApplicationInsights;
+using Microsoft.ApplicationInsights.DependencyCollector;
+using Microsoft.ApplicationInsights.Extensibility;
+using Microsoft.ApplicationInsights.Extensibility.PerfCounterCollector.QuickPulse;
 using Serilog;
 
 namespace Zen.Trunk.VirtualMemory.Tests
@@ -40,6 +45,10 @@ namespace Zen.Trunk.VirtualMemory.Tests
             {
                 if (_scope.IsValueCreated)
                 {
+                    var telemetryClient = new TelemetryClient(_scope.Value.Resolve<TelemetryConfiguration>());
+                    telemetryClient.Flush();
+                    Task.Delay(5000).GetAwaiter().GetResult();
+
                     _scope.Value.Dispose();
                 }
 
@@ -49,18 +58,49 @@ namespace Zen.Trunk.VirtualMemory.Tests
             _globalTracker = null;
         }
 
-        private ILifetimeScope InitializeScope()
+        protected virtual LoggerConfiguration CreateLoggerConfiguration(TelemetryConfiguration telemetryConfiguration)
         {
-            var logger = new LoggerConfiguration()
+            return new LoggerConfiguration()
                 .Enrich.FromLogContext()
                 .Enrich.WithThreadId()
                 .Enrich.WithThreadName()
+                .MinimumLevel.Verbose()
                 .WriteTo.Debug()
-                .WriteTo.Trace()
-                .CreateLogger();
+                //.WriteTo.Trace()
+                .WriteTo.ApplicationInsights(
+                    telemetryConfiguration,
+                    TelemetryConverter.Traces);
+        }
+
+        private ILifetimeScope InitializeScope()
+        {
+            var telemetryConfiguration = new TelemetryConfiguration("d47e9f15-e0a7-4c11-9585-bafdd12911fb");
+            telemetryConfiguration.TelemetryInitializers.Add(new HttpDependenciesParsingTelemetryInitializer());
+            telemetryConfiguration.TelemetryInitializers.Add(new OperationCorrelationTelemetryInitializer());
+
+            QuickPulseTelemetryProcessor processor = null;
+            telemetryConfiguration.TelemetryProcessorChainBuilder
+                .Use(
+                    next =>
+                    {
+                        processor = new QuickPulseTelemetryProcessor(next);
+                        return processor;
+                    })
+                .Build();
+
+            var quickPulse = new QuickPulseTelemetryModule();
+            quickPulse.Initialize(telemetryConfiguration);
+            quickPulse.RegisterTelemetryProcessor(processor);
+
+            var dependencyTrackingModule = new DependencyTrackingTelemetryModule();
+            dependencyTrackingModule.ExcludeComponentCorrelationHttpHeadersOnDomains.Add("core.windows.net");
+            dependencyTrackingModule.Initialize(telemetryConfiguration);
+            
+            var logger = CreateLoggerConfiguration(telemetryConfiguration).CreateLogger();
             Log.Logger = logger;
 
             var builder = new ContainerBuilder();
+            builder.RegisterInstance(telemetryConfiguration);
             builder.RegisterLogger(logger);
             InitializeContainerBuilder(builder);
             return builder.Build();

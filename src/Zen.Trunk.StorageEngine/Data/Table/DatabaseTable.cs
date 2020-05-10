@@ -52,7 +52,7 @@ namespace Zen.Trunk.Storage.Data.Table
             /// Inserts an element into the <see cref="T:System.Collections.ObjectModel.Collection`1" /> at the specified index.
             /// </summary>
             /// <param name="index">The zero-based index at which <paramref name="item" /> should be inserted.</param>
-            /// <param name="item">The object to insert. The value can be null for reference types.</param>
+            /// <param name="item">The object to insert.</param>
             /// <exception cref="ArgumentException">
             /// Column name is empty.
             /// or
@@ -67,6 +67,11 @@ namespace Zen.Trunk.Storage.Data.Table
             /// <exception cref="InvalidOperationException">Auto increment specified on unsupported data-type.</exception>
             protected override void InsertItem(int index, TableColumnInfo item)
             {
+                if (item == null)
+                {
+                    throw new ArgumentNullException(nameof(item));
+                }
+
                 VerifyColumnsUpdatable();
 
                 if (!SkipInsertChecks)
@@ -263,6 +268,11 @@ namespace Zen.Trunk.Storage.Data.Table
             #region Protected Methods
             protected override void InsertItem(int index, RowConstraint item)
             {
+                if (item == null)
+                {
+                    throw new ArgumentNullException(nameof(item));
+                }
+
                 VerifyColumnsUpdatable();
 
                 // Check constraint type

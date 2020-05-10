@@ -13,6 +13,7 @@ namespace Zen.Trunk.Storage
 {
     [Trait("Subsystem", "Storage Engine")]
     [Trait("Class", "Page")]
+    // ReSharper disable once InconsistentNaming
     public class Page_should : IClassFixture<StorageEngineTestFixture>
     {
         private readonly StorageEngineTestFixture _fixture;

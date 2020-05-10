@@ -1,10 +1,9 @@
-﻿using Zen.Trunk.Logging;
-using SSocket = SuperSocket.SocketBase.Logging;
+﻿using SSocket = SuperSocket.SocketBase.Logging;
 
 namespace Zen.Trunk.Network
 {
     /// <summary>
-    /// <c>SuperSocketLogFactory</c> acts as a link to our liblog logging block
+    /// <c>SuperSocketLogFactory</c> acts as a link to our Serilog logging block
     /// </summary>
     /// <seealso cref="SuperSocket.SocketBase.Logging.ILogFactory" />
     public class SuperSocketLogFactory : SSocket.ILogFactory
@@ -16,7 +15,7 @@ namespace Zen.Trunk.Network
         /// <returns></returns>
         public SSocket.ILog GetLog(string name)
         {
-            return new SuperSocketLog(LogProvider.GetLogger(name));
+            return new SuperSocketLog();
         }
     }
 }

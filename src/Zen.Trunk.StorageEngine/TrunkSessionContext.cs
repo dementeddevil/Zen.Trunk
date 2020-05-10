@@ -1,5 +1,4 @@
 using System;
-using System.Diagnostics;
 using System.Runtime.Remoting.Messaging;
 using System.Threading;
 using System.Threading.Tasks;
@@ -63,8 +62,9 @@ namespace Zen.Trunk.Storage
                 var threadId = Thread.CurrentThread.ManagedThreadId;
                 var prevSessionId = prev?.SessionId.ToString() ?? "N/A";
                 var nextSessionId = next?.SessionId.ToString() ?? "N/A";
-                Trace.TraceInformation(
-                    $"{action} session scope on thread {threadId} switching session from {prevSessionId} to {nextSessionId}");
+                Serilog.Log.Information(
+                    "{Action} session scope on thread {ThreadId} switching session from {PrevSessionId} to {NextSessionId}",
+                    action, threadId, prevSessionId, nextSessionId);
             }
         }
 

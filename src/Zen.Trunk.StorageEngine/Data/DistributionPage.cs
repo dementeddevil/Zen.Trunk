@@ -300,7 +300,9 @@ namespace Zen.Trunk.Storage.Data
         /// </remarks>
         public async Task<VirtualPageId> AllocatePageAsync(AllocateDataPageParameters allocParams)
         {
-            Logger.Debug($"Allocate page via DistributionPage {VirtualPageId}");
+            Logger.Debug(
+                "Allocate page via DistributionPage {VirtualPageId}",
+                VirtualPageId);
 
             // Ensure we have some kind of lock on the page...
             if (DistributionLock == ObjectLockType.None)

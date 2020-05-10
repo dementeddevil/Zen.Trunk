@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Transactions;
@@ -186,9 +185,11 @@ namespace Zen.Trunk.Storage
         {
             if (disposing)
             {
-                Debug.Assert(
-                    _deviceState == (int)MountableDeviceState.Closed,
-                    $"{GetType().FullName} should be closed prior to dispose.");
+                if (_deviceState != (int)MountableDeviceState.Closed)
+                {
+                    Serilog.Log.Warning("{DeviceType} should be closed prior to dispose {CurrentState}",
+                        GetType().FullName, (MountableDeviceState)_deviceState);
+                }
 
                 LifetimeScope?.Dispose();
             }
