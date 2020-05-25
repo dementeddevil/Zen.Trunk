@@ -209,7 +209,7 @@ namespace Zen.Trunk.VirtualMemory
             /// <param name="value"></param>
             public override void SetLength(long value)
             {
-                throw new InvalidOperationException("Device streams are fixed in length.");
+                throw new InvalidOperationException($"{nameof(VirtualBuffer)} streams are fixed in length.");
             }
 
             /// <summary>
@@ -265,7 +265,7 @@ namespace Zen.Trunk.VirtualMemory
             {
                 if (_innerStream == null)
                 {
-                    throw new ObjectDisposedException("DeviceBuffer.DeviceStream");
+                    throw new ObjectDisposedException($"{nameof(VirtualBuffer)}.{nameof(BufferStream)}");
                 }
             }
             #endregion
@@ -287,7 +287,7 @@ namespace Zen.Trunk.VirtualMemory
         #endregion
 
         #region Internal Constructors
-        internal VirtualBuffer(SafeCommitableMemoryHandle buffer, int bufferSize, VirtualBufferCache owner, int slot)
+        internal VirtualBuffer(SafeCommitableMemoryHandle buffer, int bufferSize, VirtualBufferCache owner, int cacheSlot)
         {
             if ((bufferSize % SystemPageSize) != 0)
             {
@@ -297,7 +297,7 @@ namespace Zen.Trunk.VirtualMemory
             _buffer = buffer;
             BufferSize = bufferSize;
             _owner = owner;
-            _cacheSlot = slot;
+            _cacheSlot = cacheSlot;
         }
         #endregion
 
@@ -322,7 +322,7 @@ namespace Zen.Trunk.VirtualMemory
         }
 
         /// <summary>
-        /// Gets the buffer unique identifier.
+        /// Gets the unique identifier for this buffer.
         /// </summary>
         /// <value>
         /// The buffer unique identifier.
@@ -374,10 +374,17 @@ namespace Zen.Trunk.VirtualMemory
             {
                 throw new ArgumentNullException(nameof(buffer));
             }
+            
             if (buffer == this)
             {
                 return 0;
             }
+
+            if (BufferSize != buffer.BufferSize)
+            {
+                return BufferSize.CompareTo(buffer.BufferSize);
+            }
+
             unsafe
             {
                 return MemcmpImpl(Buffer, ((VirtualBuffer)buffer).Buffer, BufferSize);
@@ -395,10 +402,12 @@ namespace Zen.Trunk.VirtualMemory
             {
                 throw new ArgumentNullException(nameof(destination));
             }
+
             if (destination == this)
             {
                 return;
             }
+            
             if (destination.BufferSize != BufferSize)
             {
                 throw new ArgumentException("Buffer not the same size.");
@@ -428,6 +437,7 @@ namespace Zen.Trunk.VirtualMemory
             {
                 throw new ArgumentNullException(nameof(buffer));
             }
+
             if (buffer.Length != BufferSize)
             {
                 throw new ArgumentException("Buffer not the same size.");
@@ -459,6 +469,7 @@ namespace Zen.Trunk.VirtualMemory
             {
                 throw new ArgumentNullException(nameof(buffer));
             }
+
             if (buffer.Length != BufferSize)
             {
                 throw new ArgumentException("Buffer not the same size.");

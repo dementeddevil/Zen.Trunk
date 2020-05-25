@@ -23,7 +23,7 @@ namespace Zen.Trunk.VirtualMemory
         /// <param name="stream">The <see cref="AdvancedStream"/></param>
         /// <param name="request">The request.</param>
         [CLSCompliant(false)]
-		public ScatterGatherRequestArray(
+		protected ScatterGatherRequestArray(
             ISystemClock systemClock,
             AdvancedStream stream,
             ScatterGatherRequest request)
@@ -38,6 +38,8 @@ namespace Zen.Trunk.VirtualMemory
                 "New array created [PageId: {PhysicalPageId}]",
                 request.PhysicalPageId);
 		}
+
+        public bool IsEmpty => _callbackInfo.Count == 0;
 
         protected AdvancedStream Stream { get; }
 
@@ -97,6 +99,8 @@ namespace Zen.Trunk.VirtualMemory
 			{
 				EndBlockNo = other.EndBlockNo;
 				_callbackInfo.AddRange(other._callbackInfo);
+                other._callbackInfo.Clear();
+                other.StartBlockNo = other.EndBlockNo = 0;
 
                 Logger.Debug(
                     "Source array [StartPageId: {SourceStartBlockNumber}, EndPageId: {SourceEndBlockNo}] prepended to array [StartPageId: {CurrentStartBlockNo}, EndPageId: {CurrentEndBlockNo}]",
@@ -111,6 +115,8 @@ namespace Zen.Trunk.VirtualMemory
 			{
 				StartBlockNo = other.StartBlockNo;
 				_callbackInfo.InsertRange(0, other._callbackInfo);
+                other._callbackInfo.Clear();
+                other.StartBlockNo = other.EndBlockNo = 0;
 
                 Logger.Debug(
                     "Source array [StartPageId: {SourceStartBlockNumber}, EndPageId: {SourceEndBlockNo}] appended to array [StartPageId: {CurrentStartBlockNo}, EndPageId: {CurrentEndBlockNo}]",
