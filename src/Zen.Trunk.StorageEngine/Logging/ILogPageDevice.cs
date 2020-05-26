@@ -1,12 +1,12 @@
 using System.Collections.Generic;
 using Zen.Trunk.VirtualMemory;
 
-namespace Zen.Trunk.Storage.Log
+namespace Zen.Trunk.Storage.Logging
 {
     /// <summary>
     /// <c>ILogPageDevice</c> interface defines the contract for all log devices.
     /// </summary>
-    /// <seealso cref="Zen.Trunk.Storage.IMountableDevice" />
+    /// <seealso cref="IMountableDevice" />
     public interface ILogPageDevice : IMountableDevice
     {
         /// <summary>

@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Transactions;
 using Autofac;
+using Serilog;
 using Zen.Trunk.Extensions;
 
 namespace Zen.Trunk.Storage.Locking
@@ -22,6 +23,7 @@ namespace Zen.Trunk.Storage.Locking
     {
         private class TrunkTransactionScope : IDisposable
         {
+            private ILogger Logger = Serilog.Log.ForContext<TrunkTransactionScope>();
             private ITrunkTransaction _oldContext;
             private bool _disposed;
 
@@ -60,12 +62,12 @@ namespace Zen.Trunk.Storage.Locking
                     return;
                 }
 
-                var threadId = Thread.CurrentThread.ManagedThreadId;
-                var prevTransactionId = prev?.TransactionId.ToString() ?? "N/A";
-                var nextTransactionId = next?.TransactionId.ToString() ?? "N/A";
-                Serilog.Log.Information(
+                Logger.Information(
                     "{Action} transaction scope on thread {ThreadId} switching transaction from {PrevTransactionId} to {NextTransactionId}",
-                    action, threadId, prevTransactionId, nextTransactionId);
+                    action,
+                    Thread.CurrentThread.ManagedThreadId,
+                    prev?.TransactionId.ToString() ?? "N/A",
+                    next?.TransactionId.ToString() ?? "N/A");
             }
         }
 

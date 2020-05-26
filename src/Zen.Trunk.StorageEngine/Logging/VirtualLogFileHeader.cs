@@ -1,6 +1,6 @@
 using Zen.Trunk.Storage.BufferFields;
 
-namespace Zen.Trunk.Storage.Log
+namespace Zen.Trunk.Storage.Logging
 {
     /// <summary>
     /// <c>VirtualLogFileHeader</c> carries important information about a

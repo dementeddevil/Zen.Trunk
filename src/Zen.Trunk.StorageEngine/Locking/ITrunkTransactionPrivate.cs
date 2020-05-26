@@ -1,5 +1,5 @@
 ﻿using System.Threading.Tasks;
-using Zen.Trunk.Storage.Log;
+using Zen.Trunk.Storage.Logging;
 
 namespace Zen.Trunk.Storage.Locking
 {

@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Zen.Trunk.VirtualMemory;
 
-namespace Zen.Trunk.Storage.Log
+namespace Zen.Trunk.Storage.Logging
 {
     /// <summary>
     /// <c>IMasterLogPageDevice</c> extends <see cref="ILogPageDevice"/>
     /// to provide overarching support for tracking active log file and offset.
     /// </summary>
-    /// <seealso cref="Zen.Trunk.Storage.Log.ILogPageDevice" />
+    /// <seealso cref="ILogPageDevice" />
     public interface IMasterLogPageDevice : ILogPageDevice
     {
         /// <summary>

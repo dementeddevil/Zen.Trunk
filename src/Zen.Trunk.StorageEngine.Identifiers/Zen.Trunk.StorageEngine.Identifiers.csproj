@@ -74,7 +74,7 @@
     <Compile Include="DatabaseId.cs" />
     <Compile Include="FileGroupId.cs" />
     <Compile Include="IndexId.cs" />
-    <Compile Include="Log\LogFileId.cs" />
+    <Compile Include="Logging\LogFileId.cs" />
     <Compile Include="LogicalPageId.cs" />
     <Compile Include="ObjectId.cs" />
     <Compile Include="ObjectType.cs" />

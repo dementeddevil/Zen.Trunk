@@ -3,36 +3,42 @@ using Zen.Trunk.IO;
 using Zen.Trunk.Storage.Data;
 using Zen.Trunk.VirtualMemory;
 
-namespace Zen.Trunk.Storage.Log
+namespace Zen.Trunk.Storage.Logging
 {
     /// <summary>
-    /// Defines a log entry for creating or allocating a DataBuffer page.
+    /// Defines a log entry for updating an existing DataBuffer page.
     /// </summary>
     [Serializable]
-    public class PageImageCreateLogEntry : PageLogEntry
+    public class PageImageUpdateLogEntry : PageLogEntry
     {
         #region Private Fields
-        private byte[] _image;
+        private byte[] _beforeImage;
+        private byte[] _afterImage;
         #endregion
 
         #region Public Constructors
         /// <summary>
-        /// Initializes a new instance of the <see cref="PageImageCreateLogEntry"/> class.
+        /// Initializes a new instance of the <see cref="PageImageUpdateLogEntry"/> class.
         /// </summary>
-        /// <param name="buffer">The buffer.</param>
-        /// <param name="virtualPageId">The virtual page id.</param>
+        /// <param name="before">The before.</param>
+        /// <param name="after">The after.</param>
+        /// <param name="virtualPageId">The virtual page identifier.</param>
         /// <param name="timestamp">The timestamp.</param>
-        public PageImageCreateLogEntry(
-            IVirtualBuffer buffer,
+        public PageImageUpdateLogEntry(
+            IVirtualBuffer before,
+            IVirtualBuffer after,
             ulong virtualPageId,
             long timestamp)
-            : base(virtualPageId, timestamp, LogEntryType.CreatePage)
+            : base(virtualPageId, timestamp, LogEntryType.ModifyPage)
         {
-            _image = new byte[buffer.BufferSize];
-            buffer.CopyTo(_image);
+            _beforeImage = new byte[before.BufferSize];
+            before.CopyTo(_beforeImage);
+
+            _afterImage = new byte[after.BufferSize];
+            after.CopyTo(_afterImage);
         }
 
-        internal PageImageCreateLogEntry()
+        internal PageImageUpdateLogEntry()
         {
         }
         #endregion
@@ -44,16 +50,23 @@ namespace Zen.Trunk.Storage.Log
         /// <value>
         /// The size of this record in bytes.
         /// </value>
-        public override uint RawSize => (uint)(base.RawSize + _image.Length);
+        public override uint RawSize => base.RawSize + 16384;
 
         /// <summary>
-        /// Gets the image.
+        /// Gets the before image.
         /// </summary>
         /// <value>
-        /// The image.
+        /// The before image.
         /// </value>
-        public byte[] Image => _image;
+        public byte[] BeforeImage => _beforeImage;
 
+        /// <summary>
+        /// Gets the after image.
+        /// </summary>
+        /// <value>
+        /// The after image.
+        /// </value>
+        public byte[] AfterImage => _afterImage;
         #endregion
 
         #region Protected Methods
@@ -64,7 +77,8 @@ namespace Zen.Trunk.Storage.Log
         protected override void OnWrite(SwitchingBinaryWriter writer)
         {
             base.OnWrite(writer);
-            writer.Write(_image);
+            writer.Write(_beforeImage);
+            writer.Write(_afterImage);
         }
 
         /// <summary>
@@ -74,7 +88,8 @@ namespace Zen.Trunk.Storage.Log
         protected override void OnRead(SwitchingBinaryReader reader)
         {
             base.OnRead(reader);
-            _image = reader.ReadBytes(8192);
+            _beforeImage = reader.ReadBytes(8192);
+            _afterImage = reader.ReadBytes(8192);
         }
 
         /// <summary>
@@ -91,9 +106,7 @@ namespace Zen.Trunk.Storage.Log
             // Copy before image into page DataBuffer
             using (var stream = dataBuffer.GetBufferStream(0, 8192, false))
             {
-                // NOTE: The before image in this case is empty
-                var initStream = new byte[8192];
-                stream.Write(initStream, 0, 8192);
+                stream.Write(_beforeImage, 0, 8192);
                 stream.Flush();
             }
 
@@ -115,7 +128,7 @@ namespace Zen.Trunk.Storage.Log
             // Copy after image into page DataBuffer
             using (var stream = dataBuffer.GetBufferStream(0, 8192, false))
             {
-                stream.Write(_image, 0, 8192);
+                stream.Write(_afterImage, 0, 8192);
                 stream.Flush();
             }
 

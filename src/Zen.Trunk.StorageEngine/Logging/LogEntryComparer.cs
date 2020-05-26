@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace Zen.Trunk.Storage.Log
+namespace Zen.Trunk.Storage.Logging
 {
     /// <summary>
     /// Comparison class for testing equality of <see cref="T:LogEntry"/>

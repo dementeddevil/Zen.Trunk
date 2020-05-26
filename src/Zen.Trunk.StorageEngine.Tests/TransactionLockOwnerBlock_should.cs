@@ -21,7 +21,7 @@ using System.Transactions;
 using Autofac;
 using Xunit;
 using Zen.Trunk.Storage.Locking;
-using Zen.Trunk.Storage.Log;
+using Zen.Trunk.Storage.Logging;
 
 namespace Zen.Trunk.Storage
 {

@@ -17,7 +17,7 @@ using Zen.Trunk.Storage.Configuration;
 using Zen.Trunk.Utils;
 using Zen.Trunk.VirtualMemory;
 
-namespace Zen.Trunk.Storage.Log
+namespace Zen.Trunk.Storage.Logging
 {
     /// <summary>
     /// TODO: Update summary.
@@ -338,8 +338,8 @@ namespace Zen.Trunk.Storage.Log
             }
 
             return !_isInCheckpoint &&
-                ((maximumLogEntries > 0 && _logEntriesSinceCheckpoint > maximumLogEntries) ||
-                 (maximumLogBytes > 0 && _bytesWrittenSinceCheckpoint > maximumLogBytes));
+                (maximumLogEntries > 0 && _logEntriesSinceCheckpoint > maximumLogEntries ||
+                 maximumLogBytes > 0 && _bytesWrittenSinceCheckpoint > maximumLogBytes);
         }
 
         /// <summary>
@@ -612,9 +612,7 @@ namespace Zen.Trunk.Storage.Log
             //  explicitly.
 
             // Get sorted list of candidate expandable devices
-            var candidateDevices = Enumerable
-                .Concat(
-                    new[] {((LogPageDevice) this)},
+            var candidateDevices = (new[] { (LogPageDevice)this }).Concat(
                     _secondaryDevices.Values)
                 .Select(
                     device =>
@@ -752,7 +750,7 @@ namespace Zen.Trunk.Storage.Log
             // Update checkpoint records with active transaction list
             if ((entry.LogType == LogEntryType.BeginCheckpoint ||
                 entry.LogType == LogEntryType.EndCheckpoint) &&
-                (_activeTransactions != null && _activeTransactions.Count > 0))
+                _activeTransactions != null && _activeTransactions.Count > 0)
             {
                 // Update log entry with active transactions
                 var cple = entry as CheckPointLogEntry;

@@ -1,4 +1,4 @@
-namespace Zen.Trunk.Storage.Log
+namespace Zen.Trunk.Storage.Logging
 {
     /// <summary>
     /// Identifies the valid types of <see cref="T:LogEntry"/> records

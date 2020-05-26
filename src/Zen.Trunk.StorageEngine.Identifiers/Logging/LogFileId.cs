@@ -1,7 +1,7 @@
 using System;
 using Zen.Trunk.VirtualMemory;
 
-namespace Zen.Trunk.Storage.Log
+namespace Zen.Trunk.Storage.Logging
 {
     /// <summary>
     /// Simple class type which represents a Log File Indentifier.
@@ -21,7 +21,7 @@ namespace Zen.Trunk.Storage.Log
         /// <param name="fileId">The file identifier.</param>
         public LogFileId(uint fileId)
         {
-            DeviceId = new DeviceId((ushort)((fileId >> 16) & 0xffff));
+            DeviceId = new DeviceId((ushort)(fileId >> 16 & 0xffff));
             Index = (ushort)(fileId & 0xffff);
             FileId = fileId;
         }
@@ -35,7 +35,7 @@ namespace Zen.Trunk.Storage.Log
         {
             DeviceId = deviceId;
             Index = index;
-            FileId = (((uint)DeviceId.Value) << 16) | (((uint)Index) & 0xffff);
+            FileId = (uint)DeviceId.Value << 16 | (uint)Index & 0xffff;
         }
         #endregion
 

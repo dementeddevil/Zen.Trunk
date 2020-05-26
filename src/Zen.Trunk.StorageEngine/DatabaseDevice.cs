@@ -10,7 +10,7 @@ using Zen.Trunk.Extensions;
 using Zen.Trunk.Storage.BufferFields;
 using Zen.Trunk.Storage.Data;
 using Zen.Trunk.Storage.Locking;
-using Zen.Trunk.Storage.Log;
+using Zen.Trunk.Storage.Logging;
 using Zen.Trunk.Utils;
 using Zen.Trunk.VirtualMemory;
 

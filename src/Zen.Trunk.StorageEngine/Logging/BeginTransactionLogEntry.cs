@@ -1,6 +1,6 @@
 using System;
 
-namespace Zen.Trunk.Storage.Log
+namespace Zen.Trunk.Storage.Logging
 {
     /// <summary>
     /// Defines the start of a transaction.

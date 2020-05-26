@@ -2,13 +2,13 @@ using System;
 using System.IO;
 using Zen.Trunk.IO;
 
-namespace Zen.Trunk.Storage.Log
+namespace Zen.Trunk.Storage.Logging
 {
     /// <summary>
     /// <c>VirtualLogFileStream</c> handles writing log information to a virtual
     /// stream that exists on top of the log device and extends <see cref="Stream"/>.
     /// </summary>
-    /// <seealso cref="System.IO.Stream" />
+    /// <seealso cref="Stream" />
     /// <remarks>
     /// Log streams maintain two header blocks and a set of log entries.
     /// The use of two headers allows the system to recover if a power failure occurs
@@ -27,7 +27,7 @@ namespace Zen.Trunk.Storage.Log
         /// </summary>
         public const int TotalHeaderSize = HeaderSize * 2;
         #endregion
-        
+
         #region Private Fields
         private readonly object _syncWrite = new object();
         private readonly ILogPageDevice _device;
@@ -254,7 +254,7 @@ namespace Zen.Trunk.Storage.Log
         /// determining the new page and offset.
         /// </summary>
         /// <remarks>
-        /// Throws a <see cref="System.InvalidOperationException"/> if
+        /// Throws a <see cref="InvalidOperationException"/> if
         /// seeking is not allowed.
         /// </remarks>
         /// <param name="offset"></param>
@@ -283,11 +283,11 @@ namespace Zen.Trunk.Storage.Log
             }
 
             // Ensure we don't go before start point
-            if (newOffset < (_logFileInfo.StartOffset + TotalHeaderSize))
+            if (newOffset < _logFileInfo.StartOffset + TotalHeaderSize)
             {
                 newOffset = _logFileInfo.StartOffset + TotalHeaderSize;
             }
-            if (newOffset > (_logFileInfo.StartOffset + Length))
+            if (newOffset > _logFileInfo.StartOffset + Length)
             {
                 newOffset = _logFileInfo.StartOffset + Length;
             }
@@ -303,7 +303,7 @@ namespace Zen.Trunk.Storage.Log
         /// Overridden. Sets the stream length.
         /// </summary>
         /// <remarks>
-        /// This method always throws <see cref="System.NotSupportedException"/> as
+        /// This method always throws <see cref="NotSupportedException"/> as
         /// changing the stream length is not allowed.
         /// </remarks>
         /// <param name="value"></param>
@@ -485,9 +485,9 @@ namespace Zen.Trunk.Storage.Log
             }
 
             // Determine best header to use
-            if ((firstHeader.Timestamp < secondHeader.Timestamp &&
-                firstHeader.Timestamp < int.MinValue && secondHeader.Timestamp > int.MaxValue) ||
-                (firstHeader.Timestamp > secondHeader.Timestamp))
+            if (firstHeader.Timestamp < secondHeader.Timestamp &&
+                firstHeader.Timestamp < int.MinValue && secondHeader.Timestamp > int.MaxValue ||
+                firstHeader.Timestamp > secondHeader.Timestamp)
             {
                 _logFileInfo.CurrentHeader = firstHeader;
                 _writeFirstHeader = false;

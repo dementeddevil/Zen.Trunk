@@ -1,5 +1,5 @@
 using Zen.Trunk.IO;
-using Zen.Trunk.Storage.Log;
+using Zen.Trunk.Storage.Logging;
 
 namespace Zen.Trunk.Storage.BufferFields
 {

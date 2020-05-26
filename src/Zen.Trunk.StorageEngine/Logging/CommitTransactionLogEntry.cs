@@ -1,6 +1,6 @@
 using System;
 
-namespace Zen.Trunk.Storage.Log
+namespace Zen.Trunk.Storage.Logging
 {
     /// <summary>
     /// Defines the successful end of a transaction.

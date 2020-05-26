@@ -1,6 +1,6 @@
 ﻿using System.IO;
 using Xunit;
-using Zen.Trunk.Storage.Log;
+using Zen.Trunk.Storage.Logging;
 
 namespace Zen.Trunk.Storage
 {

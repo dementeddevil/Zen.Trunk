@@ -4,7 +4,7 @@ using Zen.Trunk.Extensions;
 using Zen.Trunk.IO;
 using Zen.Trunk.Storage.BufferFields;
 
-namespace Zen.Trunk.Storage.Log
+namespace Zen.Trunk.Storage.Logging
 {
     /// <summary>
     /// Defines basic information required for every transaction log entry.

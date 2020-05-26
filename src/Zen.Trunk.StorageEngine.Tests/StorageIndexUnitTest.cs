@@ -7,7 +7,7 @@ using Zen.Trunk.IO;
 using Zen.Trunk.Storage.BufferFields;
 using Zen.Trunk.Storage.Data.Index;
 using Zen.Trunk.Storage.Locking;
-using Zen.Trunk.Storage.Log;
+using Zen.Trunk.Storage.Logging;
 using Zen.Trunk.VirtualMemory;
 
 namespace Zen.Trunk.Storage

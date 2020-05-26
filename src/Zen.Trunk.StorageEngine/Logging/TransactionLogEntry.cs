@@ -1,7 +1,7 @@
 using System;
 using Zen.Trunk.Storage.BufferFields;
 
-namespace Zen.Trunk.Storage.Log
+namespace Zen.Trunk.Storage.Logging
 {
     /// <summary>
     /// Serves as a base class for a transaction log entry.

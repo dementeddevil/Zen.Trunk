@@ -6,7 +6,7 @@ using Zen.Trunk.Extensions;
 using Zen.Trunk.IO;
 using Zen.Trunk.VirtualMemory;
 
-namespace Zen.Trunk.Storage.Log
+namespace Zen.Trunk.Storage.Logging
 {
     /// <summary>
     /// The <b>LogPageDevice</b> is page device designed to contain physical

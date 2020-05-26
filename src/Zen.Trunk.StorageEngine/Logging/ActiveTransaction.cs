@@ -1,6 +1,6 @@
 using Zen.Trunk.Storage.BufferFields;
 
-namespace Zen.Trunk.Storage.Log
+namespace Zen.Trunk.Storage.Logging
 {
     /// <summary>
     /// 
@@ -8,9 +8,9 @@ namespace Zen.Trunk.Storage.Log
 	public class ActiveTransaction : BufferFieldWrapper
     {
         private readonly BufferFieldUInt32 _transactionId;
-		private readonly BufferFieldLogFileId _fileId;
-		private readonly BufferFieldUInt32 _fileOffset;
-		private readonly BufferFieldUInt32 _firstLogId;
+        private readonly BufferFieldLogFileId _fileId;
+        private readonly BufferFieldUInt32 _fileOffset;
+        private readonly BufferFieldUInt32 _firstLogId;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ActiveTransaction"/> class.
@@ -30,17 +30,17 @@ namespace Zen.Trunk.Storage.Log
         /// <param name="fileId">The file identifier.</param>
         /// <param name="fileOffset">The file offset.</param>
         /// <param name="firstLogId">The first log identifier.</param>
-        public ActiveTransaction (
+        public ActiveTransaction(
             uint transactionId,
-            LogFileId fileId, 
-			uint fileOffset,
+            LogFileId fileId,
+            uint fileOffset,
             uint firstLogId)
-		{
-			_transactionId = new BufferFieldUInt32(transactionId);
-			_fileId = new BufferFieldLogFileId(_transactionId, fileId);
-			_fileOffset = new BufferFieldUInt32(_fileId, fileOffset);
-			_firstLogId = new BufferFieldUInt32(_fileOffset, firstLogId);
-		}
+        {
+            _transactionId = new BufferFieldUInt32(transactionId);
+            _fileId = new BufferFieldLogFileId(_transactionId, fileId);
+            _fileOffset = new BufferFieldUInt32(_fileId, fileOffset);
+            _firstLogId = new BufferFieldUInt32(_fileOffset, firstLogId);
+        }
 
         /// <summary>
         /// Gets the transaction identifier.

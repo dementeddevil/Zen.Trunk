@@ -3,13 +3,13 @@ using Zen.Trunk.IO;
 using Zen.Trunk.Storage.Data;
 using Zen.Trunk.VirtualMemory;
 
-namespace Zen.Trunk.Storage.Log
+namespace Zen.Trunk.Storage.Logging
 {
     /// <summary>
-    /// Defines a log entry for deleting a previously allocated DataBuffer page.
+    /// Defines a log entry for creating or allocating a DataBuffer page.
     /// </summary>
     [Serializable]
-    public class PageImageDeleteLogEntry : PageLogEntry
+    public class PageImageCreateLogEntry : PageLogEntry
     {
         #region Private Fields
         private byte[] _image;
@@ -17,22 +17,22 @@ namespace Zen.Trunk.Storage.Log
 
         #region Public Constructors
         /// <summary>
-        /// Initializes a new instance of the <see cref="PageImageDeleteLogEntry"/> class.
+        /// Initializes a new instance of the <see cref="PageImageCreateLogEntry"/> class.
         /// </summary>
         /// <param name="buffer">The buffer.</param>
-        /// <param name="virtualPageId">The virtual page identifier.</param>
+        /// <param name="virtualPageId">The virtual page id.</param>
         /// <param name="timestamp">The timestamp.</param>
-        public PageImageDeleteLogEntry(
+        public PageImageCreateLogEntry(
             IVirtualBuffer buffer,
             ulong virtualPageId,
             long timestamp)
-            : base(virtualPageId, timestamp, LogEntryType.DeletePage)
+            : base(virtualPageId, timestamp, LogEntryType.CreatePage)
         {
             _image = new byte[buffer.BufferSize];
             buffer.CopyTo(_image);
         }
 
-        internal PageImageDeleteLogEntry()
+        internal PageImageCreateLogEntry()
         {
         }
         #endregion
@@ -44,7 +44,7 @@ namespace Zen.Trunk.Storage.Log
         /// <value>
         /// The size of this record in bytes.
         /// </value>
-        public override uint RawSize => base.RawSize + 8192;
+        public override uint RawSize => (uint)(base.RawSize + _image.Length);
 
         /// <summary>
         /// Gets the image.
@@ -53,6 +53,7 @@ namespace Zen.Trunk.Storage.Log
         /// The image.
         /// </value>
         public byte[] Image => _image;
+
         #endregion
 
         #region Protected Methods
@@ -90,7 +91,9 @@ namespace Zen.Trunk.Storage.Log
             // Copy before image into page DataBuffer
             using (var stream = dataBuffer.GetBufferStream(0, 8192, false))
             {
-                stream.Write(_image, 0, 8192);
+                // NOTE: The before image in this case is empty
+                var initStream = new byte[8192];
+                stream.Write(initStream, 0, 8192);
                 stream.Flush();
             }
 
@@ -112,8 +115,7 @@ namespace Zen.Trunk.Storage.Log
             // Copy after image into page DataBuffer
             using (var stream = dataBuffer.GetBufferStream(0, 8192, false))
             {
-                var initStream = new byte[8192];
-                stream.Write(initStream, 0, 8192);
+                stream.Write(_image, 0, 8192);
                 stream.Flush();
             }
 

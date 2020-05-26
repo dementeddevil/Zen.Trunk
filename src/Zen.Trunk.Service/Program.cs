@@ -13,7 +13,7 @@ using Zen.Trunk.Network;
 using Zen.Trunk.Storage;
 using Zen.Trunk.Storage.Data;
 using Zen.Trunk.Storage.Locking;
-using Zen.Trunk.Storage.Log;
+using Zen.Trunk.Storage.Logging;
 using Zen.Trunk.Storage.Services;
 using Zen.Trunk.VirtualMemory;
 

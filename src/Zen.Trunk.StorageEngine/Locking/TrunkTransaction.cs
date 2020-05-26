@@ -8,7 +8,7 @@ using Autofac.Core;
 using Serilog;
 using Zen.Trunk.Extensions;
 using Zen.Trunk.Storage.Data;
-using Zen.Trunk.Storage.Log;
+using Zen.Trunk.Storage.Logging;
 using Zen.Trunk.Utils;
 using Zen.Trunk.VirtualMemory;
 

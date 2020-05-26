@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using Zen.Trunk.IO;
 
-namespace Zen.Trunk.Storage.Log
+namespace Zen.Trunk.Storage.Logging
 {
     /// <summary>
     /// Serves as a base class for a check-point log record.

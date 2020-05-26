@@ -3,42 +3,36 @@ using Zen.Trunk.IO;
 using Zen.Trunk.Storage.Data;
 using Zen.Trunk.VirtualMemory;
 
-namespace Zen.Trunk.Storage.Log
+namespace Zen.Trunk.Storage.Logging
 {
     /// <summary>
-    /// Defines a log entry for updating an existing DataBuffer page.
+    /// Defines a log entry for deleting a previously allocated DataBuffer page.
     /// </summary>
     [Serializable]
-    public class PageImageUpdateLogEntry : PageLogEntry
+    public class PageImageDeleteLogEntry : PageLogEntry
     {
         #region Private Fields
-        private byte[] _beforeImage;
-        private byte[] _afterImage;
+        private byte[] _image;
         #endregion
 
         #region Public Constructors
         /// <summary>
-        /// Initializes a new instance of the <see cref="PageImageUpdateLogEntry"/> class.
+        /// Initializes a new instance of the <see cref="PageImageDeleteLogEntry"/> class.
         /// </summary>
-        /// <param name="before">The before.</param>
-        /// <param name="after">The after.</param>
+        /// <param name="buffer">The buffer.</param>
         /// <param name="virtualPageId">The virtual page identifier.</param>
         /// <param name="timestamp">The timestamp.</param>
-        public PageImageUpdateLogEntry(
-            IVirtualBuffer before,
-            IVirtualBuffer after,
+        public PageImageDeleteLogEntry(
+            IVirtualBuffer buffer,
             ulong virtualPageId,
             long timestamp)
-            : base(virtualPageId, timestamp, LogEntryType.ModifyPage)
+            : base(virtualPageId, timestamp, LogEntryType.DeletePage)
         {
-            _beforeImage = new byte[before.BufferSize];
-            before.CopyTo(_beforeImage);
-
-            _afterImage = new byte[after.BufferSize];
-            after.CopyTo(_afterImage);
+            _image = new byte[buffer.BufferSize];
+            buffer.CopyTo(_image);
         }
 
-        internal PageImageUpdateLogEntry()
+        internal PageImageDeleteLogEntry()
         {
         }
         #endregion
@@ -50,23 +44,15 @@ namespace Zen.Trunk.Storage.Log
         /// <value>
         /// The size of this record in bytes.
         /// </value>
-        public override uint RawSize => base.RawSize + 16384;
+        public override uint RawSize => base.RawSize + 8192;
 
         /// <summary>
-        /// Gets the before image.
+        /// Gets the image.
         /// </summary>
         /// <value>
-        /// The before image.
+        /// The image.
         /// </value>
-        public byte[] BeforeImage => _beforeImage;
-
-        /// <summary>
-        /// Gets the after image.
-        /// </summary>
-        /// <value>
-        /// The after image.
-        /// </value>
-        public byte[] AfterImage => _afterImage;
+        public byte[] Image => _image;
         #endregion
 
         #region Protected Methods
@@ -77,8 +63,7 @@ namespace Zen.Trunk.Storage.Log
         protected override void OnWrite(SwitchingBinaryWriter writer)
         {
             base.OnWrite(writer);
-            writer.Write(_beforeImage);
-            writer.Write(_afterImage);
+            writer.Write(_image);
         }
 
         /// <summary>
@@ -88,8 +73,7 @@ namespace Zen.Trunk.Storage.Log
         protected override void OnRead(SwitchingBinaryReader reader)
         {
             base.OnRead(reader);
-            _beforeImage = reader.ReadBytes(8192);
-            _afterImage = reader.ReadBytes(8192);
+            _image = reader.ReadBytes(8192);
         }
 
         /// <summary>
@@ -106,7 +90,7 @@ namespace Zen.Trunk.Storage.Log
             // Copy before image into page DataBuffer
             using (var stream = dataBuffer.GetBufferStream(0, 8192, false))
             {
-                stream.Write(_beforeImage, 0, 8192);
+                stream.Write(_image, 0, 8192);
                 stream.Flush();
             }
 
@@ -128,7 +112,8 @@ namespace Zen.Trunk.Storage.Log
             // Copy after image into page DataBuffer
             using (var stream = dataBuffer.GetBufferStream(0, 8192, false))
             {
-                stream.Write(_afterImage, 0, 8192);
+                var initStream = new byte[8192];
+                stream.Write(initStream, 0, 8192);
                 stream.Flush();
             }
 

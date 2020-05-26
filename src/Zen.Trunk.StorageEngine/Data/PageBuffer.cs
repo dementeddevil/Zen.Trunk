@@ -4,22 +4,22 @@ using System.Threading.Tasks;
 using Serilog;
 using Zen.Trunk.Extensions;
 using Zen.Trunk.Storage.Locking;
-using Zen.Trunk.Storage.Log;
+using Zen.Trunk.Storage.Logging;
 using Zen.Trunk.VirtualMemory;
 
 namespace Zen.Trunk.Storage.Data
 {
-	/// <summary>
-	/// <c>PageBuffer</c> extends <see cref="StatefulBuffer"/> to provide state
-	/// management for database pages.
-	/// </summary>
-	/// <remarks>
-	/// State support for database pages requires the following;
-	/// 1. Separation of readers and writers where appropriate
-	/// 2. Delay writing until log-writer has written change information
-	/// 3. Load and save of data page to the underlying device
-	/// </remarks>
-	public sealed class PageBuffer : StatefulBuffer, IPageEnlistmentNotification
+    /// <summary>
+    /// <c>PageBuffer</c> extends <see cref="StatefulBuffer"/> to provide state
+    /// management for database pages.
+    /// </summary>
+    /// <remarks>
+    /// State support for database pages requires the following;
+    /// 1. Separation of readers and writers where appropriate
+    /// 2. Delay writing until log-writer has written change information
+    /// 3. Load and save of data page to the underlying device
+    /// </remarks>
+    public sealed class PageBuffer : StatefulBuffer, IPageEnlistmentNotification
 	{
         /// <summary>
         /// Tracks the state of a page-buffer within the page-buffer lifecycle
