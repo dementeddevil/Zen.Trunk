@@ -40,7 +40,7 @@ namespace Zen.Trunk.Storage.Data
 
         Task<TPageType> LoadOrCreateNextLinkedPageAsync<TPageType>(TPageType previousPage, Func<TPageType> pageCreationFunc) where TPageType : ILogicalPage;
 
-        Task ProcessDistributionPageAsync(DistributionPage page);
+        Task ProcessDistributionPageAsync(IDistributionPage page);
 
         Task<bool> RemoveDataDeviceAsync(RemoveDataDeviceParameters deviceParams);
     }

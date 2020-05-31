@@ -81,8 +81,7 @@ namespace Zen.Trunk.Storage.Data
         /// Loads the device root page.
         /// </summary>
         /// <returns>
-        /// A <see cref="Task{RootPage}"/> task that when completed will yield
-        /// the root page object.
+        /// A <see cref="Task{RootPage}"/> task that when completed will yield the root page object.
         /// </returns>
         public async Task<IRootPage> LoadRootPageAsync()
         {
@@ -98,8 +97,7 @@ namespace Zen.Trunk.Storage.Data
         /// </summary>
         /// <returns></returns>
         /// <remarks>
-        /// This method is typically only called during the file-group device
-        /// open call for newly created devices.
+        /// This method is typically only called during the file-group device open call for newly created devices.
         /// </remarks>
         public async Task<IRootPage> InitRootPageAsync()
         {
@@ -115,9 +113,8 @@ namespace Zen.Trunk.Storage.Data
         /// </summary>
         /// <param name="allocParams">The alloc parameters.</param>
         /// <returns>
-        /// A <see cref="Task"/> representing the asynchronous operation that
-        ///  when complete will return the virtual page identifier of the newly
-        ///  allocated page.
+        /// A <see cref="Task"/> representing the asynchronous operation that when complete will return the virtual
+        /// page identifier of the newly allocated page.
         /// </returns>
         /// <exception cref="DeviceFullException"></exception>
         public async Task<VirtualPageId> AllocateDataPageAsync(AllocateDataPageParameters allocParams)
@@ -335,7 +332,7 @@ namespace Zen.Trunk.Storage.Data
             return rootPage;
         }
 
-        private async Task InitDistributionPage(DistributionPage page, uint distributionPageIndex, uint devicePageCount)
+        private async Task InitDistributionPage(IDistributionPage page, uint distributionPageIndex, uint devicePageCount)
         {
             using (LogContext.PushProperty("Method", nameof(InitDistributionPage)))
             {
@@ -376,7 +373,7 @@ namespace Zen.Trunk.Storage.Data
             }
         }
 
-        private async Task LoadDistributionPage(DistributionPage page, uint distributionPageIndex)
+        private async Task LoadDistributionPage(IDistributionPage page, uint distributionPageIndex)
         {
             using (LogContext.PushProperty("Method", nameof(LoadDistributionPage)))
             {
@@ -409,7 +406,7 @@ namespace Zen.Trunk.Storage.Data
             }
         }
 
-        private async Task LoadDistributionPageAndImport(uint distPageIndex, DistributionPage page)
+        private async Task LoadDistributionPageAndImport(uint distPageIndex, IDistributionPage page)
         {
             await LoadDistributionPage(page, distPageIndex).ConfigureAwait(false);
             await FileGroupDevice.ProcessDistributionPageAsync(page).ConfigureAwait(false);

@@ -111,10 +111,10 @@ namespace Zen.Trunk.Storage.Data
             #endregion
         }
 
-        private class ProcessDistributionPageRequest : TransactionContextTaskRequest<DistributionPage, bool>
+        private class ProcessDistributionPageRequest : TransactionContextTaskRequest<IDistributionPage, bool>
         {
             #region Public Constructors
-            public ProcessDistributionPageRequest(DistributionPage page)
+            public ProcessDistributionPageRequest(IDistributionPage page)
                 : base(page)
             {
             }
@@ -515,7 +515,7 @@ namespace Zen.Trunk.Storage.Data
         /// <param name="page">The page.</param>
         /// <returns></returns>
         /// <exception cref="BufferDeviceShuttingDownException"></exception>
-        public Task ProcessDistributionPageAsync(DistributionPage page)
+        public Task ProcessDistributionPageAsync(IDistributionPage page)
         {
             var request = new ProcessDistributionPageRequest(page);
             if (!ProcessDistributionPagePort.Post(request))
@@ -719,9 +719,15 @@ namespace Zen.Trunk.Storage.Data
                         }
 
                         // Load the next primary file group root page
-                        var nextLogicalPage = new PrimaryFileGroupRootPage { LogicalPageId = rootPage.NextLogicalPageId };
+                        var nextLogicalPage =
+                            new PrimaryFileGroupRootPage
+                            {
+                                LogicalPageId = rootPage.NextLogicalPageId
+                            };
+
                         await LoadDataPageAsync(new LoadDataPageParameters(nextLogicalPage, false, true))
                             .ConfigureAwait(false);
+
                         rootPage = nextLogicalPage;
                     }
                 }
@@ -763,16 +769,19 @@ namespace Zen.Trunk.Storage.Data
         /// <returns></returns>
         protected override async Task OnCloseAsync()
         {
-            // Close secondary distribution page devices
-            foreach (var device in _devices.Values)
+            using (LogContext.PushProperty("Method", "PrimaryDevice => CloseAsync"))
             {
-                await device.CloseAsync().ConfigureAwait(false);
-            }
+                // Close secondary distribution page devices
+                foreach (var device in _devices.Values)
+                {
+                    await device.CloseAsync().ConfigureAwait(false);
+                }
 
-            // Close primary distribution page device
-            if (_primaryDevice != null)
-            {
-                await _primaryDevice.CloseAsync().ConfigureAwait(false);
+                // Close primary distribution page device
+                if (_primaryDevice != null)
+                {
+                    await _primaryDevice.CloseAsync().ConfigureAwait(false);
+                }
             }
         }
 
@@ -954,7 +963,7 @@ namespace Zen.Trunk.Storage.Data
             request.Message.Page.FileGroupId = FileGroupId;
 
             // Stage #1: Assign logical id
-            var logicalPage = request.Message.Page as LogicalPage;
+            var logicalPage = request.Message.Page as ILogicalPage;
             if (logicalPage != null && request.Message.GenerateLogicalPageId)
             {
                 // Get next logical id from the logical/virtual manager
@@ -972,14 +981,14 @@ namespace Zen.Trunk.Storage.Data
             else
             {
                 // Post allocation request to file-group device.
-                var objectPage = request.Message.Page as ObjectPage;
+                var objectPage = request.Message.Page as IObjectPage;
                 pageId = await AllocateDataPageAsync(
                     new AllocateDataPageParameters(
                         logicalPage?.LogicalPageId ?? LogicalPageId.Zero,
                         objectPage?.ObjectId ?? ObjectId.Zero,
                         new ObjectType((byte)request.Message.Page.PageType),
                         request.Message.IsNewObject,
-                        request.Message.Page is RootPage))
+                        request.Message.Page is IRootPage))
                     .ConfigureAwait(false);
 
                 // Setup the page virtual id
@@ -1032,7 +1041,7 @@ namespace Zen.Trunk.Storage.Data
 
             // Stage #1: Determine virtual page id
             var virtualPageId = request.Message.Page.VirtualPageId;
-            var logicalPage = request.Message.Page as LogicalPage;
+            var logicalPage = request.Message.Page as ILogicalPage;
             if (!request.Message.VirtualPageIdValid && request.Message.LogicalPageIdValid)
             {
                 // Sanity check: If logical page id is valid then page must be derived from LogicalPage
@@ -1281,8 +1290,7 @@ namespace Zen.Trunk.Storage.Data
 
             // Delegate deallocation request via device
             await distDevice
-                .DeallocateDataPageAsync(
-                    new DeallocateDataPageParameters(virtualPageId, LogicalPageId.Zero))
+                .DeallocateDataPageAsync(new DeallocateDataPageParameters(virtualPageId, LogicalPageId.Zero))
                 .ConfigureAwait(false);
             return true;
         }
@@ -1508,8 +1516,7 @@ namespace Zen.Trunk.Storage.Data
             return true;
         }
 
-        private async Task ExpandDeviceCoreAsync(
-            DeviceId deviceId, IRootPage rootPage, uint growthPages)
+        private async Task ExpandDeviceCoreAsync(DeviceId deviceId, IRootPage rootPage, uint growthPages)
         {
             // Check device can be expanded
             if (!rootPage.IsExpandable)
@@ -1587,8 +1594,7 @@ namespace Zen.Trunk.Storage.Data
             // Create distribution pages as necessary
             if (newPageCount > oldPageCount)
             {
-                await CreateDistributionPagesAsync(
-                        deviceId, oldPageCount, newPageCount - 1)
+                await CreateDistributionPagesAsync(deviceId, oldPageCount, newPageCount - 1)
                     .ConfigureAwait(false);
             }
 
