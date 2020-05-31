@@ -109,7 +109,7 @@ namespace Zen.Trunk.Storage.Data
         /// <param name="assignLogicalPageId">if set to <c>true</c> [assign logical unique identifier].</param>
         /// <param name="generateLogicalPageId">if set to <c>true</c> [assign automatic logical unique identifier].</param>
         /// <param name="isNewObject">if set to <c>true</c> [is new object].</param>
-        public InitDataPageParameters(DataPage page, bool assignVirtualPageId = false, bool assignLogicalPageId = false, bool generateLogicalPageId = false, bool isNewObject = false)
+        public InitDataPageParameters(IDataPage page, bool assignVirtualPageId = false, bool assignLogicalPageId = false, bool generateLogicalPageId = false, bool isNewObject = false)
         {
             Page = page;
             AssignVirtualPageId = assignVirtualPageId;
@@ -126,7 +126,7 @@ namespace Zen.Trunk.Storage.Data
         /// <value>
         /// The page.
         /// </value>
-        public DataPage Page
+        public IDataPage Page
         {
             get;
             private set;
@@ -214,7 +214,7 @@ namespace Zen.Trunk.Storage.Data
         /// Set to <c>true</c> when the logical page id property on the page is valid;
         /// otherwise <c>false</c>.
         /// </param>
-        public LoadDataPageParameters(DataPage page, bool virtualPageIdValid = false, bool logicalPageIdValid = false)
+        public LoadDataPageParameters(IDataPage page, bool virtualPageIdValid = false, bool logicalPageIdValid = false)
         {
             Page = page;
             VirtualPageIdValid = virtualPageIdValid;
@@ -229,7 +229,7 @@ namespace Zen.Trunk.Storage.Data
         /// <value>
         /// The page.
         /// </value>
-        public DataPage Page { get; }
+        public IDataPage Page { get; }
 
         /// <summary>
         /// Gets a value indicating whether the virtual page unique identifier is valid.
@@ -326,7 +326,7 @@ namespace Zen.Trunk.Storage.Data
         /// Initializes a new instance of the <see cref="DeallocateDataPageParameters"/> class.
         /// </summary>
         /// <param name="page">The page.</param>
-        public DeallocateDataPageParameters(DataPage page)
+        public DeallocateDataPageParameters(IDataPage page)
         {
             if (page == null)
             {
@@ -334,7 +334,7 @@ namespace Zen.Trunk.Storage.Data
             }
 
             VirtualPageId = page.VirtualPageId;
-            var logicalPage = page as LogicalPage;
+            var logicalPage = page as ILogicalPage;
             if (logicalPage != null)
             {
                 LogicalPageId = logicalPage.LogicalPageId;

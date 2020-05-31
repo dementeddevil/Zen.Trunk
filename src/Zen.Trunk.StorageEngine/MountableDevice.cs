@@ -169,7 +169,7 @@ namespace Zen.Trunk.Storage
         /// Hookups the page site.
         /// </summary>
         /// <param name="page">The page.</param>
-        protected void HookupPageSite(Page page)
+        protected void HookupPageSite(IPage page)
         {
             page.SetLifetimeScope(LifetimeScope);
         }
@@ -261,6 +261,24 @@ namespace Zen.Trunk.Storage
         {
             CheckDisposed();
             return LifetimeScope.Resolve<TService>(parameters);
+        }
+
+        /// <summary>
+        /// Resolves the device service with the specified name.
+        /// </summary>
+        /// <typeparam name="TService">Desired service type.</typeparam>
+        /// <param name="serviceName">Name of the registered service.</param>
+        /// <param name="parameters">Any necessary constructor parameters.</param>
+        /// <returns>
+        /// An instance of <typeparamref name="TService"/>.
+        /// </returns>
+        /// <exception cref="DependencyResolutionException">
+        /// Thrown if the service cannot be resolved.
+        /// </exception>
+        protected TService GetService<TService>(string serviceName, params Parameter[] parameters)
+        {
+            CheckDisposed();
+            return LifetimeScope.ResolveNamed<TService>(serviceName, parameters);
         }
         #endregion
 

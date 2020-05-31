@@ -144,8 +144,7 @@ namespace Zen.Trunk.Storage
             //	needed for the device (in create scenarios only)
             uint pageSize;
             {
-                var page = new DataPage();
-                pageSize = page.PageSize;
+                pageSize = new DataPage().PageSize;
             }
 
             // Walk the list of file-groups

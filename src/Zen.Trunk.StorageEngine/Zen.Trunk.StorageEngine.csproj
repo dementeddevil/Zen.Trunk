@@ -96,8 +96,14 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DatabaseDeviceMessages.cs" />
-    <Compile Include="Data\Table\DatabaseTableFactory.cs" />
     <Compile Include="Data\FileGroupDeviceMessages.cs" />
+    <Compile Include="Data\IDistributionPage.cs" />
+    <Compile Include="Data\IDistributionPageDevice.cs" />
+    <Compile Include="Data\IFileGroupDevice.cs" />
+    <Compile Include="Data\Index\IIndexPage.cs" />
+    <Compile Include="Data\IPrimaryFileGroupRootPage.cs" />
+    <Compile Include="Data\IRootPage.cs" />
+    <Compile Include="Data\Table\DatabaseTableFactory.cs" />
     <Compile Include="Data\Table\IDatabaseTable.cs" />
     <Compile Include="Data\Table\IDatabaseTableFactory.cs" />
     <Compile Include="Locking\ILockHandler.cs" />
@@ -129,8 +135,6 @@
     <Compile Include="Data\CachingPageBufferDeviceSettings.cs" />
     <Compile Include="DatabaseDevice.cs" />
     <Compile Include="Data\FileSize.cs" />
-    <Compile Include="Data\ICachingPageBufferDevice.cs" />
-    <Compile Include="Data\ILogicalVirtualManager.cs" />
     <Compile Include="Data\Index\IndexInfo.cs" />
     <Compile Include="Data\Index\IndexManager.cs" />
     <Compile Include="Data\Index\IndexPage.cs" />
@@ -229,7 +233,6 @@
     <Compile Include="Locking\TransactionLockOwnerBlock.cs" />
     <Compile Include="Page.cs" />
     <Compile Include="Data\PageBuffer.cs" />
-    <Compile Include="PageEnums.cs" />
     <Compile Include="PageExceptions.cs" />
     <Compile Include="StatefulBuffer.cs" />
     <Compile Include="Data\TransactionContextTaskRequest.cs" />

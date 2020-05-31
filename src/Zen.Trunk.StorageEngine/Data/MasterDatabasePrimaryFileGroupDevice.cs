@@ -26,7 +26,7 @@ namespace Zen.Trunk.Storage.Data
         /// Creates the root page.
         /// </summary>
         /// <returns></returns>
-        public override RootPage CreateRootPage()
+        public override IRootPage CreateRootPage()
         {
             return new MasterDatabasePrimaryFileGroupRootPage { FileGroupId = FileGroupId };
         }

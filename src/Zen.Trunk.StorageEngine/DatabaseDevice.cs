@@ -1083,7 +1083,7 @@ namespace Zen.Trunk.Storage
                 throw new ArgumentException("File group identifier must link to primary file group device.");
             }
 
-            var rootPage = (PrimaryFileGroupRootPage)primaryFileGroupDevice.CreateRootPage();
+            var rootPage = (IPrimaryFileGroupRootPage)primaryFileGroupDevice.CreateRootPage();
             //var rootPage = (PrimaryFileGroupRootPage) await primaryFileGroupDevice
             //    .LoadRootPageAsync()
             //    .ConfigureAwait(false);
@@ -1108,7 +1108,7 @@ namespace Zen.Trunk.Storage
 
                 // Failed to add to existing root page; prepare to load/create new rootpage
                 var nextRootPage = await primaryFileGroupDevice
-                    .LoadOrCreateNextLinkedPageAsync(rootPage)
+                    .LoadOrCreateNextLinkedPageAsync(rootPage, () => new PrimaryFileGroupRootPage())
                     .ConfigureAwait(false);
 
                 // Crab lock page and try again

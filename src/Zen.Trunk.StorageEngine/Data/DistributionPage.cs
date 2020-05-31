@@ -41,7 +41,7 @@ namespace Zen.Trunk.Storage.Data
     /// at the end of each associated device.)
     /// </para>
     /// </remarks>
-    public class DistributionPage : DataPage
+    public class DistributionPage : DataPage, IDistributionPage
     {
         #region Internal Objects
         private class AllocExtentResult
@@ -107,7 +107,7 @@ namespace Zen.Trunk.Storage.Data
 
             internal PageInfo[] Pages => _pageState;
 
-            public void ReadFrom(PageBuffer buffer, uint headerSize, uint extentIndex)
+            public void ReadFrom(IPageBuffer buffer, uint headerSize, uint extentIndex)
             {
                 using (var stream = buffer.GetBufferStream(
                     (int)(headerSize + (extentIndex * ExtentInfoBytes)),

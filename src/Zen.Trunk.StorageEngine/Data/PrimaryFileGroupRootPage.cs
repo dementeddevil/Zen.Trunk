@@ -11,7 +11,7 @@ namespace Zen.Trunk.Storage.Data
     /// The database root page object is responsible for tracking file-groups
     /// and other root-level database information.
     /// </summary>
-    public class PrimaryFileGroupRootPage : RootPage
+    public class PrimaryFileGroupRootPage : RootPage, IPrimaryFileGroupRootPage
     {
         #region Internal Objects
         /*internal class IndexRefInfo : BufferFieldWrapper

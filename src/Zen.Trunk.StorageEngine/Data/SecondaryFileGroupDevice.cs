@@ -23,7 +23,7 @@
         /// Creates the root page.
         /// </summary>
         /// <returns></returns>
-        public override RootPage CreateRootPage()
+        public override IRootPage CreateRootPage()
         {
             return new SecondaryFileGroupRootPage { FileGroupId = FileGroupId };
         }

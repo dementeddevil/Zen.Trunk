@@ -67,15 +67,38 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Autofac, Version=5.2.0.0, Culture=neutral, PublicKeyToken=17863af14b0044da, processorArchitecture=MSIL">
+      <HintPath>..\packages\Autofac.5.2.0\lib\net461\Autofac.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Bcl.AsyncInterfaces, Version=1.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Bcl.AsyncInterfaces.1.1.0\lib\net461\Microsoft.Bcl.AsyncInterfaces.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
+    <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Runtime.CompilerServices.Unsafe, Version=4.0.4.1, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Runtime.CompilerServices.Unsafe.4.5.2\lib\netstandard2.0\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Threading.Tasks.Extensions, Version=4.2.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Threading.Tasks.Extensions.4.5.2\lib\netstandard2.0\System.Threading.Tasks.Extensions.dll</HintPath>
+    </Reference>
     <Reference Include="System.Transactions" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Data\ICachingPageBufferDevice.cs" />
+    <Compile Include="Data\IDataPage.cs" />
+    <Compile Include="Data\ILogicalPage.cs" />
+    <Compile Include="Data\ILogicalVirtualManager.cs" />
+    <Compile Include="Data\IObjectDataPage.cs" />
+    <Compile Include="Data\IObjectPage.cs" />
+    <Compile Include="Data\IObjectSchemaPage.cs" />
+    <Compile Include="Data\IPageBuffer.cs" />
     <Compile Include="IDatabaseDevice.cs" />
     <Compile Include="IMountableDevice.cs" />
+    <Compile Include="IPage.cs" />
     <Compile Include="ISession.cs" />
     <Compile Include="ISessionManager.cs" />
+    <Compile Include="IStatefulBuffer.cs" />
     <Compile Include="Locking\DatabaseLockType.cs" />
     <Compile Include="Locking\DataLockType.cs" />
     <Compile Include="Locking\FileGroupRootLockType.cs" />
@@ -96,10 +119,10 @@
     <Compile Include="Locking\PageEnlistment.cs" />
     <Compile Include="Locking\PreparingPageEnlistment.cs" />
     <Compile Include="Locking\SchemaLockType.cs" />
+    <Compile Include="PageEnums.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Data\" />
     <Folder Include="Log\" />
   </ItemGroup>
   <ItemGroup>
@@ -111,6 +134,13 @@
       <Project>{98872bb1-74e7-4abb-b0d1-9cc32b24f4c8}</Project>
       <Name>Zen.Trunk.VirtualMemory.Identifiers</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Zen.Trunk.VirtualMemory.Interfaces\Zen.Trunk.VirtualMemory.Interfaces.csproj">
+      <Project>{837f9dbd-7e29-4237-add9-1bd32fef965c}</Project>
+      <Name>Zen.Trunk.VirtualMemory.Interfaces</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

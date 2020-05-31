@@ -19,7 +19,7 @@ namespace Zen.Trunk.Storage.Data
     /// chains.
     /// </para>
     /// </remarks>
-    public class ObjectPage : LogicalPage
+    public class ObjectPage : LogicalPage, IObjectPage
     {
         #region Private Fields
         private readonly BufferFieldObjectId _objectId;
@@ -69,7 +69,7 @@ namespace Zen.Trunk.Storage.Data
         #endregion
 
         #region Internal Properties
-        internal DataLockOwnerBlock DataLockOwnerBlock => 
+        internal DataLockOwnerBlock DataLockOwnerBlock =>
             TransactionLockOwnerBlock?.GetOrCreateDataLockOwnerBlock(ObjectId);
         #endregion
 

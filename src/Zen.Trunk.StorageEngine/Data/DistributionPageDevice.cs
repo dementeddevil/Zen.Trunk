@@ -13,12 +13,12 @@ namespace Zen.Trunk.Storage.Data
     /// 
     /// </summary>
     /// <seealso cref="Zen.Trunk.Storage.PageDevice" />
-    public abstract class DistributionPageDevice : PageDevice
+    public abstract class DistributionPageDevice : PageDevice, IDistributionPageDevice
     {
         #region Private Fields
         private static readonly ILogger Logger = Serilog.Log.ForContext<DistributionPageDevice>();
 
-        private FileGroupDevice _fileGroupDevice;
+        private IFileGroupDevice _fileGroupDevice;
         #endregion
 
         #region Protected Constructors
@@ -55,13 +55,13 @@ namespace Zen.Trunk.Storage.Data
         /// <value>
         /// The file group device.
         /// </value>
-        public FileGroupDevice FileGroupDevice
+        public IFileGroupDevice FileGroupDevice
         {
             get
             {
                 if (_fileGroupDevice == null)
                 {
-                    _fileGroupDevice = GetService<FileGroupDevice>();
+                    _fileGroupDevice = GetService<IFileGroupDevice>();
                 }
                 return _fileGroupDevice;
             }
@@ -84,7 +84,7 @@ namespace Zen.Trunk.Storage.Data
         /// A <see cref="Task{RootPage}"/> task that when completed will yield
         /// the root page object.
         /// </returns>
-        public async Task<RootPage> LoadRootPageAsync()
+        public async Task<IRootPage> LoadRootPageAsync()
         {
             var rootPage = CreateRootPageAndHookupSite();
             await FileGroupDevice
@@ -101,7 +101,7 @@ namespace Zen.Trunk.Storage.Data
         /// This method is typically only called during the file-group device
         /// open call for newly created devices.
         /// </remarks>
-        public async Task<RootPage> InitRootPageAsync()
+        public async Task<IRootPage> InitRootPageAsync()
         {
             var rootPage = CreateRootPageAndHookupSite();
             await FileGroupDevice
@@ -236,7 +236,7 @@ namespace Zen.Trunk.Storage.Data
                         "Preparing to create distribution pages to cover device {DeviceId} of {PageCount} pages",
                         DeviceId,
                         pageCount);
-                    
+
                     var subTasks = new List<Task>();
 
                     // Calculate number of distribution pages to deal with
@@ -285,7 +285,7 @@ namespace Zen.Trunk.Storage.Data
                         "Preparing to load distribution pages to cover device {DeviceId} of {PageCount} pages",
                         DeviceId,
                         pageCount);
-                    
+
                     var subTasks = new List<Task>();
 
                     // Calculate number of distribution pages to deal with
@@ -327,7 +327,7 @@ namespace Zen.Trunk.Storage.Data
         #endregion
 
         #region Private Methods
-        private RootPage CreateRootPageAndHookupSite()
+        private IRootPage CreateRootPageAndHookupSite()
         {
             var rootPage = FileGroupDevice.CreateRootPage();
             rootPage.VirtualPageId = new VirtualPageId(DeviceId, 0);
@@ -356,7 +356,7 @@ namespace Zen.Trunk.Storage.Data
                     Logger.Debug(
                         "Distribution page at {VirtualPageId}",
                         pageId);
-                    
+
                     // Issue the sub-ordinate request
                     await FileGroupDevice.InitDataPageAsync(
                         new InitDataPageParameters(page)).ConfigureAwait(false);

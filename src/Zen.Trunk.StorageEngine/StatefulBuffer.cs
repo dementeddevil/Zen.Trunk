@@ -24,7 +24,7 @@ namespace Zen.Trunk.Storage
     /// and the log writer.
     /// </para>
     /// </remarks>
-    public abstract class StatefulBuffer : IDisposable
+    public abstract class StatefulBuffer : IStatefulBuffer
     {
         #region Internal Objects
         /// <summary>

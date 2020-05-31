@@ -50,7 +50,7 @@ namespace Zen.Trunk.Storage.Data
         /// <returns>
         /// An instance of <see cref="PageBuffer"/>.
         /// </returns>
-        Task<PageBuffer> InitPageAsync(VirtualPageId pageId);
+        Task<IPageBuffer> InitPageAsync(VirtualPageId pageId);
 
         /// <summary>
         /// Returns a loaded <see cref="PageBuffer"/> associated with the
@@ -67,7 +67,7 @@ namespace Zen.Trunk.Storage.Data
         /// 2. the queue of pending operations exceeds a certain threshold
         /// 3. a read timeout occurs
         /// </remarks>
-        Task<PageBuffer> LoadPageAsync(VirtualPageId pageId);
+        Task<IPageBuffer> LoadPageAsync(VirtualPageId pageId);
 
         /// <summary>
         /// Flushes pending operations.

@@ -13,8 +13,8 @@ namespace Zen.Trunk.Storage
 	/// </summary>
 	// ReSharper disable once ClassWithVirtualMembersNeverInherited.Global
 	public class StatefulBufferScope<TBufferType> : IDisposable
-		where TBufferType : StatefulBuffer
-	{
+		where TBufferType : class, IStatefulBuffer
+    {
         /// <summary>
         /// Initializes a new instance of the <see cref="StatefulBufferScope{TBufferType}"/> class.
         /// </summary>

@@ -117,7 +117,7 @@ namespace Zen.Trunk.Storage.Logging
         /// This method is only called if a mismatch in timestamps has
         /// been detected.
         /// </remarks>
-        protected abstract void OnUndoChanges(PageBuffer dataBuffer);
+        protected abstract void OnUndoChanges(IPageBuffer dataBuffer);
 
         /// <summary>
         /// <b>OnRedoChanges</b> is called during recovery to redo DataBuffer
@@ -128,23 +128,23 @@ namespace Zen.Trunk.Storage.Logging
         /// This method is only called if a mismatch in timestamps has
         /// been detected.
         /// </remarks>
-        protected abstract void OnRedoChanges(PageBuffer dataBuffer);
+        protected abstract void OnRedoChanges(IPageBuffer dataBuffer);
         #endregion
 
         #region Private Methods
-        private async Task<DataPage> LoadPageFromDevice(DatabaseDevice device)
+        private async Task<IDataPage> LoadPageFromDevice(DatabaseDevice device)
         {
-            // Create generic page object and load
-            var page = new DataPage
-            {
-                VirtualPageId = VirtualPageId,
-                FileGroupId = FileGroupId.Invalid
-            };
+            var page = 
+                new DataPage
+                {
+                    VirtualPageId = VirtualPageId,
+                    FileGroupId = FileGroupId.Invalid
+                };
+
             await device
                 .LoadFileGroupPageAsync(new LoadFileGroupPageParameters(null, page, true))
                 .ConfigureAwait(false);
 
-            // Return the page
             return page;
         }
         #endregion

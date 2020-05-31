@@ -23,7 +23,7 @@ namespace Zen.Trunk.Storage.Data
     /// Logical Page Ids are scoped to the containing file-group hence each
     /// <b>FileGroupDevice</b> has a private Logical/Virtual Page Id mapper.
     /// </remarks>
-    public abstract class FileGroupDevice : PageDevice
+    public abstract class FileGroupDevice : PageDevice, IFileGroupDevice
     {
         #region Private Types
         private class AddDataDeviceRequest : TransactionContextTaskRequest<AddDataDeviceParameters, Tuple<DeviceId, string>>
@@ -157,7 +157,7 @@ namespace Zen.Trunk.Storage.Data
             public InsertTableDataRequest(InsertTableDataParameters tableDataParams)
                 : base(tableDataParams)
             {
-            } 
+            }
             #endregion
         }
 
@@ -173,14 +173,16 @@ namespace Zen.Trunk.Storage.Data
         #endregion
 
         #region Private Fields
+        private static readonly string PrimaryDeviceServiceName = "Primary";
+        private static readonly string SecondaryDeviceServiceName = "Secondary";
         private static readonly ILogger Logger = Serilog.Log.ForContext<FileGroupDevice>();
 
         private DatabaseDevice _owner;
 
         private DeviceId? _primaryDeviceId;
-        private PrimaryDistributionPageDevice _primaryDevice;
-        private readonly Dictionary<DeviceId, SecondaryDistributionPageDevice> _devices =
-            new Dictionary<DeviceId, SecondaryDistributionPageDevice>();
+        private IDistributionPageDevice _primaryDevice;
+        private readonly Dictionary<DeviceId, IDistributionPageDevice> _devices =
+            new Dictionary<DeviceId, IDistributionPageDevice>();
 
         private ObjectId _nextObjectId = new ObjectId(1);
         private readonly Dictionary<ObjectId, ObjectReferenceBufferFieldWrapper> _objects =
@@ -282,7 +284,6 @@ namespace Zen.Trunk.Storage.Data
                     TaskScheduler = taskInterleave.ConcurrentScheduler
                 });
         }
-
         #endregion
 
         #region Public Properties
@@ -388,7 +389,7 @@ namespace Zen.Trunk.Storage.Data
         /// Creates the root page for this file-group device.
         /// </summary>
         /// <returns></returns>
-        public abstract RootPage CreateRootPage();
+        public abstract IRootPage CreateRootPage();
 
         /// <summary>
         /// Adds the data device.
@@ -611,6 +612,7 @@ namespace Zen.Trunk.Storage.Data
         /// </summary>
         /// <typeparam name="TPageType">The type of the page type.</typeparam>
         /// <param name="previousPage">The previous page.</param>
+        /// <param name="pageCreationFunc">The page creation function.</param>
         /// <returns>
         /// A <see cref="Task"/> that when completed will contain the new page.
         /// </returns>
@@ -619,38 +621,35 @@ namespace Zen.Trunk.Storage.Data
         /// although we could relax this to an IX lock and only force an X lock
         /// when the need arises to actually create a new page.
         /// </remarks>
-        public async Task<TPageType> LoadOrCreateNextLinkedPageAsync<TPageType>(TPageType previousPage)
-            where TPageType : LogicalPage, new()
+        public async Task<TPageType> LoadOrCreateNextLinkedPageAsync<TPageType>(TPageType previousPage, Func<TPageType> pageCreationFunc)
+            where TPageType : ILogicalPage
         {
             // If previous page has next logical page identifier then load
             if (previousPage.NextLogicalPageId != LogicalPageId.Zero)
             {
+                // Create placeholder for the next page
+                var nextPage = pageCreationFunc();
+                nextPage.LogicalPageId = previousPage.NextLogicalPageId;
+
                 // Load the next page and return
-                var nextPage =
-                    new TPageType
-                    {
-                        LogicalPageId = previousPage.NextLogicalPageId
-                    };
-                await LoadDataPageAsync(
-                        new LoadDataPageParameters(nextPage, false, true))
+                await LoadDataPageAsync(new LoadDataPageParameters(nextPage, false, true))
                     .ConfigureAwait(false);
                 return nextPage;
             }
 
-            // Create new next page and link up
-            var newPage =
-                new TPageType
-                {
-                    PrevLogicalPageId = previousPage.LogicalPageId
-                };
-            await InitDataPageAsync(
-                    new InitDataPageParameters(newPage, true, true, true))
+            // Create new page
+            var newPage = pageCreationFunc();
+            await InitDataPageAsync(new InitDataPageParameters(newPage, true, true, true))
                 .ConfigureAwait(false);
+
+            // Link pages together
+            newPage.PrevLogicalPageId = previousPage.LogicalPageId;
             previousPage.NextLogicalPageId = newPage.LogicalPageId;
 
             // Force save of both pages
             previousPage.Save();
             newPage.Save();
+
             return newPage;
         }
         #endregion
@@ -788,11 +787,15 @@ namespace Zen.Trunk.Storage.Data
             builder.RegisterType<LogicalVirtualManager>()
                 .As<ILogicalVirtualManager>()
                 .SingleInstance();
-            builder.RegisterInstance(this).As<FileGroupDevice>();
+            builder.RegisterInstance(this).As<IFileGroupDevice>();
             builder.RegisterType<DatabaseTableFactory>().As<IDatabaseTableFactory>();
             builder.RegisterType<PrimaryDistributionPageDevice>()
+                .As<IDistributionPageDevice>()
+                .Named<IDistributionPageDevice>(PrimaryDeviceServiceName)
                 .OnActivated(e => e.Instance.InitialiseDeviceLifetimeScope(LifetimeScope));
             builder.RegisterType<SecondaryDistributionPageDevice>()
+                .As<IDistributionPageDevice>()
+                .Named<IDistributionPageDevice>(SecondaryDeviceServiceName)
                 .OnActivated(e => e.Instance.InitialiseDeviceLifetimeScope(LifetimeScope));
         }
 
@@ -807,18 +810,9 @@ namespace Zen.Trunk.Storage.Data
         #endregion
 
         #region Private Methods
-        private DistributionPageDevice GetDistributionPageDevice(DeviceId deviceId)
+        private IDistributionPageDevice GetDistributionPageDevice(DeviceId deviceId)
         {
-            DistributionPageDevice pageDevice;
-            if (deviceId == _primaryDevice.DeviceId)
-            {
-                pageDevice = _primaryDevice;
-            }
-            else
-            {
-                pageDevice = _devices[deviceId];
-            }
-            return pageDevice;
+            return deviceId == _primaryDevice.DeviceId ? _primaryDevice : _devices[deviceId];
         }
 
         private List<DeviceId> GetDistributionPageDeviceKeys()
@@ -906,18 +900,18 @@ namespace Zen.Trunk.Storage.Data
             }
 
             // Create distribution page device wrapper and add to list
-            DistributionPageDevice newDevice;
+            IDistributionPageDevice newDevice;
             if (priFileGroupDevice)
             {
                 _primaryDeviceId = deviceId;
                 _primaryDevice = GetService<PrimaryDistributionPageDevice>(
-                    new NamedParameter("deviceId", deviceId));
+                    PrimaryDeviceServiceName, new NamedParameter("deviceId", deviceId));
                 newDevice = _primaryDevice;
             }
             else
             {
                 var device = GetService<SecondaryDistributionPageDevice>(
-                    new NamedParameter("deviceId", deviceId));
+                    SecondaryDeviceServiceName, new NamedParameter("deviceId", deviceId));
                 _devices.Add(deviceId, device);
                 newDevice = device;
             }
@@ -1008,7 +1002,7 @@ namespace Zen.Trunk.Storage.Data
             HookupPageSite(request.Message.Page);
             var pageBufferDevice = GetService<ICachingPageBufferDevice>();
             request.Message.Page.PreInitInternal();
-            using (var scope = new StatefulBufferScope<PageBuffer>(
+            using (var scope = new StatefulBufferScope<IPageBuffer>(
                 await pageBufferDevice.InitPageAsync(pageId).ConfigureAwait(false)))
             {
                 // Stage #4: Setup logical id in page buffer as required
@@ -1058,7 +1052,7 @@ namespace Zen.Trunk.Storage.Data
             HookupPageSite(request.Message.Page);
             var pageBufferDevice = GetService<ICachingPageBufferDevice>();
             request.Message.Page.PreLoadInternal();
-            using (var scope = new StatefulBufferScope<PageBuffer>(
+            using (var scope = new StatefulBufferScope<IPageBuffer>(
                 await pageBufferDevice.LoadPageAsync(virtualPageId).ConfigureAwait(false)))
             {
                 // Setup logical page identifier in page buffer as necessary
@@ -1144,7 +1138,7 @@ namespace Zen.Trunk.Storage.Data
 
         private async Task<bool> ExpandDataDeviceHandlerAsync(ExpandDataDeviceRequest request)
         {
-            RootPage rootPage;
+            IRootPage rootPage;
 
             // Do underlying device expansion
             if (request.Message.IsDeviceIdValid)
@@ -1165,7 +1159,7 @@ namespace Zen.Trunk.Storage.Data
             {
                 // Load root page for each device in our list excluding all non-expandable devices
                 var deviceIds = GetDistributionPageDeviceKeys();
-                var rootPages = new Dictionary<DeviceId, RootPage>();
+                var rootPages = new Dictionary<DeviceId, IRootPage>();
                 foreach (var deviceId in deviceIds)
                 {
                     // Get distribution page device
@@ -1335,7 +1329,7 @@ namespace Zen.Trunk.Storage.Data
             }
 
             // Load primary file-group root page
-            var rootPage = (PrimaryFileGroupRootPage)await _primaryDevice
+            var rootPage = (IPrimaryFileGroupRootPage)await _primaryDevice
                 .LoadRootPageAsync()
                 .ConfigureAwait(false);
 
@@ -1374,7 +1368,7 @@ namespace Zen.Trunk.Storage.Data
                 }
 
                 // Failed to add to existing root page; prepare to load/create new root page
-                var nextRootPage = await LoadOrCreateNextLinkedPageAsync(rootPage)
+                var nextRootPage = await LoadOrCreateNextLinkedPageAsync(rootPage, () => new PrimaryFileGroupRootPage())
                     .ConfigureAwait(false);
 
                 // Crab lock page and try again
@@ -1515,7 +1509,7 @@ namespace Zen.Trunk.Storage.Data
         }
 
         private async Task ExpandDeviceCoreAsync(
-            DeviceId deviceId, RootPage rootPage, uint growthPages)
+            DeviceId deviceId, IRootPage rootPage, uint growthPages)
         {
             // Check device can be expanded
             if (!rootPage.IsExpandable)

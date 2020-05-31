@@ -101,7 +101,7 @@ namespace Zen.Trunk.Storage.Logging
         /// This method is only called if a mismatch in timestamps has
         /// been detected.
         /// </remarks>
-        protected override void OnUndoChanges(PageBuffer dataBuffer)
+        protected override void OnUndoChanges(IPageBuffer dataBuffer)
         {
             // Copy before image into page DataBuffer
             using (var stream = dataBuffer.GetBufferStream(0, 8192, false))
@@ -123,7 +123,7 @@ namespace Zen.Trunk.Storage.Logging
         /// This method is only called if a mismatch in timestamps has
         /// been detected.
         /// </remarks>
-        protected override void OnRedoChanges(PageBuffer dataBuffer)
+        protected override void OnRedoChanges(IPageBuffer dataBuffer)
         {
             // Copy after image into page DataBuffer
             using (var stream = dataBuffer.GetBufferStream(0, 8192, false))

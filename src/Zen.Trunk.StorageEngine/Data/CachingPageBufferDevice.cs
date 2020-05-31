@@ -21,7 +21,7 @@ namespace Zen.Trunk.Storage.Data
     public sealed class CachingPageBufferDevice : ICachingPageBufferDevice
     {
         #region Private Types
-        private class PreparePageBufferRequest : TransactionContextTaskRequest<PageBuffer>
+        private class PreparePageBufferRequest : TransactionContextTaskRequest<IPageBuffer>
         {
             public PreparePageBufferRequest(VirtualPageId pageId)
             {
@@ -47,7 +47,7 @@ namespace Zen.Trunk.Storage.Data
         private class BufferCacheInfo : IDisposable
         {
             #region Internal Constructors
-            internal BufferCacheInfo(PageBuffer buffer)
+            internal BufferCacheInfo(IPageBuffer buffer)
             {
                 BufferInternal = buffer;
                 BufferInternal.AddRef();
@@ -67,7 +67,7 @@ namespace Zen.Trunk.Storage.Data
 
             internal VirtualPageId PageId => BufferInternal.PageId;
 
-            internal PageBuffer PageBuffer
+            internal IPageBuffer PageBuffer
             {
                 get
                 {
@@ -77,19 +77,18 @@ namespace Zen.Trunk.Storage.Data
                 }
             }
 
-            internal PageBuffer BufferInternal { get; private set; }
+            internal IPageBuffer BufferInternal { get; private set; }
 
             internal bool IsReadPending => BufferInternal.IsReadPending;
 
             internal bool IsWritePending => BufferInternal.IsWritePending;
 
             internal bool CanFree => BufferInternal.CanFree;
-
             #endregion
 
             #region Internal Methods
             // ReSharper disable once UnusedMethodReturnValue.Local
-            internal PageBuffer RemoveBufferInternal()
+            internal IPageBuffer RemoveBufferInternal()
             {
                 var returnBuffer = BufferInternal;
                 BufferInternal = null;
@@ -111,8 +110,7 @@ namespace Zen.Trunk.Storage.Data
 
         private class FlushPageBufferState
         {
-            private readonly Dictionary<DeviceId, byte> _devicesAccessed =
-                new Dictionary<DeviceId, byte>();
+            private readonly Dictionary<DeviceId, byte> _devicesAccessed = new Dictionary<DeviceId, byte>();
             private readonly List<Task> _saveTasks = new List<Task>();
             private readonly List<Task> _loadTasks = new List<Task>();
 
@@ -197,8 +195,8 @@ namespace Zen.Trunk.Storage.Data
         private readonly IStorageEngineEventService _storageEngineEventService;
 
         // Buffer load/initialisation
-        private readonly ConcurrentDictionary<VirtualPageId, TaskCompletionSource<PageBuffer>> _pendingLoadOrInit =
-            new ConcurrentDictionary<VirtualPageId, TaskCompletionSource<PageBuffer>>();
+        private readonly ConcurrentDictionary<VirtualPageId, TaskCompletionSource<IPageBuffer>> _pendingLoadOrInit =
+            new ConcurrentDictionary<VirtualPageId, TaskCompletionSource<IPageBuffer>>();
 
         // Buffer cache
         private readonly SpinLockClass _bufferLookupLock = new SpinLockClass();
@@ -209,7 +207,7 @@ namespace Zen.Trunk.Storage.Data
         private readonly Task _pageBufferFlushTask;
 
         // Free pool
-        private readonly ObjectPool<PageBuffer> _freePagePool;
+        private readonly ObjectPool<IPageBuffer> _freePagePool;
         private readonly Task _freePoolFillerTask;
 
         // Ports
@@ -236,13 +234,14 @@ namespace Zen.Trunk.Storage.Data
             _cacheSettings = cacheSettings ?? new CachingPageBufferDeviceSettings();
 
             // Initialise the free-buffer pool handler
-            _freePagePool = new ObjectPool<PageBuffer>(
+            _freePagePool = new ObjectPool<IPageBuffer>(
                 () =>
                 {
                     if (_shutdownToken.IsCancellationRequested)
                     {
                         return null;
                     }
+
                     return new PageBuffer(_bufferDevice);
                 });
             _freePoolFillerTask = Task.Factory.StartNew(
@@ -252,7 +251,7 @@ namespace Zen.Trunk.Storage.Data
                 TaskScheduler.Default);
 
             // Initialisation and load handlers make use of common handler
-            _initBufferPort = new TransactionContextActionBlock<PreparePageBufferRequest, PageBuffer>(
+            _initBufferPort = new TransactionContextActionBlock<PreparePageBufferRequest, IPageBuffer>(
                 request => HandleInit(request),
                 new ExecutionDataflowBlockOptions
                 {
@@ -261,7 +260,7 @@ namespace Zen.Trunk.Storage.Data
                     MaxMessagesPerTask = 3,
                     CancellationToken = _shutdownToken.Token
                 });
-            _loadBufferPort = new TransactionContextActionBlock<PreparePageBufferRequest, PageBuffer>(
+            _loadBufferPort = new TransactionContextActionBlock<PreparePageBufferRequest, IPageBuffer>(
                 request => HandleLoad(request),
                 new ExecutionDataflowBlockOptions
                 {
@@ -387,7 +386,7 @@ namespace Zen.Trunk.Storage.Data
         /// An instance of <see cref="PageBuffer" />.
         /// </returns>
         /// <exception cref="BufferDeviceShuttingDownException"></exception>
-        public Task<PageBuffer> InitPageAsync(VirtualPageId pageId)
+        public Task<IPageBuffer> InitPageAsync(VirtualPageId pageId)
         {
             var request = new PreparePageBufferRequest(pageId);
             if (!_initBufferPort.Post(request))
@@ -413,7 +412,7 @@ namespace Zen.Trunk.Storage.Data
         /// 2. the queue of pending operations exceeds a certain threshold
         /// 3. a read timeout occurs
         /// </remarks>
-        public Task<PageBuffer> LoadPageAsync(VirtualPageId pageId)
+        public Task<IPageBuffer> LoadPageAsync(VirtualPageId pageId)
         {
             var request = new PreparePageBufferRequest(pageId);
             if (!_loadBufferPort.Post(request))
@@ -453,16 +452,16 @@ namespace Zen.Trunk.Storage.Data
             }
         }
 
-        private bool TryGetExistingInitOrLoadTask(VirtualPageId pageId, out Task<PageBuffer> pendingOperation)
+        private bool TryGetExistingInitOrLoadTask(VirtualPageId pageId, out Task<IPageBuffer> pendingOperation)
         {
-            pendingOperation = Task.FromResult<PageBuffer>(null);
+            pendingOperation = Task.FromResult<IPageBuffer>(null);
 
             // If the same page is already queued for pending init or load
             //  then reuse same completion task
             var isAlreadyPending = false;
             var pendingTaskSource = _pendingLoadOrInit.AddOrUpdate(
                 pageId,
-                new TaskCompletionSource<PageBuffer>(),
+                new TaskCompletionSource<IPageBuffer>(),
                 (key, existingSource) =>
                 {
                     isAlreadyPending = true;
@@ -477,9 +476,9 @@ namespace Zen.Trunk.Storage.Data
             return isAlreadyPending;
         }
 
-        private PageBuffer GetOrAllocatePageBuffer(VirtualPageId pageId, out bool isNewBuffer)
+        private IPageBuffer GetOrAllocatePageBuffer(VirtualPageId pageId, out bool isNewBuffer)
         {
-            PageBuffer buffer = null;
+            IPageBuffer buffer = null;
             var newBuffer = false;
 
             // Buffer lookup occurs within a lock...
@@ -513,7 +512,7 @@ namespace Zen.Trunk.Storage.Data
             return buffer;
         }
 
-        private Task<PageBuffer> HandleInit(PreparePageBufferRequest request)
+        private Task<IPageBuffer> HandleInit(PreparePageBufferRequest request)
         {
             // Sanity check
             CheckDisposed();
@@ -526,7 +525,7 @@ namespace Zen.Trunk.Storage.Data
             }
 
             // Fetch or allocate the buffer (if it's cached we can complete early)
-            PageBuffer buffer = GetOrAllocatePageBuffer(request.PageId, out var isNewBuffer);
+            var buffer = GetOrAllocatePageBuffer(request.PageId, out var isNewBuffer);
             if (!isNewBuffer)
             {
                 NotifyWaitersLoadOrInitTaskCompleted(request.PageId, buffer);
@@ -539,7 +538,7 @@ namespace Zen.Trunk.Storage.Data
             return pendingTask;
         }
 
-        private Task<PageBuffer> HandleLoad(PreparePageBufferRequest request)
+        private Task<IPageBuffer> HandleLoad(PreparePageBufferRequest request)
         {
             // Sanity check
             CheckDisposed();
@@ -552,7 +551,7 @@ namespace Zen.Trunk.Storage.Data
             }
 
             // Fetch or allocate the buffer (if it's cached we can complete early)
-            PageBuffer buffer = GetOrAllocatePageBuffer(request.PageId, out var isNewBuffer);
+            var buffer = GetOrAllocatePageBuffer(request.PageId, out var isNewBuffer);
             if (!isNewBuffer)
             {
                 NotifyWaitersLoadOrInitTaskCompleted(request.PageId, buffer);
@@ -819,7 +818,7 @@ namespace Zen.Trunk.Storage.Data
         /// <remarks>
         /// Initialisation requests are carried out immediately.
         /// </remarks>
-        private async void RequestInitPageBuffer(PageBuffer buffer, VirtualPageId pageId)
+        private async void RequestInitPageBuffer(IPageBuffer buffer, VirtualPageId pageId)
         {
             try
             {
@@ -847,7 +846,7 @@ namespace Zen.Trunk.Storage.Data
         /// <remarks>
         /// Load requests are deferred until the read-request queue is flushed.
         /// </remarks>
-        private async void RequestLoadPageBuffer(PageBuffer buffer, VirtualPageId pageId)
+        private async void RequestLoadPageBuffer(IPageBuffer buffer, VirtualPageId pageId)
         {
             try
             {
@@ -908,30 +907,26 @@ namespace Zen.Trunk.Storage.Data
             }
         }
 
-        private void NotifyWaitersLoadOrInitTaskCompleted(
-            VirtualPageId pageId, PageBuffer buffer)
+        private void NotifyWaitersLoadOrInitTaskCompleted(VirtualPageId pageId, IPageBuffer buffer)
         {
             RemovePendingLoadOrInitTaskAndNotifyWaiters(
                 pageId, ct => ct.TrySetResult(buffer));
         }
 
-        private void NotifyWaitersLoadOrInitTaskFailed(
-            VirtualPageId pageId, Exception error)
+        private void NotifyWaitersLoadOrInitTaskFailed(VirtualPageId pageId, Exception error)
         {
             RemovePendingLoadOrInitTaskAndNotifyWaiters(
                 pageId, ct => ct.TrySetException(error));
         }
 
-        private void NotifyWaitersLoadOrInitTaskCancelled(
-            VirtualPageId pageId)
+        private void NotifyWaitersLoadOrInitTaskCancelled(VirtualPageId pageId)
         {
             RemovePendingLoadOrInitTaskAndNotifyWaiters(
                 pageId, ct => ct.TrySetCanceled());
         }
 
         private void RemovePendingLoadOrInitTaskAndNotifyWaiters(
-            VirtualPageId pageId,
-            Action<TaskCompletionSource<PageBuffer>> completionAction)
+            VirtualPageId pageId, Action<TaskCompletionSource<IPageBuffer>> completionAction)
         {
             if (_pendingLoadOrInit.TryRemove(pageId, out var task))
             {

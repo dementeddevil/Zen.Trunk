@@ -9,7 +9,7 @@ namespace Zen.Trunk.Storage.Data.Index
     /// <remarks>
     /// Index page handles a binary tree spread across multiple logical pages. 
     /// </remarks>
-    public abstract class IndexPage : ObjectDataPage
+    public abstract class IndexPage : ObjectDataPage, IIndexPage
     {
         #region Private Fields
         private readonly BufferFieldIndexId _indexId;
