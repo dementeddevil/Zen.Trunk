@@ -913,13 +913,13 @@ namespace Zen.Trunk.Storage.Data
             if (priFileGroupDevice)
             {
                 _primaryDeviceId = deviceId;
-                _primaryDevice = GetService<PrimaryDistributionPageDevice>(
+                _primaryDevice = GetService<IDistributionPageDevice>(
                     PrimaryDeviceServiceName, new NamedParameter("deviceId", deviceId));
                 newDevice = _primaryDevice;
             }
             else
             {
-                var device = GetService<SecondaryDistributionPageDevice>(
+                var device = GetService<IDistributionPageDevice>(
                     SecondaryDeviceServiceName, new NamedParameter("deviceId", deviceId));
                 _devices.Add(deviceId, device);
                 newDevice = device;

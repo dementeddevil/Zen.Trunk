@@ -356,19 +356,12 @@ namespace Zen.Trunk.VirtualMemory
         /// Raises the Close event.
         /// </summary>
         /// <returns></returns>
-        protected override Task OnCloseAsync()
+        protected override async Task OnCloseAsync()
         {
-            Parallel.ForEach(
-                _devices.Values,
-                new ParallelOptions
-                {
-                    MaxDegreeOfParallelism = 2
-                },
-                device =>
-                {
-                    device.CloseAsync();
-                });
-            return CompletedTask.Default;
+            foreach(var device in _devices.Values)
+            {
+                await device.CloseAsync().ConfigureAwait(false);
+            }
         }
 
         protected override void Dispose(bool disposing)
