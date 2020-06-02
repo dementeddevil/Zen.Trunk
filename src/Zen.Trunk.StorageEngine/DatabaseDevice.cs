@@ -154,10 +154,10 @@ namespace Zen.Trunk.Storage
         private ICachingPageBufferDevice _dataBufferDevice;
 
         // File-group mapping
-        private readonly Dictionary<FileGroupId, FileGroupDevice> _fileGroupById =
-            new Dictionary<FileGroupId, FileGroupDevice>();
-        private readonly Dictionary<string, FileGroupDevice> _fileGroupByName =
-            new Dictionary<string, FileGroupDevice>();
+        private readonly Dictionary<FileGroupId, IFileGroupDevice> _fileGroupById =
+            new Dictionary<FileGroupId, IFileGroupDevice>();
+        private readonly Dictionary<string, IFileGroupDevice> _fileGroupByName =
+            new Dictionary<string, IFileGroupDevice>();
         private FileGroupId _nextFileGroupId = FileGroupId.Primary.Next;
 
         // Object identifier tracking
@@ -279,7 +279,7 @@ namespace Zen.Trunk.Storage
         /// <value>
         /// The primary file group device.
         /// </value>
-        public FileGroupDevice PrimaryFileGroupDevice => GetPrimaryFileGroupDevice();
+        public IFileGroupDevice PrimaryFileGroupDevice => GetPrimaryFileGroupDevice();
 
         /// <summary>
         /// Gets the <see cref="FileGroupDevice"/> with the specified file group name.
@@ -289,7 +289,7 @@ namespace Zen.Trunk.Storage
         /// </value>
         /// <param name="fileGroupName">Name of the file group.</param>
         /// <returns></returns>
-        public FileGroupDevice this[string fileGroupName] => GetFileGroupDevice(fileGroupName);
+        public IFileGroupDevice this[string fileGroupName] => GetFileGroupDevice(fileGroupName);
 
         /// <summary>
         /// Gets the <see cref="FileGroupDevice"/> with the specified file group identifier.
@@ -299,7 +299,7 @@ namespace Zen.Trunk.Storage
         /// </value>
         /// <param name="fileGroupId">The file group identifier.</param>
         /// <returns></returns>
-        public FileGroupDevice this[FileGroupId fileGroupId] => GetFileGroupDevice(fileGroupId);
+        public IFileGroupDevice this[FileGroupId fileGroupId] => GetFileGroupDevice(fileGroupId);
         #endregion
 
         #region Protected Properties
@@ -896,7 +896,7 @@ namespace Zen.Trunk.Storage
         private async Task<Tuple<DeviceId, string>> AddFileGroupDataDeviceHandlerAsync(AddFileGroupDeviceRequest request)
         {
             // Create valid file group ID as needed
-            FileGroupDevice fileGroupDevice = null;
+            IFileGroupDevice fileGroupDevice = null;
             var isFileGroupCreate = false;
             var isFileGroupOpenNeeded = false;
             if ((request.Message.FileGroupId.IsValid && !_fileGroupById.TryGetValue(request.Message.FileGroupId, out fileGroupDevice)) ||
@@ -1204,23 +1204,23 @@ namespace Zen.Trunk.Storage
             Logger.Debug("CheckPoint - Exit");
         }
 
-        private FileGroupDevice GetPrimaryFileGroupDevice()
+        private IFileGroupDevice GetPrimaryFileGroupDevice()
         {
             return _fileGroupById.Values.FirstOrDefault(item => item.IsPrimaryFileGroup);
         }
 
-        private FileGroupDevice GetFileGroupDevice(string fileGroupName)
+        private IFileGroupDevice GetFileGroupDevice(string fileGroupName)
         {
             return GetFileGroupDeviceCore(FileGroupId.Invalid, fileGroupName);
         }
 
-        private FileGroupDevice GetFileGroupDevice(FileGroupId fileGroupId)
+        private IFileGroupDevice GetFileGroupDevice(FileGroupId fileGroupId)
         {
             // ReSharper disable once IntroduceOptionalParameters.Local
             return GetFileGroupDeviceCore(fileGroupId, null);
         }
 
-        private FileGroupDevice GetFileGroupDeviceCore(FileGroupId fileGroupId, string fileGroupName)
+        private IFileGroupDevice GetFileGroupDeviceCore(FileGroupId fileGroupId, string fileGroupName)
         {
             // Get sane filegroup name if specified
             if (!string.IsNullOrEmpty(fileGroupName))
@@ -1229,7 +1229,7 @@ namespace Zen.Trunk.Storage
             }
 
             // Perform lookup on filegroup id and/or filegroup name
-            FileGroupDevice fileGroupDevice;
+            IFileGroupDevice fileGroupDevice;
             if ((fileGroupId.IsValid && _fileGroupById.TryGetValue(fileGroupId, out fileGroupDevice)) ||
                 (!string.IsNullOrEmpty(fileGroupName) && _fileGroupByName.TryGetValue(fileGroupName, out fileGroupDevice)))
             {

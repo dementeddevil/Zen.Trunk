@@ -1,4 +1,5 @@
 ﻿using System.Threading.Tasks;
+using Autofac;
 
 namespace Zen.Trunk.Storage
 {
@@ -7,6 +8,12 @@ namespace Zen.Trunk.Storage
     /// </summary>
 	public interface IMountableDevice
 	{
+        /// <summary>
+        /// Associates a lifetime scope with the device
+        /// </summary>
+        /// <param name="scope"></param>
+        void InitialiseDeviceLifetimeScope(ILifetimeScope scope);
+
         /// <summary>
         /// Opens the device asynchronously.
         /// </summary>
