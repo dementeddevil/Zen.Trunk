@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 using Serilog;
+using Serilog.Context;
 using Zen.Trunk.CoordinationDataStructures;
 using Zen.Trunk.Partitioners;
 using Zen.Trunk.Storage.Services;
@@ -135,31 +136,35 @@ namespace Zen.Trunk.Storage.Data
                 MarkDeviceAsAccessed(deviceId, 2);
             }
 
-            public Task FlushAccessedDevicesAsync(IMultipleBufferDevice bufferDevice)
+            public async Task FlushAccessedDevicesAsync(IMultipleBufferDevice bufferDevice)
             {
-                if (LoadTasks.Count == 0 && SaveTasks.Count == 0)
+                using (LogContext.PushProperty("Method", nameof(FlushAccessedDevicesAsync)))
                 {
-                    return Task.CompletedTask;
-                }
+                    if (LoadTasks.Count == 0 && SaveTasks.Count == 0)
+                    {
+                        Logger.Debug("FlushAccessedDevicesAsync => nothing to do.");
+                        return;
+                    }
 
-                var pendingTasks = _devicesAccessed
-                    .Select(
-                        entry =>
-                        {
-                            var flushReads = false;
-                            var flushWrites = false;
-                            if ((entry.Value & 1) != 0)
+                    var pendingTasks = _devicesAccessed
+                        .Select(
+                            entry =>
                             {
-                                flushReads = true;
-                            }
-                            if ((entry.Value & 2) != 0)
-                            {
-                                flushWrites = true;
-                            }
-                            return bufferDevice.FlushBuffersAsync(flushReads, flushWrites, entry.Key);
-                        })
-                    .ToArray();
-                return TaskExtra.WhenAllOrEmpty(pendingTasks);
+                                var flushReads = false;
+                                var flushWrites = false;
+                                if ((entry.Value & 1) != 0)
+                                {
+                                    flushReads = true;
+                                }
+                                if ((entry.Value & 2) != 0)
+                                {
+                                    flushWrites = true;
+                                }
+                                return bufferDevice.FlushBuffersAsync(flushReads, flushWrites, entry.Key);
+                            })
+                        .ToArray();
+                    await TaskExtra.WhenAllOrEmpty(pendingTasks).ConfigureAwait(false);
+                }
             }
 
             private void MarkDeviceAsAccessed(DeviceId deviceId, byte value)
@@ -217,7 +222,6 @@ namespace Zen.Trunk.Storage.Data
         #endregion
 
         #region Public Constructors
-
         /// <summary>
         /// Initializes a new instance of the <see cref="CachingPageBufferDevice" /> class.
         /// </summary>
@@ -229,8 +233,8 @@ namespace Zen.Trunk.Storage.Data
             IStorageEngineEventService storageEngineEventService,
             CachingPageBufferDeviceSettings cacheSettings)
         {
-            _bufferDevice = bufferDevice;
-            _storageEngineEventService = storageEngineEventService;
+            _bufferDevice = bufferDevice ?? throw new ArgumentNullException(nameof(bufferDevice));
+            _storageEngineEventService = storageEngineEventService ?? throw new ArgumentNullException(nameof(storageEngineEventService));
             _cacheSettings = cacheSettings ?? new CachingPageBufferDeviceSettings();
 
             // Initialise the free-buffer pool handler
@@ -468,11 +472,7 @@ namespace Zen.Trunk.Storage.Data
                     return existingSource;
                 });
 
-            if (isAlreadyPending)
-            {
-                pendingOperation = pendingTaskSource.Task;
-            }
-
+            pendingOperation = pendingTaskSource.Task;
             return isAlreadyPending;
         }
 
@@ -675,65 +675,79 @@ namespace Zen.Trunk.Storage.Data
 
         private async Task<bool> HandleFlushPageBuffersAsync(FlushCachingDeviceRequest request)
         {
-            // Determine new flush state
-            var newState = CacheFlushState.FlushNormal;
-            if (request.Message.IsForCheckPoint)
+            using (LogContext.PushProperty("Method", nameof(HandleFlushPageBuffersAsync)))
             {
-                newState = CacheFlushState.FlushCheckPoint;
-            }
-
-            // Switch cache flush state now
-            _flushState = newState;
-            try
-            {
-                // Make copy of cache keys
-                // NOTE: This could be rather expensive...
-                VirtualPageId[] keys = null;
-                _bufferLookupLock.Execute(
-                    () =>
-                    {
-                        keys = new VirtualPageId[_bufferLookup.Count];
-                        _bufferLookup.Keys.CopyTo(keys, 0);
-                    });
-
-                // Create parallel operation that acts on chunks of page cache
-                FlushPageBufferState finalFlushState = null;
-                Parallel.ForEach(
-                    ChunkPartitioner.Create(
-                        keys,
-                        _cacheSettings.MinimumBlockFlushSize,
-                        _cacheSettings.MaximumBlockFlushSize),
-                    new ParallelOptions
-                    {
-                        MaxDegreeOfParallelism = _cacheSettings.BlockFlushThreadCount
-                    },
-                    () => new FlushPageBufferState(request.Message),
-                    ProcessCacheBufferEntry,
-                    blockState =>
-                    {
-                        finalFlushState = blockState;
-                    });
-
-                // Execute appropriate flush instruction on all accessed devices
-                if (finalFlushState != null)
+                // Determine new flush state
+                var newState = CacheFlushState.FlushNormal;
+                if (request.Message.IsForCheckPoint)
                 {
-                    // Issue flush to each device accessed
-                    await finalFlushState
-                        .FlushAccessedDevicesAsync(_bufferDevice)
-                        .ConfigureAwait(false);
+                    newState = CacheFlushState.FlushCheckPoint;
                 }
-            }
-            finally
-            {
-                // Clear flush state if it is the same as when we started
-                if (_flushState == newState)
-                {
-                    _flushState = CacheFlushState.Idle;
-                }
-            }
 
-            // Signal request has completed
-            return true;
+                // Switch cache flush state now
+                _flushState = newState;
+                try
+                {
+                    // Make copy of cache keys
+                    // NOTE: This could be rather expensive...
+                    VirtualPageId[] keys = null;
+                    _bufferLookupLock.Execute(
+                        () =>
+                        {
+                            keys = new VirtualPageId[_bufferLookup.Count];
+                            _bufferLookup.Keys.CopyTo(keys, 0);
+                        });
+
+                    // Limit key block to those associated with flush device
+                    if (!request.Message.AllDevices)
+                    {
+                        keys = keys
+                            .Where(key => key.DeviceId == request.Message.DeviceId)
+                            .ToArray();
+                    }
+
+                    if (keys.Length > 0)
+                    {
+                        // Create parallel operation that acts on chunks of page cache
+                        FlushPageBufferState finalFlushState = null;
+                        Parallel.ForEach(
+                            ChunkPartitioner.Create(
+                                keys,
+                                _cacheSettings.MinimumBlockFlushSize,
+                                _cacheSettings.MaximumBlockFlushSize),
+                            new ParallelOptions
+                            {
+                                MaxDegreeOfParallelism = _cacheSettings.BlockFlushThreadCount
+                            },
+                            () => new FlushPageBufferState(request.Message),
+                            ProcessCacheBufferEntry,
+                            blockState =>
+                            {
+                                finalFlushState = blockState;
+                            });
+
+                        // Execute appropriate flush instruction on all accessed devices
+                        if (finalFlushState != null)
+                        {
+                            // Issue flush to each device accessed
+                            await finalFlushState
+                                .FlushAccessedDevicesAsync(_bufferDevice)
+                                .ConfigureAwait(false);
+                        }
+                    }
+                }
+                finally
+                {
+                    // Clear flush state if it is the same as when we started
+                    if (_flushState == newState)
+                    {
+                        _flushState = CacheFlushState.Idle;
+                    }
+                }
+
+                // Signal request has completed
+                return true;
+            }
         }
 
         /// <summary>
@@ -758,56 +772,59 @@ namespace Zen.Trunk.Storage.Data
             long index,
             FlushPageBufferState blockState)
         {
-            // Retrieve entry from cache; skip if no longer present
-            if (!_bufferLookup.TryGetValue(pageId, out var cacheInfo))
+            using (LogContext.PushProperty("Method", nameof(ProcessCacheBufferEntry)))
             {
-                return blockState;
-            }
-
-            // Process pages we can load
-            if (blockState.Params.FlushReads && cacheInfo.IsReadPending)
-            {
-                // Create async task to load the cache info and add to list
-                blockState.LoadTasks.Add(LoadBufferCacheInfoAsync(cacheInfo));
-
-                // Signal device has pending load
-                blockState.MarkDeviceAsAccessedForLoad(pageId.DeviceId);
-            }
-
-            // Process pages we can save
-            else if (blockState.Params.FlushWrites && cacheInfo.IsWritePending)
-            {
-                // This may throw if another thread changes the
-                //	buffer state before it begins the write operation
-                blockState.SaveTasks.Add(SaveBufferCacheInfoAsync(cacheInfo));
-
-                // Signal device has pending save
-                blockState.MarkDeviceAsAccessedForSave(pageId.DeviceId);
-            }
-
-            // Process pages we can scavenge
-            else if (IsScavenging && cacheInfo.CanFree)
-            {
-                // Free the buffer (may throw)
-                cacheInfo.BufferInternal.SetFreeAsync();
-
-                // Remove cache item and decrement count
-                _bufferLookup.Remove(pageId);
-                Interlocked.Decrement(ref _cacheSize);
-
-                // Add to free pages if we can
-                if (_freePagePool.Count < _cacheSettings.MaximumFreePoolSize)
+                // Retrieve entry from cache; skip if no longer present
+                if (!_bufferLookup.TryGetValue(pageId, out var cacheInfo))
                 {
-                    // Add buffer to free pool and disconnect from cache info
-                    _freePagePool.PutObject(cacheInfo.BufferInternal);
-                    cacheInfo.RemoveBufferInternal();
+                    return blockState;
                 }
 
-                // Discard the cache info
-                cacheInfo.Dispose();
-            }
+                // Process pages we can load
+                if (blockState.Params.FlushReads && cacheInfo.IsReadPending)
+                {
+                    // Create async task to load the cache info and add to list
+                    blockState.LoadTasks.Add(LoadBufferCacheInfoAsync(cacheInfo));
 
-            return blockState;
+                    // Signal device has pending load
+                    blockState.MarkDeviceAsAccessedForLoad(pageId.DeviceId);
+                }
+
+                // Process pages we can save
+                else if (blockState.Params.FlushWrites && cacheInfo.IsWritePending)
+                {
+                    // This may throw if another thread changes the
+                    //	buffer state before it begins the write operation
+                    blockState.SaveTasks.Add(SaveBufferCacheInfoAsync(cacheInfo));
+
+                    // Signal device has pending save
+                    blockState.MarkDeviceAsAccessedForSave(pageId.DeviceId);
+                }
+
+                // Process pages we can scavenge
+                else if (IsScavenging && cacheInfo.CanFree)
+                {
+                    // Free the buffer (may throw)
+                    cacheInfo.BufferInternal.SetFreeAsync();
+
+                    // Remove cache item and decrement count
+                    _bufferLookup.Remove(pageId);
+                    Interlocked.Decrement(ref _cacheSize);
+
+                    // Add to free pages if we can
+                    if (_freePagePool.Count < _cacheSettings.MaximumFreePoolSize)
+                    {
+                        // Add buffer to free pool and disconnect from cache info
+                        _freePagePool.PutObject(cacheInfo.BufferInternal);
+                        cacheInfo.RemoveBufferInternal();
+                    }
+
+                    // Discard the cache info
+                    cacheInfo.Dispose();
+                }
+
+                return blockState;
+            }
         }
 
         /// <summary>

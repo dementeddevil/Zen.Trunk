@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Text;
 using System.Threading.Tasks;
 using Autofac;
 using Moq;
@@ -30,6 +31,14 @@ namespace Zen.Trunk.Storage
                                 scope.Resolve<CachingPageBufferDeviceSettings>()))
                         .As<ICachingPageBufferDevice>()
                         .SingleInstance();
+                    builder
+                        .RegisterType<GlobalLockManager>()
+                        .As<IGlobalLockManager>()
+                        .SingleInstance();
+                    builder
+                        .Register(scope => new DatabaseLockManager(scope.Resolve<IGlobalLockManager>(), DatabaseId.Master))
+                        .As<IDatabaseLockManager>()
+                        .SingleInstance();
                 });
 
             var bufferFactory = _scope.Resolve<IVirtualBufferFactory>();
@@ -46,51 +55,6 @@ namespace Zen.Trunk.Storage
                 .AddDeviceBuffers(TestCases.PrimaryDeviceId, _primaryDeviceBuffers)
                 .AddDeviceBuffers(TestCases.SecondaryDeviceId, _secondaryDeviceBuffers)
                 .Build();
-
-            //MockedMultipleBufferDevice
-            //    .SetupGet(mbd => mbd.BufferFactory)
-            //    .Returns(bufferFactory);
-
-            //MockedMultipleBufferDevice
-            //    .Setup(mbd => mbd.AddDeviceAsync(
-            //        TestCases.PrimarayDeviceName, It.IsAny<string>(), It.IsAny<DeviceId>(), It.IsAny<uint>()))
-            //    .ReturnsAsync(TestCases.PrimaryDeviceId);
-            //MockedMultipleBufferDevice
-            //    .Setup(mbd => mbd.AddDeviceAsync(
-            //        TestCases.SecondaryDeviceName, It.IsAny<string>(), It.IsAny<DeviceId>(), It.IsAny<uint>()))
-            //    .ReturnsAsync(TestCases.SecondaryDeviceId);
-            //MockedMultipleBufferDevice
-            //    .Setup(mbd => mbd.LoadBufferAsync(
-            //        It.IsAny<VirtualPageId>(), It.IsAny<IVirtualBuffer>()))
-            //    .Callback<VirtualPageId, IVirtualBuffer>(
-            //        (vid, buffer) =>
-            //        {
-            //            if (vid.DeviceId == TestCases.PrimaryDeviceId && vid.PhysicalPageId < _primaryDeviceBuffers.Count)
-            //            {
-            //                _primaryDeviceBuffers[(int)vid.PhysicalPageId].CopyTo(buffer);
-            //            }
-            //            else if (vid.DeviceId == TestCases.SecondaryDeviceId && vid.PhysicalPageId < _secondaryDeviceBuffers.Count)
-            //            {
-            //                _secondaryDeviceBuffers[(int)vid.PhysicalPageId].CopyTo(buffer);
-            //            }
-            //        })
-            //    .Returns(Task.FromResult(true));
-            //MockedMultipleBufferDevice
-            //    .Setup(mbd => mbd.SaveBufferAsync(
-            //        It.IsAny<VirtualPageId>(), It.IsAny<IVirtualBuffer>()))
-            //    .Callback<VirtualPageId, IVirtualBuffer>(
-            //        (vid, buffer) =>
-            //        {
-            //            if (vid.DeviceId == TestCases.PrimaryDeviceId && vid.PhysicalPageId < _primaryDeviceBuffers.Count)
-            //            {
-            //                buffer.CopyTo(_primaryDeviceBuffers[(int)vid.PhysicalPageId]);
-            //            }
-            //            else if (vid.DeviceId == TestCases.SecondaryDeviceId && vid.PhysicalPageId < _secondaryDeviceBuffers.Count)
-            //            {
-            //                buffer.CopyTo(_secondaryDeviceBuffers[(int)vid.PhysicalPageId]);
-            //            }
-            //        })
-            //    .Returns(Task.FromResult(true));
         }
 
         private Mock<IMultipleBufferDevice> MockedMultipleBufferDevice { get; }
@@ -125,20 +89,42 @@ namespace Zen.Trunk.Storage
             TrunkTransactionContext.BeginTransaction(_scope);
             using (var sut = _scope.Resolve<ICachingPageBufferDevice>())
             {
-                var pb = await sut
-                        .LoadPageAsync(new VirtualPageId(deviceId, physicalPage))
-                        .ConfigureAwait(true);
-                await sut
-                    .FlushPagesAsync(
-                        new FlushCachingDeviceParameters(true, false, DeviceId.Zero))
-                    .ConfigureAwait(true);
-
                 // Act
-                await pb.SetDirtyAsync().ConfigureAwait(true);
+                using (var page = new DataPage())
+                {
+                    page.SetLifetimeScope(_scope);
+
+                    // Initialise page with buffer object
+                    page.PreLoadInternal();
+                    var pbTask = sut.LoadPageAsync(new VirtualPageId(deviceId, physicalPage));
+                    await Task.Delay(100).ConfigureAwait(true); // Needed to avoid race condition between load and flush
+                    await sut
+                        .FlushPagesAsync(new FlushCachingDeviceParameters(true, false, deviceId))
+                        .ConfigureAwait(true);
+                    page.DataBuffer = await pbTask.ConfigureAwait(true);
+                    Assert.False(page.DataBuffer.IsReadPending);
+                    page.PostLoadInternal();
+
+                    // Attempt to setup new page data
+                    page.FileGroupId = FileGroupId.Master;
+                    page.IsManagedData = false;
+                    using (var stream = page.CreateDataStream(false))
+                    {
+                        var textBlock = "This is a test";
+                        var textBuffer = Encoding.UTF8.GetBytes(textBlock);
+                        var textBufferLength = Encoding.UTF8.GetByteCount(textBlock);
+                        stream.Write(textBuffer, 0, textBufferLength);
+                    }
+                    page.SetDataDirty();
+
+                    // Save changed page into underlying buffer then detach
+                    page.Save();
+                }
+
                 await TrunkTransactionContext.CommitAsync().ConfigureAwait(true);
                 await sut
                     .FlushPagesAsync(
-                        new FlushCachingDeviceParameters(false, true, DeviceId.Zero))
+                        new FlushCachingDeviceParameters(false, true, deviceId))
                     .ConfigureAwait(true);
             }
 
@@ -146,7 +132,7 @@ namespace Zen.Trunk.Storage
             MockedMultipleBufferDevice
                 .Verify(mbd => mbd.LoadBufferAsync(new VirtualPageId(deviceId, physicalPage), It.IsAny<IVirtualBuffer>()), Times.Once);
             MockedMultipleBufferDevice
-                .Verify(mbd => mbd.LoadBufferAsync(new VirtualPageId(deviceId, physicalPage), It.IsAny<IVirtualBuffer>()), Times.Once);
+                .Verify(mbd => mbd.SaveBufferAsync(new VirtualPageId(deviceId, physicalPage), It.IsAny<IVirtualBuffer>()), Times.Once);
         }
     }
 
