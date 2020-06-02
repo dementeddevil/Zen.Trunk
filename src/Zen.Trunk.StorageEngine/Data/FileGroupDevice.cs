@@ -662,7 +662,7 @@ namespace Zen.Trunk.Storage.Data
         protected override async Task OnOpenAsync()
         {
             // Open/create the primary device
-            using (LogContext.PushProperty("Method", "PrimaryDevice => OpenAsync"))
+            using (LogContext.PushProperty("Method", $"{nameof(FileGroupDevice)} => {nameof(OnOpenAsync)} => Primary Device"))
             {
                 if (_primaryDevice == null)
                 {
@@ -673,7 +673,7 @@ namespace Zen.Trunk.Storage.Data
                 await _primaryDevice.OpenAsync(IsCreate).ConfigureAwait(false);
             }
 
-            using (LogContext.PushProperty("Method", "SecondaryDevices => OpenAsync"))
+            using (LogContext.PushProperty("Method", $"{nameof(FileGroupDevice)} => {nameof(OnOpenAsync)} => Secondary Devices"))
             {
                 if (IsCreate)
                 {
@@ -769,7 +769,7 @@ namespace Zen.Trunk.Storage.Data
         /// <returns></returns>
         protected override async Task OnCloseAsync()
         {
-            using (LogContext.PushProperty("Method", "PrimaryDevice => CloseAsync"))
+            using (LogContext.PushProperty("Method", $"{nameof(FileGroupDevice)} => {nameof(OnCloseAsync)}"))
             {
                 // Close secondary distribution page devices
                 foreach (var device in _devices.Values)

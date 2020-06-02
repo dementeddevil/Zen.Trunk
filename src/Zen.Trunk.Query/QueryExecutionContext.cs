@@ -11,8 +11,9 @@ namespace Zen.Trunk.Storage.Query
     /// </summary>
     public class QueryExecutionContext
     {
-        private CancellationTokenSource _cancelSource =
-            new CancellationTokenSource();
+        private CancellationTokenSource _cancelSource = new CancellationTokenSource();
+        private readonly MasterDatabaseDevice _masterDatabase;
+        private DatabaseDevice _activeDatabase;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="QueryExecutionContext"/> class.
@@ -20,8 +21,13 @@ namespace Zen.Trunk.Storage.Query
         /// <param name="masterDatabase">The master database.</param>
         public QueryExecutionContext(MasterDatabaseDevice masterDatabase)
         {
-            MasterDatabase = masterDatabase;
-            ActiveDatabase = masterDatabase;
+            if (masterDatabase == null)
+            {
+                throw new ArgumentNullException(nameof(masterDatabase));
+            }
+
+            _masterDatabase = masterDatabase;
+            _activeDatabase = masterDatabase;
         }
 
         /// <summary>
@@ -30,7 +36,14 @@ namespace Zen.Trunk.Storage.Query
         /// <value>
         /// The master database.
         /// </value>
-        public MasterDatabaseDevice MasterDatabase { get; }
+        public MasterDatabaseDevice MasterDatabase
+        {
+            get
+            {
+                Serilog.Log.Debug("QueryExecutionContext => Get MasterDatabase");
+                return _masterDatabase;
+            }
+        }
 
         /// <summary>
         /// Gets or sets the active database.
@@ -38,7 +51,18 @@ namespace Zen.Trunk.Storage.Query
         /// <value>
         /// The active database.
         /// </value>
-        public DatabaseDevice ActiveDatabase { get; private set; }
+        public DatabaseDevice ActiveDatabase 
+        {
+            get
+            {
+                Serilog.Log.Debug("QueryExecutionContext => Get ActiveDatabase");
+                return _activeDatabase;
+            }
+            private set
+            {
+                _activeDatabase = value;
+            }
+        }
 
         /// <summary>
         /// Gets or sets the current transaction isolation level.
@@ -63,6 +87,11 @@ namespace Zen.Trunk.Storage.Query
         /// </exception>
         public async Task SetActiveDatabaseAsync(DatabaseDevice newActiveDatabase)
         {
+            if (newActiveDatabase == null)
+            {
+                throw new ArgumentNullException(nameof(newActiveDatabase));
+            }
+
             var ambientSession = TrunkSessionContext.Current;
             if (ambientSession != null)
             {
@@ -94,7 +123,7 @@ namespace Zen.Trunk.Storage.Query
         /// <summary>
         /// Resets the execution context.
         /// </summary>
-        /// <param name="switchToMasterDatabase">if set to <c>true</c> [switch to master database].</param>
+        /// <param name="switchToMasterDatabase">if set to <c>true</c> then the active database will be switched to master.</param>
         /// <returns></returns>
         public async Task ResetAsync(bool switchToMasterDatabase)
         {

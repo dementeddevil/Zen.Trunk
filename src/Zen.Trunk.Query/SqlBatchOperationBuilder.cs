@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Transactions;
 using Antlr4.Runtime;
@@ -31,10 +32,16 @@ namespace Zen.Trunk.Storage.Query
 
         public Func<QueryExecutionContext, Task> Compile(TrunkSqlParser.BatchContext context)
         {
-            var expression = context.Accept(this);
-            var runner = Expression.Lambda<Func<QueryExecutionContext, Task>>(
-                expression, _executionContextParameterExpression);
-            return runner.Compile();
+            // Create wrapper block that includes a guard expression testing the execution context
+            var finalExpression = 
+                Expression.Lambda<Func<QueryExecutionContext, Task>>(
+                    Expression.Block(
+                        CreateExecutionContextGuardExpression(),
+                        context.Accept(this)),
+                    _executionContextParameterExpression);
+
+            var debugInfoGenerator = DebugInfoGenerator.CreatePdbGenerator();
+            return finalExpression.Compile(debugInfoGenerator);
         }
 
         /// <summary>
@@ -264,10 +271,6 @@ namespace Zen.Trunk.Storage.Query
             //  task chaining - or needs to add statements into task chain
             //  that we can do async/await processing via helper...
             return Expression.Block(
-                new[]
-                {
-                    _executionContextParameterExpression
-                },
                 GetDebugInfoFromContext(context),
                 Expression.Call(
                     GetQueryExecutionContextMasterDatabaseExpression(),
@@ -514,6 +517,19 @@ namespace Zen.Trunk.Storage.Query
             }
 
             return text;
+        }
+
+        private Expression CreateExecutionContextGuardExpression()
+        {
+            return Expression.IfThen(
+                Expression.MakeBinary(
+                    ExpressionType.Equal,
+                    _executionContextParameterExpression,
+                    Expression.Constant(null, typeof(QueryExecutionContext))),
+                Expression.Throw(
+                    Expression.New(
+                        typeof(ArgumentNullException).GetConstructor(new[] { typeof(string) }),
+                        Expression.Constant("executionContext"))));
         }
 
         private DebugInfoExpression GetDebugInfoFromContext(ParserRuleContext context)
