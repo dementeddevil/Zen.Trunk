@@ -168,6 +168,7 @@
     </CodeAnalysisDependentAssemblyPaths>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DistributionPageDevice_should.cs" />
     <Compile Include="StorageEngineTestFixture.cs" />
     <Compile Include="ContainerBuilderExtensions.cs" />
     <Compile Include="DevicePageTracker.cs" />
