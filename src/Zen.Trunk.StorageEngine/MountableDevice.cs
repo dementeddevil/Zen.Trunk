@@ -80,7 +80,8 @@ namespace Zen.Trunk.Storage
                 try
                 {
                     IsCreate = isCreate;
-                    await Task.Run(OnOpenAsync).ConfigureAwait(false);
+                    //await Task.Run(OnOpenAsync).ConfigureAwait(false);
+                    await OnOpenAsync().ConfigureAwait(false);
                 }
                 catch
                 {
@@ -109,7 +110,8 @@ namespace Zen.Trunk.Storage
                 MutateStateOrThrow(MountableDeviceState.Open, MountableDeviceState.Closing);
                 try
                 {
-                    await Task.Run(OnCloseAsync).ConfigureAwait(false);
+                    //await Task.Run(OnCloseAsync).ConfigureAwait(false);
+                    await OnCloseAsync().ConfigureAwait(false);
                 }
                 finally
                 {
