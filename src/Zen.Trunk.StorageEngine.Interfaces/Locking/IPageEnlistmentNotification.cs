@@ -1,37 +1,35 @@
 ﻿namespace Zen.Trunk.Storage.Locking
 {
     /// <summary>
-    /// <c>IPageEnlistmentNotification</c> is implemented by a resource in
-    /// order to participate with a two-phase page transaction.
+    /// <c>IPageEnlistmentNotification</c> is implemented by a <see cref="PageBuffer"/> in
+    /// order to participate with a two-phase commit page transaction.
     /// </summary>
     public interface IPageEnlistmentNotification
 	{
         /// <summary>
-        /// Instructs the resource to prepare for commiting changes.
+        /// Instructs the buffer to prepare for commiting changes.
         /// </summary>
         /// <param name="prepare">
-        /// A callback object that contains methods to be called as part of
-        /// the preparation process.
+        /// A callback object that contains methods to be called as part of the preparation process.
         /// </param>
         void Prepare(PreparingPageEnlistment prepare);
 
         /// <summary>
-        /// Instructs the resource to commit changes to the resource.
+        /// Instructs the buffer to commit changes.
         /// </summary>
         /// <param name="enlistment">
-        /// A callback object that contains methods to be called as part of
-        /// the commit process.
+        /// A callback object that contains methods to be called as part of the commit process.
         /// </param>
         void Commit(PageEnlistment enlistment);
 
         /// <summary>
-        /// Instructs the resource to rollback changes to the resource.
+        /// Instructs the buffer to rollback changes.
         /// </summary>
         /// <param name="enlistment">The enlistment.</param>
         void Rollback(PageEnlistment enlistment);
 
         /// <summary>
-        /// Instructs the resource that the transaction has completed.
+        /// Instructs the buffer that the transaction has completed.
         /// </summary>
         void Complete();
 	}

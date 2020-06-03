@@ -349,6 +349,12 @@ namespace Zen.Trunk.Storage.Locking
 
             try
             {
+                // Force enlistment if we are still running fake transaction identifier
+                if (_transactionId == TransactionId.Zero)
+                {
+                    EnlistInTransaction();
+                }
+
                 // Prepare enlistments for two-phase commit unless a nested
                 //  transaction was instructed to rollback.
                 _isCompleting = true;
@@ -442,10 +448,16 @@ namespace Zen.Trunk.Storage.Locking
                             // We only process untracked page buffers
                             if (!(sub is PageBuffer page) || tracker.Contains(page.PageId))
                             {
+                                Logger.Debug(
+                                    "{TransactionId} => Skipping call to commit for object {SubType}",
+                                    _transactionId, sub.GetType().FullName);
                                 continue;
                             }
 
                             // Consider page tracked...
+                            Logger.Debug(
+                                "{TransactionId} => Calling commit for page {PageId}",
+                                _transactionId, page.PageId);
                             tracker.Add(page.PageId);
 
                             // Attempt asynchronous commit
@@ -691,7 +703,7 @@ namespace Zen.Trunk.Storage.Locking
             catch (DependencyResolutionException)
             {
                 Logger.Warning("Master log device not resolvable - faking transaction identifier");
-                _transactionId = new TransactionId(1);
+                //_transactionId = new TransactionId(1);
             }
 
             Logger.Debug($"{_transactionId} => Returned from TryEnlistTransaction()");
