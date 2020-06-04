@@ -33,7 +33,7 @@ namespace Zen.Trunk.Storage.Query
         public Func<QueryExecutionContext, Task> Compile(TrunkSqlParser.BatchContext context)
         {
             // Create wrapper block that includes a guard expression testing the execution context
-            var finalExpression = 
+            var finalExpression =
                 Expression.Lambda<Func<QueryExecutionContext, Task>>(
                     Expression.Block(
                         CreateExecutionContextGuardExpression(),
@@ -198,12 +198,17 @@ namespace Zen.Trunk.Storage.Query
         /// <return>The visitor result.</return>
         public override Expression VisitCreate_database(TrunkSqlParser.Create_databaseContext context)
         {
-            var attachDatabaseParameters = new AttachDatabaseParameters(context.database.GetText(), true);
+            Expression attachDatabaseParameters =
+                Expression.New(
+                    typeof(AttachDatabaseParametersBuilder).GetConstructor(new[] { typeof(string), typeof(bool) }),
+                    Expression.Constant(context.database.GetText()),
+                    Expression.Constant(true));
+
             var fileSpecCount = context.database_file_spec().Length;
             var rawDatabaseFileSpec = fileSpecCount == 0 ? null : context.database_file_spec(0);
             var fileSpecIndex = 0;
             var isLogFileSpec = false;
-            var fileGroupName = string.Empty;
+            Expression fileGroupName = Expression.Constant(string.Empty);
             for (int index = 0; index < context.ChildCount; ++index)
             {
                 var token = context.GetChild(index);
@@ -213,7 +218,7 @@ namespace Zen.Trunk.Storage.Query
                 }
                 if (token == context.PRIMARY())
                 {
-                    fileGroupName = StorageConstants.PrimaryFileGroupName;
+                    fileGroupName = Expression.Constant(StorageConstants.PrimaryFileGroupName);
                 }
                 if (rawDatabaseFileSpec != null && token == rawDatabaseFileSpec)
                 {
@@ -223,17 +228,25 @@ namespace Zen.Trunk.Storage.Query
                     {
                         if (rawFileGroupSpec != null)
                         {
-                            fileGroupName = rawFileGroupSpec.id().GetText();
+                            fileGroupName = VisitId(rawFileGroupSpec.id());
                             foreach (var rfs in rawFileGroupSpec.file_spec())
                             {
-                                var nativeFileSpec = GetNativeFileSpecFromFileSpec(rfs);
-                                attachDatabaseParameters.AddDataFile(fileGroupName, nativeFileSpec);
+                                attachDatabaseParameters =
+                                    Expression.Call(
+                                        attachDatabaseParameters,
+                                        typeof(AttachDatabaseParametersBuilder).GetMethod(nameof(AttachDatabaseParametersBuilder.WithDataFile)),
+                                        fileGroupName,
+                                        VisitFile_spec(rfs));
                             }
                         }
                         else if (rawFileSpec != null)
                         {
-                            var nativeFileSpec = GetNativeFileSpecFromFileSpec(rawFileSpec);
-                            attachDatabaseParameters.AddDataFile(fileGroupName, nativeFileSpec);
+                            attachDatabaseParameters =
+                                Expression.Call(
+                                    attachDatabaseParameters,
+                                    typeof(AttachDatabaseParametersBuilder).GetMethod(nameof(AttachDatabaseParametersBuilder.WithDataFile)),
+                                    fileGroupName,
+                                    VisitFile_spec(rawFileSpec));
                         }
                     }
                     else
@@ -242,14 +255,20 @@ namespace Zen.Trunk.Storage.Query
                         {
                             foreach (var rfs in rawFileGroupSpec.file_spec())
                             {
-                                var nativeFileSpec = GetNativeFileSpecFromFileSpec(rfs);
-                                attachDatabaseParameters.AddLogFile(nativeFileSpec);
+                                attachDatabaseParameters =
+                                    Expression.Call(
+                                        attachDatabaseParameters,
+                                        typeof(AttachDatabaseParametersBuilder).GetMethod(nameof(AttachDatabaseParametersBuilder.WithLogFile)),
+                                        VisitFile_spec(rfs));
                             }
                         }
                         else if (rawFileSpec != null)
                         {
-                            var nativeFileSpec = GetNativeFileSpecFromFileSpec(rawFileSpec);
-                            attachDatabaseParameters.AddLogFile(nativeFileSpec);
+                            attachDatabaseParameters =
+                                Expression.Call(
+                                    attachDatabaseParameters,
+                                    typeof(AttachDatabaseParametersBuilder).GetMethod(nameof(AttachDatabaseParametersBuilder.WithLogFile)),
+                                    VisitFile_spec(rawFileSpec));
                         }
                     }
 
@@ -265,18 +284,15 @@ namespace Zen.Trunk.Storage.Query
                 }
             }
 
-            // TODO: Statements need to return Expression that evaluates to
-            //  Task FooBar(ExecutionContext ec) and our expression aggregator
-            //  needs to chain each child using appropriate semantics for
-            //  task chaining - or needs to add statements into task chain
-            //  that we can do async/await processing via helper...
             return Expression.Block(
                 GetDebugInfoFromContext(context),
                 Expression.Call(
                     GetQueryExecutionContextMasterDatabaseExpression(),
                     nameof(MasterDatabaseDevice.AttachDatabaseAsync),
                     null,
-                    Expression.Constant(attachDatabaseParameters)));
+                    Expression.Call(
+                        attachDatabaseParameters,
+                        typeof(AttachDatabaseParametersBuilder).GetMethod(nameof(AttachDatabaseParametersBuilder.Build)))));
         }
 
         /// <summary>
@@ -315,6 +331,104 @@ namespace Zen.Trunk.Storage.Query
                 VisitId(context.table));
         }
 
+        public override Expression VisitFile_spec([NotNull] TrunkSqlParser.File_specContext context)
+        {
+            Expression fileSpec = Expression.New(
+                typeof(FileSpecBuilder).GetConstructor(new[] { typeof(string), typeof(string) }),
+                VisitId(context.id()),
+                Expression.Constant(GetNativeString(context.file.Text)));
+
+            for (int index = 0; index < context.ChildCount; ++index)
+            {
+                var child = context.GetChild(index);
+
+                if (child == context.SIZE())
+                {
+                    fileSpec =
+                        Expression.Call(
+                            fileSpec,
+                            typeof(FileSpecBuilder).GetMethod(nameof(FileSpecBuilder.HavingSize)),
+                            VisitFile_size((TrunkSqlParser.File_sizeContext)context.GetChild(index + 2)));
+                }
+
+                if (child == context.MAXSIZE())
+                {
+                    if (context.GetChild(index + 2) == context.UNLIMITED())
+                    {
+                        fileSpec =
+                            Expression.Call(
+                                fileSpec,
+                                typeof(FileSpecBuilder).GetMethod(nameof(FileSpecBuilder.HavingMaxSize)),
+                                Expression.Constant(FileSize.Unlimited));
+                    }
+                    else
+                    {
+                        fileSpec =
+                            Expression.Call(
+                                fileSpec,
+                                typeof(FileSpecBuilder).GetMethod(nameof(FileSpecBuilder.HavingMaxSize)),
+                                VisitFile_size((TrunkSqlParser.File_sizeContext)context.GetChild(index + 2)));
+                    }
+                }
+
+                if (child == context.FILEGROWTH())
+                {
+                    fileSpec =
+                        Expression.Call(
+                            fileSpec,
+                            typeof(FileSpecBuilder).GetMethod(nameof(FileSpecBuilder.HavingFileGrowth)),
+                            VisitFile_size((TrunkSqlParser.File_sizeContext)context.GetChild(index + 2)));
+                }
+            }
+
+            return Expression.Call(
+                fileSpec,
+                typeof(FileSpecBuilder).GetMethod(nameof(FileSpecBuilder.Build)));
+        }
+
+        public override Expression VisitFile_size([NotNull] TrunkSqlParser.File_sizeContext context)
+        {
+            // Get the size text and setup default units
+            var sizeText = context.GetChild(0).GetText();
+            var unit = FileSize.FileSizeUnit.MegaBytes;
+
+            // ReSharper disable once InvertIf
+            if (context.ChildCount > 1)
+            {
+                var unitToken = context.GetChild(1);
+                if (unitToken == context.KB())
+                {
+                    unit = FileSize.FileSizeUnit.KiloBytes;
+                }
+                else if (unitToken == context.MB())
+                {
+                    unit = FileSize.FileSizeUnit.MegaBytes;
+                }
+                else if (unitToken == context.GB())
+                {
+                    unit = FileSize.FileSizeUnit.GigaBytes;
+                }
+                else if (unitToken == context.TB())
+                {
+                    unit = FileSize.FileSizeUnit.TeraBytes;
+                }
+                else if (unitToken == context.MODULE())
+                {
+                    unit = FileSize.FileSizeUnit.Percentage;
+                }
+            }
+
+            if (!double.TryParse(sizeText, out var value))
+            {
+                value = 0.0;
+            }
+
+            return Expression.New(
+                typeof(FileSize).GetConstructor(new[] { typeof(double), typeof(FileSize.FileSizeUnit) }),
+                Expression.Constant(value),
+                Expression.Constant(unit));
+        }
+
         /// <summary>
         /// Visit a parse tree produced by <see cref="M:Zen.Trunk.Storage.Query.TrunkSqlParser.id" />.
         /// </summary>
@@ -323,7 +437,7 @@ namespace Zen.Trunk.Storage.Query
         /// A <see cref="Expression"/> representing the constant for the identifier with delimiters removed.
         /// </returns>
         /// <return>The visitor result.</return>
-        public override Expression VisitId(TrunkSqlParser.IdContext context)
+        public override Expression VisitId([NotNull] TrunkSqlParser.IdContext context)
         {
             var nativeId = GetNativeId(context.GetText());
             return Expression.Constant(nativeId);

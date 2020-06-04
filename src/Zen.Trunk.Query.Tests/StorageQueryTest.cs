@@ -36,10 +36,13 @@ namespace Zen.Trunk.Storage
                 batch.AppendLine("create database master");
 
                 manager.BeginTransaction(TimeSpan.FromMinutes(15));
-                //await executive.ExecuteAsync(batch.ToString()).ConfigureAwait(true);
+                var compiledBatch = executive.CompileBatch(batch.ToString());
+
+                var context = new QueryExecutionContext(manager);
+                await compiledBatch(context).ConfigureAwait(true);
+
                 await manager.OpenAsync(true).ConfigureAwait(true);
                 await TrunkTransactionContext.CommitAsync().ConfigureAwait(true);
-
                 await manager.CloseAsync().ConfigureAwait(true);
             }
         }
@@ -122,9 +125,9 @@ namespace Zen.Trunk.Storage
                 batch.AppendLine(
                     $"SET TRANSACTION ISOLATION LEVEL {requestedIsolationLevel};");
 
-                //await executive.ExecuteAsync(batch.ToString()).ConfigureAwait(true);
-
-                //executive.Batches.FirstOrDefault().
+                var context = new QueryExecutionContext(manager);
+                var compiledBatch = executive.CompileBatch(batch.ToString());
+                await compiledBatch(context).ConfigureAwait(true);
             }
         }
 

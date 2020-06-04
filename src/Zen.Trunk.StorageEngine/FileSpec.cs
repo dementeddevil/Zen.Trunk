@@ -47,4 +47,42 @@ namespace Zen.Trunk.Storage
         /// </value>
         public FileSize? FileGrowth { get; set; }
     }
+
+    public class FileSpecBuilder
+    {
+        private FileSpec _fileSpec;
+
+        public FileSpecBuilder(string name, string fileName)
+        {
+            _fileSpec =
+                new FileSpec
+                {
+                    Name = name,
+                    FileName = fileName
+                };
+        }
+
+        public FileSpecBuilder HavingSize(FileSize size)
+        {
+            _fileSpec.Size = size;
+            return this;
+        }
+
+        public FileSpecBuilder HavingMaxSize(FileSize size)
+        {
+            _fileSpec.MaxSize = size;
+            return this;
+        }
+
+        public FileSpecBuilder HavingFileGrowth(FileSize size)
+        {
+            _fileSpec.FileGrowth = size;
+            return this;
+        }
+
+        public FileSpec Build()
+        {
+            return _fileSpec;
+        }
+    }
 }

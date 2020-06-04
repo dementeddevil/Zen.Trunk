@@ -136,6 +136,33 @@ namespace Zen.Trunk.Storage
         #endregion
     }
 
+    public class AttachDatabaseParametersBuilder
+    {
+        private AttachDatabaseParameters _parameters;
+
+        public AttachDatabaseParametersBuilder(string name, bool isCreate = false)
+        {
+            _parameters = new AttachDatabaseParameters(name, isCreate);
+        }
+
+        public AttachDatabaseParametersBuilder WithDataFile(string fileGroup, FileSpec file)
+        {
+            _parameters.AddDataFile(fileGroup, file);
+            return this;
+        }
+
+        public AttachDatabaseParametersBuilder WithLogFile(FileSpec file)
+        {
+            _parameters.AddLogFile(file);
+            return this;
+        }
+
+        public AttachDatabaseParameters Build()
+        {
+            return _parameters;
+        }
+    }
+
     /// <summary>
     /// 
     /// </summary>
