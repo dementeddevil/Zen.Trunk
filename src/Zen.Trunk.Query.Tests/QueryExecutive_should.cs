@@ -5,6 +5,7 @@
 // -----------------------------------------------------------------------
 
 using Autofac;
+using FluentAssertions;
 using System;
 using System.IO;
 using System.Text;
@@ -21,10 +22,11 @@ namespace Zen.Trunk.Storage
     /// TODO: Update summary.
     /// </summary>
     [Trait("Subsystem", "Storage Engine Query")]
-    public class StorageQueryTest : StorageEngineTestFixture
+    [Trait("Class", "QueryExecutive")]
+    public class QueryExecutive_should : StorageEngineTestFixture
     {
-        [Fact(DisplayName = "Create master device using default values")]
-        public async Task CreateMasterDeviceWithDefaultsTest()
+        [Fact(DisplayName = nameof(QueryExecutive_should) + "_" + nameof(create_master_database_with_default_values))]
+        public async Task create_master_database_with_default_values()
         {
             using (var manager = Scope.Resolve<MasterDatabaseDevice>())
             {
@@ -47,8 +49,8 @@ namespace Zen.Trunk.Storage
             }
         }
 
-        [Fact(DisplayName = "Create master device")]
-        public async Task CreateMasterDeviceTest()
+        [Fact(DisplayName = nameof(QueryExecutive_should) + "_" + nameof(create_master_database_with_standard_settings))]
+        public async Task create_master_database_with_standard_settings()
         {
             using (var tracker = new TempFileTracker())
             {
@@ -107,13 +109,13 @@ namespace Zen.Trunk.Storage
         //{
         //}
 
-        [Theory(DisplayName = "Set transaction isolation level propagates to executed batch")]
+        [Theory(DisplayName = nameof(QueryExecutive_should) + "_" + nameof(correctly_set_isolation_level_on_context))]
         [InlineData("READ UNCOMMITTED", IsolationLevel.ReadUncommitted)]
         [InlineData("READ COMMITTED", IsolationLevel.ReadCommitted)]
         [InlineData("REPEATABLE READ", IsolationLevel.RepeatableRead)]
         [InlineData("SNAPSHOT", IsolationLevel.Snapshot)]
         [InlineData("SERIALIZABLE", IsolationLevel.Serializable)]
-        public async Task SetTransaction(
+        public async Task correctly_set_isolation_level_on_context(
             string requestedIsolationLevel, IsolationLevel expectedIsolationLevel)
         {
             using (var manager = new MasterDatabaseDevice())
@@ -128,6 +130,8 @@ namespace Zen.Trunk.Storage
                 var context = new QueryExecutionContext(manager);
                 var compiledBatch = executive.CompileBatch(batch.ToString());
                 await compiledBatch(context).ConfigureAwait(true);
+
+                context.IsolationLevel.Should().Be(expectedIsolationLevel);
             }
         }
 

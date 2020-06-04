@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Transactions;
@@ -33,11 +34,14 @@ namespace Zen.Trunk.Storage.Query
         public Func<QueryExecutionContext, Task> Compile(TrunkSqlParser.BatchContext context)
         {
             // Create wrapper block that includes a guard expression testing the execution context
+            var bodyExpression =
+                Expression.Block(
+                    CreateExecutionContextGuardExpression(),
+                    context.Accept(this));
+
             var finalExpression =
                 Expression.Lambda<Func<QueryExecutionContext, Task>>(
-                    Expression.Block(
-                        CreateExecutionContextGuardExpression(),
-                        context.Accept(this)),
+                    bodyExpression,
                     _executionContextParameterExpression);
 
             var debugInfoGenerator = DebugInfoGenerator.CreatePdbGenerator();
@@ -181,9 +185,14 @@ namespace Zen.Trunk.Storage.Query
 
             return Expression.Block(
                 GetDebugInfoFromContext(context),
-                Expression.Assign(
-                    GetQueryExecutionContextIsolationLevelExpression(),
-                    Expression.Constant(level)));
+                Expression.Call(
+                    null,
+                    typeof(Task)
+                        .GetMethod(nameof(Task.FromResult), BindingFlags.Public | BindingFlags.Static)
+                        .MakeGenericMethod(typeof(IsolationLevel)),
+                    Expression.Assign(
+                        GetQueryExecutionContextIsolationLevelExpression(),
+                        Expression.Constant(level))));
         }
 
         /// <summary>
@@ -522,79 +531,6 @@ namespace Zen.Trunk.Storage.Query
         //    await compiledLeft(queryExecutionContext).ConfigureAwait(false);
         //    await compiledRight(queryExecutionContext).ConfigureAwait(false);
         //}
-
-        private FileSpec GetNativeFileSpecFromFileSpec(TrunkSqlParser.File_specContext fileSpecContext)
-        {
-            var nativeFileSpec =
-                new FileSpec
-                {
-                    Name = GetNativeId(fileSpecContext.id().GetText()),
-                    FileName = GetNativeString(fileSpecContext.file.Text),
-                };
-
-            for (int index = 0; index < fileSpecContext.ChildCount; ++index)
-            {
-                var child = fileSpecContext.GetChild(index);
-                if (child == fileSpecContext.SIZE())
-                {
-                    nativeFileSpec.Size = GetNativeSizeFromFileSize(
-                        (TrunkSqlParser.File_sizeContext)fileSpecContext.GetChild(index + 2));
-                }
-                if (child == fileSpecContext.MAXSIZE())
-                {
-                    if (fileSpecContext.GetChild(index + 2) == fileSpecContext.UNLIMITED())
-                    {
-                        nativeFileSpec.MaxSize = FileSize.Unlimited;
-                    }
-                    else
-                    {
-                        nativeFileSpec.MaxSize = GetNativeSizeFromFileSize(
-                            (TrunkSqlParser.File_sizeContext)fileSpecContext.GetChild(index + 2));
-                    }
-                }
-                if (child == fileSpecContext.FILEGROWTH())
-                {
-                    nativeFileSpec.FileGrowth = GetNativeSizeFromFileSize(
-                        (TrunkSqlParser.File_sizeContext)fileSpecContext.GetChild(index + 2));
-                }
-            }
-
-            return nativeFileSpec;
-        }
-
-        private FileSize GetNativeSizeFromFileSize(TrunkSqlParser.File_sizeContext fileSizeContext)
-        {
-            // Get the 
-            var sizeText = fileSizeContext.GetChild(0).GetText();
-            var unit = FileSize.FileSizeUnit.MegaBytes;
-            // ReSharper disable once InvertIf
-            if (fileSizeContext.ChildCount > 1)
-            {
-                var unitToken = fileSizeContext.GetChild(1);
-                if (unitToken == fileSizeContext.KB())
-                {
-                    unit = FileSize.FileSizeUnit.KiloBytes;
-                }
-                else if (unitToken == fileSizeContext.MB())
-                {
-                    unit = FileSize.FileSizeUnit.MegaBytes;
-                }
-                else if (unitToken == fileSizeContext.GB())
-                {
-                    unit = FileSize.FileSizeUnit.GigaBytes;
-                }
-                else if (unitToken == fileSizeContext.TB())
-                {
-                    unit = FileSize.FileSizeUnit.TeraBytes;
-                }
-                else if (unitToken == fileSizeContext.MODULE())
-                {
-                    unit = FileSize.FileSizeUnit.Percentage;
-                }
-            }
-
-            return double.TryParse(sizeText, out var value) ? new FileSize(value, unit) : new FileSize(0.0, unit);
-        }
 
         private string GetNativeString(string text)
         {
