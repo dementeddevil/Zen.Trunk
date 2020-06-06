@@ -1319,7 +1319,6 @@ namespace Zen.Trunk.Storage.Data.Table
         #endregion
 
         #region Protected Methods
-
         protected virtual void Dispose(bool disposing)
         {
             if (disposing)

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Threading.Tasks;
 using Zen.Trunk.Storage.Data;
 using Zen.Trunk.Storage.Data.Table;
@@ -193,6 +194,47 @@ namespace Zen.Trunk.Storage
             : base(page)
         {
             FileGroupId = page.FileGroupId;
+            FileGroupName = fileGroupName;
+        }
+        #endregion
+
+        #region Public Properties
+        /// <summary>
+        /// Gets the file group identifier.
+        /// </summary>
+        /// <value>
+        /// The file group identifier.
+        /// </value>
+        public FileGroupId FileGroupId { get; }
+
+        /// <summary>
+        /// Gets the name of the file group.
+        /// </summary>
+        /// <value>
+        /// The name of the file group.
+        /// </value>
+        public string FileGroupName { get; }
+        #endregion
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <seealso cref="AddAudioParameters" />
+    public class AddFileGroupAudioParameters : AddAudioParameters
+    {
+        #region Public Constructors
+        /// <summary>
+        /// Initializes a new instance of the <see cref="AddFileGroupAudioParameters"/> class.
+        /// </summary>
+        /// <param name="fileGroupId">The file group identifier.</param>
+        /// <param name="fileGroupName">Name of the file group.</param>
+        /// <param name="audioName">Name of the table.</param>
+        /// <param name="waveFileStream">The wave file stream.</param>
+        public AddFileGroupAudioParameters(FileGroupId fileGroupId, string fileGroupName, string audioName, Stream waveFileStream)
+            : base(audioName, waveFileStream)
+        {
+            FileGroupId = fileGroupId;
             FileGroupName = fileGroupName;
         }
         #endregion

@@ -11,12 +11,12 @@ namespace Zen.Trunk.Storage.Data.Table
             _parentLifetimeScope = parentLifetimeScope;
         }
 
-        public IDatabaseTable GetTableScopeForNewTable(ObjectId objectId)
+        public IDatabaseTable GetScopeForNewTable(ObjectId objectId)
         {
             return new DatabaseTable(_parentLifetimeScope, objectId, true);
         }
 
-        public IDatabaseTable GetTableScopeForExistingTable(ObjectId objectId)
+        public IDatabaseTable GetScopeForExistingTable(ObjectId objectId)
         {
             return new DatabaseTable(_parentLifetimeScope, objectId, false);
         }

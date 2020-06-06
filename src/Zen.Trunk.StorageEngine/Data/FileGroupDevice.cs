@@ -5,10 +5,12 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 using Autofac;
+using NAudio.Wave;
 using Serilog;
 using Serilog.Context;
 using Zen.Trunk.Storage.BufferFields;
 using Zen.Trunk.Storage.Configuration;
+using Zen.Trunk.Storage.Data.Audio;
 using Zen.Trunk.Storage.Data.Table;
 using Zen.Trunk.Storage.Locking;
 using Zen.Trunk.Utils;
@@ -126,6 +128,16 @@ namespace Zen.Trunk.Storage.Data
             #region Public Constructors
             public ExpandDataDeviceRequest(ExpandDataDeviceParameters parameters)
                 : base(parameters)
+            {
+            }
+            #endregion
+        }
+
+        private class AddAudioRequest : TransactionContextTaskRequest<AddAudioParameters, ObjectId>
+        {
+            #region Public Constructors
+            public AddAudioRequest(AddAudioParameters tableParams)
+                : base(tableParams)
             {
             }
             #endregion
@@ -265,6 +277,12 @@ namespace Zen.Trunk.Storage.Data
                 {
                     TaskScheduler = taskInterleave.ConcurrentScheduler
                 });
+            AddAudioPort = new TransactionContextActionBlock<AddAudioRequest, ObjectId>(
+                request => AddAudioHandlerAsync(request),
+                new ExecutionDataflowBlockOptions
+                {
+                    TaskScheduler = taskInterleave.ExclusiveScheduler
+                });
             AddTablePort = new TransactionContextActionBlock<AddTableRequest, ObjectId>(
                 request => AddTableHandlerAsync(request),
                 new ExecutionDataflowBlockOptions
@@ -364,6 +382,8 @@ namespace Zen.Trunk.Storage.Data
         private ITargetBlock<ProcessDistributionPageRequest> ProcessDistributionPagePort { get; }
 
         private ITargetBlock<InsertReferenceInformationRequest> CreateObjectReferencePort { get; }
+
+        private ITargetBlock<AddAudioRequest> AddAudioPort { get; }
 
         private ITargetBlock<AddTableRequest> AddTablePort { get; }
 
@@ -551,6 +571,22 @@ namespace Zen.Trunk.Storage.Data
         {
             var request = new ExpandDataDeviceRequest(parameters);
             if (!ExpandDataDevicePort.Post(request))
+            {
+                throw new BufferDeviceShuttingDownException();
+            }
+            return request.Task;
+        }
+
+        /// <summary>
+        /// Adds the audio.
+        /// </summary>
+        /// <param name="audioParams">The audio parameters.</param>
+        /// <returns></returns>
+        /// <exception cref="BufferDeviceShuttingDownException"></exception>
+        public Task<ObjectId> AddAudioAsync(AddAudioParameters audioParams)
+        {
+            var request = new AddAudioRequest(audioParams);
+            if (!AddAudioPort.Post(request))
             {
                 throw new BufferDeviceShuttingDownException();
             }
@@ -1390,6 +1426,36 @@ namespace Zen.Trunk.Storage.Data
             }
         }
 
+        private async Task<ObjectId> AddAudioHandlerAsync(AddAudioRequest request)
+        {
+            // Determine the object identifier for the audio
+            var createdObjectId = ObjectId.Zero;
+            await InsertReferenceInformationAsync(
+                new InsertReferenceInformationRequestParameters(
+                    null,
+                    null,
+                    request.Message.AudioName,
+                    ObjectType.Audio,
+                    async (objectId) =>
+                    {
+                        // Create database audio helper and setup object
+                        var audioFactory = GetService<IDatabaseAudioFactory>();
+                        using (var audio = audioFactory.GetScopeForNewAudio(objectId))
+                        {
+                            // Stream the audio data into our pages
+                            using (var audioReader = new WaveFileReader(request.Message.WaveFileStream))
+                            {
+                                await audio.AppendAudioDataAsync(audioReader).ConfigureAwait(false);
+                            }
+
+                            // Return the first logical page id of the schema
+                            createdObjectId = objectId;
+                            return audio.SchemaFirstLogicalPageId;
+                        }
+                    })).ConfigureAwait(false);
+            return createdObjectId;
+        }
+
         private async Task<ObjectId> AddTableHandlerAsync(AddTableRequest request)
         {
             // Determine the object identifier for the table
@@ -1404,7 +1470,7 @@ namespace Zen.Trunk.Storage.Data
                     {
                         // Create database table helper and setup object
                         var tableFactory = GetService<IDatabaseTableFactory>();
-                        using (var table = tableFactory.GetTableScopeForNewTable(objectId))
+                        using (var table = tableFactory.GetScopeForNewTable(objectId))
                         {
                             // Create columns
                             table.BeginColumnUpdate();
@@ -1434,7 +1500,7 @@ namespace Zen.Trunk.Storage.Data
 
             // Load table schema
             var tableFactory = GetService<IDatabaseTableFactory>();
-            using (var table = tableFactory.GetTableScopeForExistingTable(request.Message.ObjectId))
+            using (var table = tableFactory.GetScopeForExistingTable(request.Message.ObjectId))
             {
                 await table.LoadSchemaAsync(firstLogicalPageId).ConfigureAwait(false);
 
@@ -1468,7 +1534,7 @@ namespace Zen.Trunk.Storage.Data
 
             // Load table schema
             var tableFactory = GetService<IDatabaseTableFactory>();
-            using (var table = tableFactory.GetTableScopeForExistingTable(request.Message.ObjectId))
+            using (var table = tableFactory.GetScopeForExistingTable(request.Message.ObjectId))
             {
                 await table.LoadSchemaAsync(firstLogicalPageId).ConfigureAwait(false);
 

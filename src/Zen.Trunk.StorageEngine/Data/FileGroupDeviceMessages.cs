@@ -413,6 +413,43 @@ namespace Zen.Trunk.Storage.Data
     /// <summary>
     /// 
     /// </summary>
+    public class AddAudioParameters
+    {
+        /// <summary>Initializes a new instance of the <see cref="AddAudioParameters" /> class.</summary>
+        /// <param name="audioName">Name of the audio.</param>
+        /// <param name="waveFileStream">The wave file stream.</param>
+        /// <exception cref="ArgumentException">Audio name is required.</exception>
+        public AddAudioParameters(string audioName, Stream waveFileStream)
+        {
+            if (string.IsNullOrWhiteSpace(audioName))
+            {
+                throw new ArgumentException("Audio name is required.");
+            }
+
+            AudioName = audioName;
+            WaveFileStream = waveFileStream;
+        }
+
+        /// <summary>
+        /// Gets the name of the audio.
+        /// </summary>
+        /// <value>
+        /// The name of the audio.
+        /// </value>
+        public string AudioName { get; }
+
+        /// <summary>
+        /// Gets the wave file stream.
+        /// </summary>
+        /// <value>
+        /// The wave file stream.
+        /// </value>
+        public Stream WaveFileStream { get; }
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
     public class AddTableParameters
     {
         /// <summary>

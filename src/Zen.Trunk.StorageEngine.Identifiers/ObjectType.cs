@@ -17,7 +17,7 @@ namespace Zen.Trunk.Storage
         /// <summary>
         /// The sample
         /// </summary>
-        public static readonly ObjectType Sample = new ObjectType(1);
+        public static readonly ObjectType Audio = new ObjectType(1);
 
         /// <summary>
         /// The table

@@ -119,7 +119,7 @@ namespace Zen.Trunk.Storage
                         new AllocateDataPageParameters(
                             new LogicalPageId(1024 + index),
                             new ObjectId(1 + index),
-                            ObjectType.Sample,
+                            ObjectType.Audio,
                             false,
                             false))
                     .ConfigureAwait(true);
@@ -132,7 +132,7 @@ namespace Zen.Trunk.Storage
                     new AllocateDataPageParameters(
                         new LogicalPageId(1024 + extentsToTest),
                         new ObjectId(1 + extentsToTest),
-                        ObjectType.Sample,
+                        ObjectType.Audio,
                         false,
                         false))
                 .ConfigureAwait(true);

@@ -201,7 +201,7 @@ namespace Zen.Trunk.Storage.Data.Audio
         /// </summary>
         /// <param name="waveReader">The wave reader.</param>
         /// <exception cref="InvalidOperationException">Cannot append wave data when source format is different to audio object.</exception>
-        public async Task AppendAudioData(WaveFileReader waveReader)
+        public async Task AppendAudioDataAsync(WaveFileReader waveReader)
         {
             // Step 1: Format setup/compatibility check
             if (SchemaRootPage == null)
@@ -285,6 +285,25 @@ namespace Zen.Trunk.Storage.Data.Audio
             currentPage.Save();
             SchemaRootPage.Save();
             IsNewAudio = false;
+        }
+
+        /// <summary>
+        /// Dispose of this instance
+        /// </summary>
+        public void Dispose()
+        {
+            Dispose(true);
+        }
+        #endregion
+
+        #region Protected Methods
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                _schemaPage?.Dispose();
+                _schemaPage = null;
+            }
         }
         #endregion
 

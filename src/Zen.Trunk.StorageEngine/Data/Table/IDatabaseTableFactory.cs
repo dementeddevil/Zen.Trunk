@@ -2,8 +2,8 @@
 {
     public interface IDatabaseTableFactory
     {
-        IDatabaseTable GetTableScopeForExistingTable(ObjectId objectId);
+        IDatabaseTable GetScopeForExistingTable(ObjectId objectId);
 
-        IDatabaseTable GetTableScopeForNewTable(ObjectId objectId);
+        IDatabaseTable GetScopeForNewTable(ObjectId objectId);
     }
 }

@@ -74,6 +74,20 @@ namespace Zen.Trunk.Storage
             #endregion
         }
 
+        private class AddFileGroupAudioRequest : TransactionContextTaskRequest<AddFileGroupAudioParameters, ObjectId>
+        {
+            #region Public Constructors
+            /// <summary>
+            /// Initializes a new instance of the <see cref="AddFileGroupAudioRequest"/> class.
+            /// </summary>
+            /// <param name="tableParams">The table parameters.</param>
+            public AddFileGroupAudioRequest(AddFileGroupAudioParameters audioParams)
+                : base(audioParams)
+            {
+            }
+            #endregion
+        }
+
         private class AddFileGroupTableRequest : TransactionContextTaskRequest<AddFileGroupTableParameters, ObjectId>
         {
             #region Public Constructors
@@ -231,6 +245,15 @@ namespace Zen.Trunk.Storage
                     TaskScheduler = taskInterleave.ConcurrentScheduler
                 });
 
+            // Audio action ports
+            AddFileGroupAudioPort =
+                new TransactionContextActionBlock<AddFileGroupAudioRequest, ObjectId>(
+                    AddFileGroupAudioHandlerAsync,
+                    new ExecutionDataflowBlockOptions
+                    {
+                        TaskScheduler = taskInterleave.ExclusiveScheduler
+                    });
+
             // Table action ports
             AddFileGroupTablePort =
                 new TransactionContextActionBlock<AddFileGroupTableRequest, ObjectId>(
@@ -372,6 +395,12 @@ namespace Zen.Trunk.Storage
         /// </summary>
         /// <value>The flush device buffers port.</value>
         private ITargetBlock<FlushFileGroupRequest> FlushPageBuffersPort { get; }
+
+        /// <summary>
+        /// Gets the add file group audio port.
+        /// </summary>
+        /// <value>The add file group audio port.</value>
+        private ITargetBlock<AddFileGroupAudioRequest> AddFileGroupAudioPort { get; }
 
         /// <summary>
         /// Gets the add file group table port.
@@ -538,6 +567,24 @@ namespace Zen.Trunk.Storage
         {
             var request = new CreateObjectReferenceRequest(parameters);
             if (!CreateObjectReferencePort.Post(request))
+            {
+                throw new BufferDeviceShuttingDownException();
+            }
+            return request.Task;
+        }
+
+        /// <summary>
+        /// Adds the file group audio.
+        /// </summary>
+        /// <param name="audioParams">The audio parameters.</param>
+        /// <returns>
+        /// A <see cref="Task"/> representing the asynchronous operation.
+        /// </returns>
+        /// <exception cref="BufferDeviceShuttingDownException"></exception>
+        public Task<ObjectId> AddFileGroupAudioAsync(AddFileGroupAudioParameters audioParams)
+        {
+            var request = new AddFileGroupAudioRequest(audioParams);
+            if (!AddFileGroupAudioPort.Post(request))
             {
                 throw new BufferDeviceShuttingDownException();
             }
@@ -1120,6 +1167,16 @@ namespace Zen.Trunk.Storage
             // Add new object to our list
             _objects.Add(objectId, objectRef);
             return objectId;
+        }
+
+        private Task<ObjectId> AddFileGroupAudioHandlerAsync(AddFileGroupAudioRequest request)
+        {
+            // Locate appropriate filegroup device
+            var fileGroupDevice = GetFileGroupDeviceCore(
+                request.Message.FileGroupId, request.Message.FileGroupName);
+
+            // Delegate request to file-group device.
+            return fileGroupDevice.AddAudioAsync(request.Message);
         }
 
         private Task<ObjectId> AddFileGroupTableHandlerAsync(AddFileGroupTableRequest request)

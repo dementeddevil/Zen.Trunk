@@ -16,6 +16,8 @@ namespace Zen.Trunk.Storage.Data
 
         Task<Tuple<DeviceId, string>> AddDataDeviceAsync(AddDataDeviceParameters deviceParams);
 
+        Task<ObjectId> AddAudioAsync(AddAudioParameters audioParams);
+
         Task<ObjectId> AddTableAsync(AddTableParameters tableParams);
 
         Task<IndexId> AddTableIndexAsync(AddTableIndexParameters indexParams);
