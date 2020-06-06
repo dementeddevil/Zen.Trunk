@@ -76,6 +76,9 @@
       <HintPath>..\packages\Microsoft.Bcl.AsyncInterfaces.1.1.1\lib\net461\Microsoft.Bcl.AsyncInterfaces.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
+    <Reference Include="NAudio, Version=1.10.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\NAudio.1.10.0\lib\net35\NAudio.dll</HintPath>
+    </Reference>
     <Reference Include="Serilog, Version=2.0.0.0, Culture=neutral, PublicKeyToken=24c2f752a8e58a10, processorArchitecture=MSIL">
       <HintPath>..\packages\Serilog.2.9.0\lib\net46\Serilog.dll</HintPath>
     </Reference>
@@ -93,9 +96,13 @@
       <HintPath>..\packages\System.Threading.Tasks.Extensions.4.5.4\lib\net461\System.Threading.Tasks.Extensions.dll</HintPath>
     </Reference>
     <Reference Include="System.Transactions" />
+    <Reference Include="System.Windows.Forms" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DatabaseDeviceMessages.cs" />
+    <Compile Include="Data\Audio\AudioDataPage.cs" />
+    <Compile Include="Data\Audio\AudioSchemaPage.cs" />
+    <Compile Include="Data\Audio\DatabaseAudio.cs" />
     <Compile Include="Data\FileGroupDeviceMessages.cs" />
     <Compile Include="Data\IDistributionPage.cs" />
     <Compile Include="Data\IDistributionPageDevice.cs" />

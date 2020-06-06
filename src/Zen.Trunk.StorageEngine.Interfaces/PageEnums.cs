@@ -18,9 +18,9 @@ namespace Zen.Trunk.Storage
 		Distribution = 2,
 
 		/// <summary>
-		/// Indicates the page is a sample page.
+		/// Indicates the page is a audio page.
 		/// </summary>
-		Sample = 3,
+		Audio = 3,
 
 		/// <summary>
 		/// Indicates the page is a table page.

@@ -430,7 +430,6 @@ namespace Zen.Trunk.Storage.Data.Table
         #endregion
 
         #region Public Properties
-
         /// <summary>
         /// Gets the file group id.
         /// </summary>
