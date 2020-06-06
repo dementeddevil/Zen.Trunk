@@ -137,10 +137,10 @@ namespace Zen.Trunk.Storage.Data.Table
         IList<RowConstraint> Constraints { get; }
 
         /// <summary>
-        /// Gets the owner filegroup.
+        /// Gets the owner file-group device.
         /// </summary>
         /// <value>The database.</value>
-        FileGroupDevice Owner { get; }
+        IFileGroupDevice FileGroupDevice { get; }
 
         /// <summary>
         /// Loads the table schema starting from the specified logical id

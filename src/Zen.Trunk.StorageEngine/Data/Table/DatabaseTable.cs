@@ -408,7 +408,7 @@ namespace Zen.Trunk.Storage.Data.Table
         /// <param name="isNewTable"></param>
         public DatabaseTable(ILifetimeScope parentLifetimeScope, ObjectId objectId, bool isNewTable)
         {
-            Owner = parentLifetimeScope.Resolve<FileGroupDevice>();
+            FileGroupDevice = parentLifetimeScope.Resolve<FileGroupDevice>();
             _lifetimeScope = parentLifetimeScope.BeginLifetimeScope(
                 builder =>
                 {
@@ -434,13 +434,13 @@ namespace Zen.Trunk.Storage.Data.Table
         /// Gets the file group id.
         /// </summary>
         /// <value>The file group id.</value>
-        public FileGroupId FileGroupId => Owner.FileGroupId;
+        public FileGroupId FileGroupId => FileGroupDevice.FileGroupId;
 
         /// <summary>
         /// Gets the name of the file group.
         /// </summary>
         /// <value>The name of the file group.</value>
-        public string FileGroupName => Owner.FileGroupName;
+        public string FileGroupName => FileGroupDevice.FileGroupName;
 
         /// <summary>
         /// Gets the table object ID.
@@ -636,11 +636,11 @@ namespace Zen.Trunk.Storage.Data.Table
         /// Gets the owner filegroup.
         /// </summary>
         /// <value>The database.</value>
-        public FileGroupDevice Owner { get; }
+        public IFileGroupDevice FileGroupDevice { get; }
         #endregion
 
         #region Internal Properties
-        internal IDatabaseLockManager LockingManager => Owner.LifetimeScope.Resolve<IDatabaseLockManager>();
+        internal IDatabaseLockManager LockingManager => _lifetimeScope.Resolve<IDatabaseLockManager>();
         #endregion
 
         #region Public Methods
@@ -1230,7 +1230,7 @@ namespace Zen.Trunk.Storage.Data.Table
                 var newPage = new TableDataPage();
                 newPage.FileGroupId = FileGroupId;
                 await newPage.SetObjectLockAsync(ObjectLockType.Exclusive).ConfigureAwait(false);
-                await Owner
+                await FileGroupDevice
                     .InitDataPageAsync(new InitDataPageParameters(newPage, true, true, true))
                     .ConfigureAwait(false);
 
@@ -1439,7 +1439,7 @@ namespace Zen.Trunk.Storage.Data.Table
         {
             var schemaPage = CreateSchemaPage(isFirstSchemaPage);
             schemaPage.ReadOnly = false;
-            await Owner
+            await FileGroupDevice
                 .InitDataPageAsync(new InitDataPageParameters(schemaPage, true, true, true, true))
                 .ConfigureAwait(true);
             return schemaPage;
@@ -1474,7 +1474,7 @@ namespace Zen.Trunk.Storage.Data.Table
             await schemaPage.SetObjectLockAsync(ObjectLockType.Shared).ConfigureAwait(false);
             await schemaPage.SetSchemaLockAsync(SchemaLockType.SchemaStability).ConfigureAwait(false);
 
-            await Owner
+            await FileGroupDevice
                 .LoadDataPageAsync(new LoadDataPageParameters(schemaPage, false, true))
                 .ConfigureAwait(false);
             return schemaPage;
@@ -1503,7 +1503,7 @@ namespace Zen.Trunk.Storage.Data.Table
                     {
                         currentReadPage = new TableDataPage();
                         currentReadPage.LogicalPageId = readLogicalPageId;
-                        await Owner
+                        await FileGroupDevice
                             .LoadDataPageAsync(new LoadDataPageParameters(currentReadPage, false, true))
                             .ConfigureAwait(false);
                     }
@@ -1512,7 +1512,7 @@ namespace Zen.Trunk.Storage.Data.Table
                     if (currentWritePage == null)
                     {
                         currentWritePage = new TableDataPage();
-                        await Owner
+                        await FileGroupDevice
                             .InitDataPageAsync(new InitDataPageParameters(currentWritePage, true, true, true, true))
                             .ConfigureAwait(false);
                     }

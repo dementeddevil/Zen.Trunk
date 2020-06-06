@@ -39,7 +39,7 @@ namespace Zen.Trunk.Storage.Data.Audio
         #endregion
 
         #region Public Properties
-        public override uint MinHeaderSize => base.MinHeaderSize + 26;
+        public override uint MinHeaderSize => base.MinHeaderSize + 42;
 
         public WaveFormat WaveFormat
         {
@@ -165,7 +165,7 @@ namespace Zen.Trunk.Storage.Data.Audio
         {
             PageType = PageType.Audio;
             return base.OnInitAsync(e);
-        } 
+        }
         #endregion
     }
 }

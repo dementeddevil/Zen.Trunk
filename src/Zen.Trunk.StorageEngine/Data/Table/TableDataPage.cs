@@ -200,7 +200,7 @@ namespace Zen.Trunk.Storage.Data.Table
 
 				    await lastPage.SetObjectLockAsync(ObjectLock).ConfigureAwait(false);
 
-                    await table.Owner
+                    await table.FileGroupDevice
 						.LoadDataPageAsync(new LoadDataPageParameters(lastPage, false, true))
 						.ConfigureAwait(false);
 				}
@@ -220,7 +220,7 @@ namespace Zen.Trunk.Storage.Data.Table
 			    };
 			    await splitPage.SetObjectLockAsync(ObjectLock).ConfigureAwait(false);
 
-                await table.Owner
+                await table.FileGroupDevice
 					.InitDataPageAsync(new InitDataPageParameters(splitPage, true, true, true))
 					.ConfigureAwait(false);
 				splitPage.PrevLogicalPageId = lastPage.LogicalPageId;
@@ -260,7 +260,7 @@ namespace Zen.Trunk.Storage.Data.Table
 			    };
 			    await nextPage.SetObjectLockAsync(ObjectLock).ConfigureAwait(false);
 
-                await table.Owner
+                await table.FileGroupDevice
 					.LoadDataPageAsync(new LoadDataPageParameters(nextPage, false, true))
 					.ConfigureAwait(false);
 			}
@@ -282,7 +282,7 @@ namespace Zen.Trunk.Storage.Data.Table
 		    };
 		    await SetObjectLockAsync(ObjectLock).ConfigureAwait(false);
 
-            await table.Owner
+            await table.FileGroupDevice
 				.InitDataPageAsync(new InitDataPageParameters(splitPage, true, true, true))
 				.ConfigureAwait(false);
 			splitPage.PrevLogicalPageId = LogicalPageId;
@@ -339,7 +339,7 @@ namespace Zen.Trunk.Storage.Data.Table
 			    };
 			    await extraPage.SetObjectLockAsync(ObjectLock).ConfigureAwait(false);
 
-                await table.Owner
+                await table.FileGroupDevice
 					.InitDataPageAsync(new InitDataPageParameters(extraPage, true, true, true))
 					.ConfigureAwait(false);
 

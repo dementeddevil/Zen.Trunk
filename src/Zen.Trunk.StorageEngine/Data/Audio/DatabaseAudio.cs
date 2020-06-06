@@ -15,15 +15,21 @@ namespace Zen.Trunk.Storage.Data.Audio
     /// needs to do, it is recommended that uncompressed, high bit-rate streams are used when streaming
     /// data into the database.
     /// </remarks>
-    public class DatabaseAudio
+    public class DatabaseAudio : IDatabaseAudio
     {
+        #region Private Fields
         private readonly ILifetimeScope _lifetimeScope;
         private AudioSchemaPage _schemaPage;
-        private bool _canUpdateSchema;
+        #endregion
 
+        #region Public Constructors
+        /// <summary>Initializes a new instance of the <see cref="DatabaseAudio" /> class.</summary>
+        /// <param name="parentLifetimeScope">The parent lifetime scope.</param>
+        /// <param name="objectId">The object identifier.</param>
+        /// <param name="isNewAudio">if set to <c>true</c> instance represents a new audio entity, otherwise false.</param>
         public DatabaseAudio(ILifetimeScope parentLifetimeScope, ObjectId objectId, bool isNewAudio)
         {
-            Owner = parentLifetimeScope.Resolve<FileGroupDevice>();
+            FileGroupDevice = parentLifetimeScope.Resolve<IFileGroupDevice>();
             _lifetimeScope = parentLifetimeScope.BeginLifetimeScope(
                 builder =>
                 {
@@ -42,30 +48,31 @@ namespace Zen.Trunk.Storage.Data.Audio
 			LockTimeout = TimeSpan.FromSeconds(10);
 #endif
         }
+        #endregion
 
         #region Public Properties
         /// <summary>
         /// Gets the file group id.
         /// </summary>
         /// <value>The file group id.</value>
-        public FileGroupId FileGroupId => Owner.FileGroupId;
+        public FileGroupId FileGroupId => FileGroupDevice.FileGroupId;
 
         /// <summary>
         /// Gets the name of the file group.
         /// </summary>
         /// <value>The name of the file group.</value>
-        public string FileGroupName => Owner.FileGroupName;
+        public string FileGroupName => FileGroupDevice.FileGroupName;
 
         /// <summary>
-        /// Gets the table object ID.
+        /// Gets the audio object ID.
         /// </summary>
         public ObjectId ObjectId { get; }
 
         /// <summary>
-        /// Gets or sets a value indicating whether this instance is new table.
+        /// Gets or sets a value indicating whether this instance is a new audio.
         /// </summary>
         /// <value>
-        /// 	<c>true</c> if this instance is new table; otherwise, <c>false</c>.
+        /// <c>true</c> if this instance is a new audio; otherwise, <c>false</c>.
         /// </value>
         public bool IsNewAudio { get; private set; }
 
@@ -102,7 +109,7 @@ namespace Zen.Trunk.Storage.Data.Audio
         public AudioSchemaPage SchemaRootPage => _schemaPage;
 
         /// <summary>
-        /// Gets or sets the first logical page identifier for table data.
+        /// Gets or sets the first logical page identifier for audio data.
         /// </summary>
         /// <value>
         /// The logical page identifier.
@@ -111,7 +118,7 @@ namespace Zen.Trunk.Storage.Data.Audio
         /// Thrown if locking the table schema for modification fails.
         /// </exception>
         /// <exception cref="LockTimeoutException">
-        /// Thrown if locking the table schema for modification fails due to timeout.
+        /// Thrown if locking the audio schema for modification fails due to timeout.
         /// </exception>
         public LogicalPageId DataFirstLogicalPageId
         {
@@ -120,16 +127,16 @@ namespace Zen.Trunk.Storage.Data.Audio
         }
 
         /// <summary>
-        /// Gets or sets the last logical page identifier for table data.
+        /// Gets or sets the last logical page identifier for audio data.
         /// </summary>
         /// <value>
         /// The logical page identifier.
         /// </value>
         /// <exception cref="LockException">
-        /// Thrown if locking the table schema for modification fails.
+        /// Thrown if locking the audio schema for modification fails.
         /// </exception>
         /// <exception cref="LockTimeoutException">
-        /// Thrown if locking the table schema for modification fails due to timeout.
+        /// Thrown if locking the audio schema for modification fails due to timeout.
         /// </exception>
         public LogicalPageId DataLastLogicalPageId
         {
@@ -138,10 +145,10 @@ namespace Zen.Trunk.Storage.Data.Audio
         }
 
         /// <summary>
-        /// Gets a value indicating whether this table instance has any data.
+        /// Gets a value indicating whether this audio instance has any data.
         /// </summary>
         /// <value>
-        ///   <c>true</c> if [has data]; otherwise, <c>false</c>.
+        /// <c>true</c> if audio entity has data; otherwise, <c>false</c>.
         /// </value>
         public bool HasData => DataFirstLogicalPageId.Value != 0;
 
@@ -152,14 +159,14 @@ namespace Zen.Trunk.Storage.Data.Audio
         public TimeSpan LockTimeout { get; set; }
 
         /// <summary>
-        /// Gets the owner filegroup.
+        /// Gets the associated file-group device.
         /// </summary>
-        /// <value>The database.</value>
-        public FileGroupDevice Owner { get; }
+        /// <value>A <see cref="IFileGroupDevice"/> object.</value>
+        public IFileGroupDevice FileGroupDevice { get; }
         #endregion
 
         #region Internal Properties
-        internal IDatabaseLockManager LockingManager => Owner.LifetimeScope.Resolve<IDatabaseLockManager>();
+        internal IDatabaseLockManager LockingManager => _lifetimeScope.Resolve<IDatabaseLockManager>();
         #endregion
 
         #region Public Methods
@@ -189,6 +196,11 @@ namespace Zen.Trunk.Storage.Data.Audio
             }
         }
 
+        /// <summary>
+        /// Appends audio data to this instance.
+        /// </summary>
+        /// <param name="waveReader">The wave reader.</param>
+        /// <exception cref="InvalidOperationException">Cannot append wave data when source format is different to audio object.</exception>
         public async Task AppendAudioData(WaveFileReader waveReader)
         {
             // Step 1: Format setup/compatibility check
@@ -203,7 +215,11 @@ namespace Zen.Trunk.Storage.Data.Audio
                 throw new InvalidOperationException("Cannot append wave data when source format is different to audio object.");
             }
 
-            // Step 2: Seek or create page/offset to start writing
+            // Step 2: We need a schema modification lock before going any further
+            // For new audio entities, we will already have this lock
+            await SchemaRootPage.SetSchemaLockAsync(SchemaLockType.SchemaModification).ConfigureAwait(false);
+
+            // Step 3: Seek or create page/offset to start writing
             AudioDataPage currentPage;
             uint pageOffset = 0;
             if (!HasData)
@@ -223,12 +239,13 @@ namespace Zen.Trunk.Storage.Data.Audio
                 }
             }
 
-            // Step 3: Stream blocks into pages, linking them as we go (and update the totalbytes as we copy stuff in)
+            // Step 4: Stream blocks into pages, linking them as we go (and update the totalbytes as we copy stuff in)
             byte[] buffer = new byte[currentPage.DataSize];
             var needToCreatePage = false;
             while (true)
             {
-                int bytesRead = await waveReader.ReadAsync(buffer, 0, (int)(currentPage.DataSize - pageOffset)).ConfigureAwait(false);
+                int bytesToFillPage = (int)(currentPage.DataSize - pageOffset);
+                int bytesRead = await waveReader.ReadAsync(buffer, 0, bytesToFillPage).ConfigureAwait(false);
                 if (bytesRead == 0)
                 {
                     break;
@@ -238,6 +255,7 @@ namespace Zen.Trunk.Storage.Data.Audio
                 if (needToCreatePage)
                 {
                     currentPage = await InitDataPageAndLinkAsync(currentPage).ConfigureAwait(false);
+                    SchemaRootPage.DataLastLogicalPageId = currentPage.LogicalPageId;
                 }
 
                 // Copy data from source stream into destination page
@@ -246,15 +264,21 @@ namespace Zen.Trunk.Storage.Data.Audio
                     if (pageOffset > 0)
                     {
                         pageStream.Seek(pageOffset, SeekOrigin.Begin);
-                        pageOffset = 0;
                     }
 
                     await pageStream.WriteAsync(buffer, 0, bytesRead).ConfigureAwait(false);
+                    pageOffset += (uint)bytesRead;
                 }
 
                 SchemaRootPage.TotalBytes += bytesRead;
                 currentPage.SetDataDirty();
-                needToCreatePage = true;
+
+                // Move to a new page if we have filled the current one
+                if (bytesRead == bytesToFillPage)
+                {
+                    pageOffset = 0;
+                    needToCreatePage = true;
+                }
             }
 
             // Ensure last page written is saved along with root page
@@ -267,17 +291,19 @@ namespace Zen.Trunk.Storage.Data.Audio
         #region Private Methods
         private AudioDataPage CreateDataPage()
         {
-            var dataPage = new AudioDataPage();
-            dataPage.ObjectId = ObjectId;
-            dataPage.FileGroupId = FileGroupId;
-            return dataPage;
+            return new AudioDataPage
+            {
+                ObjectId = ObjectId,
+                FileGroupId = FileGroupId
+            };
         }
 
         private async Task<AudioDataPage> InitDataPageAsync()
         {
             var dataPage = CreateDataPage();
             dataPage.ReadOnly = false;
-            await Owner
+
+            await FileGroupDevice
                 .InitDataPageAsync(new InitDataPageParameters(dataPage, true, true, true, true))
                 .ConfigureAwait(true);
             return dataPage;
@@ -286,12 +312,14 @@ namespace Zen.Trunk.Storage.Data.Audio
         public async Task<AudioDataPage> InitDataPageAndLinkAsync(AudioDataPage prevDataPage)
         {
             var dataPage = await InitDataPageAsync().ConfigureAwait(false);
+
             if (prevDataPage != null)
             {
                 dataPage.PrevLogicalPageId = prevDataPage.LogicalPageId;
                 prevDataPage.NextLogicalPageId = dataPage.LogicalPageId;
                 prevDataPage.Save();
             }
+
             return dataPage;
         }
 
@@ -303,7 +331,7 @@ namespace Zen.Trunk.Storage.Data.Audio
             // Setup page locking and then load page
             await dataPage.SetObjectLockAsync(ObjectLockType.Shared).ConfigureAwait(false);
 
-            await Owner
+            await FileGroupDevice
                 .LoadDataPageAsync(new LoadDataPageParameters(dataPage, false, true))
                 .ConfigureAwait(false);
             return dataPage;
@@ -321,7 +349,7 @@ namespace Zen.Trunk.Storage.Data.Audio
         {
             var schemaPage = CreateSchemaPage(isFirstSchemaPage);
             schemaPage.ReadOnly = false;
-            await Owner
+            await FileGroupDevice
                 .InitDataPageAsync(new InitDataPageParameters(schemaPage, true, true, true, true))
                 .ConfigureAwait(true);
             return schemaPage;
@@ -336,7 +364,7 @@ namespace Zen.Trunk.Storage.Data.Audio
             await schemaPage.SetObjectLockAsync(ObjectLockType.Shared).ConfigureAwait(false);
             await schemaPage.SetSchemaLockAsync(SchemaLockType.SchemaStability).ConfigureAwait(false);
 
-            await Owner
+            await FileGroupDevice
                 .LoadDataPageAsync(new LoadDataPageParameters(schemaPage, false, true))
                 .ConfigureAwait(false);
             return schemaPage;
