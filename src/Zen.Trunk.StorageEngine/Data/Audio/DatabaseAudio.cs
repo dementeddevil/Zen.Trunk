@@ -206,7 +206,9 @@ namespace Zen.Trunk.Storage.Data.Audio
             // Step 1: Format setup/compatibility check
             if (SchemaRootPage == null)
             {
-                await InitSchemaPageAsync(true).ConfigureAwait(false);
+                _schemaPage = await InitSchemaPageAsync(true).ConfigureAwait(false);
+                SchemaFirstLogicalPageId = _schemaPage.LogicalPageId;
+                SchemaLastLogicalPageId = _schemaPage.LogicalPageId;
                 SchemaRootPage.WaveFormat = waveReader.WaveFormat;
             }
             else if (SchemaRootPage.WaveFormat != waveReader.WaveFormat)

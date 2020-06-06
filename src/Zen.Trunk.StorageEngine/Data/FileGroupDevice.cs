@@ -833,6 +833,7 @@ namespace Zen.Trunk.Storage.Data
                 .As<ILogicalVirtualManager>()
                 .SingleInstance();
             builder.RegisterInstance(this).As<IFileGroupDevice>();
+            builder.RegisterType<DatabaseAudioFactory>().As<IDatabaseAudioFactory>();
             builder.RegisterType<DatabaseTableFactory>().As<IDatabaseTableFactory>();
             builder.RegisterType<PrimaryDistributionPageDevice>()
                 .As<IDistributionPageDevice>()

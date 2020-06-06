@@ -470,5 +470,69 @@ namespace Zen.Trunk.Storage
                 }
             }
         }
+
+        [Fact(DisplayName = nameof(StorageEngine_should) + "_" + nameof(create_audio_from_file_and_commit_successfully))]
+        public async Task create_audio_from_file_and_commit_successfully()
+        {
+            var masterDataPathName = _fixture.GlobalTracker.Get("master6.mddf");
+            var masterLogPathName = _fixture.GlobalTracker.Get("master6.mlf");
+
+            using (var dbDevice = new DatabaseDevice(StorageEngineTestFixture.PrimaryDatabaseId))
+            {
+                try
+                {
+                    dbDevice.InitialiseDeviceLifetimeScope(_fixture.Scope);
+
+                    var addFgDevice =
+                        new AddFileGroupDeviceParameters(
+                            FileGroupId.Primary,
+                            "PRIMARY",
+                            "master",
+                            masterDataPathName,
+                            DeviceId.Zero,
+                            128,
+                            true);
+                    await dbDevice.AddFileGroupDeviceAsync(addFgDevice).ConfigureAwait(true);
+
+                    var addLogDevice =
+                        new AddLogDeviceParameters(
+                            "MASTER_LOG",
+                            masterLogPathName,
+                            DeviceId.Zero,
+                            2);
+                    await dbDevice.AddLogDeviceAsync(addLogDevice).ConfigureAwait(true);
+
+                    await dbDevice.OpenAsync(true).ConfigureAwait(true);
+
+                    dbDevice.BeginTransaction();
+                    try
+                    {
+                        using (var fileStream = new FileStream(
+                            @"C:\Windows\Media\Alarm05.wav",
+                            FileMode.Open,
+                            FileAccess.Read))
+                        {
+                            var param =
+                                new AddFileGroupAudioParameters(
+                                    addFgDevice.FileGroupId,
+                                    addFgDevice.FileGroupName,
+                                    "Test",
+                                    fileStream);
+                            await dbDevice.AddFileGroupAudioAsync(param).ConfigureAwait(true);
+                        }
+
+                        await TrunkTransactionContext.CommitAsync().ConfigureAwait(true);
+                    }
+                    catch
+                    {
+                        await TrunkTransactionContext.RollbackAsync().ConfigureAwait(true);
+                    }
+                }
+                finally
+                {
+                    await dbDevice.CloseAsync().ConfigureAwait(true);
+                }
+            }
+        }
     }
 }
