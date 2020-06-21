@@ -393,8 +393,6 @@ namespace Zen.Trunk.Storage.Data.Table
         private ReadOnlyCollection<TableColumnInfo> _columns;
         private ConstraintCollection _updatedConstraints;
         private ReadOnlyCollection<RowConstraint> _constraints;
-        private TableIndexManager _indexManager;
-
         private InclusiveRange _rowSize;
         private ushort _rowsPerPage;
         #endregion
