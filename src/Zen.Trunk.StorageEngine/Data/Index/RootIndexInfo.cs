@@ -1,4 +1,5 @@
-﻿using Zen.Trunk.Storage.BufferFields;
+﻿using System;
+using Zen.Trunk.Storage.BufferFields;
 
 namespace Zen.Trunk.Storage.Data.Index
 {
@@ -13,6 +14,7 @@ namespace Zen.Trunk.Storage.Data.Index
 		private readonly BufferFieldStringFixed _name;
 		private readonly BufferFieldLogicalPageId _rootLogicalPageId;
 		private readonly BufferFieldByte _rootIndexDepth;
+		private readonly BufferFieldByte _fillFactor;
 		#endregion
 
 		#region Public Constructors
@@ -35,6 +37,7 @@ namespace Zen.Trunk.Storage.Data.Index
 			_name = new BufferFieldStringFixed(_objectId, 16);
 			_rootLogicalPageId = new BufferFieldLogicalPageId(_name);
 			_rootIndexDepth = new BufferFieldByte(_rootLogicalPageId);
+			_fillFactor = new BufferFieldByte(_rootIndexDepth, 90);
 		}
 		#endregion
 
@@ -88,6 +91,34 @@ namespace Zen.Trunk.Storage.Data.Index
 			get => _rootIndexDepth.Value;
 		    set => _rootIndexDepth.Value = value;
 		}
+
+        /// <summary>
+        /// Gets or sets the fill factor.
+        /// </summary>
+        /// <value>
+        /// The fill factor.
+        /// </value>
+        /// <exception cref="ArgumentOutOfRangeException">value - Fill-factor must be between 0 and 100.</exception>
+		/// <remarks>
+		/// Determines the amount that index pages are filled.
+		/// A value of 0 or 100 will cause index page to be filled to capacity.
+		/// </remarks>
+        public byte FillFactor
+        {
+			get => _fillFactor.Value;
+			set
+			{
+				if (value > 100)
+                {
+					throw new ArgumentOutOfRangeException(
+						nameof(value),
+						value,
+						"Fill-factor must be between 0 and 100.");
+                }
+
+				_fillFactor.Value = value;
+			}
+        }
 
 		/// <summary>
 		/// Gets or sets the index file group id.

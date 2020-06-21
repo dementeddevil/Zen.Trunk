@@ -445,7 +445,6 @@ namespace Zen.Trunk.Storage.Data.Table
 
         private async Task<bool> SplitPageHandlerAsync(SplitTableIndexPageRequest request)
         {
-            var parentPage = request.Message.ParentPage;
             var currentPage = request.Message.PageToSplit;
             var splitPage = request.Message.SplitPage;
 
@@ -464,20 +463,22 @@ namespace Zen.Trunk.Storage.Data.Table
                 .ConfigureAwait(false);
 
             // Root page splits have extra operations...
-            var result = await SplitRootPageIfNecessary(
-                request, currentPage, splitPage).ConfigureAwait(false);
-            parentPage = result.Item1;
-            var updateParentPage = result.Item2;
+            var parentPage = await SplitRootIfNecessaryAndReturnParentAsync(currentPage)
+                .ConfigureAwait(false);
 
             // Sanity check - no root index pages beyond this point
-            Debug.Assert(!currentPage.IsRootIndex);
-            Debug.Assert(parentPage != null);
+            //Debug.Assert(!currentPage.IsRootIndex);
+            //Debug.Assert(parentPage != null);
 
             // Setup linkage following split (double linked list)
             splitPage.PrevLogicalPageId = currentPage.LogicalPageId;
             splitPage.NextLogicalPageId = currentPage.NextLogicalPageId;
             currentPage.NextLogicalPageId = splitPage.LogicalPageId;
             splitPage.ParentLogicalPageId = parentPage.LogicalPageId;
+
+            // Copy across page state information
+            splitPage.IndexType = currentPage.IndexType;
+            splitPage.Depth = currentPage.Depth;
 
             // If the next logical id is non-zero on the split page
             //	then we need to load the page and rewire the prev id
@@ -500,10 +501,6 @@ namespace Zen.Trunk.Storage.Data.Table
                 pageAfterSplit.PrevLogicalPageId = splitPage.LogicalPageId;
             }
 
-            // Setup remaining header info
-            splitPage.Depth = currentPage.Depth;
-            splitPage.IndexType = currentPage.IndexType;
-
             // Move half entries to new page
             var startIndex = currentPage.IndexCount / 2;
             while (startIndex < currentPage.IndexCount)
@@ -513,23 +510,32 @@ namespace Zen.Trunk.Storage.Data.Table
             }
 
             // Setup pointer to new page in parent page
-            parentPage.AddLinkToPage(splitPage, out updateParentPage);
-
-            // The caller may need to fix-up the parent page
-            return updateParentPage;
+            parentPage.AddLinkToPage(splitPage);
+            return true;
         }
 
-        private async Task<Tuple<TableIndexPage, bool>> SplitRootPageIfNecessary(
-            SplitTableIndexPageRequest request,
-            TableIndexPage currentPage,
-            TableIndexPage splitPage)
+        private async Task<TableIndexPage> SplitRootIfNecessaryAndReturnParentAsync(TableIndexPage currentPage)
         {
-            TableIndexPage parentPage = null;
-            var updateParentPage = false;
+            TableIndexPage parentPage;
 
-            if (currentPage.IsRootIndex)
+            if (!currentPage.IsRootIndex)
             {
-                // Initialise new page
+                // Current page is non-root page; just load the parent page
+                parentPage =
+                    new TableIndexPage
+                    {
+                        FileGroupId = currentPage.FileGroupId,
+                        ObjectId = currentPage.ObjectId,
+                        IndexId = currentPage.IndexId,
+                        LogicalPageId = currentPage.LogicalPageId
+                    };
+                await Database
+                    .LoadFileGroupPageAsync(new LoadFileGroupPageParameters(null, parentPage, false, true))
+                    .ConfigureAwait(false);
+            }
+            else
+            {
+                // Initialise new page (it will become the new root)
                 var newRootPage =
                     new TableIndexPage
                     {
@@ -541,43 +547,27 @@ namespace Zen.Trunk.Storage.Data.Table
                     .InitFileGroupPageAsync(new InitFileGroupPageParameters(null, newRootPage))
                     .ConfigureAwait(false);
 
-                // Split page is the new root - so create entry in
-                //	new root pointing to this page and then split this
-                //	page again (it will have changed into an intermediate
-                //	or leaf page).
-
-                // Hookup page to logical chain.
+                // Update parent/child relationship and update state of pages
                 currentPage.ParentLogicalPageId = newRootPage.LogicalPageId;
-
-                // Setup index page depth and type
+                currentPage.IsRootIndex = false;
                 newRootPage.Depth = (byte) (currentPage.Depth + 1);
                 newRootPage.IndexType = IndexType.Root;
-
-                // Setup index page type for current page
-                // Obviously it is not a root page...
-                currentPage.IsRootIndex = false;
-
-                // If it is not a leaf page then it must be an intermediate
-                //	page...
                 if (!currentPage.IsLeafIndex)
                 {
                     currentPage.IndexType = IndexType.Intermediate;
                 }
 
-                // Split page created earlier must share the index type of current page
-                splitPage.IndexType = currentPage.IndexType;
-
-                // Setup pointer to old root in new page
-                newRootPage.AddLinkToPage(splitPage, out updateParentPage);
+                // Ensure new root page has linkage to current page
+                newRootPage.AddLinkToPage(currentPage);
 
                 // Notify index manager
-                var root = GetIndexInfo(request.Message.IndexId);
+                var root = GetIndexInfo(currentPage.IndexId);
                 root.RootLogicalPageId = newRootPage.LogicalPageId;
                 root.RootIndexDepth = newRootPage.Depth;
                 parentPage = newRootPage;
             }
 
-            return new Tuple<TableIndexPage, bool>(parentPage, updateParentPage);
+            return parentPage;
         }
 
         private async Task<bool> MergePagesHandlerAsync(MergeTableIndexPagesRequest request)

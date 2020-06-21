@@ -3,6 +3,7 @@ using System.IO;
 using System.Threading.Tasks;
 using Autofac;
 using NAudio.Wave;
+using Zen.Trunk.Storage.Data.Index;
 using Zen.Trunk.Storage.Locking;
 
 namespace Zen.Trunk.Storage.Data.Audio
@@ -20,6 +21,7 @@ namespace Zen.Trunk.Storage.Data.Audio
         #region Private Fields
         private readonly ILifetimeScope _lifetimeScope;
         private AudioSchemaPage _schemaPage;
+        private AudioIndexManager _indexManager;
         #endregion
 
         #region Public Constructors
@@ -34,10 +36,10 @@ namespace Zen.Trunk.Storage.Data.Audio
                 builder =>
                 {
                     builder.RegisterInstance(this);
-                    //builder.RegisterType<TableIndexManager>()
-                    //    .As<IndexManager>()
-                    //    .As<TableIndexManager>()
-                    //    .SingleInstance();
+                    builder.RegisterType<AudioIndexManager>()
+                        .As<IndexManager>()
+                        .As<AudioIndexManager>()
+                        .SingleInstance();
                 });
             ObjectId = objectId;
             IsNewAudio = isNewAudio;
@@ -189,11 +191,30 @@ namespace Zen.Trunk.Storage.Data.Audio
 
                 // Setup schema last logical id
                 SchemaLastLogicalPageId = _schemaPage.LogicalPageId;
+
+                // Create index manager and push schema index definitions into index manager
+                _indexManager = _lifetimeScope.Resolve<AudioIndexManager>();
+                foreach(var rootIndexInfo in _schemaPage.Indices)
+                {
+                    _indexManager.AddIndexInfo(rootIndexInfo);
+                }
             }
             finally
             {
                 IsLoading = false;
             }
+        }
+
+        public async Task<Stream> GetStreamAsync(ulong? sampleStart = null, ulong? sampleEnd = null)
+        {
+            if (SchemaRootPage == null)
+            {
+                throw new InvalidOperationException("Schema must be loaded");
+            }
+
+            // Setup enumerator 
+
+            return null;
         }
 
         /// <summary>
@@ -210,6 +231,7 @@ namespace Zen.Trunk.Storage.Data.Audio
                 SchemaFirstLogicalPageId = _schemaPage.LogicalPageId;
                 SchemaLastLogicalPageId = _schemaPage.LogicalPageId;
                 SchemaRootPage.WaveFormat = waveReader.WaveFormat;
+
             }
             else if (SchemaRootPage.WaveFormat != waveReader.WaveFormat)
             {
@@ -222,6 +244,7 @@ namespace Zen.Trunk.Storage.Data.Audio
             await SchemaRootPage.SetSchemaLockAsync(SchemaLockType.SchemaModification).ConfigureAwait(false);
 
             // Step 3: Seek or create page/offset to start writing
+            int sampleBytesPerPage = SchemaRootPage.SampleBytesPerPage;
             AudioDataPage currentPage;
             uint pageOffset = 0;
             if (!HasData)
@@ -233,8 +256,8 @@ namespace Zen.Trunk.Storage.Data.Audio
             else
             {
                 currentPage = await LoadDataPageAsync(DataLastLogicalPageId).ConfigureAwait(false);
-                pageOffset = (uint)(SchemaRootPage.TotalBytes % currentPage.DataSize);
-                if (pageOffset == currentPage.DataSize - 1)
+                pageOffset = (uint)(SchemaRootPage.TotalBytes % sampleBytesPerPage);
+                if (pageOffset == sampleBytesPerPage - 1)
                 {
                     currentPage = await InitDataPageAndLinkAsync(currentPage).ConfigureAwait(false);
                     pageOffset = 0;
@@ -242,11 +265,11 @@ namespace Zen.Trunk.Storage.Data.Audio
             }
 
             // Step 4: Stream blocks into pages, linking them as we go (and update the totalbytes as we copy stuff in)
-            byte[] buffer = new byte[currentPage.DataSize];
+            byte[] buffer = new byte[sampleBytesPerPage];
             var needToCreatePage = false;
             while (true)
             {
-                int bytesToFillPage = (int)(currentPage.DataSize - pageOffset);
+                int bytesToFillPage = (int)(sampleBytesPerPage - pageOffset);
                 int bytesRead = await waveReader.ReadAsync(buffer, 0, bytesToFillPage).ConfigureAwait(false);
                 if (bytesRead == 0)
                 {
@@ -299,6 +322,10 @@ namespace Zen.Trunk.Storage.Data.Audio
         #endregion
 
         #region Protected Methods
+        /// <summary>
+        /// Releases unmanaged and - optionally - managed resources.
+        /// </summary>
+        /// <param name="disposing"><c>true</c> to release both managed and unmanaged resources; <c>false</c> to release only unmanaged resources.</param>
         protected virtual void Dispose(bool disposing)
         {
             if (disposing)

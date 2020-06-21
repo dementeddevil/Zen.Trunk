@@ -62,42 +62,41 @@ namespace Zen.Trunk.Storage.Data.Index
 		/// </summary>
 		/// <value>The last header field.</value>
 		protected override BufferField LastHeaderField => _indexEntryCount;
-	    #endregion
+		#endregion
 
 		#region Public Methods
 		/// <summary>
 		/// Adds the given (child) page to this page's index entry list.
 		/// </summary>
 		/// <param name="page">The page.</param>
-		/// <param name="updateParentPage">
-		/// if set to <c>true</c> then the caller must update the parent page.
-		/// </param>
-		public void AddLinkToPage(IndexPage<TIndexClass, TIndexRootClass> page, out bool updateParentPage)
+		/// <returns>
+		/// <c>true</c> if the caller must update the parent page; otherwise, <c>false</c>.
+		/// </returns>
+		public bool AddLinkToPage(IndexPage<TIndexClass, TIndexRootClass> page)
 		{
 			var info = CreateLinkToPage(page);
-			AddLinkToPage(info, out updateParentPage);
+			return AddLinkToPage(info);
 		}
 
 		/// <summary>
 		/// Adds the given link (to a child page) to this page's index entry list.
 		/// </summary>
 		/// <param name="link">The link.</param>
-		/// <param name="updateParentPage">
-		/// if set to <c>true</c> then the caller must update the parent page.
-		/// </param>
-		public void AddLinkToPage(TIndexClass link, out bool updateParentPage)
+		/// <returns>
+		/// <c>true</c> if the caller must update the parent page; otherwise, <c>false</c>.
+		/// </returns>
+		public bool AddLinkToPage(TIndexClass link)
 		{
 			// Special case for first entry in this page.
-			updateParentPage = false;
 			if (IndexCount == 0)
 			{
 				IndexEntries.Add(link);
-				updateParentPage = true;
-				return;
+				return true;
 			}
 
 			// Everything else must use positioned insert.
 			var isAdded = false;
+			var updateParentPage = false;
 			for (ushort index = 0; !isAdded && index < (IndexCount + 1); ++index)
 			{
 				var sort = 0;
@@ -133,6 +132,8 @@ namespace Zen.Trunk.Storage.Data.Index
 			{
 				throw new InvalidOperationException("Failed to add page link!");
 			}
+
+			return updateParentPage;
 		}
 		#endregion
 

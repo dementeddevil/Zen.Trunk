@@ -101,11 +101,19 @@
   <ItemGroup>
     <Compile Include="DatabaseDeviceMessages.cs" />
     <Compile Include="Data\Audio\AudioDataPage.cs" />
+    <Compile Include="Data\Audio\AudioIndexInfo.cs" />
+    <Compile Include="Data\Audio\AudioIndexLeafInfo.cs" />
+    <Compile Include="Data\Audio\AudioIndexLogicalInfo.cs" />
+    <Compile Include="Data\Audio\AudioIndexManager.cs" />
+    <Compile Include="Data\Audio\AudioIndexManagerMessages.cs" />
+    <Compile Include="Data\Audio\AudioIndexSubType.cs" />
     <Compile Include="Data\Audio\AudioSchemaPage.cs" />
     <Compile Include="Data\Audio\DatabaseAudio.cs" />
     <Compile Include="Data\Audio\DatabaseAudioFactory.cs" />
     <Compile Include="Data\Audio\IDatabaseAudio.cs" />
     <Compile Include="Data\Audio\IDatabaseAudioFactory.cs" />
+    <Compile Include="Data\Audio\AudioIndexPage.cs" />
+    <Compile Include="Data\Audio\RootAudioIndexInfo.cs" />
     <Compile Include="Data\FileGroupDeviceMessages.cs" />
     <Compile Include="Data\IDistributionPage.cs" />
     <Compile Include="Data\IDistributionPageDevice.cs" />

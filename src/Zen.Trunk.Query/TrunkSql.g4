@@ -1151,12 +1151,14 @@ data_type
     | NUMERIC '(' DECIMAL_SEQUENCE ',' DECIMAL_SEQUENCE ')'
     | NVARCHAR '(' DECIMAL_SEQUENCE | MAX ')'
     | REAL
+    | SAMPLE
     | SMALLDATETIME
     | SMALLINT
     | SMALLMONEY
     | SQL_VARIANT
     | TEXT
     | TIME '(' DECIMAL_SEQUENCE ')'
+    | TIMECODE
     | TIMESTAMP
     | TINYINT
     | UNIQUEIDENTIFIER
@@ -1302,6 +1304,7 @@ simple_id
     | THROW
     | TIES
     | TIME
+    | TIMECODE
     | TRY
     | TYPE
     | TYPE_WARNING
@@ -1342,10 +1345,12 @@ AND:                                   A N D;
 ANY:                                   A N Y;
 AS:                                    A S;
 ASC:                                   A S C;
+AUDIO:                                 A U D I O;
 AUTHORIZATION:                         A U T H O R I Z A T I O N;
 BACKUP:                                B A C K U P;
 BEGIN:                                 B E G I N;
 BETWEEN:                               B E T W E E N;
+BITRATE:                               B I T R A T E;
 BREAK:                                 B R E A K;
 BROWSE:                                B R O W S E;
 BULK:                                  B U L K;
@@ -1354,6 +1359,7 @@ CASCADE:                               C A S C A D E;
 CASE:                                  C A S E;
 CHANGETABLE:                           C H A N G E T A B L E;
 CHANGES:                               C H A N G E S;
+CHANNELS:                              C H A N N E L S;
 CHECK:                                 C H E C K;
 CHECKPOINT:                            C H E C K P O I N T;
 CLOSE:                                 C L O S E;
@@ -1472,6 +1478,7 @@ READ:                                  R E A D;
 READTEXT:                              R E A D T E X T;
 RECONFIGURE:                           R E C O N F I G U R E;
 REFERENCES:                            R E F E R E N C E S;
+RENDER:                                R E N D E R;
 REPLICATION:                           R E P L I C A T I O N;
 RESTORE:                               R E S T O R E;
 RESTRICT:                              R E S T R I C T;
@@ -1484,6 +1491,7 @@ ROWCOUNT:                              R O W C O U N T;
 ROWGUIDCOL:                            R O W G U I D C O L;
 RULE:                                  R U L E;
 SAVE:                                  S A V E;
+SAMPLE:                                S A M P L E;
 SCHEMA:                                S C H E M A;
 SECURITYAUDIT:                         S E C U R I T Y A U D I T;
 SELECT:                                S E L E C T;
@@ -1501,6 +1509,7 @@ TABLE:                                 T A B L E;
 TABLESAMPLE:                           T A B L E S A M P L E;
 TEXTSIZE:                              T E X T S I Z E;
 THEN:                                  T H E N;
+TIMECODE:                              T I M E C O D E;
 TO:                                    T O;
 TOP:                                   T O P;
 TRAN:                                  T R A N;
@@ -1687,7 +1696,6 @@ ROW:                                   R O W;
 ROWGUID:                               R O W G U I D;
 ROWS:                                  R O W S;
 ROW_NUMBER:                            R O W '_' N U M B E R;
-SAMPLE:                                S A M P L E;
 SCHEMABINDING:                         S C H E M A B I N D I N G;
 SCROLL:                                S C R O L L;
 SCROLL_LOCKS:                          S C R O L L '_' L O C K S;

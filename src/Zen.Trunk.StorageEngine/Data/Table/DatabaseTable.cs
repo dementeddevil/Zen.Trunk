@@ -393,7 +393,7 @@ namespace Zen.Trunk.Storage.Data.Table
         private ReadOnlyCollection<TableColumnInfo> _columns;
         private ConstraintCollection _updatedConstraints;
         private ReadOnlyCollection<RowConstraint> _constraints;
-        private Collection<RootTableIndexInfo> _indices;
+        private TableIndexManager _indexManager;
 
         private InclusiveRange _rowSize;
         private ushort _rowsPerPage;
@@ -1298,6 +1298,13 @@ namespace Zen.Trunk.Storage.Data.Table
                 foreach (var constraint in page.Constraints)
                 {
                     _updatedConstraints.Add(constraint);
+                }
+
+                // Process indices
+                var indexManager = _lifetimeScope.Resolve<TableIndexManager>();
+                foreach (var rootIndexInfo in page.Indices)
+                {
+                    indexManager.AddIndexInfo(rootIndexInfo);
                 }
 
                 // Look for clustered index

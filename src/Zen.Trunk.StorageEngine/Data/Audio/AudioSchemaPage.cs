@@ -1,13 +1,16 @@
 ﻿using System;
-using Zen.Trunk.Storage.BufferFields;
-using NAudio.Wave;
+using System.Collections.Generic;
 using System.Threading.Tasks;
+using NAudio.Wave;
+using Zen.Trunk.IO;
+using Zen.Trunk.Storage.BufferFields;
 
 namespace Zen.Trunk.Storage.Data.Audio
 {
     public class AudioSchemaPage : ObjectSchemaPage
     {
         #region Private Fields
+        // Header fields
         private readonly BufferFieldInt16 _waveFormatTag;
         private readonly BufferFieldInt16 _channelCount;
         private readonly BufferFieldInt32 _sampleRate;
@@ -18,6 +21,10 @@ namespace Zen.Trunk.Storage.Data.Audio
         private readonly BufferFieldInt64 _totalBytes;
         private readonly BufferFieldUInt64 _dataFirstLogicalPageId;
         private readonly BufferFieldUInt64 _dataLastLogicalPageId;
+        private readonly BufferFieldByte _indexCount;
+
+        // Data fields
+        private PageItemCollection<RootAudioIndexInfo> _indices;
         #endregion
 
         #region Public Constructors
@@ -33,14 +40,23 @@ namespace Zen.Trunk.Storage.Data.Audio
             _totalBytes = new BufferFieldInt64(_extraSize);
             _dataFirstLogicalPageId = new BufferFieldUInt64(_totalBytes);
             _dataLastLogicalPageId = new BufferFieldUInt64(_dataFirstLogicalPageId);
-
-            IsManagedData = false;
+            _indexCount = new BufferFieldByte(_dataLastLogicalPageId);
         }
         #endregion
 
         #region Public Properties
-        public override uint MinHeaderSize => base.MinHeaderSize + 42;
+        /// <summary>
+        /// Gets the minimum number of bytes required for the header block.
+        /// </summary>
+        public override uint MinHeaderSize => base.MinHeaderSize + 43;
 
+        /// <summary>
+        /// Gets or sets the wave format.
+        /// </summary>
+        /// <value>
+        /// The wave format.
+        /// </value>
+        /// <exception cref="NotSupportedException">Wave formats that have extra size bigger than {DataSize} are not currently supported.</exception>
         public WaveFormat WaveFormat
         {
             get
@@ -100,6 +116,12 @@ namespace Zen.Trunk.Storage.Data.Audio
             }
         }
 
+        /// <summary>
+        /// Gets or sets the total bytes.
+        /// </summary>
+        /// <value>
+        /// The total bytes.
+        /// </value>
         public long TotalBytes
         {
             get => _totalBytes.Value;
@@ -151,20 +173,104 @@ namespace Zen.Trunk.Storage.Data.Audio
                 }
             }
         }
+
+        /// <summary>
+        /// Gets the samples per page.
+        /// </summary>
+        /// <value>
+        /// The samples per page.
+        /// </value>
+        public int SamplesPerPage => (int)(DataSize / WaveFormat.BlockAlign);
+
+        /// <summary>
+        /// Gets the sample bytes per page.
+        /// </summary>
+        /// <value>
+        /// The sample bytes per page.
+        /// </value>
+        public int SampleBytesPerPage => SamplesPerPage * WaveFormat.BlockAlign;
+
+        /// <summary>
+        /// Gets the total samples.
+        /// </summary>
+        /// <value>
+        /// The total samples.
+        /// </value>
+        public long TotalSamples =>  TotalBytes / WaveFormat.BlockAlign;
+
+        /// <summary>
+        /// Gets the root index collection for this page.
+        /// </summary>
+        public IList<RootAudioIndexInfo> Indices
+        {
+            get
+            {
+                if (_indices == null)
+                {
+                    _indices = new PageItemCollection<RootAudioIndexInfo>(this);
+                }
+                return _indices;
+            }
+        }
         #endregion
 
         #region Protected Properties
         /// <summary>
         /// Gets the last header field.
         /// </summary>
-        protected override BufferField LastHeaderField => _totalBytes;
+        protected override BufferField LastHeaderField => _indexCount;
         #endregion
 
         #region Protected Methods
+        /// <summary>
+        /// Raises the <see cref="E:Init" /> event.
+        /// </summary>
+        /// <param name="e">The <see cref="System.EventArgs" /> instance containing the event data.</param>
+        /// <returns></returns>
         protected override Task OnInitAsync(EventArgs e)
         {
             PageType = PageType.Audio;
             return base.OnInitAsync(e);
+        }
+
+        /// <summary>
+        /// Writes the page header block to the specified buffer writer.
+        /// </summary>
+        /// <param name="streamManager">The stream manager.</param>
+        protected override void WriteHeader(SwitchingBinaryWriter streamManager)
+        {
+            _indexCount.Value = (byte)(_indices?.Count ?? 0);
+            base.WriteHeader(streamManager);
+        }
+
+        /// <summary>
+        /// Reads the page data block from the specified buffer reader.
+        /// </summary>
+        /// <param name="streamManager">The stream manager.</param>
+        protected override void ReadData(SwitchingBinaryReader streamManager)
+        {
+            _indices?.Clear();
+            for (byte index = 0; index < _indexCount.Value; ++index)
+            {
+                var rootIndex = new RootAudioIndexInfo();
+                rootIndex.Read(streamManager);
+                Indices.Add(rootIndex);
+            }
+        }
+
+        /// <summary>
+        /// Writes the page data block to the specified buffer writer.
+        /// </summary>
+        /// <param name="streamManager">The stream manager.</param>
+        protected override void WriteData(SwitchingBinaryWriter streamManager)
+        {
+            if (_indices != null)
+            {
+                foreach (var index in _indices)
+                {
+                    index.Write(streamManager);
+                }
+            }
         }
         #endregion
     }
