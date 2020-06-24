@@ -2,6 +2,7 @@
 using System.IO;
 using System.Threading.Tasks;
 using Zen.Trunk.Storage.Data;
+using Zen.Trunk.Storage.Data.Audio;
 using Zen.Trunk.Storage.Data.Table;
 using Zen.Trunk.VirtualMemory;
 
@@ -233,6 +234,48 @@ namespace Zen.Trunk.Storage
         /// <param name="waveFileStream">The wave file stream.</param>
         public AddFileGroupAudioParameters(FileGroupId fileGroupId, string fileGroupName, string audioName, Stream waveFileStream)
             : base(audioName, waveFileStream)
+        {
+            FileGroupId = fileGroupId;
+            FileGroupName = fileGroupName;
+        }
+        #endregion
+
+        #region Public Properties
+        /// <summary>
+        /// Gets the file group identifier.
+        /// </summary>
+        /// <value>
+        /// The file group identifier.
+        /// </value>
+        public FileGroupId FileGroupId { get; }
+
+        /// <summary>
+        /// Gets the name of the file group.
+        /// </summary>
+        /// <value>
+        /// The name of the file group.
+        /// </value>
+        public string FileGroupName { get; }
+        #endregion
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <seealso cref="AddAudioIndexParameters" />
+    public class AddFileGroupAudioIndexParameters : AddAudioIndexParameters
+    {
+        #region Public Constructors
+        /// <summary>
+        /// Initializes a new instance of the <see cref="AddFileGroupTableIndexParameters"/> class.
+        /// </summary>
+        /// <param name="fileGroupId">The file group identifier.</param>
+        /// <param name="fileGroupName">Name of the file group.</param>
+        /// <param name="name">The name.</param>
+        /// <param name="indexSubType">Type of the index sub.</param>
+        /// <param name="objectId">The object identifier.</param>
+        public AddFileGroupAudioIndexParameters(FileGroupId fileGroupId, string fileGroupName, string name, AudioIndexSubType indexSubType, ObjectId objectId)
+            : base(name, indexSubType, objectId)
         {
             FileGroupId = fileGroupId;
             FileGroupName = fileGroupName;

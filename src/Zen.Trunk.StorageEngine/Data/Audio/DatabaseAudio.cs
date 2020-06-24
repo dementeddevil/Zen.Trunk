@@ -313,6 +313,15 @@ namespace Zen.Trunk.Storage.Data.Audio
         }
 
         /// <summary>
+        /// Creates the specified index on the audio and returns the index id.
+        /// </summary>
+        /// <param name="info">The information.</param>
+        public Task<IndexId> CreateIndexAsync(CreateAudioIndexParameters info)
+        {
+            return _lifetimeScope.Resolve<AudioIndexManager>().CreateIndexAsync(info);
+        }
+
+        /// <summary>
         /// Dispose of this instance
         /// </summary>
         public void Dispose()

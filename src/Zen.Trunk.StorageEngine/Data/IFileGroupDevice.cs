@@ -18,6 +18,8 @@ namespace Zen.Trunk.Storage.Data
 
         Task<ObjectId> AddAudioAsync(AddAudioParameters audioParams);
 
+        Task<IndexId> AddAudioIndexAsync(AddAudioIndexParameters indexParams);
+
         Task<ObjectId> AddTableAsync(AddTableParameters tableParams);
 
         Task<IndexId> AddTableIndexAsync(AddTableIndexParameters indexParams);

@@ -37,5 +37,7 @@ namespace Zen.Trunk.Storage.Data.Audio
         Task<AudioDataPage> InitDataPageAndLinkAsync(AudioDataPage prevDataPage);
 
         Task LoadSchemaAsync(LogicalPageId firstLogicalPageId);
+
+        Task<IndexId> CreateIndexAsync(CreateAudioIndexParameters info);
     }
 }

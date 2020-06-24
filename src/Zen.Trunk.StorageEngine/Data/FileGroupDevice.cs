@@ -143,6 +143,15 @@ namespace Zen.Trunk.Storage.Data
             #endregion
         }
 
+        private class AddAudioIndexRequest : TransactionContextTaskRequest<AddAudioIndexParameters, IndexId>
+        {
+            #region Public Constructors
+            public AddAudioIndexRequest(AddAudioIndexParameters parameters) : base(parameters)
+            {
+            } 
+            #endregion
+        }
+
         private class AddTableRequest : TransactionContextTaskRequest<AddTableParameters, ObjectId>
         {
             #region Public Constructors
@@ -283,6 +292,12 @@ namespace Zen.Trunk.Storage.Data
                 {
                     TaskScheduler = taskInterleave.ExclusiveScheduler
                 });
+            AddAudioIndexPort = new TransactionContextActionBlock<AddAudioIndexRequest, IndexId>(
+                request => AddAudioIndexHandlerAsync(request),
+                new ExecutionDataflowBlockOptions
+                {
+                    TaskScheduler = taskInterleave.ExclusiveScheduler
+                });
             AddTablePort = new TransactionContextActionBlock<AddTableRequest, ObjectId>(
                 request => AddTableHandlerAsync(request),
                 new ExecutionDataflowBlockOptions
@@ -384,6 +399,8 @@ namespace Zen.Trunk.Storage.Data
         private ITargetBlock<InsertObjectReferenceRequest> InsertObjectReferencePort { get; }
 
         private ITargetBlock<AddAudioRequest> AddAudioPort { get; }
+
+        private ITargetBlock<AddAudioIndexRequest> AddAudioIndexPort { get; }
 
         private ITargetBlock<AddTableRequest> AddTablePort { get; }
 
@@ -587,6 +604,22 @@ namespace Zen.Trunk.Storage.Data
         {
             var request = new AddAudioRequest(audioParams);
             if (!AddAudioPort.Post(request))
+            {
+                throw new BufferDeviceShuttingDownException();
+            }
+            return request.Task;
+        }
+
+        /// <summary>
+        /// Adds the audio index.
+        /// </summary>
+        /// <param name="parameters">The audio index parameters.</param>
+        /// <returns></returns>
+        /// <exception cref="BufferDeviceShuttingDownException"></exception>
+        public Task<IndexId> AddAudioIndexAsync(AddAudioIndexParameters parameters)
+        {
+            var request = new AddAudioIndexRequest(parameters);
+            if (!AddAudioIndexPort.Post(request))
             {
                 throw new BufferDeviceShuttingDownException();
             }
@@ -1412,6 +1445,33 @@ namespace Zen.Trunk.Storage.Data
                         }
                     })).ConfigureAwait(false);
             return createdObjectId;
+        }
+
+        private async Task<IndexId> AddAudioIndexHandlerAsync(AddAudioIndexRequest request)
+        {
+            // Determine first logical page identifier for the table schema
+            var objRef = await Owner
+                .GetObjectReferenceAsync(
+                    new GetObjectReferenceParameters(
+                        request.Message.ObjectId,
+                        ObjectType.Audio))
+                .ConfigureAwait(false);
+            var firstLogicalPageId = objRef.FirstLogicalPageId;
+
+            // Load table schema
+            var audioFactory = GetService<IDatabaseAudioFactory>();
+            using (var audio = audioFactory.GetScopeForExistingAudio(request.Message.ObjectId))
+            {
+                await audio.LoadSchemaAsync(firstLogicalPageId).ConfigureAwait(false);
+
+                // Create index
+                var createParams =
+                    new CreateAudioIndexParameters(
+                        request.Message.Name,
+                        FileGroupId,
+                        request.Message.IndexSubType);
+                return await audio.CreateIndexAsync(createParams).ConfigureAwait(false);
+            }
         }
 
         private async Task<ObjectId> AddTableHandlerAsync(AddTableRequest request)

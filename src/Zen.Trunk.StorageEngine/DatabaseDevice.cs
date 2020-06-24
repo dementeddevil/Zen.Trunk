@@ -88,6 +88,20 @@ namespace Zen.Trunk.Storage
             #endregion
         }
 
+        private class AddFileGroupAudioIndexRequest : TransactionContextTaskRequest<AddFileGroupAudioIndexParameters, IndexId>
+        {
+            #region Public Constructors
+            /// <summary>
+            /// Initializes a new instance of the <see cref="AddFileGroupAudioIndexRequest"/> class.
+            /// </summary>
+            /// <param name="tableIndexParams">The table parameters.</param>
+            public AddFileGroupAudioIndexRequest(AddFileGroupAudioIndexParameters parameters)
+                : base(parameters)
+            {
+            }
+            #endregion
+        }
+
         private class AddFileGroupTableRequest : TransactionContextTaskRequest<AddFileGroupTableParameters, ObjectId>
         {
             #region Public Constructors
@@ -268,6 +282,13 @@ namespace Zen.Trunk.Storage
                     {
                         TaskScheduler = taskInterleave.ExclusiveScheduler
                     });
+            AddFileGroupAudioIndexPort =
+                new TransactionContextActionBlock<AddFileGroupAudioIndexRequest, IndexId>(
+                    AddFileGroupAudioIndexHandlerAsync,
+                    new ExecutionDataflowBlockOptions
+                    {
+                        TaskScheduler = taskInterleave.ExclusiveScheduler
+                    });
 
             // Table action ports
             AddFileGroupTablePort =
@@ -416,6 +437,14 @@ namespace Zen.Trunk.Storage
         /// </summary>
         /// <value>The add file group audio port.</value>
         private ITargetBlock<AddFileGroupAudioRequest> AddFileGroupAudioPort { get; }
+
+        /// <summary>
+        /// Gets the add file group audio index port.
+        /// </summary>
+        /// <value>
+        /// The add file group audio index port.
+        /// </value>
+        private ITargetBlock<AddFileGroupAudioIndexRequest> AddFileGroupAudioIndexPort { get; }
 
         /// <summary>
         /// Gets the add file group table port.
@@ -615,15 +644,31 @@ namespace Zen.Trunk.Storage
         /// <summary>
         /// Adds the file group audio.
         /// </summary>
-        /// <param name="audioParams">The audio parameters.</param>
+        /// <param name="parameters">The audio parameters.</param>
         /// <returns>
         /// A <see cref="Task"/> representing the asynchronous operation.
         /// </returns>
         /// <exception cref="BufferDeviceShuttingDownException"></exception>
-        public Task<ObjectId> AddFileGroupAudioAsync(AddFileGroupAudioParameters audioParams)
+        public Task<ObjectId> AddFileGroupAudioAsync(AddFileGroupAudioParameters parameters)
         {
-            var request = new AddFileGroupAudioRequest(audioParams);
+            var request = new AddFileGroupAudioRequest(parameters);
             if (!AddFileGroupAudioPort.Post(request))
+            {
+                throw new BufferDeviceShuttingDownException();
+            }
+            return request.Task;
+        }
+
+        /// <summary>
+        /// Adds the file group audio index.
+        /// </summary>
+        /// <param name="parameters">The parameters.</param>
+        /// <returns></returns>
+        /// <exception cref="BufferDeviceShuttingDownException"></exception>
+        public Task<IndexId> AddFileGroupAudioIndexAsync(AddFileGroupAudioIndexParameters parameters)
+        {
+            var request = new AddFileGroupAudioIndexRequest(parameters);
+            if (!AddFileGroupAudioIndexPort.Post(request))
             {
                 throw new BufferDeviceShuttingDownException();
             }
@@ -633,14 +678,14 @@ namespace Zen.Trunk.Storage
         /// <summary>
         /// Adds the file group table.
         /// </summary>
-        /// <param name="tableParams">The table parameters.</param>
+        /// <param name="parameters">The table parameters.</param>
         /// <returns>
         /// A <see cref="Task"/> representing the asynchronous operation.
         /// </returns>
         /// <exception cref="BufferDeviceShuttingDownException"></exception>
-        public Task<ObjectId> AddFileGroupTableAsync(AddFileGroupTableParameters tableParams)
+        public Task<ObjectId> AddFileGroupTableAsync(AddFileGroupTableParameters parameters)
         {
-            var request = new AddFileGroupTableRequest(tableParams);
+            var request = new AddFileGroupTableRequest(parameters);
             if (!AddFileGroupTablePort.Post(request))
             {
                 throw new BufferDeviceShuttingDownException();
@@ -648,9 +693,15 @@ namespace Zen.Trunk.Storage
             return request.Task;
         }
 
-        public Task<IndexId> AddFileGroupTableIndexAsync(AddFileGroupTableIndexParameters tableIndexParams)
+        /// <summary>
+        /// Adds the file group table index.
+        /// </summary>
+        /// <param name="parameters">The parameters.</param>
+        /// <returns></returns>
+        /// <exception cref="BufferDeviceShuttingDownException"></exception>
+        public Task<IndexId> AddFileGroupTableIndexAsync(AddFileGroupTableIndexParameters parameters)
         {
-            var request = new AddFileGroupTableIndexRequest(tableIndexParams);
+            var request = new AddFileGroupTableIndexRequest(parameters);
             if (!AddFileGroupTableIndexPort.Post(request))
             {
                 throw new BufferDeviceShuttingDownException();
@@ -1215,6 +1266,16 @@ namespace Zen.Trunk.Storage
 
             // Delegate request to file-group device.
             return fileGroupDevice.AddAudioAsync(request.Message);
+        }
+
+        private Task<IndexId> AddFileGroupAudioIndexHandlerAsync(AddFileGroupAudioIndexRequest request)
+        {
+            // Locate appropriate filegroup device
+            var fileGroupDevice = GetFileGroupDeviceCore(
+                request.Message.FileGroupId, request.Message.FileGroupName);
+
+            // Delegate request to file-group device.
+            return fileGroupDevice.AddAudioIndexAsync(request.Message);
         }
 
         private Task<ObjectId> AddFileGroupTableHandlerAsync(AddFileGroupTableRequest request)

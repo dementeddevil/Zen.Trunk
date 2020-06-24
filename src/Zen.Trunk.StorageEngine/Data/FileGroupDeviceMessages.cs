@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using Zen.Trunk.Storage.BufferFields;
+using Zen.Trunk.Storage.Data.Audio;
 using Zen.Trunk.Storage.Data.Table;
 using Zen.Trunk.VirtualMemory;
 
@@ -445,6 +446,49 @@ namespace Zen.Trunk.Storage.Data
         /// The wave file stream.
         /// </value>
         public Stream WaveFileStream { get; }
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    public class AddAudioIndexParameters
+    {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="AddTableIndexParameters"/> class.
+        /// </summary>
+        /// <param name="name">The name.</param>
+        /// <param name="indexSubType">Type of the index sub.</param>
+        /// <param name="objectId">The object identifier.</param>
+        public AddAudioIndexParameters(string name, AudioIndexSubType indexSubType, ObjectId objectId)
+        {
+            Name = name;
+            IndexSubType = indexSubType;
+            ObjectId = objectId;
+        }
+
+        /// <summary>
+        /// Gets the name.
+        /// </summary>
+        /// <value>
+        /// The name.
+        /// </value>
+        public string Name { get; }
+
+        /// <summary>
+        /// Gets the audio index sub-type.
+        /// </summary>
+        /// <value>
+        /// The audio index sub-type.
+        /// </value>
+        public AudioIndexSubType IndexSubType { get; }
+
+        /// <summary>
+        /// Gets the object identifier for the associated table.
+        /// </summary>
+        /// <value>
+        /// The object identifier.
+        /// </value>
+        public ObjectId ObjectId { get; }
     }
 
     /// <summary>
