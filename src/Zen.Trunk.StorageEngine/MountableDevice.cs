@@ -149,6 +149,15 @@ namespace Zen.Trunk.Storage
         /// <summary>
         /// Begins the transaction.
         /// </summary>
+        /// <param name="isolationLevel">The isolation level.</param>
+        public void BeginTransaction(IsolationLevel isolationLevel)
+        {
+            TrunkTransactionContext.BeginTransaction(LifetimeScope, isolationLevel, TimeSpan.FromSeconds(30));
+        }
+
+        /// <summary>
+        /// Begins the transaction.
+        /// </summary>
         /// <param name="timeout">The timeout.</param>
         public void BeginTransaction(TimeSpan timeout)
         {
@@ -158,11 +167,11 @@ namespace Zen.Trunk.Storage
         /// <summary>
         /// Begins the transaction.
         /// </summary>
-        /// <param name="isoLevel">The iso level.</param>
+        /// <param name="isolationLevel">The isolation level.</param>
         /// <param name="timeout">The timeout.</param>
-        public void BeginTransaction(IsolationLevel isoLevel, TimeSpan timeout)
+        public void BeginTransaction(IsolationLevel isolationLevel, TimeSpan timeout)
         {
-            TrunkTransactionContext.BeginTransaction(LifetimeScope, isoLevel, timeout);
+            TrunkTransactionContext.BeginTransaction(LifetimeScope, isolationLevel, timeout);
         }
         #endregion
 

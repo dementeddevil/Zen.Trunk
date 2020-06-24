@@ -173,10 +173,10 @@ namespace Zen.Trunk.Storage.Data
             #endregion
         }
 
-        private class InsertReferenceInformationRequest : TransactionContextTaskRequest<InsertReferenceInformationRequestParameters, bool>
+        private class InsertObjectReferenceRequest : TransactionContextTaskRequest<InsertObjectReferenceParameters, bool>
         {
             #region Public Constructors
-            public InsertReferenceInformationRequest(InsertReferenceInformationRequestParameters parameters)
+            public InsertObjectReferenceRequest(InsertObjectReferenceParameters parameters)
                 : base(parameters)
             {
             }
@@ -196,9 +196,9 @@ namespace Zen.Trunk.Storage.Data
         private readonly Dictionary<DeviceId, IDistributionPageDevice> _devices =
             new Dictionary<DeviceId, IDistributionPageDevice>();
 
-        private ObjectId _nextObjectId = new ObjectId(1);
-        private readonly Dictionary<ObjectId, ObjectReferenceBufferFieldWrapper> _objects =
-            new Dictionary<ObjectId, ObjectReferenceBufferFieldWrapper>();
+        //private ObjectId _nextObjectId = new ObjectId(1);
+        //private readonly Dictionary<ObjectId, ObjectReferenceBufferFieldWrapper> _objects =
+        //    new Dictionary<ObjectId, ObjectReferenceBufferFieldWrapper>();
 
         // Logical id mapping
         private ILogicalVirtualManager _logicalVirtual;
@@ -271,8 +271,8 @@ namespace Zen.Trunk.Storage.Data
                 {
                     TaskScheduler = taskInterleave.ConcurrentScheduler
                 });
-            CreateObjectReferencePort = new TransactionContextActionBlock<InsertReferenceInformationRequest, bool>(
-                request => InsertReferenceInformationHandlerAsync(request),
+            InsertObjectReferencePort = new TransactionContextActionBlock<InsertObjectReferenceRequest, bool>(
+                request => InsertObjectReferenceHandlerAsync(request),
                 new ExecutionDataflowBlockOptions
                 {
                     TaskScheduler = taskInterleave.ConcurrentScheduler
@@ -381,7 +381,7 @@ namespace Zen.Trunk.Storage.Data
 
         private ITargetBlock<ProcessDistributionPageRequest> ProcessDistributionPagePort { get; }
 
-        private ITargetBlock<InsertReferenceInformationRequest> CreateObjectReferencePort { get; }
+        private ITargetBlock<InsertObjectReferenceRequest> InsertObjectReferencePort { get; }
 
         private ITargetBlock<AddAudioRequest> AddAudioPort { get; }
 
@@ -551,10 +551,10 @@ namespace Zen.Trunk.Storage.Data
         /// <param name="parameters">The parameters.</param>
         /// <returns></returns>
         /// <exception cref="BufferDeviceShuttingDownException"></exception>
-        public Task InsertReferenceInformationAsync(InsertReferenceInformationRequestParameters parameters)
+        public Task InsertObjectReferenceAsync(InsertObjectReferenceParameters parameters)
         {
-            var request = new InsertReferenceInformationRequest(parameters);
-            if (!CreateObjectReferencePort.Post(request))
+            var request = new InsertObjectReferenceRequest(parameters);
+            if (!InsertObjectReferencePort.Post(request))
             {
                 throw new BufferDeviceShuttingDownException();
             }
@@ -778,14 +778,15 @@ namespace Zen.Trunk.Storage.Data
         protected virtual async Task ProcessPrimaryRootPageAsync(PrimaryFileGroupRootPage rootPage)
         {
             // We need to adjust our "next object identifier" so we skip over existing object ids
-            foreach (var objRef in rootPage.Objects)
-            {
-                _objects.Add(objRef.ObjectId, objRef);
-                if (objRef.ObjectId > _nextObjectId)
-                {
-                    _nextObjectId = new ObjectId(objRef.ObjectId.Value + 1);
-                }
-            }
+            Owner.ProcessObjectReferences(rootPage.Objects);
+            //foreach (var objRef in rootPage.Objects)
+            //{
+            //    _objects.Add(objRef.ObjectId, objRef);
+            //    if (objRef.ObjectId > _nextObjectId)
+            //    {
+            //        _nextObjectId = new ObjectId(objRef.ObjectId.Value + 1);
+            //    }
+            //}
 
             // Walk the list of devices recorded in the root page
             foreach (var deviceInfo in rootPage.Devices)
@@ -1332,51 +1333,22 @@ namespace Zen.Trunk.Storage.Data
             return true;
         }
 
-        private async Task<bool> InsertReferenceInformationHandlerAsync(InsertReferenceInformationRequest request)
+        private async Task<bool> InsertObjectReferenceHandlerAsync(InsertObjectReferenceRequest request)
         {
-            // Copy device and object references from message
-            var devices = request.Message.Devices?.ToList();
-            var objects = request.Message.Objects?.ToList();
-
-            // When we have a first page creator function then we need to give
-            //  the caller a valid object identifier so that the initial
-            //  resource can be created and we can write an appropriate entry
-            //  into the root page object table somewhere.
-            if (request.Message.FirstPageFunc != null)
-            {
-                // TODO: This logic must be moved to exclusive update handler
-                //  so we avoid the possibility of assigning two callers the
-                //  same object identifier
-                var objectId = _nextObjectId;
-                var nextObjectId = new ObjectId(_nextObjectId.Value + 1);
-
-                var firstLogicalPageId = await request.Message
-                    .FirstPageFunc(objectId)
-                    .ConfigureAwait(false);
-                _nextObjectId = nextObjectId;
-
-                var objectReference =
-                    new ObjectReferenceBufferFieldWrapper
-                    {
-                        ObjectId = objectId,
-                        FileGroupId = FileGroupId,
-                        FirstLogicalPageId = firstLogicalPageId,
-                        Name = request.Message.Name,
-                        ObjectType = request.Message.ObjectType
-                    };
-
-                if (objects == null)
-                {
-                    objects = new List<ObjectReferenceBufferFieldWrapper>();
-                }
-
-                objects.Add(objectReference);
-            }
-
             // Load primary file-group root page
             var rootPage = (IPrimaryFileGroupRootPage)await _primaryDevice
                 .LoadRootPageAsync()
                 .ConfigureAwait(false);
+
+            var objectRef =
+                new ObjectReferenceBufferFieldWrapper
+                {
+                    ObjectId = request.Message.ObjectId,
+                    ObjectType = request.Message.ObjectType,
+                    Name = request.Message.Name,
+                    FileGroupId = request.Message.FileGroupId,
+                    FirstLogicalPageId = request.Message.FirstLogicalPageId
+                };
 
             // Attempt to write reference information into a root page
             await rootPage
@@ -1388,22 +1360,8 @@ namespace Zen.Trunk.Storage.Data
                 rootPage.ReadOnly = false;
                 try
                 {
-                    DeviceReferenceBufferFieldWrapper device;
-                    while ((device = devices?.FirstOrDefault()) != null)
-                    {
-                        rootPage.Devices.Add(device);
-                        rootPage.Save();
-                        devices.Remove(device);
-                    }
-
-                    ObjectReferenceBufferFieldWrapper objectRef;
-                    while ((objectRef = objects?.FirstOrDefault()) != null)
-                    {
-                        rootPage.Objects.Add(objectRef);
-                        rootPage.Save();
-                        objects.Remove(objectRef);
-                        _objects.Add(objectRef.ObjectId, objectRef);
-                    }
+                    rootPage.Objects.Add(objectRef);
+                    rootPage.Save();
 
                     // If we get this far then page has space for object reference
                     return true;
@@ -1431,11 +1389,10 @@ namespace Zen.Trunk.Storage.Data
         {
             // Determine the object identifier for the audio
             var createdObjectId = ObjectId.Zero;
-            await InsertReferenceInformationAsync(
-                new InsertReferenceInformationRequestParameters(
-                    null,
-                    null,
+            await Owner.CreateObjectReferenceAsync(
+                new CreateObjectReferenceParameters(
                     request.Message.AudioName,
+                    FileGroupId,
                     ObjectType.Audio,
                     async (objectId) =>
                     {
@@ -1461,11 +1418,10 @@ namespace Zen.Trunk.Storage.Data
         {
             // Determine the object identifier for the table
             var createdObjectId = ObjectId.Zero;
-            await InsertReferenceInformationAsync(
-                new InsertReferenceInformationRequestParameters(
-                    null,
-                    null,
+            await Owner.CreateObjectReferenceAsync(
+                new CreateObjectReferenceParameters(
                     request.Message.TableName,
+                    FileGroupId,
                     ObjectType.Table,
                     async (objectId) =>
                     {
@@ -1496,7 +1452,12 @@ namespace Zen.Trunk.Storage.Data
         private async Task<IndexId> AddTableIndexHandlerAsync(AddTableIndexRequest request)
         {
             // Determine first logical page identifier for the table schema
-            var objRef = _objects[request.Message.ObjectId];
+            var objRef = await Owner
+                .GetObjectReferenceAsync(
+                    new GetObjectReferenceParameters(
+                        request.Message.ObjectId,
+                        ObjectType.Table))
+                .ConfigureAwait(false);
             var firstLogicalPageId = objRef.FirstLogicalPageId;
 
             // Load table schema
@@ -1530,7 +1491,12 @@ namespace Zen.Trunk.Storage.Data
         private async Task<bool> InsertTableDataHandlerAsync(InsertTableDataRequest request)
         {
             // Determine first logical page identifier for the table schema
-            var objRef = _objects[request.Message.ObjectId];
+            var objRef = await Owner
+                .GetObjectReferenceAsync(
+                    new GetObjectReferenceParameters(
+                        request.Message.ObjectId,
+                        ObjectType.Table))
+                .ConfigureAwait(false);
             var firstLogicalPageId = objRef.FirstLogicalPageId;
 
             // Load table schema

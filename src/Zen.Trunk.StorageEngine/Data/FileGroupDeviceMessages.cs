@@ -564,33 +564,37 @@ namespace Zen.Trunk.Storage.Data
     /// <summary>
     /// 
     /// </summary>
-    public class InsertReferenceInformationRequestParameters
+    public class InsertObjectReferenceParameters
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="InsertReferenceInformationRequestParameters"/> class.
+        /// Initializes a new instance of the <see cref="InsertObjectReferenceParameters"/> class.
         /// </summary>
         /// <param name="devices">Collection of device references.</param>
         /// <param name="objects">Collection of object references.</param>
         /// <param name="name">The name.</param>
         /// <param name="objectType">Type of the object.</param>
         /// <param name="firstPageFunc">The first page function.</param>
-        public InsertReferenceInformationRequestParameters(
-            ICollection<DeviceReferenceBufferFieldWrapper> devices,
-            ICollection<ObjectReferenceBufferFieldWrapper> objects,
+        public InsertObjectReferenceParameters(
+            ObjectId objectId,
             string name, 
-            ObjectType objectType, 
-            Func<ObjectId, Task<LogicalPageId>> firstPageFunc)
+            ObjectType objectType,
+            FileGroupId fileGroupId,
+            LogicalPageId firstLogicalPageId)
         {
+            ObjectId = objectId;
             Name = name;
             ObjectType = objectType;
-            FirstPageFunc = firstPageFunc;
-            Devices = devices;
-            Objects = objects;
+            FileGroupId = fileGroupId;
+            FirstLogicalPageId = firstLogicalPageId;
         }
 
-        public ICollection<DeviceReferenceBufferFieldWrapper> Devices { get; }
-
-        public ICollection<ObjectReferenceBufferFieldWrapper> Objects { get; }
+        /// <summary>
+        /// Gets the object identifier.
+        /// </summary>
+        /// <value>
+        /// The object identifier.
+        /// </value>
+        public ObjectId ObjectId { get; }
 
         /// <summary>
         /// Gets the name.
@@ -609,14 +613,20 @@ namespace Zen.Trunk.Storage.Data
         public ObjectType ObjectType { get; }
 
         /// <summary>
-        /// Gets the function that when called with an <see cref="ObjectId"/>
-        /// returns a <see cref="Task{LogicalPageId}"/> resolves to the first
-        /// logical page identifier for the object.
+        /// Gets the file group identifier.
         /// </summary>
         /// <value>
-        /// The first page function.
+        /// The file group identifier.
         /// </value>
-        public Func<ObjectId, Task<LogicalPageId>> FirstPageFunc { get; }
+        public FileGroupId FileGroupId { get; }
+
+        /// <summary>
+        /// Gets the first logical page identifier.
+        /// </summary>
+        /// <value>
+        /// The logical page identifier.
+        /// </value>
+        public LogicalPageId FirstLogicalPageId { get; }
     }
 
     public class InsertTableDataParameters

@@ -367,4 +367,101 @@ namespace Zen.Trunk.Storage
         public Func<ObjectId, Task<LogicalPageId>> FirstPageFunc { get; } 
         #endregion
     }
+
+    public class GetObjectReferenceParameters
+    {
+        #region Public Constructors
+        public GetObjectReferenceParameters(ObjectId objectId, ObjectType? objectType)
+        {
+            ObjectId = objectId;
+            ObjectType = objectType;
+        }
+        #endregion
+
+        #region Public Properties
+        /// <summary>
+        /// Gets the object identifier.
+        /// </summary>
+        /// <value>
+        /// The object identifier.
+        /// </value>
+        public ObjectId ObjectId { get; }
+
+        /// <summary>
+        /// Gets the type of the object.
+        /// </summary>
+        /// <value>
+        /// The type of the object.
+        /// </value>
+        public ObjectType? ObjectType { get; }
+        #endregion
+    }
+
+    public class ObjectReferenceResult
+    {
+        #region Public Constructors
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ObjectReferenceResult" /> class.
+        /// </summary>
+        /// <param name="objectId">The object identifier.</param>
+        /// <param name="objectType">Type of the object.</param>
+        /// <param name="name">The name.</param>
+        /// <param name="fileGroupId">The file group identifier.</param>
+        /// <param name="firstLogicalPageId">The first logical page identifier.</param>
+        public ObjectReferenceResult(
+            ObjectId objectId,
+            ObjectType objectType,
+            string name,
+            FileGroupId fileGroupId,
+            LogicalPageId firstLogicalPageId)
+        {
+            ObjectId = objectId;
+            Name = name;
+            FileGroupId = fileGroupId;
+            FirstLogicalPageId = firstLogicalPageId;
+        }
+        #endregion
+
+        #region Public Properties
+        /// <summary>
+        /// Gets the object identifier.
+        /// </summary>
+        /// <value>
+        /// The object identifier.
+        /// </value>
+        public ObjectId ObjectId { get; }
+
+        /// <summary>
+        /// Gets the type of the object.
+        /// </summary>
+        /// <value>
+        /// The type of the object.
+        /// </value>
+        public ObjectType ObjectType { get; }
+
+        /// <summary>
+        /// Gets the name.
+        /// </summary>
+        /// <value>
+        /// The name.
+        /// </value>
+        public string Name { get; }
+
+        /// <summary>
+        /// Gets the file group identifier.
+        /// </summary>
+        /// <value>
+        /// The file group identifier.
+        /// </value>
+        public FileGroupId FileGroupId { get; }
+
+        /// <summary>
+        /// Gets the first logical page identifier.
+        /// </summary>
+        /// <value>
+        /// The first logical page identifier.
+        /// </value>
+        public LogicalPageId FirstLogicalPageId { get; } 
+        #endregion
+    }
 }

@@ -34,7 +34,7 @@ namespace Zen.Trunk.Storage.Data
 
         Task InitDataPageAsync(InitDataPageParameters initParams);
 
-        Task InsertReferenceInformationAsync(InsertReferenceInformationRequestParameters parameters);
+        Task InsertObjectReferenceAsync(InsertObjectReferenceParameters parameters);
 
         Task<bool> InsertTableData(InsertTableDataParameters tableDataParams);
 
