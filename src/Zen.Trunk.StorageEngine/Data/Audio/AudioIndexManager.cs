@@ -282,6 +282,19 @@ namespace Zen.Trunk.Storage.Data.Audio
                 AddIndexInfo(rootAudioIndexInfo);
             }
 
+            // While we are here; force a rebuild of the index
+            if (_ownerAudio.HasData)
+            {
+                // Don't bother posting a message to the queue; do it directly
+                var rebuildRequest =
+                    new RebuildAudioIndexRequest(
+                        new RebuildAudioIndexParameters(
+                            request.Message.IndexFileGroupId,
+                            _ownerAudio.ObjectId,
+                            indexId));
+                await RebuildIndexHandlerAsync(rebuildRequest).ConfigureAwait(false);
+            }
+
             return indexId;
         }
 
@@ -324,7 +337,11 @@ namespace Zen.Trunk.Storage.Data.Audio
                 }
                 else
                 {
+                    // Save current index page and setup state machine
+                    currentIndexPage.Save();
                     var activeIndexPage = currentIndexPage;
+                    currentIndexPage = null;
+
                     for (byte depth = 0; depth < indexPageHierarchy.Count; ++depth)
                     {
                         // Create new index page
@@ -336,6 +353,12 @@ namespace Zen.Trunk.Storage.Data.Audio
                                 request.Message.IndexId,
                                 depth)
                             .ConfigureAwait(false);
+                        
+                        // First new index page created must be new current index page
+                        if (currentIndexPage == null)
+                        {
+                            currentIndexPage = newIndexPage;
+                        }
 
                         // At depth == 0 we need to add a leaf entry to the new page
                         if (depth == 0)
@@ -435,12 +458,16 @@ namespace Zen.Trunk.Storage.Data.Audio
                 }
             }
 
+            // Save current index page
+            currentIndexPage.Save();
+
             // Update the root index information with tip of hierarchy
             var rootPage = indexPageHierarchy.Last();
             if (rootPage.LogicalPageId != rootInfo.RootLogicalPageId)
             {
                 rootInfo.RootLogicalPageId = rootPage.LogicalPageId;
                 _ownerAudio.SchemaRootPage.SetDataDirty();
+                _ownerAudio.SchemaRootPage.Save();
             }
 
             return true;

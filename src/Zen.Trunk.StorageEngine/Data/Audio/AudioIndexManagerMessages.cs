@@ -278,8 +278,14 @@ namespace Zen.Trunk.Storage.Data.Audio
 
     public class RebuildAudioIndexParameters
     {
-        public RebuildAudioIndexParameters()
+        public RebuildAudioIndexParameters(
+            FileGroupId fileGroupId,
+            ObjectId objectId,
+            IndexId indexId)
         {
+            FileGroupId = fileGroupId;
+            ObjectId = objectId;
+            IndexId = indexId;
         }
 
         public FileGroupId FileGroupId { get; }

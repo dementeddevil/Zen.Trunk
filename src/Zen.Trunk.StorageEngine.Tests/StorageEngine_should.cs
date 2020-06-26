@@ -507,6 +507,7 @@ namespace Zen.Trunk.Storage
                     dbDevice.BeginTransaction();
                     try
                     {
+                        ObjectId objectId = ObjectId.Zero;
                         using (var fileStream = new FileStream(
                             @"C:\Windows\Media\Alarm05.wav",
                             FileMode.Open,
@@ -518,8 +519,18 @@ namespace Zen.Trunk.Storage
                                     addFgDevice.FileGroupName,
                                     "Test",
                                     fileStream);
-                            await dbDevice.AddFileGroupAudioAsync(param).ConfigureAwait(true);
+                            objectId = await dbDevice.AddFileGroupAudioAsync(param).ConfigureAwait(true);
                         }
+
+                        var indexId = await dbDevice
+                            .AddFileGroupAudioIndexAsync(
+                                new AddFileGroupAudioIndexParameters(
+                                    addFgDevice.FileGroupId,
+                                    addFgDevice.FileGroupName,
+                                    "PK_Sample",
+                                    Data.Audio.AudioIndexSubType.Sample,
+                                    objectId))
+                            .ConfigureAwait(true);
 
                         await TrunkTransactionContext.CommitAsync().ConfigureAwait(true);
                     }

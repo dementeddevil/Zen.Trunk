@@ -138,7 +138,7 @@ namespace Zen.Trunk.Storage.Data.Index
 		/// Gets the last buffer field object.
 		/// </summary>
 		/// <value>A <see cref="T:BufferField"/> object.</value>
-		protected override BufferField LastField => _rootIndexDepth;
+		protected override BufferField LastField => _fillFactor;
 	    #endregion
 	}
 }
