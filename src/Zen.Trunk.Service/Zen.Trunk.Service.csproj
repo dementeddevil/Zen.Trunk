@@ -82,7 +82,7 @@
       <HintPath>..\packages\Autofac.5.2.0\lib\net461\Autofac.dll</HintPath>
     </Reference>
     <Reference Include="AutofacSerilogIntegration, Version=1.0.0.0, Culture=neutral, PublicKeyToken=d672c67444a98ac9, processorArchitecture=MSIL">
-      <HintPath>..\packages\AutofacSerilogIntegration.2.1.0\lib\net45\AutofacSerilogIntegration.dll</HintPath>
+      <HintPath>..\packages\AutofacSerilogIntegration.3.0.0\lib\net461\AutofacSerilogIntegration.dll</HintPath>
     </Reference>
     <Reference Include="log4net, Version=2.0.8.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
       <HintPath>..\packages\log4net.2.0.8\lib\net45-full\log4net.dll</HintPath>
