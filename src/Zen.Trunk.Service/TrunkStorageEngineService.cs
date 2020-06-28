@@ -57,11 +57,16 @@ namespace Zen.Trunk.Service
                             .As<ITrunkConfigurationManager>();
 
                         // Register virtual memory and buffer device support
-                        var reservationInMegaBytes = configurationManager
+                        var reservationPageCount = configurationManager
                             .Root[ConfigurationNames.VirtualMemory.Section]
-                            .GetValue(ConfigurationNames.VirtualMemory.ReservationInMegaBytes, 1024);
+                            .GetValue(ConfigurationNames.VirtualMemory.ReservationPageCount, 4096);
+                        var pagesPerCacheBlock = configurationManager
+                            .Root[ConfigurationNames.VirtualMemory.Section]
+                            .GetValue(ConfigurationNames.VirtualMemory.PagesPerCacheBlock, 8);
+                        builder.RegisterInstance(new VirtualBufferFactorySettings(
+                            StorageConstants.PageBufferSize, reservationPageCount, pagesPerCacheBlock));
                         builder
-                            .WithVirtualBufferFactory(8192, reservationInMegaBytes)
+                            .WithVirtualBufferFactory()
                             .WithBufferDeviceFactory()
                             .WithDefaultSystemClock();
                     });

@@ -1,3 +1,4 @@
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -25,7 +26,7 @@ namespace Zen.Trunk.VirtualMemory
 	/// manner.
 	/// </para>
 	/// </remarks>
-	[DebuggerDisplay("DebuggerDisplay")]
+	[DebuggerDisplay("Id:{BufferId}, Size:{BufferSize}, IsDirty:{IsDirty}")]
 	public sealed class VirtualBuffer : IVirtualBuffer
     {
         #region Private Objects
@@ -278,8 +279,6 @@ namespace Zen.Trunk.VirtualMemory
 
         private readonly SafeCommitableMemoryHandle _buffer;
         private readonly VirtualBufferCache _owner;
-        private readonly int _cacheSlot;
-
         private bool _committed;
         private bool _disposed;
 
@@ -287,17 +286,17 @@ namespace Zen.Trunk.VirtualMemory
         #endregion
 
         #region Internal Constructors
-        internal VirtualBuffer(SafeCommitableMemoryHandle buffer, int bufferSize, VirtualBufferCache owner, int cacheSlot)
+        internal VirtualBuffer(VirtualBufferCache owner, SafeCommitableMemoryHandle buffer, int bufferSize, int cacheSlot)
         {
             if ((bufferSize % SystemPageSize) != 0)
             {
                 throw new ArgumentException("bufferSize must be multiple of SystemPageSize.", nameof(bufferSize));
             }
 
+            _owner = owner;
             _buffer = buffer;
             BufferSize = bufferSize;
-            _owner = owner;
-            _cacheSlot = cacheSlot;
+            CacheSlot = cacheSlot;
         }
         #endregion
 
@@ -306,6 +305,10 @@ namespace Zen.Trunk.VirtualMemory
         /// Gets the size of the system page.
         /// </summary>
         /// <value>The size of the page.</value>
+        /// <remarks>
+        /// The system page size defined the minimum size a buffer can be in order to participate in unbuffered overlapped I/O operations.
+        /// All I/O buffers used in Zen Trunk are a multiple of this value.
+        /// </remarks>
         public static int SystemPageSize
         {
             get
@@ -327,7 +330,15 @@ namespace Zen.Trunk.VirtualMemory
         /// <value>
         /// The buffer unique identifier.
         /// </value>
-        public string BufferId => $"{_owner.CacheId}:{_cacheSlot}";
+        public string BufferId => $"{_owner.CacheId}:{CacheSlot}";
+
+        /// <summary>
+        /// Gets the cache slot occupied by this buffer.
+        /// </summary>
+        /// <value>
+        /// The cache slot.
+        /// </value>
+        public int CacheSlot { get; }
 
         /// <summary>
         /// Gets the size of the buffer.
@@ -344,10 +355,6 @@ namespace Zen.Trunk.VirtualMemory
 		/// <c>true</c> if dirty; otherwise, <c>false</c>.
 		/// </value>
 		public bool IsDirty { get; private set; }
-        #endregion
-
-        #region Private Properties
-        private string DebuggerDisplay => $"Id:{BufferId}, Size:{BufferSize}, IsDirty:{IsDirty}";
         #endregion
 
         #region Public Methods
@@ -550,21 +557,17 @@ namespace Zen.Trunk.VirtualMemory
         #endregion
 
         #region Internal Properties
-        internal int CacheSlot => _cacheSlot;
-
         internal unsafe byte* Buffer
         {
             get
             {
-                /*if (!_committed)
-				{
-					Allocate ();
-				}*/
                 CheckDisposed();
+
                 if (!_committed)
                 {
                     throw new ObjectDisposedException(GetType().Name);
                 }
+
                 return (byte*)_buffer.DangerousGetHandle().ToPointer();
             }
         }
@@ -592,8 +595,9 @@ namespace Zen.Trunk.VirtualMemory
             {
                 if (IsDirty)
                 {
-                    Trace.TraceWarning("Freeing dirty buffer.");
+                    Log.Warning("Freeing dirty buffer with id: {BufferId}.", BufferId);
                 }
+
                 Free();
             }
 

@@ -11,15 +11,26 @@ namespace Zen.Trunk.VirtualMemory
         /// Registers a virtual buffer factory with the container.
         /// </summary>
         /// <param name="builder">The builder.</param>
-        /// <param name="bufferSize">Size of the buffer.</param>
-        /// <param name="reservationMb">The reservation mb.</param>
         /// <returns></returns>
-        public static ContainerBuilder WithVirtualBufferFactory(
-            this ContainerBuilder builder, int bufferSize = 8192, int reservationMb = 32)
+        public static ContainerBuilder WithVirtualBufferFactory(this ContainerBuilder builder)
         {
             builder.RegisterType<VirtualBufferFactory>()
-                .WithParameter("bufferSize", bufferSize)
-                .WithParameter("reservationMb", reservationMb)
+                .As<IVirtualBufferFactory>()
+                .SingleInstance();
+            return builder;
+        }
+
+        /// <summary>
+        /// Registers a virtual buffer factory with the container.
+        /// </summary>
+        /// <param name="builder">The builder.</param>
+        /// <param name="settings">The settings.</param>
+        /// <returns></returns>
+        public static ContainerBuilder WithVirtualBufferFactory(
+            this ContainerBuilder builder, VirtualBufferFactorySettings settings)
+        {
+            builder.RegisterType<VirtualBufferFactory>()
+                .WithParameter("settings", settings)
                 .As<IVirtualBufferFactory>()
                 .SingleInstance();
             return builder;

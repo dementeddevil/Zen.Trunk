@@ -16,9 +16,9 @@ namespace Zen.Trunk.IO
 
         #region Public Constructors
         /// <summary>
-        /// Initializes a new instance of the <see cref="NonClosingStream" /> class.
+        /// Initializes a new instance of the <see cref="NonResizeableStream" /> class.
         /// </summary>
-        /// <param name="stream">The stream.</param>
+        /// <param name="stream">The stream being wrapped.</param>
         public NonResizeableStream(Stream stream)
         {
             _innerStream = stream;

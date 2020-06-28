@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using Serilog;
 
@@ -22,6 +23,7 @@ namespace Zen.Trunk.VirtualMemory
     /// at bay.
     /// </para>
     /// </remarks>
+    [DebuggerDisplay("Cache Usage: {_bufferChain?.Count ?? 0}/{_maxCacheElements}, Used: {UsedSpacePercent}%, IsNearlyFull: {IsNearlyFull}")]
     public sealed class VirtualBufferFactory : IVirtualBufferFactory
     {
         private static readonly ILogger Logger = Log.ForContext<VirtualBufferFactory>();
@@ -32,42 +34,33 @@ namespace Zen.Trunk.VirtualMemory
         private readonly object _syncBufferChain = new object();
         private readonly int _cacheBlockSize;
         private readonly int _maxCacheElements;
+        private readonly VirtualBufferFactorySettings _settings;
         private SafeMemoryHandle _reservationBaseAddress;
         private LinkedList<VirtualBufferCache> _bufferChain;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="VirtualBufferFactory"/> class.
+        /// Initializes a new instance of the <see cref="VirtualBufferFactory" /> class.
         /// </summary>
-        /// <param name="bufferSize">Size of the buffer.</param>
-        /// <param name="reservationMb">The reservation mb.</param>
+        /// <param name="settings">The settings.</param>
         /// <exception cref="ArgumentException">Buffer size must be multiple of {VirtualBuffer.SystemPageSize}.</exception>
-        public VirtualBufferFactory(
-            int bufferSize,
-            int reservationMb)
+        public VirtualBufferFactory(VirtualBufferFactorySettings settings)
         {
-            // Buffer size must be multiple of system page size
-            if ((bufferSize % VirtualBuffer.SystemPageSize) != 0)
-            {
-                throw new ArgumentException(
-                    $"Buffer size must be multiple of {VirtualBuffer.SystemPageSize}.",
-                    nameof(bufferSize));
-            }
-
-            BufferSize = bufferSize;
+            _settings = settings;
 
             // Minimum reservation amount = 16Mb
+            var reservationMb = settings.BufferSize * settings.ReservationPageCount;
             if (reservationMb < MinimumReservationMb)
             {
                 reservationMb = MinimumReservationMb;
             }
 
-            // Calculate number of pages to reserve
+            // Calculate number of pages to reserve (in system page size units)
             _reservationPages = (int)((reservationMb * OneMegaByte) /
                 VirtualBuffer.SystemPageSize);
 
             // Determine maximum number of pages
-            var totalPages = _reservationPages * VirtualBuffer.SystemPageSize / bufferSize;
-            _cacheBlockSize = Math.Max(8, totalPages / 16);
+            var totalPages = _reservationPages * VirtualBuffer.SystemPageSize / settings.BufferSize;
+            _cacheBlockSize = Math.Max(8, settings.PagesPerCacheBlock);
 
             // Determine maximum number of caches
             _maxCacheElements = totalPages / _cacheBlockSize;
@@ -76,7 +69,7 @@ namespace Zen.Trunk.VirtualMemory
             Logger.Debug(
                 "Virtual buffer factory initialised with reservation of {ReservationMb}Mb and buffer size of {BufferSize}",
                 reservationMb,
-                bufferSize);
+                settings.BufferSize);
             Logger.Information(
                 "Virtual buffer factory {TotalPages} pages split across {MaxCacheElements} caches available",
                 totalPages,
@@ -89,7 +82,7 @@ namespace Zen.Trunk.VirtualMemory
         /// <value>
         /// The size of the buffer.
         /// </value>
-        public int BufferSize { get; }
+        public int BufferSize => _settings.BufferSize;
 
         /// <summary>
         /// Gets a value indicating whether this instance is nearly full.
@@ -97,25 +90,7 @@ namespace Zen.Trunk.VirtualMemory
         /// <value>
         /// <c>true</c> if this instance is nearly full; otherwise, <c>false</c>.
         /// </value>
-        public bool IsNearlyFull
-        {
-            get
-            {
-                if (_bufferChain == null || _bufferChain.Count < _maxCacheElements)
-                {
-                    return false;
-                }
-
-                foreach (var cache in _bufferChain)
-                {
-                    if (!cache.IsNearlyFull)
-                    {
-                        return false;
-                    }
-                }
-                return true;
-            }
-        }
+        public bool IsNearlyFull => _bufferChain != null && _bufferChain.Count == _maxCacheElements && _bufferChain.All(bc => bc.IsNearlyFull);
 
         /// <summary>
         /// Gets the factory used buffer percentage
@@ -157,7 +132,7 @@ namespace Zen.Trunk.VirtualMemory
                         var newChain = new LinkedList<VirtualBufferCache>();
                         newChain.AddFirst(new VirtualBufferCache(
                             SafeNativeMethods.GetCommitableMemoryHandle(_reservationBaseAddress, BufferSize),
-                            BufferSize, _cacheBlockSize));
+                            _settings));
                         _bufferChain = newChain;
                     }
                 }
@@ -192,7 +167,7 @@ namespace Zen.Trunk.VirtualMemory
                         {
                             // Increase size of the buffer chain
                             _bufferChain.AddLast(new VirtualBufferCache(
-                                current.Value.NextBaseAddress, BufferSize, _cacheBlockSize));
+                                current.Value.NextBaseAddress, _settings));
                         }
                     }
                 }

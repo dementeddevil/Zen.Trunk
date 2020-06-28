@@ -12,7 +12,7 @@ using Zen.Trunk.VirtualMemory;
 namespace Zen.Trunk.Storage
 {
     /// <summary>
-    /// <b>Page</b> object represents a 64Kb buffer block.
+    /// <b>Page</b> object represents an abstract page with header and data sections.
     /// </summary>
     /// <remarks>
     /// Pages are separated into a header section and a data section.
@@ -34,7 +34,6 @@ namespace Zen.Trunk.Storage
 
         private readonly BufferFieldBitVector32 _status;
         private BitVector32.Section _pageType;
-        private bool _managedData = true;
         private bool _headerDirty;
         private bool _dataDirty;
         private bool _disposed;
@@ -159,11 +158,7 @@ namespace Zen.Trunk.Storage
         /// Gets/sets a value indicating whether the data section of a page
         /// is managed by the persistence logic. Default: true.
         /// </summary>
-        public bool IsManagedData
-        {
-            get => _managedData;
-            set => _managedData = value;
-        }
+        public bool IsManagedData { get; set; } = true;
 
         /// <summary>
         /// Gets/sets the virtual page ID.
@@ -313,7 +308,7 @@ namespace Zen.Trunk.Storage
         public void PostLoadInternal()
         {
             ReadHeader();
-            if (_managedData)
+            if (IsManagedData)
             {
                 ReadData();
             }
@@ -323,21 +318,34 @@ namespace Zen.Trunk.Storage
             OnPostLoadAsync(EventArgs.Empty);
         }
 
+        /// <summary>
+        /// Sets the state of both header and data sections as dirty.
+        /// </summary>
         public void SetDirty()
         {
             SetDirtyCore(true, true);
         }
 
+        /// <summary>
+        /// Sets the state of the header section as dirty.
+        /// </summary>
         public void SetHeaderDirty()
         {
             SetDirtyCore(true, false);
         }
 
+        /// <summary>
+        /// Sets the state of the data section as dirty.
+        /// </summary>
         public void SetDataDirty()
         {
             SetDirtyCore(false, true);
         }
 
+        /// <summary>
+        /// Checks whether the page is read-only and throws an exception if it is.
+        /// </summary>
+        /// <exception cref="PageReadOnlyException">Thrown if the page is read-only.</exception>
         public void CheckReadOnly()
         {
             if (ReadOnly)
@@ -529,7 +537,7 @@ namespace Zen.Trunk.Storage
             {
                 WriteHeader();
             }
-            if (_dataDirty && _managedData)
+            if (_dataDirty && IsManagedData)
             {
                 WriteData();
             }

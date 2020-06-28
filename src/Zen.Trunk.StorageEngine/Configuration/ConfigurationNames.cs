@@ -25,7 +25,8 @@ namespace Zen.Trunk.Storage.Configuration
         {
             public const string Section = "VirtualMemory";
 
-            public const string ReservationInMegaBytes = "ReservationInMegaBytes";
+            public const string ReservationPageCount = "ReservationPageCount";
+            public const string PagesPerCacheBlock = "PagesPerCacheBlock";
         }
     }
 }

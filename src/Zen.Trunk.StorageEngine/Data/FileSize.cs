@@ -129,14 +129,12 @@ namespace Zen.Trunk.Storage.Data
                     return 0;
             }
 
-            // 1MB = 128 pages @ 8192 bytes per page
-            // 1GB = 131,072 pages @ 8192 bytes per page
-            // 1TB = 134,217,728 pages @ 8192 bytes per page
             uint pages = (uint)(actualSize / pageSize);
             if ((actualSize % pageSize) != 0)
             {
                 ++pages;
             }
+
             return pages;
         }
     }
