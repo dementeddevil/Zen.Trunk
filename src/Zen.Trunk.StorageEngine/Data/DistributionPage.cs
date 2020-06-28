@@ -211,17 +211,17 @@ namespace Zen.Trunk.Storage.Data
         /// <summary>
         /// Number of extents tracked by a distribution page.
         /// </summary>
-        public const uint ExtentTrackingCount = 64;
+        public const uint ExtentTrackingCount = StorageConstants.PageBufferSize / 128; // for a 8192 byte page this is 64 extents per distribution page;
 
         /// <summary>
         /// Number of pages tracked by a distribution page.
         /// </summary>
-        public const uint PageTrackingCount = 512;
+        public const uint PageTrackingCount = StorageConstants.PageBufferSize / 16; // for an 8192 byte page size this is 512 pages per distribution page;
 
         /// <summary>
         /// Number of pages tracked by an extent.
         /// </summary>
-        public const uint PagesPerExtent = PageTrackingCount / ExtentTrackingCount;
+        public const uint PagesPerExtent = PageTrackingCount / ExtentTrackingCount; // Based on the above calculations this value is always 8.
         #endregion
 
         #region Private Fields

@@ -11,9 +11,9 @@ namespace Zen.Trunk.VirtualMemory
 		#region Private Fields
 		private static int _nextCacheId = 1;
 
-	    private readonly int _bufferCacheSize;
 		private readonly VirtualBuffer[] _buffers;
-		private int _usedBuffers;
+        private readonly VirtualBufferFactorySettings _settings;
+        private int _usedBuffers;
 		#endregion
 
 		#region Public Constructors
@@ -25,21 +25,20 @@ namespace Zen.Trunk.VirtualMemory
 		/// <param name="bufferSlots">The buffer slots.</param>
 		public VirtualBufferCache(
 		    SafeCommitableMemoryHandle baseAddress,
-		    int bufferSize,
-		    int bufferSlots)
+			VirtualBufferFactorySettings settings)
 		{
 			CacheId = Interlocked.Increment(ref _nextCacheId);
 			BaseAddress = baseAddress;
-			_bufferCacheSize = bufferSlots;
+            _settings = settings;
 
-			_buffers = new VirtualBuffer[_bufferCacheSize];
-			for (var index = 0; index < _bufferCacheSize; ++index)
+			_buffers = new VirtualBuffer[_settings.PagesPerCacheBlock];
+			for (var index = 0; index < _settings.PagesPerCacheBlock; ++index)
 			{
-				var buffer = new VirtualBuffer(baseAddress, bufferSize, this, index);
-				_buffers[index] = buffer;
-				baseAddress = SafeNativeMethods
-				    .GetCommitableMemoryHandle(baseAddress, bufferSize, bufferSize);
+				_buffers[index] = new VirtualBuffer(this, baseAddress, _settings.BufferSize, index);
+				baseAddress = SafeNativeMethods.GetCommitableMemoryHandle(
+					baseAddress, _settings.BufferSize, _settings.BufferSize);
 			}
+
 			NextBaseAddress = baseAddress;
 		}
 		#endregion
@@ -53,7 +52,7 @@ namespace Zen.Trunk.VirtualMemory
 
 	    internal bool IsFull => UsedSpacePercent > 97;
 
-	    internal int UsedSpacePercent => (_usedBuffers * 100) / _bufferCacheSize;
+	    internal int UsedSpacePercent => (_usedBuffers * 100) / _settings.PagesPerCacheBlock;
 
 	    internal SafeCommitableMemoryHandle BaseAddress { get; }
 
@@ -63,7 +62,7 @@ namespace Zen.Trunk.VirtualMemory
         #region Public Methods
         public VirtualBuffer AllocateBuffer()
         {
-            for (var index = 0; index < _bufferCacheSize; ++index)
+            for (var index = 0; index < _settings.PagesPerCacheBlock; ++index)
             {
                 var buffer = Interlocked.Exchange(ref _buffers[index], null);
                 if (buffer == null) continue;

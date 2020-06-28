@@ -31,10 +31,10 @@ namespace Zen.Trunk.Storage.Logging
             long timestamp)
             : base(virtualPageId, timestamp, LogEntryType.ModifyPage)
         {
-            _beforeImage = new byte[before.BufferSize];
-            before.CopyTo(_beforeImage);
+            _beforeImage = new byte[StorageConstants.PageBufferSize];
+            _afterImage = new byte[StorageConstants.PageBufferSize];
 
-            _afterImage = new byte[after.BufferSize];
+            before.CopyTo(_beforeImage);
             after.CopyTo(_afterImage);
         }
 
@@ -50,7 +50,7 @@ namespace Zen.Trunk.Storage.Logging
         /// <value>
         /// The size of this record in bytes.
         /// </value>
-        public override uint RawSize => base.RawSize + 16384;
+        public override uint RawSize => base.RawSize + (2 * StorageConstants.PageBufferSize);
 
         /// <summary>
         /// Gets the before image.
@@ -88,8 +88,8 @@ namespace Zen.Trunk.Storage.Logging
         protected override void OnRead(SwitchingBinaryReader reader)
         {
             base.OnRead(reader);
-            _beforeImage = reader.ReadBytes(8192);
-            _afterImage = reader.ReadBytes(8192);
+            _beforeImage = reader.ReadBytes(StorageConstants.PageBufferSize);
+            _afterImage = reader.ReadBytes(StorageConstants.PageBufferSize);
         }
 
         /// <summary>
@@ -104,9 +104,9 @@ namespace Zen.Trunk.Storage.Logging
         protected override void OnUndoChanges(IPageBuffer dataBuffer)
         {
             // Copy before image into page DataBuffer
-            using (var stream = dataBuffer.GetBufferStream(0, 8192, false))
+            using (var stream = dataBuffer.GetBufferStream(0, StorageConstants.PageBufferSize, false))
             {
-                stream.Write(_beforeImage, 0, 8192);
+                stream.Write(_beforeImage, 0, StorageConstants.PageBufferSize);
                 stream.Flush();
             }
 
@@ -126,9 +126,9 @@ namespace Zen.Trunk.Storage.Logging
         protected override void OnRedoChanges(IPageBuffer dataBuffer)
         {
             // Copy after image into page DataBuffer
-            using (var stream = dataBuffer.GetBufferStream(0, 8192, false))
+            using (var stream = dataBuffer.GetBufferStream(0, StorageConstants.PageBufferSize, false))
             {
-                stream.Write(_afterImage, 0, 8192);
+                stream.Write(_afterImage, 0, StorageConstants.PageBufferSize);
                 stream.Flush();
             }
 

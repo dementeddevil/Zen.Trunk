@@ -77,5 +77,10 @@
         /// The default schema name
         /// </summary>
         public const string DefaultSchemaName = "dbo";
+
+        /// <summary>
+        /// The system-wide page buffer size
+        /// </summary>
+        public const int PageBufferSize = 8192;
     }
 }

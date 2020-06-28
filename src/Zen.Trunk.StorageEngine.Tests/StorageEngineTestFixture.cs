@@ -47,6 +47,7 @@ namespace Zen.Trunk.Storage
                 .SingleInstance()
                 .Named("EventLogger", typeof(Serilog.Core.Logger));
 
+            builder.RegisterInstance(new VirtualBufferFactorySettings(StorageConstants.PageBufferSize, 4096, 8));
             builder
                 .WithVirtualBufferFactory()
                 .WithBufferDeviceFactory()

@@ -192,7 +192,7 @@ namespace Zen.Trunk.Storage.Data
         /// <summary>
         /// Overridden. Gets the page size - 8192 bytes
         /// </summary>
-        public override uint PageSize => 8192;
+        public override uint PageSize => StorageConstants.PageBufferSize;
 
         /// <summary>
         /// Gets the minimum number of bytes required for the header block.

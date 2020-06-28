@@ -28,7 +28,8 @@ namespace Zen.Trunk.Storage.Logging
             long timestamp)
             : base(virtualPageId, timestamp, LogEntryType.CreatePage)
         {
-            _image = new byte[buffer.BufferSize];
+            _image = new byte[StorageConstants.PageBufferSize];
+
             buffer.CopyTo(_image);
         }
 
@@ -44,7 +45,7 @@ namespace Zen.Trunk.Storage.Logging
         /// <value>
         /// The size of this record in bytes.
         /// </value>
-        public override uint RawSize => (uint)(base.RawSize + _image.Length);
+        public override uint RawSize => base.RawSize + StorageConstants.PageBufferSize;
 
         /// <summary>
         /// Gets the image.
@@ -74,7 +75,7 @@ namespace Zen.Trunk.Storage.Logging
         protected override void OnRead(SwitchingBinaryReader reader)
         {
             base.OnRead(reader);
-            _image = reader.ReadBytes(8192);
+            _image = reader.ReadBytes(StorageConstants.PageBufferSize);
         }
 
         /// <summary>
@@ -89,11 +90,11 @@ namespace Zen.Trunk.Storage.Logging
         protected override void OnUndoChanges(IPageBuffer dataBuffer)
         {
             // Copy before image into page DataBuffer
-            using (var stream = dataBuffer.GetBufferStream(0, 8192, false))
+            using (var stream = dataBuffer.GetBufferStream(0, StorageConstants.PageBufferSize, false))
             {
                 // NOTE: The before image in this case is empty
-                var initStream = new byte[8192];
-                stream.Write(initStream, 0, 8192);
+                var initStream = new byte[StorageConstants.PageBufferSize];
+                stream.Write(initStream, 0, StorageConstants.PageBufferSize);
                 stream.Flush();
             }
 
@@ -113,9 +114,9 @@ namespace Zen.Trunk.Storage.Logging
         protected override void OnRedoChanges(IPageBuffer dataBuffer)
         {
             // Copy after image into page DataBuffer
-            using (var stream = dataBuffer.GetBufferStream(0, 8192, false))
+            using (var stream = dataBuffer.GetBufferStream(0, StorageConstants.PageBufferSize, false))
             {
-                stream.Write(_image, 0, 8192);
+                stream.Write(_image, 0, StorageConstants.PageBufferSize);
                 stream.Flush();
             }
 

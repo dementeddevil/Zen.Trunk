@@ -302,7 +302,7 @@ namespace Zen.Trunk.Storage.Logging
         /// </returns>
         protected override Task OnOpenAsync()
         {
-            const int streamBufferSize = 8192;
+            const int streamBufferSize = StorageConstants.PageBufferSize * 4;
 
             if (_rootPage == null)
             {
