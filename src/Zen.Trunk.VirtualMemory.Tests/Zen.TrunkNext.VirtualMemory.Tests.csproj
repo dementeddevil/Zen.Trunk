@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+    <RootNamespace>Zen.Trunk.VirtualMemory.Tests</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Autofac" Version="5.2.0" />
+    <PackageReference Include="AutofacSerilogIntegration" Version="3.0.0" />
+    <PackageReference Include="FluentAssertions" Version="5.10.3" />
+    <PackageReference Include="Microsoft.ApplicationInsights" Version="2.14.0" />
+    <PackageReference Include="Microsoft.ApplicationInsights.DependencyCollector" Version="2.14.0" />
+    <PackageReference Include="Microsoft.ApplicationInsights.PerfCounterCollector" Version="2.14.0" />
+    <PackageReference Include="Moq" Version="4.14.5" />
+    <PackageReference Include="Serilog.Enrichers.Thread" Version="3.1.0" />
+    <PackageReference Include="Serilog.Sinks.ApplicationInsights" Version="3.1.0" />
+    <PackageReference Include="Serilog.Sinks.Debug" Version="1.0.1" />
+    <PackageReference Include="xunit" Version="2.4.1" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.2">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Zen.Trunk.VirtualMemory.Autofac\Zen.TrunkNext.VirtualMemory.Autofac.csproj" />
+    <ProjectReference Include="..\Zen.Trunk.VirtualMemory\Zen.TrunkNext.VirtualMemory.csproj" />
+  </ItemGroup>
+
+</Project>

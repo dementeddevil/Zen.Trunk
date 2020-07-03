@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+    <RootNamespace>Zen.Trunk.Query.Tests</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Autofac" Version="5.2.0" />
+    <PackageReference Include="FluentAssertions" Version="5.10.3" />
+    <PackageReference Include="xunit" Version="2.4.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Zen.Trunk.Query\Zen.TrunkNext.Query.csproj" />
+    <ProjectReference Include="..\Zen.Trunk.StorageEngine.Tests\Zen.TrunkNext.StorageEngine.Tests.csproj" />
+    <ProjectReference Include="..\Zen.Trunk.StorageEngine\Zen.TrunkNext.StorageEngine.csproj" />
+    <ProjectReference Include="..\Zen.Trunk.VirtualMemory.Tests\Zen.TrunkNext.VirtualMemory.Tests.csproj" />
+  </ItemGroup>
+
+</Project>

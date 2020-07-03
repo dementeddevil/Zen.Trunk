@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+    <RootNamespace>Zen.Trunk.VirtualMemory</RootNamespace>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Serilog" Version="2.9.0" />
+    <PackageReference Include="System.IO.FileSystem.AccessControl" Version="4.7.0" />
+    <PackageReference Include="System.Security.Permissions" Version="4.7.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Zen.Trunk.IO\Zen.TrunkNext.IO.csproj" />
+    <ProjectReference Include="..\Zen.Trunk.Utilities\Zen.TrunkNext.Utilities.csproj" />
+    <ProjectReference Include="..\Zen.Trunk.VirtualMemory.Identifiers\Zen.TrunkNext.VirtualMemory.Identifiers.csproj" />
+    <ProjectReference Include="..\Zen.Trunk.VirtualMemory.Interfaces\Zen.TrunkNext.VirtualMemory.Interfaces.csproj" />
+  </ItemGroup>
+
+</Project>

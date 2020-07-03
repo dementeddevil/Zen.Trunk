@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+    <RootNamespace>Zen.Trunk.StorageEngine</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Zen.Trunk.VirtualMemory.Identifiers\Zen.TrunkNext.VirtualMemory.Identifiers.csproj" />
+  </ItemGroup>
+
+</Project>

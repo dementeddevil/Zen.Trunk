@@ -1,5 +1,9 @@
 using System;
+#if !NETCOREAPP5_0
 using System.Runtime.Remoting.Messaging;
+#else
+using Zen.Trunk.IO;
+#endif
 using System.Threading;
 using System.Threading.Tasks;
 using Zen.Trunk.Extensions;

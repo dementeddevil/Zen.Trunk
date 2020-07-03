@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+    <RootNamespace>Zen.Trunk.StorageEngine</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Autofac" Version="5.2.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Zen.Trunk.StorageEngine.Identifiers\Zen.TrunkNext.StorageEngine.Identifiers.csproj" />
+    <ProjectReference Include="..\Zen.Trunk.VirtualMemory.Interfaces\Zen.TrunkNext.VirtualMemory.Interfaces.csproj" />
+  </ItemGroup>
+
+</Project>

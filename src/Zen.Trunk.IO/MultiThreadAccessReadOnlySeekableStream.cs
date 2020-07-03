@@ -8,7 +8,9 @@
 
 using System;
 using System.IO;
+#if !NETCOREAPP5_0
 using System.Runtime.Remoting.Messaging;
+#endif
 using System.Threading;
 
 namespace Zen.Trunk.IO

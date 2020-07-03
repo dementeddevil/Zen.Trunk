@@ -1,6 +1,8 @@
-﻿using System;
+﻿using System.Runtime.CompilerServices;
+
+#if !NETCOREAPP5_0
+using System;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 // General Information about an assembly is controlled through the following 
@@ -29,3 +31,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyFileVersion("1.0.0.0")]
 [assembly: InternalsVisibleTo("Zen.Trunk.Network")]
 [assembly: InternalsVisibleTo("Zen.Trunk.StorageEngine.Tests")]
+#else
+[assembly: InternalsVisibleTo("Zen.TrunkNext.Network")]
+[assembly: InternalsVisibleTo("Zen.TrunkNext.StorageEngine.Tests")]
+#endif

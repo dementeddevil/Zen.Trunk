@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+    <RootNamespace>Zen.Trunk.StorageEngine</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="NAudio" Version="1.10.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Zen.Trunk.StorageEngine.BufferFields\Zen.TrunkNext.StorageEngine.BufferFields.csproj" />
+    <ProjectReference Include="..\Zen.Trunk.StorageEngine.Interfaces\Zen.TrunkNext.StorageEngine.Interfaces.csproj" />
+    <ProjectReference Include="..\Zen.Trunk.VirtualMemory\Zen.TrunkNext.VirtualMemory.csproj" />
+  </ItemGroup>
+
+</Project>

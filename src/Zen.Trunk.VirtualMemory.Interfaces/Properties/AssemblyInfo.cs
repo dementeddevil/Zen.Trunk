@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if !NETCOREAPP5_0
+using System;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -28,3 +29,4 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyVersion("1.0.0.0")]
 [assembly: AssemblyFileVersion("1.0.0.0")]
 [assembly: InternalsVisibleTo("Zen.Trunk.VirtualMemory.Tests")]
+#endif

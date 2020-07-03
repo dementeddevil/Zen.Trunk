@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿#if !NETCOREAPP5_0
+using System.Reflection;
 using System.Runtime.InteropServices;
 
 // General Information about an assembly is controlled through the following 
@@ -24,3 +25,4 @@ using System.Runtime.InteropServices;
 // Version information
 [assembly: AssemblyVersion("1.0.0.0")]
 [assembly: AssemblyFileVersion("1.0.0.0")]
+#endif
