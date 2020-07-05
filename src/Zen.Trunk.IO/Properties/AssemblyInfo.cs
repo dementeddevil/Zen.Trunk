@@ -1,5 +1,6 @@
-﻿#if !NETCOREAPP5_0
-using System;
+﻿using System;
+
+#if !NETCOREAPP5_0
 using System.Reflection;
 using System.Runtime.InteropServices;
 
@@ -19,7 +20,6 @@ using System.Runtime.InteropServices;
 // to COM components.  If you need to access a type in this assembly from 
 // COM, set the ComVisible attribute to true on that type.
 [assembly: ComVisible(false)]
-[assembly: CLSCompliant(true)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
 [assembly: Guid("6abdfb09-8e8c-47f1-a0b5-a5541eaad61b")]
@@ -37,3 +37,5 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyVersion("1.0.0.0")]
 [assembly: AssemblyFileVersion("1.0.0.0")]
 #endif
+
+[assembly: CLSCompliant(true)]

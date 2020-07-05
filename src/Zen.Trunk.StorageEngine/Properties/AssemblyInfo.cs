@@ -1,7 +1,7 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System;
+using System.Runtime.CompilerServices;
 
 #if !NETCOREAPP5_0
-using System;
 using System.Reflection;
 using System.Runtime.InteropServices;
 
@@ -21,7 +21,6 @@ using System.Runtime.InteropServices;
 // to COM components.  If you need to access a type in this assembly from 
 // COM, set the ComVisible attribute to true on that type.
 [assembly: ComVisible(false)]
-[assembly: CLSCompliant(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
 [assembly: Guid("50be2537-9c38-4940-b523-b90b4ac9de18")]
@@ -35,3 +34,5 @@ using System.Runtime.InteropServices;
 [assembly: InternalsVisibleTo("Zen.TrunkNext.Network")]
 [assembly: InternalsVisibleTo("Zen.TrunkNext.StorageEngine.Tests")]
 #endif
+
+[assembly: CLSCompliant(false)]

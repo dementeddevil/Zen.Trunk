@@ -1,5 +1,6 @@
-﻿#if !NETCOREAPP5_0
-using System;
+﻿using System;
+
+#if !NETCOREAPP5_0
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -20,7 +21,6 @@ using System.Runtime.InteropServices;
 // to COM components.  If you need to access a type in this assembly from 
 // COM, set the ComVisible attribute to true on that type.
 [assembly: ComVisible(false)]
-[assembly: CLSCompliant(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
 [assembly: Guid("560e1726-6ab6-4fb6-bf0e-d0518d2b300f")]
@@ -30,3 +30,5 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyFileVersion("1.0.0.0")]
 [assembly: InternalsVisibleTo("Zen.Trunk.VirtualMemory.Tests")]
 #endif
+
+[assembly: CLSCompliant(false)]
