@@ -1030,10 +1030,10 @@ namespace Zen.Trunk.Storage.Data
                 throw new ArgumentNullException();
             }
 
-            // Setup page file-group id
+            // Stage 1: Setup page file-group id
             request.Message.Page.FileGroupId = FileGroupId;
 
-            // Stage #1: Assign logical id
+            // Stage 2: Assign logical id (LogicalPage derived only)
             var logicalPage = request.Message.Page as ILogicalPage;
             if (logicalPage != null && request.Message.GenerateLogicalPageId)
             {
@@ -1043,7 +1043,7 @@ namespace Zen.Trunk.Storage.Data
                     .ConfigureAwait(false);
             }
 
-            // Stage #2: Assign virtual id
+            // Stage 3: Assign virtual id
             VirtualPageId pageId;
             if (!request.Message.AssignVirtualPageId)
             {
@@ -1066,7 +1066,7 @@ namespace Zen.Trunk.Storage.Data
                 request.Message.Page.VirtualPageId = pageId;
             }
 
-            // Stage #3: Add virtual/logical mapping
+            // Stage 4: Add virtual/logical mapping (LogicalPage derived only)
             // NOTE: We don't need to do this if a logical mapping does not make sense
             //  which typically only means root and distribution pages
             if (logicalPage != null &&
@@ -1078,14 +1078,14 @@ namespace Zen.Trunk.Storage.Data
                     .ConfigureAwait(false);
             }
 
-            // Stage #3: Initialise page object passed in request
+            // Stage 5: Initialise page object passed in request
             HookupPageSite(request.Message.Page);
             var pageBufferDevice = GetService<ICachingPageBufferDevice>();
             request.Message.Page.PreInitInternal();
             using (var scope = new StatefulBufferScope<IPageBuffer>(
                 await pageBufferDevice.InitPageAsync(pageId).ConfigureAwait(false)))
             {
-                // Stage #4: Setup logical id in page buffer as required
+                // Stage 6: Setup logical id in page buffer (LogicalPage derived only)
                 if (logicalPage != null)
                 {
                     // Save the logical id in the buffer if we are bound to
@@ -1093,7 +1093,7 @@ namespace Zen.Trunk.Storage.Data
                     scope.Buffer.LogicalPageId = logicalPage.LogicalPageId;
                 }
 
-                // Stage #5: Attach buffer to page object and conclude initialisation
+                // Stage 7: Attach buffer to page object and conclude initialisation
                 request.Message.Page.DataBuffer = scope.Buffer;
                 request.Message.Page.OnInitInternal();
                 return true;
@@ -1107,10 +1107,10 @@ namespace Zen.Trunk.Storage.Data
                 throw new ArgumentNullException();
             }
 
-            // Setup page file-group id
+            // Stage 1: Setup page file-group id
             request.Message.Page.FileGroupId = FileGroupId;
 
-            // Stage #1: Determine virtual page id
+            // Stage 2: Determine virtual page id
             var virtualPageId = request.Message.Page.VirtualPageId;
             var logicalPage = request.Message.Page as ILogicalPage;
             if (!request.Message.VirtualPageIdValid && request.Message.LogicalPageIdValid)
@@ -1128,20 +1128,20 @@ namespace Zen.Trunk.Storage.Data
                 request.Message.Page.VirtualPageId = virtualPageId;
             }
 
-            // Stage #2: Load the buffer from the underlying cache
+            // Stage 3: Load the buffer from the underlying cache
             HookupPageSite(request.Message.Page);
             var pageBufferDevice = GetService<ICachingPageBufferDevice>();
             request.Message.Page.PreLoadInternal();
             using (var scope = new StatefulBufferScope<IPageBuffer>(
                 await pageBufferDevice.LoadPageAsync(virtualPageId).ConfigureAwait(false)))
             {
-                // Setup logical page identifier in page buffer as necessary
+                // Stage 4: Setup logical page identifier in page buffer (LogicalPage derived only)
                 if (logicalPage != null)
                 {
                     scope.Buffer.LogicalPageId = logicalPage.LogicalPageId;
                 }
 
-                // Assign buffer to the page and conclude load process
+                // Stage 5: Assign buffer to the page and conclude load process
                 request.Message.Page.DataBuffer = scope.Buffer;
                 request.Message.Page.PostLoadInternal();
             }

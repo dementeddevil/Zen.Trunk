@@ -66,7 +66,7 @@ namespace Zen.Trunk.VirtualMemory
 
             // Debugging information
             Logger.Debug(
-                "Virtual buffer factory initialised with reservation of {ReservationMb}Mb and buffer size of {BufferSize}",
+                "Virtual buffer factory initialised with reservation of {ReservationMb} bytes and buffer size of {BufferSize} bytes",
                 reservationBytes,
                 settings.BufferSize);
             Logger.Information(

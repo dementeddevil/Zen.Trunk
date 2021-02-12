@@ -649,7 +649,6 @@ namespace Zen.Trunk.Storage.Data
         /// <summary>
         /// Performs operations on this instance prior to being initialised.
         /// </summary>
-        /// <param name="e">The <see cref="System.EventArgs"/> instance containing the event data.</param>
         /// <remarks>
         /// Overrides to this method must set their desired lock prior to
         /// calling the base class.
@@ -658,19 +657,18 @@ namespace Zen.Trunk.Storage.Data
         /// This mechanism ensures that all lock states have been set prior to
         /// the first call to LockPage.
         /// </remarks>
-        protected override async Task OnPreInitAsync(EventArgs e)
+        protected override async Task OnPreInitAsync()
         {
             // We need an exclusive lock
             await SetDistributionLockAsync(ObjectLockType.Exclusive).ConfigureAwait(false);
-            await base.OnPreInitAsync(e).ConfigureAwait(false);
+            await base.OnPreInitAsync().ConfigureAwait(false);
         }
 
         /// <summary>
         /// Raises the <see cref="E:Init" /> event.
         /// </summary>
-        /// <param name="e">The <see cref="System.EventArgs" /> instance containing the event data.</param>
         /// <returns></returns>
-        protected override Task OnInitAsync(EventArgs e)
+        protected override Task OnInitAsync()
         {
             // Reset allocation maps
             for (var index = 0; index < ExtentTrackingCount; ++index)
@@ -684,14 +682,13 @@ namespace Zen.Trunk.Storage.Data
                     page.LogicalPageId = LogicalPageId.Zero;
                 }
             }
-            return base.OnInitAsync(e);
+            return base.OnInitAsync();
         }
 
         /// <summary>
         /// Overridden. Called by the system prior to loading the page
         /// from persistent storage.
         /// </summary>
-        /// <param name="e"></param>
         /// <returns></returns>
         /// <remarks>
         /// Overrides to this method must set their desired lock prior to
@@ -706,14 +703,14 @@ namespace Zen.Trunk.Storage.Data
         /// then the <see cref="DataPage.HoldLock" /> will be set to <c>true</c>
         /// prior to calling <see cref="DataPage.LockPageAsync" />.
         /// </remarks>
-        protected override async Task OnPreLoadAsync(EventArgs e)
+        protected override async Task OnPreLoadAsync()
         {
             // We need a shared read lock if nothing specified
             if (DistributionLock == ObjectLockType.None)
             {
                 await SetDistributionLockAsync(ObjectLockType.Shared).ConfigureAwait(false);
             }
-            await base.OnPreLoadAsync(e).ConfigureAwait(false);
+            await base.OnPreLoadAsync().ConfigureAwait(false);
         }
 
         /// <summary>

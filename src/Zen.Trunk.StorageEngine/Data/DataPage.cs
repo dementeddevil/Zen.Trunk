@@ -337,9 +337,6 @@ namespace Zen.Trunk.Storage.Data
         /// <summary>
         /// Performs operations on this instance prior to being initialised.
         /// </summary>
-        /// <param name="e">
-        /// The <see cref="System.EventArgs"/> instance containing the event data.
-        /// </param>
         /// <remarks>
         /// Overrides to this method must set their desired lock prior to 
         /// calling the base class.
@@ -348,9 +345,9 @@ namespace Zen.Trunk.Storage.Data
         /// This mechanism ensures that all lock states have been set prior to
         /// the first call to LockPage.
         /// </remarks>
-        protected override async Task OnPreInitAsync(EventArgs e)
+        protected override async Task OnPreInitAsync()
         {
-            await base.OnPreInitAsync(e).ConfigureAwait(false);
+            await base.OnPreInitAsync().ConfigureAwait(false);
 
             // Enable the locking system
             IsLockingEnabled = true;
@@ -365,7 +362,6 @@ namespace Zen.Trunk.Storage.Data
         /// Overridden. Called by the system prior to loading the page
         /// from persistent storage.
         /// </summary>
-        /// <param name="e"></param>
         /// <remarks>
         /// Overrides to this method must set their desired lock prior to 
         /// calling the base class.
@@ -379,9 +375,9 @@ namespace Zen.Trunk.Storage.Data
         /// then the <see cref="HoldLock"/> will be set to <c>true</c> prior to
         /// calling <see cref="LockPageAsync"/>.
         /// </remarks>
-        protected override async Task OnPreLoadAsync(EventArgs e)
+        protected override async Task OnPreLoadAsync()
         {
-            await base.OnPreLoadAsync(e).ConfigureAwait(false);
+            await base.OnPreLoadAsync().ConfigureAwait(false);
 
             IsLockingEnabled = true;
             if (TrunkTransactionContext.Current == null)
@@ -410,14 +406,12 @@ namespace Zen.Trunk.Storage.Data
         }
 
         /// <summary>
-        /// Raises the <see cref="E:Load" /> event.
+        /// OnPostLoad is called by the system after data has been loaded.
         /// </summary>
-        /// <param name="e">The <see cref="System.EventArgs" /> instance containing the event data.</param>
-        /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
-        protected override async Task OnPostLoadAsync(EventArgs e)
+        protected override async Task OnPostLoadAsync()
         {
-            await base.OnPostLoadAsync(e).ConfigureAwait(false);
+            await base.OnPostLoadAsync().ConfigureAwait(false);
 
             if (TrunkTransactionContext.Current == null)
             {
@@ -447,10 +441,12 @@ namespace Zen.Trunk.Storage.Data
         }
 
         /// <summary>
-        /// Raises the <see cref="E:PreSave"/> event.
+        /// Performs operations prior to saving this page.
         /// </summary>
-        /// <param name="e">The <see cref="System.EventArgs"/> instance containing the event data.</param>
-        protected override void OnPreSave(EventArgs e)
+        /// <remarks>
+        /// If the header and/or data sections are dirty then they will be rewritten.
+        /// </remarks>
+        protected override void OnPreSave()
         {
             // Every call to PreSaveInternal must update the timestamp
             long updateTimestamp;
@@ -465,7 +461,7 @@ namespace Zen.Trunk.Storage.Data
             }
 
             // Now we can do base class save work
-            base.OnPreSave(e);
+            base.OnPreSave();
 
             // Mark buffer as dirty and setup timestamp
             DataBuffer.SetDirtyAsync();
@@ -582,19 +578,16 @@ namespace Zen.Trunk.Storage.Data
         }
 
         /// <summary>
-        /// Overridden. Raises the <see cref="E:Dirty"/> event.
+        /// OnDirty is called by the system when the page becomes dirty
         /// </summary>
-        /// <param name="e"></param>
+        /// <exception cref="T:InvalidOperationException">Thrown if there is no current ambient transaction.</exception>
         /// <remarks>
         /// The override will enlist this page in the current transaction.
         /// </remarks>
-        /// <exception cref="T:InvalidOperationException">
-        /// Thrown if there is no current ambient transaction.
-        /// </exception>
-        protected override void OnDirty(EventArgs e)
+        protected override void OnDirty()
         {
             DataBuffer.EnlistInTransaction();
-            base.OnDirty(e);
+            base.OnDirty();
         }
         #endregion
 

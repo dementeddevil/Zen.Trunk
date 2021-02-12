@@ -176,14 +176,13 @@ namespace Zen.Trunk.Storage.Data.Table
 		/// <summary>
 		/// Overridden. Initialises the page instance.
 		/// </summary>
-		/// <param name="e"></param>
 		/// <remarks>
 		/// Sets the page type to "Table".
 		/// </remarks>
-		protected override Task OnInitAsync(EventArgs e)
+		protected override Task OnInitAsync()
 		{
 			PageType = PageType.Table;
-			return base.OnInitAsync(e);
+			return base.OnInitAsync();
 		}
 
 	    /// <summary>

@@ -628,18 +628,16 @@ namespace Zen.Trunk.Storage.Data.Table
         /// <summary>
         /// Raises the <see cref="E:Init" /> event.
         /// </summary>
-        /// <param name="e">The <see cref="System.EventArgs" /> instance containing the event data.</param>
         /// <returns></returns>
-        protected override Task OnInitAsync(EventArgs e)
+        protected override Task OnInitAsync()
 		{
 			PageType = PageType.Table;
-			return base.OnInitAsync(e);
+			return base.OnInitAsync();
 		}
         /// <summary>
         /// Overridden. Called by the system prior to loading the page
         /// from persistent storage.
         /// </summary>
-        /// <param name="e"></param>
         /// <returns></returns>
         /// <remarks>
         /// Overrides to this method must set their desired lock prior to
@@ -649,12 +647,12 @@ namespace Zen.Trunk.Storage.Data.Table
         /// This mechanism ensures that all lock states have been set prior to
         /// the first call to LockPage.
         /// </remarks>
-        protected override Task OnPreLoadAsync(EventArgs e)
+        protected override Task OnPreLoadAsync()
 		{
 			_pageData = null;
 			_rowInfo = null;
 			_totalRowDataSize.Value = 0;
-			return base.OnPreLoadAsync(e);
+			return base.OnPreLoadAsync();
 		}
 
         /// <summary>
@@ -669,24 +667,22 @@ namespace Zen.Trunk.Storage.Data.Table
         /// <summary>
         /// Raises the <see cref="E:PostLoadAsync" /> event.
         /// </summary>
-        /// <param name="e">The <see cref="EventArgs" /> instance containing the event data.</param>
         /// <returns></returns>
-        protected override Task OnPostLoadAsync(EventArgs e)
+        protected override Task OnPostLoadAsync()
 		{
 			// Setup page row information
 			ReadPageInfo();
-			return base.OnPostLoadAsync(e);
+			return base.OnPostLoadAsync();
 		}
 
         /// <summary>
         /// Raises the <see cref="E:PreSave" /> event.
         /// </summary>
-        /// <param name="e">The <see cref="System.EventArgs" /> instance containing the event data.</param>
-        protected override void OnPreSave(EventArgs e)
+        protected override void OnPreSave()
 		{
 			// Update row offset block
 			WritePageInfo();
-			base.OnPreSave(e);
+			base.OnPreSave();
 		}
 
         /// <summary>

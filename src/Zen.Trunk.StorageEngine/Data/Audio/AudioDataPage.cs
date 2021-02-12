@@ -13,10 +13,10 @@ namespace Zen.Trunk.Storage.Data.Audio
         #endregion
 
         #region Protected Methods
-        protected override Task OnInitAsync(EventArgs e)
+        protected override Task OnInitAsync()
         {
             PageType = PageType.Audio;
-            return base.OnInitAsync(e);
+            return base.OnInitAsync();
         } 
         #endregion
     }

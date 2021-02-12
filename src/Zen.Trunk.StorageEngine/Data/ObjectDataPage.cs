@@ -67,7 +67,6 @@ namespace Zen.Trunk.Storage.Data
         /// Overridden. Called by the system prior to loading the page
         /// from persistent storage.
         /// </summary>
-        /// <param name="e"></param>
         /// <remarks>
         /// Overrides to this method must set their desired lock prior to
         /// calling the base class.
@@ -76,7 +75,7 @@ namespace Zen.Trunk.Storage.Data
         /// This mechanism ensures that all lock states have been set prior to
         /// the first call to LockPage.
         /// </remarks>
-        protected override async Task OnPreLoadAsync(EventArgs e)
+        protected override async Task OnPreLoadAsync()
         {
             // NOTE: We do not apply a default lock here unless we have an 
             //	active transaction context...
@@ -126,15 +125,13 @@ namespace Zen.Trunk.Storage.Data
                         break;
                 }
             }
-            await base.OnPreLoadAsync(e).ConfigureAwait(false);
+            await base.OnPreLoadAsync().ConfigureAwait(false);
         }
 
         /// <summary>
         /// Raises the <see cref="E:PostLoadAsync" /> event.
         /// </summary>
-        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
-        /// <returns></returns>
-        protected override async Task OnPostLoadAsync(EventArgs e)
+        protected override async Task OnPostLoadAsync()
         {
             // Shared read locks on readcommitted are released after
             //	load unless we are requested to hold the lock
@@ -144,7 +141,7 @@ namespace Zen.Trunk.Storage.Data
             {
                 await UnlockPageAsync().ConfigureAwait(false);
             }
-            await base.OnPostLoadAsync(e).ConfigureAwait(false);
+            await base.OnPostLoadAsync().ConfigureAwait(false);
         }
 
         /// <summary>

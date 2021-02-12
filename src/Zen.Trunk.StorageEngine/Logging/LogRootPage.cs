@@ -322,14 +322,13 @@ namespace Zen.Trunk.Storage.Logging
         /// <summary>
         /// Performs operations prior to saving this page.
         /// </summary>
-        /// <param name="e">The <see cref="EventArgs" /> instance containing the event data.</param>
         /// <remarks>
         /// If the header and/or data sections are dirty then they will be rewritten.
         /// </remarks>
-        protected override void OnPreSave(EventArgs e)
+        protected override void OnPreSave()
         {
             _logFileCount.Value = LogFileCount;
-            base.OnPreSave(e);
+            base.OnPreSave();
         }
 
         /// <summary>

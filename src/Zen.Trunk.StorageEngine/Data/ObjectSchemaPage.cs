@@ -60,7 +60,6 @@ namespace Zen.Trunk.Storage.Data
         /// <summary>
         /// Performs operations on this instance prior to being initialised.
         /// </summary>
-        /// <param name="e">The <see cref="System.EventArgs"/> instance containing the event data.</param>
         /// <remarks>
         /// Overrides to this method must set their desired lock prior to
         /// calling the base class.
@@ -69,20 +68,19 @@ namespace Zen.Trunk.Storage.Data
         /// This mechanism ensures that all lock states have been set prior to
         /// the first call to LockPage.
         /// </remarks>
-        protected override async Task OnPreInitAsync(EventArgs e)
+        protected override async Task OnPreInitAsync()
         {
             if (SchemaLock == SchemaLockType.None)
             {
                 await SetSchemaLockAsync(SchemaLockType.SchemaModification).ConfigureAwait(false);
             }
-            await base.OnPreInitAsync(e).ConfigureAwait(false);
+            await base.OnPreInitAsync().ConfigureAwait(false);
         }
 
         /// <summary>
         /// Overridden. Called by the system prior to loading the page
         /// from persistent storage.
         /// </summary>
-        /// <param name="e"></param>
         /// <remarks>
         /// Overrides to this method must set their desired lock prior to
         /// calling the base class.
@@ -91,13 +89,13 @@ namespace Zen.Trunk.Storage.Data
         /// This mechanism ensures that all lock states have been set prior to
         /// the first call to LockPage.
         /// </remarks>
-        protected override async Task OnPreLoadAsync(EventArgs e)
+        protected override async Task OnPreLoadAsync()
         {
             if (SchemaLock == SchemaLockType.None)
             {
                 await SetSchemaLockAsync(SchemaLockType.SchemaModification).ConfigureAwait(false);
             }
-            await base.OnPreLoadAsync(e).ConfigureAwait(false);
+            await base.OnPreLoadAsync().ConfigureAwait(false);
         }
 
         /// <summary>

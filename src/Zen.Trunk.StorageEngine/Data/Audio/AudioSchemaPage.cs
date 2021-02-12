@@ -225,12 +225,11 @@ namespace Zen.Trunk.Storage.Data.Audio
         /// <summary>
         /// Raises the <see cref="E:Init" /> event.
         /// </summary>
-        /// <param name="e">The <see cref="System.EventArgs" /> instance containing the event data.</param>
         /// <returns></returns>
-        protected override Task OnInitAsync(EventArgs e)
+        protected override Task OnInitAsync()
         {
             PageType = PageType.Audio;
-            return base.OnInitAsync(e);
+            return base.OnInitAsync();
         }
 
         /// <summary>

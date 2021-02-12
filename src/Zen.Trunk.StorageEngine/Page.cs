@@ -23,67 +23,13 @@ namespace Zen.Trunk.Storage
     {
         #region Private Fields
         private static readonly ILogger Logger = Serilog.Log.ForContext<Page>();
-        private static readonly object InitEvent = new object();
-        private static readonly object LoadEvent = new object();
-        private static readonly object SaveEvent = new object();
-        private static readonly object DirtyEvent = new object();
-        private static readonly object DisposedEvent = new object();
-        private EventHandlerList _events;
 
         private ILifetimeScope _lifetimeScope;
-
         private readonly BufferFieldBitVector32 _status;
         private BitVector32.Section _pageType;
         private bool _headerDirty;
         private bool _dataDirty;
         private bool _disposed;
-        #endregion
-
-        #region Public Events
-        /// <summary>
-        /// Occurs when [init].
-        /// </summary>
-        public event EventHandler InitNew
-        {
-            add => Events.AddHandler(InitEvent, value);
-            remove => Events.RemoveHandler(InitEvent, value);
-        }
-
-        /// <summary>
-        /// Occurs when [load].
-        /// </summary>
-        public event EventHandler LoadExisting
-        {
-            add => Events.AddHandler(LoadEvent, value);
-            remove => Events.RemoveHandler(LoadEvent, value);
-        }
-
-        /// <summary>
-        /// Occurs when [save].
-        /// </summary>
-        public event EventHandler SaveCompleted
-        {
-            add => Events.AddHandler(SaveEvent, value);
-            remove => Events.RemoveHandler(SaveEvent, value);
-        }
-
-        /// <summary>
-        /// Occurs when the page becomes dirty.
-        /// </summary>
-        public event EventHandler PageDirty
-        {
-            add => Events.AddHandler(DirtyEvent, value);
-            remove => Events.RemoveHandler(DirtyEvent, value);
-        }
-
-        /// <summary>
-        /// Represents the method that handles the <see cref="E:System.ComponentModel.IComponent.Disposed"/> event of a component.
-        /// </summary>
-        public event EventHandler Disposed
-        {
-            add => Events.AddHandler(DisposedEvent, value);
-            remove => Events.RemoveHandler(DisposedEvent, value);
-        }
         #endregion
 
         #region Protected Constructors
@@ -176,18 +122,6 @@ namespace Zen.Trunk.Storage
 
         #region Protected Properties
         /// <summary>
-        /// Gets the event handler list for this object.
-        /// </summary>
-        protected EventHandlerList Events
-        {
-            get
-            {
-                CheckDisposed();
-                return _events ?? (_events = new EventHandlerList());
-            }
-        }
-
-        /// <summary>
         /// Gets the first header field.
         /// </summary>
         /// <value>
@@ -227,10 +161,10 @@ namespace Zen.Trunk.Storage
             if (_headerDirty || _dataDirty)
             {
                 // Inform derived classes of PreSave
-                OnPreSave(EventArgs.Empty);
+                OnPreSave();
 
                 // Inform derived classes of Save
-                OnPostSave(EventArgs.Empty);
+                OnPostSave();
 
                 // Mark page as clean
                 _headerDirty = false;
@@ -266,7 +200,7 @@ namespace Zen.Trunk.Storage
         /// </remarks>
         public void PreInitInternal()
         {
-            OnPreInitAsync(EventArgs.Empty);
+            OnPreInitAsync();
         }
 
         /// <summary>
@@ -277,7 +211,7 @@ namespace Zen.Trunk.Storage
         /// </remarks>
         public void OnInitInternal()
         {
-            OnInitAsync(EventArgs.Empty);
+            OnInitAsync();
 
             // Initialised page must be read/write
             ReadOnly = false;
@@ -285,7 +219,6 @@ namespace Zen.Trunk.Storage
             // Ensure page is marked as dirty
             SuppressDirty = false;
             _headerDirty = _dataDirty = false;
-            //OnDirty(EventArgs.Empty);
         }
 
         /// <summary>
@@ -296,7 +229,7 @@ namespace Zen.Trunk.Storage
         /// </remarks>
         public void PreLoadInternal()
         {
-            OnPreLoadAsync(EventArgs.Empty);
+            OnPreLoadAsync();
         }
 
         /// <summary>
@@ -315,7 +248,7 @@ namespace Zen.Trunk.Storage
 
             SuppressDirty = false;
             _headerDirty = _dataDirty = false;
-            OnPostLoadAsync(EventArgs.Empty);
+            OnPostLoadAsync();
         }
 
         /// <summary>
@@ -377,21 +310,11 @@ namespace Zen.Trunk.Storage
         {
             if (!_disposed && disposing)
             {
-                if (_events != null)
-                {
-                    // Notify objects that we are disappearing...
-                    ((EventHandler)Events[DisposedEvent])?.Invoke(this, EventArgs.Empty);
-
-                    // Dispose of the event handler list
-                    _events.Dispose();
-                }
-
                 _lifetimeScope?.Dispose();
             }
 
             // Disconnect from site
             _lifetimeScope = null;
-            _events = null;
             _disposed = true;
         }
 
@@ -483,10 +406,9 @@ namespace Zen.Trunk.Storage
         }
 
         /// <summary>
-        /// Performs operations on this instance prior to being initialised.
+        /// OnPreInit is called by the system before a page is initialised.
         /// </summary>
-        /// <param name="e">The <see cref="System.EventArgs"/> instance containing the event data.</param>
-        protected virtual Task OnPreInitAsync(EventArgs e)
+        protected virtual Task OnPreInitAsync()
         {
             // Sanity check
             System.Diagnostics.Debug.Assert(HeaderSize >= MinHeaderSize);
@@ -494,20 +416,17 @@ namespace Zen.Trunk.Storage
         }
 
         /// <summary>
-        /// Raises the <see cref="E:Init"/> event.
+        /// OnInit is called by the system when a page is initialised.
         /// </summary>
-        /// <param name="e">The <see cref="System.EventArgs"/> instance containing the event data.</param>
-        protected virtual Task OnInitAsync(EventArgs e)
+        protected virtual Task OnInitAsync()
         {
-            ((EventHandler)Events[InitEvent])?.Invoke(this, e);
             return Task.FromResult(true);
         }
 
         /// <summary>
-        /// Performs operations on this instance prior to being loaded.
+        /// OnPreLoad is called by the system before data has been loaded.
         /// </summary>
-        /// <param name="e">The <see cref="System.EventArgs"/> instance containing the event data.</param>
-        protected virtual Task OnPreLoadAsync(EventArgs e)
+        protected virtual Task OnPreLoadAsync()
         {
             // Sanity check
             System.Diagnostics.Debug.Assert(HeaderSize >= MinHeaderSize);
@@ -515,23 +434,20 @@ namespace Zen.Trunk.Storage
         }
 
         /// <summary>
-        /// Raises the <see cref="E:Load"/> event.
+        /// OnPostLoad is called by the system after data has been loaded.
         /// </summary>
-        /// <param name="e">The <see cref="System.EventArgs"/> instance containing the event data.</param>
-        protected virtual Task OnPostLoadAsync(EventArgs e)
+        protected virtual Task OnPostLoadAsync()
         {
-            ((EventHandler)Events[LoadEvent])?.Invoke(this, e);
             return Task.FromResult(true);
         }
 
         /// <summary>
         /// Performs operations prior to saving this page.
         /// </summary>
-        /// <param name="e">The <see cref="System.EventArgs"/> instance containing the event data.</param>
         /// <remarks>
         /// If the header and/or data sections are dirty then they will be rewritten.
         /// </remarks>
-        protected virtual void OnPreSave(EventArgs e)
+        protected virtual void OnPreSave()
         {
             if (_headerDirty)
             {
@@ -544,21 +460,17 @@ namespace Zen.Trunk.Storage
         }
 
         /// <summary>
-        /// Raises the <see cref="E:Save"/> event.
+        /// OnPostSave is called by the system after data has been saved.
         /// </summary>
-        /// <param name="e">The <see cref="System.EventArgs"/> instance containing the event data.</param>
-        protected virtual void OnPostSave(EventArgs e)
+        protected virtual void OnPostSave()
         {
-            ((EventHandler)Events[SaveEvent])?.Invoke(this, e);
         }
 
         /// <summary>
-        /// Raises the <see cref="E:Dirty"/> event.
+        /// OnDirty is called by the system when the page becomes dirty
         /// </summary>
-        /// <param name="e">The <see cref="System.EventArgs"/> instance containing the event data.</param>
-        protected virtual void OnDirty(EventArgs e)
+        protected virtual void OnDirty()
         {
-            ((EventHandler)Events[DirtyEvent])?.Invoke(this, e);
         }
 
         /// <summary>
@@ -625,7 +537,7 @@ namespace Zen.Trunk.Storage
                 }
                 if (!alreadyDirty && canFire)
                 {
-                    OnDirty(EventArgs.Empty);
+                    OnDirty();
                 }
             }
         }

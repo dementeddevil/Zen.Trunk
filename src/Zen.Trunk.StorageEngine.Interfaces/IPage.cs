@@ -27,12 +27,6 @@ namespace Zen.Trunk.Storage
 
         VirtualPageId VirtualPageId { get; set; }
 
-        event EventHandler Disposed;
-        event EventHandler InitNew;
-        event EventHandler LoadExisting;
-        event EventHandler PageDirty;
-        event EventHandler SaveCompleted;
-
         Stream CreateDataStream(bool readOnly);
 
         void Save();
