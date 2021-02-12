@@ -4,7 +4,7 @@ using System.Linq;
 using Antlr4.Runtime.Misc;
 using Zen.Trunk.Storage.Data.Table;
 
-namespace Zen.Trunk.Storage.Query
+namespace Zen.Trunk.Query
 {
     /// <summary>
     /// 
@@ -80,7 +80,7 @@ namespace Zen.Trunk.Storage.Query
         public MethodSymbolScope CurrentMethodSymbolScope => (MethodSymbolScope)_scopeStack.FirstOrDefault(s => s is MethodSymbolScope);
 
         /// <summary>
-        /// Visit a parse tree produced by <see cref="M:Zen.Trunk.Storage.Query.TrunkSqlParser.create_procedure" />.
+        /// Visit a parse tree produced by <see cref="M:Zen.Trunk.Query.TrunkSqlParser.create_procedure" />.
         /// <para>
         /// The default implementation returns the result of calling <see cref="M:Antlr4.Runtime.Tree.AbstractParseTreeVisitor`1.VisitChildren(Antlr4.Runtime.Tree.IRuleNode)" />
         /// on <paramref name="context" />.
@@ -125,7 +125,7 @@ namespace Zen.Trunk.Storage.Query
         }
 
         /// <summary>
-        /// Visit a parse tree produced by <see cref="M:Zen.Trunk.Storage.Query.TrunkSqlParser.procedure_param" />.
+        /// Visit a parse tree produced by <see cref="M:Zen.Trunk.Query.TrunkSqlParser.procedure_param" />.
         /// <para>
         /// The default implementation returns the result of calling <see cref="M:Antlr4.Runtime.Tree.AbstractParseTreeVisitor`1.VisitChildren(Antlr4.Runtime.Tree.IRuleNode)" />
         /// on <paramref name="context" />.
@@ -226,7 +226,7 @@ namespace Zen.Trunk.Storage.Query
         }
 
         /// <summary>
-        /// Visit a parse tree produced by <see cref="M:Zen.Trunk.Storage.Query.TrunkSqlParser.declare_local" />.
+        /// Visit a parse tree produced by <see cref="M:Zen.Trunk.Query.TrunkSqlParser.declare_local" />.
         /// <para>
         /// The default implementation returns the result of calling <see cref="M:Antlr4.Runtime.Tree.AbstractParseTreeVisitor`1.VisitChildren(Antlr4.Runtime.Tree.IRuleNode)" />
         /// on <paramref name="context" />.

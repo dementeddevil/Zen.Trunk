@@ -4,7 +4,7 @@ using Autofac;
 using SuperSocket.SocketBase;
 using SuperSocket.SocketBase.Protocol;
 using Zen.Trunk.Storage;
-using Zen.Trunk.Storage.Query;
+using Zen.Trunk.Query;
 using Zen.Trunk.VirtualMemory;
 
 namespace Zen.Trunk.Network

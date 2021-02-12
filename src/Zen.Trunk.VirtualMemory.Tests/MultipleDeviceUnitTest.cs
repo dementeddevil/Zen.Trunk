@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using FluentAssertions;
 using Xunit;
 
 namespace Zen.Trunk.VirtualMemory.Tests

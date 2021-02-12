@@ -1,9 +1,9 @@
-﻿namespace Zen.Trunk.Storage.Query
+﻿namespace Zen.Trunk.Query
 {
     /// <summary>
     /// 
     /// </summary>
-    /// <seealso cref="Zen.Trunk.Storage.Query.ChildSymbolScope" />
+    /// <seealso cref="Zen.Trunk.Query.ChildSymbolScope" />
     public class MethodSymbolScope : ChildSymbolScope
     {
         /// <summary>

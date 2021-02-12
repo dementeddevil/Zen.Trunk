@@ -2,8 +2,9 @@
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Antlr4.Runtime;
+using Zen.Trunk.Storage;
 
-namespace Zen.Trunk.Storage.Query
+namespace Zen.Trunk.Query
 {
     /// <summary>
     /// 

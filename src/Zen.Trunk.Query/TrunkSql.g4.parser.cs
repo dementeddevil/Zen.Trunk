@@ -1,4 +1,4 @@
-﻿namespace Zen.Trunk.Storage.Query
+﻿namespace Zen.Trunk.Query
 {
     partial class TrunkSqlParser
     {

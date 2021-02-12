@@ -1,147 +1,24 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{72BEECC4-72E1-4A9F-BEF5-B93AF54250AA}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Zen.Trunk.Storage</RootNamespace>
-    <AssemblyName>Zen.Trunk.StorageEngine.Interfaces</AssemblyName>
-    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <TargetFrameworkProfile />
+    <TargetFramework>net48</TargetFramework>
+    <Authors>Adrian Lewis</Authors>
+    <Company>Zen Design Software</Company>
+    <Product>Zen Trunk</Product>
+    <Copyright>Copyright (c) Zen Design Software 2004 - 2021</Copyright>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
-    <DebugSymbols>true</DebugSymbols>
-    <OutputPath>bin\x64\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <DebugType>full</DebugType>
-    <PlatformTarget>x64</PlatformTarget>
-    <ErrorReport>prompt</ErrorReport>
-    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
-    <OutputPath>bin\x64\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <Optimize>true</Optimize>
-    <DebugType>pdbonly</DebugType>
-    <PlatformTarget>x64</PlatformTarget>
-    <ErrorReport>prompt</ErrorReport>
-    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
-    <DebugSymbols>true</DebugSymbols>
-    <OutputPath>bin\x86\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <DebugType>full</DebugType>
-    <PlatformTarget>x86</PlatformTarget>
-    <ErrorReport>prompt</ErrorReport>
-    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
-    <OutputPath>bin\x86\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <Optimize>true</Optimize>
-    <DebugType>pdbonly</DebugType>
-    <PlatformTarget>x86</PlatformTarget>
-    <ErrorReport>prompt</ErrorReport>
-    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
-  </PropertyGroup>
+
   <ItemGroup>
-    <Reference Include="Autofac, Version=5.2.0.0, Culture=neutral, PublicKeyToken=17863af14b0044da, processorArchitecture=MSIL">
-      <HintPath>..\packages\Autofac.5.2.0\lib\net461\Autofac.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.Bcl.AsyncInterfaces, Version=1.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.Bcl.AsyncInterfaces.1.1.1\lib\net461\Microsoft.Bcl.AsyncInterfaces.dll</HintPath>
-    </Reference>
-    <Reference Include="System" />
-    <Reference Include="System.ComponentModel.Composition" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Runtime.CompilerServices.Unsafe, Version=4.0.6.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.Runtime.CompilerServices.Unsafe.4.7.1\lib\net461\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Threading.Tasks.Extensions, Version=4.2.0.1, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.Threading.Tasks.Extensions.4.5.4\lib\net461\System.Threading.Tasks.Extensions.dll</HintPath>
-    </Reference>
+    <PackageReference Include="Autofac" Version="6.1.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Zen.Trunk.StorageEngine.Identifiers\Zen.Trunk.StorageEngine.Identifiers.csproj" />
+    <ProjectReference Include="..\Zen.Trunk.VirtualMemory.Interfaces\Zen.Trunk.VirtualMemory.Interfaces.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Reference Include="System.Transactions" />
   </ItemGroup>
-  <ItemGroup>
-    <Compile Include="Data\ICachingPageBufferDevice.cs" />
-    <Compile Include="Data\IDataPage.cs" />
-    <Compile Include="Data\ILogicalPage.cs" />
-    <Compile Include="Data\ILogicalVirtualManager.cs" />
-    <Compile Include="Data\IObjectDataPage.cs" />
-    <Compile Include="Data\IObjectPage.cs" />
-    <Compile Include="Data\IObjectSchemaPage.cs" />
-    <Compile Include="Data\IPageBuffer.cs" />
-    <Compile Include="IDatabaseDevice.cs" />
-    <Compile Include="IMountableDevice.cs" />
-    <Compile Include="IPage.cs" />
-    <Compile Include="ISession.cs" />
-    <Compile Include="ISessionManager.cs" />
-    <Compile Include="IStatefulBuffer.cs" />
-    <Compile Include="Locking\DatabaseLockType.cs" />
-    <Compile Include="Locking\DataLockType.cs" />
-    <Compile Include="Locking\FileGroupRootLockType.cs" />
-    <Compile Include="Locking\IChildTransactionLock.cs" />
-    <Compile Include="Locking\IDatabaseLockManager.cs" />
-    <Compile Include="Locking\IDataLock.cs" />
-    <Compile Include="Locking\IFileGroupLock.cs" />
-    <Compile Include="Locking\IGlobalLockManager.cs" />
-    <Compile Include="Locking\IObjectLock.cs" />
-    <Compile Include="Locking\IPageEnlistmentNotification.cs" />
-    <Compile Include="Locking\IReferenceLock.cs" />
-    <Compile Include="Locking\ISchemaLock.cs" />
-    <Compile Include="Locking\ITransactionLock.cs" />
-    <Compile Include="Locking\ITrunkSession.cs" />
-    <Compile Include="Locking\ITrunkTransaction.cs" />
-    <Compile Include="Locking\IDatabaseLock.cs" />
-    <Compile Include="Locking\ObjectLockType.cs" />
-    <Compile Include="Locking\PageEnlistment.cs" />
-    <Compile Include="Locking\PreparingPageEnlistment.cs" />
-    <Compile Include="Locking\SchemaLockType.cs" />
-    <Compile Include="PageEnums.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Log\" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Zen.Trunk.StorageEngine.Identifiers\Zen.Trunk.StorageEngine.Identifiers.csproj">
-      <Project>{e28b4e45-737f-47e6-9e92-52cc220ffccb}</Project>
-      <Name>Zen.Trunk.StorageEngine.Identifiers</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Zen.Trunk.VirtualMemory.Identifiers\Zen.Trunk.VirtualMemory.Identifiers.csproj">
-      <Project>{98872bb1-74e7-4abb-b0d1-9cc32b24f4c8}</Project>
-      <Name>Zen.Trunk.VirtualMemory.Identifiers</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Zen.Trunk.VirtualMemory.Interfaces\Zen.Trunk.VirtualMemory.Interfaces.csproj">
-      <Project>{837f9dbd-7e29-4237-add9-1bd32fef965c}</Project>
-      <Name>Zen.Trunk.VirtualMemory.Interfaces</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="app.config" />
-    <None Include="packages.config" />
-  </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+
 </Project>

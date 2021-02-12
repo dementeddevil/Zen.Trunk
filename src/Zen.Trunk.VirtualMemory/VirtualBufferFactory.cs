@@ -27,8 +27,8 @@ namespace Zen.Trunk.VirtualMemory
     public sealed class VirtualBufferFactory : IVirtualBufferFactory
     {
         private static readonly ILogger Logger = Log.ForContext<VirtualBufferFactory>();
-        private const int MinimumReservationMb = 16;
         private const long OneMegaByte = 1024L * 1024L;
+        private const long MinimumReservationBytes = 16 * OneMegaByte;
 
         private readonly int _reservationPages;
         private readonly object _syncBufferChain = new object();
@@ -48,15 +48,14 @@ namespace Zen.Trunk.VirtualMemory
             _settings = settings;
 
             // Minimum reservation amount = 16Mb
-            var reservationMb = settings.BufferSize * settings.ReservationPageCount;
-            if (reservationMb < MinimumReservationMb)
+            long reservationBytes = settings.BufferSize * settings.ReservationPageCount;
+            if (reservationBytes < MinimumReservationBytes)
             {
-                reservationMb = MinimumReservationMb;
+                reservationBytes = MinimumReservationBytes;
             }
 
             // Calculate number of pages to reserve (in system page size units)
-            _reservationPages = (int)((reservationMb * OneMegaByte) /
-                VirtualBuffer.SystemPageSize);
+            _reservationPages = (int)(reservationBytes / VirtualBuffer.SystemPageSize);
 
             // Determine maximum number of pages
             var totalPages = _reservationPages * VirtualBuffer.SystemPageSize / settings.BufferSize;
@@ -68,7 +67,7 @@ namespace Zen.Trunk.VirtualMemory
             // Debugging information
             Logger.Debug(
                 "Virtual buffer factory initialised with reservation of {ReservationMb}Mb and buffer size of {BufferSize}",
-                reservationMb,
+                reservationBytes,
                 settings.BufferSize);
             Logger.Information(
                 "Virtual buffer factory {TotalPages} pages split across {MaxCacheElements} caches available",

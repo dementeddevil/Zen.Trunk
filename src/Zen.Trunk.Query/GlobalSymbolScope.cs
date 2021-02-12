@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Zen.Trunk.Storage.Query
+namespace Zen.Trunk.Query
 {
     /// <summary>
     /// 
     /// </summary>
-    /// <seealso cref="Zen.Trunk.Storage.Query.SymbolScope" />
+    /// <seealso cref="Zen.Trunk.Query.SymbolScope" />
     public class GlobalSymbolScope : SymbolScope
     {
         private readonly IDictionary<string, DatabaseSymbolScope> _databaseScopes =

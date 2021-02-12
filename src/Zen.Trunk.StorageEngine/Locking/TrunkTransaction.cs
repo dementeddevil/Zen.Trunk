@@ -127,7 +127,7 @@ namespace Zen.Trunk.Storage.Locking
         /// Initializes a new instance of the <see cref="TrunkTransaction"/> class.
         /// </summary>
         /// <param name="lifetimeScope">The service provider.</param>
-        internal TrunkTransaction(ILifetimeScope lifetimeScope)
+        public TrunkTransaction(ILifetimeScope lifetimeScope)
             : this(lifetimeScope, IsolationLevel.ReadCommitted, TimeSpan.FromSeconds(10))
         {
         }
@@ -137,7 +137,7 @@ namespace Zen.Trunk.Storage.Locking
         /// </summary>
         /// <param name="lifetimeScope">The service provider.</param>
         /// <param name="timeout">The timeout.</param>
-        internal TrunkTransaction(
+        public TrunkTransaction(
             ILifetimeScope lifetimeScope, TimeSpan timeout)
             : this(lifetimeScope, IsolationLevel.ReadCommitted, timeout)
         {
@@ -148,7 +148,7 @@ namespace Zen.Trunk.Storage.Locking
         /// </summary>
         /// <param name="lifetimeScope">The service provider.</param>
         /// <param name="options">The options.</param>
-        internal TrunkTransaction(
+        public TrunkTransaction(
             ILifetimeScope lifetimeScope, TransactionOptions options)
             : this(lifetimeScope, options.IsolationLevel, options.Timeout)
         {
@@ -160,7 +160,7 @@ namespace Zen.Trunk.Storage.Locking
         /// <param name="lifetimeScope">The service provider.</param>
         /// <param name="isoLevel">The iso level.</param>
         /// <param name="timeout">The timeout.</param>
-        internal TrunkTransaction(
+        public TrunkTransaction(
             ILifetimeScope lifetimeScope,
             IsolationLevel isoLevel,
             TimeSpan timeout)
@@ -703,7 +703,7 @@ namespace Zen.Trunk.Storage.Locking
             catch (DependencyResolutionException)
             {
                 Logger.Warning("Master log device not resolvable - faking transaction identifier");
-                //_transactionId = new TransactionId(1);
+                _transactionId = new TransactionId(1);
             }
 
             Logger.Debug($"{_transactionId} => Returned from TryEnlistTransaction()");

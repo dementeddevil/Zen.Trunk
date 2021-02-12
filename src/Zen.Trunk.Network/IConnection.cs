@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
-using Zen.Trunk.Storage.Query;
+using Zen.Trunk.Query;
 
 namespace Zen.Trunk.Network
 {

@@ -21,7 +21,6 @@ namespace Zen.Trunk.Storage
             .Enrich.WithThreadId()
             .Enrich.WithThreadName()
             .WriteTo.Debug()
-            .WriteTo.Trace()
             .CreateLogger();
         private readonly StorageEngineTestFixture _fixture;
         private readonly ILifetimeScope _scope;

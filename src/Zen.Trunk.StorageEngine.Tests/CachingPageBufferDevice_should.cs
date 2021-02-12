@@ -2,6 +2,7 @@
 using System.Text;
 using System.Threading.Tasks;
 using Autofac;
+using FluentAssertions;
 using Moq;
 using Xunit;
 using Zen.Trunk.Storage.Data;

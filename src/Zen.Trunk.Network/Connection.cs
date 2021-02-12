@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using Zen.Trunk.Storage;
 using Zen.Trunk.Storage.Locking;
-using Zen.Trunk.Storage.Query;
+using Zen.Trunk.Query;
 
 namespace Zen.Trunk.Network
 {

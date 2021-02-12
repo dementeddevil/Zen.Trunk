@@ -9,9 +9,10 @@ using System.Transactions;
 using Antlr4.Runtime;
 using Antlr4.Runtime.Misc;
 using Antlr4.Runtime.Tree;
+using Zen.Trunk.Storage;
 using Zen.Trunk.Storage.Data;
 
-namespace Zen.Trunk.Storage.Query
+namespace Zen.Trunk.Query
 {
     /// <summary>
     /// <c>SqlBatchOperationBuilder</c> builds an <see cref="Expression"/> that
@@ -68,7 +69,7 @@ namespace Zen.Trunk.Storage.Query
         protected override Expression DefaultResult => null;
 
         /// <summary>
-        /// Visit a parse tree produced by <see cref="M:Zen.Trunk.Storage.Query.TrunkSqlParser.use_statement" />.
+        /// Visit a parse tree produced by <see cref="M:Zen.Trunk.Query.TrunkSqlParser.use_statement" />.
         /// <para>
         /// The default implementation returns the result of calling <see cref="M:Antlr4.Runtime.Tree.AbstractParseTreeVisitor`1.VisitChildren(Antlr4.Runtime.Tree.IRuleNode)" />
         /// on <paramref name="context" />.
@@ -106,7 +107,7 @@ namespace Zen.Trunk.Storage.Query
 
         /// <summary>
         /// Visit a parse tree produced by the <c>begin_transaction_statement</c>
-        /// labeled alternative in <see cref="M:Zen.Trunk.Storage.Query.TrunkSqlParser.transaction_statement" />.
+        /// labeled alternative in <see cref="M:Zen.Trunk.Query.TrunkSqlParser.transaction_statement" />.
         /// <para>
         /// The default implementation returns the result of calling <see cref="M:Antlr4.Runtime.Tree.AbstractParseTreeVisitor`1.VisitChildren(Antlr4.Runtime.Tree.IRuleNode)" />
         /// on <paramref name="context" />.
@@ -128,7 +129,7 @@ namespace Zen.Trunk.Storage.Query
 
         /// <summary>
         /// Visit a parse tree produced by the <c>commit_transaction_statement</c>
-        /// labeled alternative in <see cref="M:Zen.Trunk.Storage.Query.TrunkSqlParser.transaction_statement" />.
+        /// labeled alternative in <see cref="M:Zen.Trunk.Query.TrunkSqlParser.transaction_statement" />.
         /// <para>
         /// The default implementation returns the result of calling <see cref="M:Antlr4.Runtime.Tree.AbstractParseTreeVisitor`1.VisitChildren(Antlr4.Runtime.Tree.IRuleNode)" />
         /// on <paramref name="context" />.
@@ -144,7 +145,7 @@ namespace Zen.Trunk.Storage.Query
 
         /// <summary>
         /// Visit a parse tree produced by the <c>set_transaction_isolation_level_statement</c>
-        /// labeled alternative in <see cref="M:Zen.Trunk.Storage.Query.TrunkSqlParser.set_special" />.
+        /// labeled alternative in <see cref="M:Zen.Trunk.Query.TrunkSqlParser.set_special" />.
         /// <para>
         /// The default implementation returns the result of calling <see cref="M:Antlr4.Runtime.Tree.AbstractParseTreeVisitor`1.VisitChildren(Antlr4.Runtime.Tree.IRuleNode)" />
         /// on <paramref name="context" />.
@@ -196,7 +197,7 @@ namespace Zen.Trunk.Storage.Query
         }
 
         /// <summary>
-        /// Visit a parse tree produced by <see cref="M:Zen.Trunk.Storage.Query.TrunkSqlParser.create_database" />.
+        /// Visit a parse tree produced by <see cref="M:Zen.Trunk.Query.TrunkSqlParser.create_database" />.
         /// <para>
         /// The default implementation returns the result of calling <see cref="M:Antlr4.Runtime.Tree.AbstractParseTreeVisitor`1.VisitChildren(Antlr4.Runtime.Tree.IRuleNode)" />
         /// on <paramref name="context" />.
@@ -305,7 +306,7 @@ namespace Zen.Trunk.Storage.Query
         }
 
         /// <summary>
-        /// Visit a parse tree produced by <see cref="M:Zen.Trunk.Storage.Query.TrunkSqlParser.create_table" />.
+        /// Visit a parse tree produced by <see cref="M:Zen.Trunk.Query.TrunkSqlParser.create_table" />.
         /// <para>
         /// The default implementation returns the result of calling <see cref="M:Antlr4.Runtime.Tree.AbstractParseTreeVisitor`1.VisitChildren(Antlr4.Runtime.Tree.IRuleNode)" />
         /// on <paramref name="context" />.
@@ -323,7 +324,7 @@ namespace Zen.Trunk.Storage.Query
         }
 
         /// <summary>
-        /// Visit a parse tree produced by <see cref="M:Zen.Trunk.Storage.Query.TrunkSqlParser.table_name" />.
+        /// Visit a parse tree produced by <see cref="M:Zen.Trunk.Query.TrunkSqlParser.table_name" />.
         /// </summary>
         /// <param name="context">The parse tree.</param>
         /// <returns>
@@ -439,7 +440,7 @@ namespace Zen.Trunk.Storage.Query
         }
 
         /// <summary>
-        /// Visit a parse tree produced by <see cref="M:Zen.Trunk.Storage.Query.TrunkSqlParser.id" />.
+        /// Visit a parse tree produced by <see cref="M:Zen.Trunk.Query.TrunkSqlParser.id" />.
         /// </summary>
         /// <param name="context">The parse tree.</param>
         /// <returns>

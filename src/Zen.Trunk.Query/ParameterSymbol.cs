@@ -1,11 +1,11 @@
 ﻿using Zen.Trunk.Storage.Data.Table;
 
-namespace Zen.Trunk.Storage.Query
+namespace Zen.Trunk.Query
 {
     /// <summary>
     /// 
     /// </summary>
-    /// <seealso cref="Zen.Trunk.Storage.Query.Symbol" />
+    /// <seealso cref="Zen.Trunk.Query.Symbol" />
     public class ParameterSymbol : DataTypeSymbol
     {
         /// <summary>

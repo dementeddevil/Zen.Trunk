@@ -19,7 +19,7 @@ namespace Zen.Trunk.VirtualMemory.Tests
                 builder.WithDefaultSystemClock();
             }
 
-            builder.RegisterInstance(new VirtualBufferFactorySettings(StorageConstants.PageBufferSize, 4096, 8));
+            builder.RegisterInstance(new VirtualBufferFactorySettings(8192, 4096, 8));
             builder
                 .WithVirtualBufferFactory()
                 .WithBufferDeviceFactory();

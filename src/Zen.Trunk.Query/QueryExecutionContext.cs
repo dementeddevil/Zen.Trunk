@@ -2,9 +2,10 @@
 using System.Threading;
 using System.Threading.Tasks;
 using System.Transactions;
+using Zen.Trunk.Storage;
 using Zen.Trunk.Storage.Locking;
 
-namespace Zen.Trunk.Storage.Query
+namespace Zen.Trunk.Query
 {
     /// <summary>
     /// 

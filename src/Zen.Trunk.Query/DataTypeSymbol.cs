@@ -1,6 +1,6 @@
 ﻿using Zen.Trunk.Storage.Data.Table;
 
-namespace Zen.Trunk.Storage.Query
+namespace Zen.Trunk.Query
 {
     /// <summary>
     /// 
