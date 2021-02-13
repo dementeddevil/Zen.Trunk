@@ -6,6 +6,7 @@ using System.Diagnostics;
 using Zen.Trunk.Extensions;
 using Zen.Trunk.Storage.Data;
 using Zen.Trunk.VirtualMemory;
+using System.Runtime.CompilerServices;
 
 namespace Zen.Trunk.Storage
 {
@@ -96,9 +97,9 @@ namespace Zen.Trunk.Storage
             /// <summary>
             /// Called whenever an invalid state is encountered.
             /// </summary>
-            protected void InvalidState()
+            protected void InvalidState([CallerMemberName]string callerMethod = null)
             {
-                throw new InvalidOperationException("Not valid in this state.");
+                throw new InvalidOperationException($"{GetType().Name}::{callerMethod} call is invalid in this state.");
             }
             #endregion
         }

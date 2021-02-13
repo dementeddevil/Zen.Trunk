@@ -1321,43 +1321,50 @@ namespace Zen.Trunk.Storage
         private async Task ExecuteCheckPoint()
         {
             Logger.Debug("CheckPoint - Begin");
-
-            // Issue begin checkpoint
-            await GetService<IMasterLogPageDevice>()
-                .WriteEntryAsync(new BeginCheckPointLogEntry())
-                .ConfigureAwait(false);
-
-            Exception exception = null;
             try
             {
-                // Ask data device to dump all unwritten/logged pages to disk
-                // Typically this shouldn't find many pages to write except under
-                //	heavy load.
-                await CachingBufferDevice
-                    .FlushPagesAsync(new FlushCachingDeviceParameters(true))
+                // Issue begin checkpoint
+                Logger.Debug("CheckPoint - Writing begin checkpoint entry");
+                await GetService<IMasterLogPageDevice>()
+                    .WriteEntryAsync(new BeginCheckPointLogEntry())
                     .ConfigureAwait(false);
+
+                Exception exception = null;
+                try
+                {
+                    // Ask data device to dump all unwritten/logged pages to disk
+                    // Typically this shouldn't find many pages to write except under
+                    //	heavy load.
+                    Logger.Debug("CheckPoint - Flushing device pages");
+                    await CachingBufferDevice
+                        .FlushPagesAsync(new FlushCachingDeviceParameters(true))
+                        .ConfigureAwait(false);
+                }
+                catch (Exception error)
+                {
+                    exception = error;
+                }
+
+                // Issue end checkpoint
+                Logger.Debug("CheckPoint - Writing end checkpoint entry");
+                await GetService<IMasterLogPageDevice>()
+                    .WriteEntryAsync(new EndCheckPointLogEntry())
+                    .ConfigureAwait(false);
+
+                // Discard current check-point task
+                _currentCheckPointTask = null;
+
+                // Throw if we have failed
+                if (exception != null)
+                {
+                    Logger.Debug($"CheckPoint - Exit with exception [{exception.Message}]");
+                    throw exception;
+                }
             }
-            catch (Exception error)
+            finally
             {
-                exception = error;
+                Logger.Debug("CheckPoint - Exit");
             }
-
-            // Issue end checkpoint
-            await GetService<IMasterLogPageDevice>()
-                .WriteEntryAsync(new EndCheckPointLogEntry())
-                .ConfigureAwait(false);
-
-            // Discard current check-point task
-            _currentCheckPointTask = null;
-
-            // Throw if we have failed
-            if (exception != null)
-            {
-                Logger.Debug($"CheckPoint - Exit with exception [{exception.Message}]");
-                throw exception;
-            }
-
-            Logger.Debug("CheckPoint - Exit");
         }
 
         private IFileGroupDevice GetPrimaryFileGroupDevice()
