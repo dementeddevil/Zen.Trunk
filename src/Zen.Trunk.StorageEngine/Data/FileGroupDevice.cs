@@ -1082,7 +1082,7 @@ namespace Zen.Trunk.Storage.Data
             HookupPageSite(request.Message.Page);
             var pageBufferDevice = GetService<ICachingPageBufferDevice>();
             request.Message.Page.PreInitInternal();
-            using (var scope = new StatefulBufferScope<IPageBuffer>(
+            using (var scope = new PageBufferScope<IPageBuffer>(
                 await pageBufferDevice.InitPageAsync(pageId).ConfigureAwait(false)))
             {
                 // Stage 6: Setup logical id in page buffer (LogicalPage derived only)
@@ -1132,7 +1132,7 @@ namespace Zen.Trunk.Storage.Data
             HookupPageSite(request.Message.Page);
             var pageBufferDevice = GetService<ICachingPageBufferDevice>();
             request.Message.Page.PreLoadInternal();
-            using (var scope = new StatefulBufferScope<IPageBuffer>(
+            using (var scope = new PageBufferScope<IPageBuffer>(
                 await pageBufferDevice.LoadPageAsync(virtualPageId).ConfigureAwait(false)))
             {
                 // Stage 4: Setup logical page identifier in page buffer (LogicalPage derived only)

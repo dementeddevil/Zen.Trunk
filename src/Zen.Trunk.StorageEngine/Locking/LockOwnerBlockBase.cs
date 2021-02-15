@@ -145,10 +145,10 @@ namespace Zen.Trunk.Storage.Locking
 				return;
 			}
 
-			await _sync
-                .ExecuteAsync(
-				    async () =>
-				    {
+			//await _sync
+   //             .ExecuteAsync(
+			//	    async () =>
+			//	    {
 					    if (lockType == DataLockType.Shared && !_readLocks.ContainsKey(key))
 					    {
 						    await LockItemSharedAsync(key, timeout).ConfigureAwait(false);
@@ -161,8 +161,8 @@ namespace Zen.Trunk.Storage.Locking
 					    {
 						    await LockItemExclusiveAsync(key, timeout).ConfigureAwait(false);
 					    }
-				    })
-                .ConfigureAwait(false);
+				    //})
+        //        .ConfigureAwait(false);
 		}
 
 		/// <summary>
@@ -248,16 +248,16 @@ namespace Zen.Trunk.Storage.Locking
 			ThrowIfDisposed();
 
 			// Locate id in tables
-			await _sync.ExecuteAsync(
-				async () =>
-				{
+			//await _sync.ExecuteAsync(
+			//	async () =>
+			//	{
 					if (await _readLocks.TryReleaseLockAsync(key).ConfigureAwait(false) ||
 						await _updateLocks.TryReleaseLockAsync(key).ConfigureAwait(false) ||
 						await _writeLocks.TryReleaseLockAsync(key).ConfigureAwait(false))
 					{
 						--_ownerLockCount;
 					}
-				}).ConfigureAwait(false);
+				//}).ConfigureAwait(false);
 		}
 
 		/// <summary>

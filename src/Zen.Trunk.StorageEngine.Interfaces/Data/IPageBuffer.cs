@@ -1,10 +1,20 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.IO;
+using System.Threading.Tasks;
 using Zen.Trunk.VirtualMemory;
 
 namespace Zen.Trunk.Storage.Data
 {
-    public interface IPageBuffer : IStatefulBuffer
+    public interface IPageBuffer : IDisposable
     {
+        int BufferSize { get; }
+
+        bool CanFree { get; }
+
+        bool IsDirty { get; }
+
+        VirtualPageId PageId { get; }
+
         bool IsDeleted { get; set; }
 
         bool IsNew { get; set; }
@@ -16,6 +26,16 @@ namespace Zen.Trunk.Storage.Data
         LogicalPageId LogicalPageId { get; set; }
 
         long Timestamp { get; set; }
+
+        void AddRef();
+
+        void Release();
+
+        Task SetDirtyAsync();
+
+        Task SetFreeAsync();
+
+        Stream GetBufferStream(int offset, int count, bool writable);
 
         void EnlistInTransaction();
 

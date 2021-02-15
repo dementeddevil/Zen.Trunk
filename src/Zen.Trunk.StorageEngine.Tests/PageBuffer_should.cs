@@ -37,18 +37,18 @@ namespace Zen.Trunk.Storage
                     {
                         pageBuffer.AddRef();
 
-                        Assert.True(pageBuffer.CurrentStateType == PageBuffer.PageBufferStateType.Free);
+                        Assert.True(pageBuffer.CurrentStateType == PageBuffer.StateType.Free);
 
                         // Execute buffer actions
                         await pageBuffer
                             .InitAsync(new VirtualPageId(DeviceId.Zero, 0), new LogicalPageId(1))
                             .ConfigureAwait(true);
-                        Assert.True(pageBuffer.CurrentStateType == PageBuffer.PageBufferStateType.Allocated);
+                        Assert.True(pageBuffer.CurrentStateType == PageBuffer.StateType.Allocated);
 
                         await pageBuffer
                             .SetFreeAsync()
                             .ConfigureAwait(true);
-                        Assert.True(pageBuffer.CurrentStateType == PageBuffer.PageBufferStateType.Free);
+                        Assert.True(pageBuffer.CurrentStateType == PageBuffer.StateType.Free);
 
                         // Release buffer and verify it has disposed
                         pageBuffer.Release();
@@ -76,23 +76,23 @@ namespace Zen.Trunk.Storage
                     {
                         pageBuffer.AddRef();
 
-                        Assert.True(pageBuffer.CurrentStateType == PageBuffer.PageBufferStateType.Free);
+                        Assert.True(pageBuffer.CurrentStateType == PageBuffer.StateType.Free);
 
                         // Execute buffer actions
                         await pageBuffer
                             .RequestLoadAsync(new VirtualPageId(DeviceId.Zero, 0), new LogicalPageId(1))
                             .ConfigureAwait(true);
-                        Assert.True(pageBuffer.CurrentStateType == PageBuffer.PageBufferStateType.PendingLoad);
+                        Assert.True(pageBuffer.CurrentStateType == PageBuffer.StateType.PendingLoad);
 
                         await pageBuffer
                             .LoadAsync()
                             .ConfigureAwait(true);
-                        Assert.True(pageBuffer.CurrentStateType == PageBuffer.PageBufferStateType.Allocated);
+                        Assert.True(pageBuffer.CurrentStateType == PageBuffer.StateType.Allocated);
 
                         await pageBuffer
                             .SetFreeAsync()
                             .ConfigureAwait(true);
-                        Assert.True(pageBuffer.CurrentStateType == PageBuffer.PageBufferStateType.Free);
+                        Assert.True(pageBuffer.CurrentStateType == PageBuffer.StateType.Free);
 
                         // Release buffer and verify it has disposed
                         pageBuffer.Release();
@@ -121,16 +121,16 @@ namespace Zen.Trunk.Storage
                     using (var pageBuffer = new PageBuffer(device))
                     {
                         pageBuffer.AddRef();
-                        Assert.Equal(PageBuffer.PageBufferStateType.Free, pageBuffer.CurrentStateType);
+                        Assert.Equal(PageBuffer.StateType.Free, pageBuffer.CurrentStateType);
 
                         // Execute buffer actions
                         await pageBuffer
                             .RequestLoadAsync(new VirtualPageId(DeviceId.Zero, 0), new LogicalPageId(1))
                             .ConfigureAwait(true);
-                        Assert.Equal(PageBuffer.PageBufferStateType.PendingLoad, pageBuffer.CurrentStateType);
+                        Assert.Equal(PageBuffer.StateType.PendingLoad, pageBuffer.CurrentStateType);
 
                         await pageBuffer.LoadAsync().ConfigureAwait(true);
-                        Assert.Equal(PageBuffer.PageBufferStateType.Allocated, pageBuffer.CurrentStateType);
+                        Assert.Equal(PageBuffer.StateType.Allocated, pageBuffer.CurrentStateType);
 
                         pageBuffer.EnlistInTransaction();
 
@@ -142,18 +142,18 @@ namespace Zen.Trunk.Storage
                             stream.WriteByte(10);
                             stream.WriteByte(100);
                         }
-                        Assert.True(pageBuffer.CurrentStateType != PageBuffer.PageBufferStateType.Dirty);
+                        Assert.True(pageBuffer.CurrentStateType != PageBuffer.StateType.Dirty);
                         await pageBuffer.SetDirtyAsync().ConfigureAwait(true);
-                        Assert.True(pageBuffer.CurrentStateType == PageBuffer.PageBufferStateType.Dirty);
+                        Assert.True(pageBuffer.CurrentStateType == PageBuffer.StateType.Dirty);
 
                         await TrunkTransactionContext.CommitAsync().ConfigureAwait(true);
-                        Assert.Equal(PageBuffer.PageBufferStateType.AllocatedWritable, pageBuffer.CurrentStateType);
+                        Assert.Equal(PageBuffer.StateType.AllocatedWritable, pageBuffer.CurrentStateType);
 
                         await pageBuffer.SaveAsync().ConfigureAwait(true);
-                        Assert.Equal(PageBuffer.PageBufferStateType.Allocated, pageBuffer.CurrentStateType);
+                        Assert.Equal(PageBuffer.StateType.Allocated, pageBuffer.CurrentStateType);
 
                         await pageBuffer.SetFreeAsync().ConfigureAwait(true);
-                        Assert.Equal(PageBuffer.PageBufferStateType.Free, pageBuffer.CurrentStateType);
+                        Assert.Equal(PageBuffer.StateType.Free, pageBuffer.CurrentStateType);
 
                         // Release buffer and verify it has disposed
                         pageBuffer.Release();

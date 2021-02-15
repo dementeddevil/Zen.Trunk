@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -914,13 +915,12 @@ namespace Zen.Trunk.Storage.Data
             {
                 await cacheInfo.BufferInternal.SaveAsync().ConfigureAwait(false);
             }
-            catch (OperationCanceledException)
+            catch (Exception e)
             {
                 // ignored
-            }
-            catch (Exception)
-            {
-                // ignored
+                Debug.WriteLine(
+                    "SaveBufferCacheInfo failed - likely saved by another thread [{ExceptionMessage}]",
+                    e.Message);
             }
         }
 

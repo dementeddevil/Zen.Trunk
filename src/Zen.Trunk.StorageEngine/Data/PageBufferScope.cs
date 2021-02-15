@@ -6,20 +6,20 @@
 
 using System;
 
-namespace Zen.Trunk.Storage
+namespace Zen.Trunk.Storage.Data
 {
 	/// <summary>
 	/// <c>StatefulBufferScope</c> is used to manage the lifetime of a buffer.
 	/// </summary>
 	// ReSharper disable once ClassWithVirtualMembersNeverInherited.Global
-	public class StatefulBufferScope<TBufferType> : IDisposable
-		where TBufferType : class, IStatefulBuffer
+	public class PageBufferScope<TBufferType> : IDisposable
+		where TBufferType : class, IPageBuffer
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="StatefulBufferScope{TBufferType}"/> class.
+        /// Initializes a new instance of the <see cref="PageBufferScope{TBufferType}"/> class.
         /// </summary>
         /// <param name="buffer">The buffer.</param>
-        public StatefulBufferScope(TBufferType buffer)
+        public PageBufferScope(TBufferType buffer)
 		{
             if (buffer == null)
             {

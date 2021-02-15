@@ -38,9 +38,9 @@ namespace Zen.Trunk.Storage
                             .Enrich.WithThreadId()
                             .Enrich.WithThreadName()
                             .Enrich.With<TransactionEnricher>()
-                            .WriteTo.ApplicationInsights(
-                                serviceProvider.Resolve<TelemetryConfiguration>(),
-                                TelemetryConverter.Events)
+                            //.WriteTo.ApplicationInsights(
+                            //    serviceProvider.Resolve<TelemetryConfiguration>(),
+                            //    TelemetryConverter.Events)
                             .CreateLogger();
                         return eventLogger;
                     })

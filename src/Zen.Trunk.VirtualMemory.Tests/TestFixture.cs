@@ -65,11 +65,11 @@ namespace Zen.Trunk.VirtualMemory.Tests
                 .Enrich.WithThreadId()
                 .Enrich.WithThreadName()
                 .MinimumLevel.Verbose()
-                .WriteTo.Debug()
+                .WriteTo.Debug(Serilog.Events.LogEventLevel.Verbose, "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Properties}{NewLine}{Exception}");
                 //.WriteTo.Trace()
-                .WriteTo.ApplicationInsights(
-                    telemetryConfiguration,
-                    TelemetryConverter.Traces);
+                //.WriteTo.ApplicationInsights(
+                //    telemetryConfiguration,
+                //    TelemetryConverter.Traces);
         }
 
         private ILifetimeScope InitializeScope()
