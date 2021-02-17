@@ -11,8 +11,8 @@ namespace Zen.Trunk.Storage.Locking
 	/// </summary>
 	/// <remarks>
 	/// <para>
-	/// This object maintains dictionaries of root locks, object schema locks,
-	/// distribution lock owner blocks and data lock owner blocks.
+	/// This object maintains dictionaries of file-group locks, object schema
+	/// locks, distribution lock owner blocks and data lock owner blocks.
 	/// </para>
 	/// <para>
 	/// This class is the single entrypoint for acquiring page locks so that
@@ -27,7 +27,7 @@ namespace Zen.Trunk.Storage.Locking
 	{
 		#region Private Fields
 		private readonly IDatabaseLockManager _lockManager;
-		private readonly ConcurrentDictionary<FileGroupId, IFileGroupLock> _rootLocks;
+		private readonly ConcurrentDictionary<FileGroupId, IFileGroupLock> _fileGroupLocks;
 		private readonly ConcurrentDictionary<ObjectId, ISchemaLock> _schemaLocks;
 		private readonly ConcurrentDictionary<VirtualPageId, DistributionLockOwnerBlock> _distributionOwnerBlocks;
 		private readonly ConcurrentDictionary<ObjectId, DataLockOwnerBlock> _dataOwnerBlocks;
@@ -42,7 +42,7 @@ namespace Zen.Trunk.Storage.Locking
 		public TransactionLockOwnerBlock(IDatabaseLockManager lockManager)
 		{
 			_lockManager = lockManager;
-			_rootLocks = new ConcurrentDictionary<FileGroupId, IFileGroupLock>();
+			_fileGroupLocks = new ConcurrentDictionary<FileGroupId, IFileGroupLock>();
 			_schemaLocks = new ConcurrentDictionary<ObjectId, ISchemaLock>();
 			_distributionOwnerBlocks = new ConcurrentDictionary<VirtualPageId, DistributionLockOwnerBlock>();
 			_dataOwnerBlocks = new ConcurrentDictionary<ObjectId, DataLockOwnerBlock>();
@@ -51,19 +51,19 @@ namespace Zen.Trunk.Storage.Locking
 
 		#region Public Methods
 		/// <summary>
-		/// Gets the original create root lock.
+		/// Gets (or creates) a file-group lock.
 		/// </summary>
 		/// <param name="fileGroupId">The file group unique identifier.</param>
 		/// <returns></returns>
-		public IFileGroupLock GetOrCreateRootLock(FileGroupId fileGroupId)
+		public IFileGroupLock GetOrCreateFileGroupLock(FileGroupId fileGroupId)
 		{
-			return _rootLocks.GetOrAdd(
+			return _fileGroupLocks.GetOrAdd(
 				fileGroupId,
 				id => _lockManager.GetFileGroupLock(id));
 		}
 
 		/// <summary>
-		/// Gets the original create schema lock.
+		/// Gets (or creates) a schema lock.
 		/// </summary>
 		/// <param name="objectId">The object unique identifier.</param>
 		/// <returns></returns>
@@ -75,25 +75,23 @@ namespace Zen.Trunk.Storage.Locking
 		}
 
 		/// <summary>
-		/// Gets a <see cref="DistributionLockOwnerBlock" /> object associated with the
-		/// specified Object ID.
+		/// Gets (or creates) a distribution lock owner block.
 		/// </summary>
-		/// <param name="virtualId">The virtual unique identifier.</param>
+		/// <param name="virtualPageId">The virtual page unique identifier.</param>
 		/// <param name="maxExtentLocks">The maximum extent locks.</param>
 		/// <returns>
 		/// A <see cref="DistributionLockOwnerBlock"/> for the distribution page.
 		/// </returns>
 		public DistributionLockOwnerBlock GetOrCreateDistributionLockOwnerBlock(
-		    VirtualPageId virtualId, uint maxExtentLocks = 10)
+		    VirtualPageId virtualPageId, uint maxExtentLocks = 10)
 		{
 			return _distributionOwnerBlocks.GetOrAdd(
-				virtualId,
+				virtualPageId,
 				id => new DistributionLockOwnerBlock(_lockManager, id, maxExtentLocks));
 		}
 
 		/// <summary>
-		/// Gets a <see cref="DataLockOwnerBlock" /> object associated with the
-		/// specified Object ID.
+		/// Gets (or creates) a data lock owner block.
 		/// </summary>
 		/// <param name="objectId">Object ID</param>
 		/// <param name="maxPageLocks">The maximum page locks.</param>
@@ -117,10 +115,10 @@ namespace Zen.Trunk.Storage.Locking
 		/// </remarks>
 		public async Task ReleaseAllAsync()
 		{
-			while (_rootLocks.Count > 0)
+			while (_fileGroupLocks.Count > 0)
 			{
-                if (_rootLocks.TryRemove(
-                    _rootLocks.Keys.First(),
+                if (_fileGroupLocks.TryRemove(
+                    _fileGroupLocks.Keys.First(),
                     out var lockObject))
                 {
                     await lockObject.UnlockAsync().ConfigureAwait(false);

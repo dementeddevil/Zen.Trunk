@@ -339,8 +339,8 @@ namespace Zen.Trunk.Storage.Locking
             // Retrieve connection id and create request object.
             // Will throw if no connection information is available for the
             //  calling thread.
-            var lockOwnerIdent = GetThreadLockOwnerIdentityAndThrowIfMissing();
-            return HasLockAsync(lockOwnerIdent, lockType);
+            var lockOwner = GetThreadLockOwnerIdentityAndThrowIfMissing();
+            return HasLockAsync(lockOwner, lockType);
         }
 
         /// <summary>
@@ -490,43 +490,6 @@ namespace Zen.Trunk.Storage.Locking
         protected virtual void OnFinalRelease()
         {
             FinalRelease?.Invoke(this, new EventArgs());
-        }
-
-        /// <summary>
-        /// Called to determine whether the lock can be acquired by the
-        /// specified <see cref="T:AcquireLock"/> request.
-        /// </summary>
-        /// <param name="request">The request.</param>
-        /// <returns></returns>
-        protected bool CanAcquireLock(AcquireLock request)
-        {
-            return _currentState.CanAcquireLock(this, request);
-        }
-
-        /// <summary>
-        /// Adds or updates the active request for the request's lock owner identity.
-        /// </summary>
-        /// <param name="request">The request.</param>
-        protected void UpsertActiveRequest(AcquireLock request)
-        {
-            var activeLockOwner = GetActiveLockOwner(request.LockOwner);
-
-            var addRefLock = false;
-            if (activeLockOwner != null)
-            {
-                _activeRequests[activeLockOwner.Value] = request;
-            }
-            else
-            {
-                _activeRequests.Add(request.LockOwner, request);
-                addRefLock = true;
-            }
-
-            if (!request.TrySetResult(addRefLock))
-            {
-                // Original request must have been cancelled or timed-out
-                _activeRequests.Remove(request.LockOwner);
-            }
         }
         #endregion
 
@@ -702,6 +665,11 @@ namespace Zen.Trunk.Storage.Locking
             }
         }
 
+        private bool CanAcquireLock(AcquireLock request)
+        {
+            return _currentState.CanAcquireLock(this, request);
+        }
+
         private LockOwnerIdentity GetThreadLockOwnerIdentity()
         {
             var sessionId = CurrentSessionId;
@@ -738,15 +706,6 @@ namespace Zen.Trunk.Storage.Locking
             return null;
         }
 
-        /// <summary>
-        /// Gets the current <typeparamref name="TLockTypeEnum"/> that
-        /// represents the current state of the lock.
-        /// </summary>
-        /// <returns></returns>
-        /// <remarks>
-        /// The current lock state is determined by the <see cref="T:AcquireLock"/>
-        /// objects in the active request list.
-        /// </remarks>
         private TLockTypeEnum GetActiveLockType()
         {
             var lockType = NoneLockType;
@@ -823,6 +782,28 @@ namespace Zen.Trunk.Storage.Locking
             // Lock is compatible so add to active list
             UpsertActiveRequest(request);
             return true;
+        }
+
+        private void UpsertActiveRequest(AcquireLock request)
+        {
+            var activeLockOwner = GetActiveLockOwner(request.LockOwner);
+
+            var addRefLock = false;
+            if (activeLockOwner != null)
+            {
+                _activeRequests[activeLockOwner.Value] = request;
+            }
+            else
+            {
+                _activeRequests.Add(request.LockOwner, request);
+                addRefLock = true;
+            }
+
+            if (!request.TrySetResult(addRefLock))
+            {
+                // Original request must have been cancelled or timed-out
+                _activeRequests.Remove(request.LockOwner);
+            }
         }
 
         private bool IsDowngradedLock(TLockTypeEnum currentLock, TLockTypeEnum newLock)

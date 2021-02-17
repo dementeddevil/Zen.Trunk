@@ -502,8 +502,7 @@ namespace Zen.Trunk.Storage.Locking
 				}
 			}
 
-			// Technically we can only obtain an exclusive lock via an update
-			//	lock...
+			// Technically we can only obtain an exclusive lock via an update lock...
 			// However we support attempts to gain an exclusive lock directly
 			IDataLock lockObj;
 			if (_updateLocks.ContainsKey(key))

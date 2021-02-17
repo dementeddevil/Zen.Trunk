@@ -229,7 +229,7 @@ namespace Zen.Trunk.Storage.Data
 
         #region Private Properties
         private IFileGroupLock FileGroupRootLock =>
-            TransactionLockOwnerBlock?.GetOrCreateRootLock(FileGroupId);
+            TransactionLockOwnerBlock?.GetOrCreateFileGroupLock(FileGroupId);
         #endregion
 
         #region Public Methods
