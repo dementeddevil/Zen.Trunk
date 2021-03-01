@@ -231,7 +231,6 @@ namespace Zen.Trunk.Storage.Data.Audio
                 SchemaFirstLogicalPageId = _schemaPage.LogicalPageId;
                 SchemaLastLogicalPageId = _schemaPage.LogicalPageId;
                 SchemaRootPage.WaveFormat = waveReader.WaveFormat;
-
             }
             else if (SchemaRootPage.WaveFormat != waveReader.WaveFormat)
             {

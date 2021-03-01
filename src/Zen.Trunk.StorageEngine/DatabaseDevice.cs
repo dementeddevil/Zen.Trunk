@@ -1298,11 +1298,8 @@ namespace Zen.Trunk.Storage
             return fileGroupDevice.AddTableIndexAsync(request.Message);
         }
 
-        // ReSharper disable once UnusedParameter.Local
         private Task<bool> IssueCheckPointHandlerAsync(IssueCheckPointRequest request)
         {
-            var tcs = new TaskCompletionSource<bool>();
-
             var current = _currentCheckPointTask;
             if (current == null)
             {
@@ -1312,19 +1309,25 @@ namespace Zen.Trunk.Storage
             }
 
             // Checkpoint is in progress so attach to current operation
-            current.ContinueWith(t => tcs.SetResult(true), TaskContinuationOptions.OnlyOnRanToCompletion | TaskContinuationOptions.ExecuteSynchronously);
-            current.ContinueWith(t => tcs.SetFromTask(t), TaskContinuationOptions.NotOnRanToCompletion | TaskContinuationOptions.ExecuteSynchronously);
+            current.ContinueWith(
+                t => request.SetResult(true),
+                TaskContinuationOptions.OnlyOnRanToCompletion |
+                TaskContinuationOptions.ExecuteSynchronously);
+            current.ContinueWith(
+                t => request.SetFromTask(t),
+                TaskContinuationOptions.NotOnRanToCompletion |
+                TaskContinuationOptions.ExecuteSynchronously);
 
-            return tcs.Task;
+            return request.Task;
         }
 
         private async Task ExecuteCheckPoint()
         {
-            Logger.Debug("CheckPoint - Begin");
+            Logger.Debug("ExecuteCheckPoint - Begin");
             try
             {
                 // Issue begin checkpoint
-                Logger.Debug("CheckPoint - Writing begin checkpoint entry");
+                Logger.Debug("ExecuteCheckPoint - Writing begin checkpoint entry");
                 await GetService<IMasterLogPageDevice>()
                     .WriteEntryAsync(new BeginCheckPointLogEntry())
                     .ConfigureAwait(false);
@@ -1335,7 +1338,7 @@ namespace Zen.Trunk.Storage
                     // Ask data device to dump all unwritten/logged pages to disk
                     // Typically this shouldn't find many pages to write except under
                     //	heavy load.
-                    Logger.Debug("CheckPoint - Flushing device pages");
+                    Logger.Debug("ExecuteCheckPoint - Flushing device pages");
                     await CachingBufferDevice
                         .FlushPagesAsync(new FlushCachingDeviceParameters(true))
                         .ConfigureAwait(false);
@@ -1346,7 +1349,7 @@ namespace Zen.Trunk.Storage
                 }
 
                 // Issue end checkpoint
-                Logger.Debug("CheckPoint - Writing end checkpoint entry");
+                Logger.Debug("ExecuteCheckPoint - Writing end checkpoint entry");
                 await GetService<IMasterLogPageDevice>()
                     .WriteEntryAsync(new EndCheckPointLogEntry())
                     .ConfigureAwait(false);
@@ -1357,13 +1360,13 @@ namespace Zen.Trunk.Storage
                 // Throw if we have failed
                 if (exception != null)
                 {
-                    Logger.Debug($"CheckPoint - Exit with exception [{exception.Message}]");
+                    Logger.Debug($"ExecuteCheckPoint - Exit with exception [{exception.Message}]");
                     throw exception;
                 }
             }
             finally
             {
-                Logger.Debug("CheckPoint - Exit");
+                Logger.Debug("ExecuteCheckPoint - Exit");
             }
         }
 

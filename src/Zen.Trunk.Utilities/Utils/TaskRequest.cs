@@ -15,16 +15,9 @@ namespace Zen.Trunk.Utils
         /// <summary>
         /// Initializes a new instance of the <see cref="TaskRequest{TResult}"/> class.
         /// </summary>
-        public TaskRequest()
-		{
-		}
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="TaskRequest{TResult}"/> class.
-        /// </summary>
-        /// <param name="createOptions">The create options.</param>
-        public TaskRequest(TaskCreationOptions createOptions)
-			: base(createOptions)
+        /// <param name="creationOptions">The creation options.</param>
+        public TaskRequest(TaskCreationOptions creationOptions = TaskCreationOptions.RunContinuationsAsynchronously)
+			: base(creationOptions)
 		{
 		}
 
@@ -44,16 +37,9 @@ namespace Zen.Trunk.Utils
         /// <summary>
         /// Initializes a new instance of the <see cref="TaskRequest{TMessage, TResult}"/> class.
         /// </summary>
-        public TaskRequest()
-		{
-		}
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="TaskRequest{TMessage, TResult}"/> class.
-        /// </summary>
-        /// <param name="createOptions">The create options.</param>
-        public TaskRequest(TaskCreationOptions createOptions)
-			: base(createOptions)
+        /// <param name="creationOptions">The creation options.</param>
+        public TaskRequest(TaskCreationOptions creationOptions = TaskCreationOptions.RunContinuationsAsynchronously)
+			: base(creationOptions)
 		{
 		}
 
@@ -61,18 +47,9 @@ namespace Zen.Trunk.Utils
         /// Initializes a new instance of the <see cref="TaskRequest{TMessage, TResult}"/> class.
         /// </summary>
         /// <param name="message">The message.</param>
-        public TaskRequest(TMessage message)
-		{
-			Message = message;
-		}
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="TaskRequest{TMessage, TResult}"/> class.
-        /// </summary>
-        /// <param name="message">The message.</param>
-        /// <param name="createOptions">The create options.</param>
-        public TaskRequest(TMessage message, TaskCreationOptions createOptions)
-			: base(createOptions)
+        /// <param name="creationOptions">The creation options.</param>
+        public TaskRequest(TMessage message, TaskCreationOptions creationOptions = TaskCreationOptions.RunContinuationsAsynchronously)
+			: base(creationOptions)
 		{
 			Message = message;
 		}

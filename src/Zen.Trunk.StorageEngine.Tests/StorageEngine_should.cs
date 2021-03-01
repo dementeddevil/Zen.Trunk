@@ -32,7 +32,7 @@ namespace Zen.Trunk.Storage
 
             using (var childScope = _fixture.Scope.BeginLifetimeScope())
             {
-                using (var dbDevice = new DatabaseDevice(StorageEngineTestFixture.PrimaryDatabaseId))
+                using (var dbDevice = new DatabaseDevice(new DatabaseId(2)))
                 {
                     dbDevice.InitialiseDeviceLifetimeScope(childScope);
 
@@ -72,7 +72,7 @@ namespace Zen.Trunk.Storage
 
             using (var childScope = _fixture.Scope.BeginLifetimeScope())
             {
-                using (var dbDevice = new DatabaseDevice(StorageEngineTestFixture.PrimaryDatabaseId))
+                using (var dbDevice = new DatabaseDevice(new DatabaseId(3)))
                 {
                     dbDevice.InitialiseDeviceLifetimeScope(childScope);
                     //dbDevice.BeginTransaction(); // transaction scope here is unnecessary as it is done inside open call on DatabaseDevice
@@ -209,7 +209,7 @@ namespace Zen.Trunk.Storage
 
             using (var childScope = _fixture.Scope.BeginLifetimeScope())
             {
-                using (var dbDevice = new DatabaseDevice(StorageEngineTestFixture.PrimaryDatabaseId))
+                using (var dbDevice = new DatabaseDevice(new DatabaseId(4)))
                 {
                     try
                     {
@@ -305,7 +305,7 @@ namespace Zen.Trunk.Storage
 
             using (var childScope = _fixture.Scope.BeginLifetimeScope())
             {
-                using (var dbDevice = new DatabaseDevice(StorageEngineTestFixture.PrimaryDatabaseId))
+                using (var dbDevice = new DatabaseDevice(new DatabaseId(5)))
                 {
                     try
                     {
@@ -494,7 +494,7 @@ namespace Zen.Trunk.Storage
 
             using (var childScope = _fixture.Scope.BeginLifetimeScope())
             {
-                using (var dbDevice = new DatabaseDevice(StorageEngineTestFixture.PrimaryDatabaseId))
+                using (var dbDevice = new DatabaseDevice(new DatabaseId(6)))
                 {
                     try
                     {

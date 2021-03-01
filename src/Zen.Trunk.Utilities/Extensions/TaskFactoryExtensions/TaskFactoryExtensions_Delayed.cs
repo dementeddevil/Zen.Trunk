@@ -256,7 +256,7 @@ namespace Zen.Trunk.Extensions.TaskFactoryExtensions
             }
 
             // Create the task that will be returned; workaround for no ContinueWith(..., state) overload.
-            var result = new TaskCompletionSource<object>(state);
+            var result = new TaskCompletionSource<object>(state, TaskCreationOptions.RunContinuationsAsynchronously);
 
             // Delay a continuation to run the action
             factory
@@ -472,7 +472,7 @@ namespace Zen.Trunk.Extensions.TaskFactoryExtensions
             }
 
             // Create the task that will be returned
-            var result = new TaskCompletionSource<TResult>(state);
+            var result = new TaskCompletionSource<TResult>(state, TaskCreationOptions.RunContinuationsAsynchronously);
             Timer timer = null;
 
             // Create the task that will run the user's function

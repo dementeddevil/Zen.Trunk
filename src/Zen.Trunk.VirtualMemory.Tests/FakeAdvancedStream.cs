@@ -52,7 +52,7 @@ namespace Zen.Trunk.VirtualMemory.Tests
 
         public override IAsyncResult BeginReadScatter(IVirtualBuffer[] buffers, AsyncCallback callback, object state)
         {
-            var tcs = new TaskCompletionSource<int>(state);
+            var tcs = new TaskCompletionSource<int>(state, TaskCreationOptions.RunContinuationsAsynchronously);
             ReadScatterAsync(buffers)
                 .ContinueWith(
                     t =>
@@ -83,7 +83,7 @@ namespace Zen.Trunk.VirtualMemory.Tests
 
         public override IAsyncResult BeginWriteGather(IVirtualBuffer[] buffers, AsyncCallback callback, object state)
         {
-            var tcs = new TaskCompletionSource<bool>(state);
+            var tcs = new TaskCompletionSource<bool>(state, TaskCreationOptions.RunContinuationsAsynchronously);
             WriteGatherAsync(buffers)
                 .ContinueWith(
                     t =>

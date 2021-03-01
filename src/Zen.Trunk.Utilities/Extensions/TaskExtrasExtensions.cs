@@ -82,7 +82,7 @@ namespace Zen.Trunk.Extensions
                 throw new ArgumentNullException(nameof(task));
             }
 
-            var tcs = new TaskCompletionSource<object>(state);
+            var tcs = new TaskCompletionSource<object>(state, TaskCreationOptions.RunContinuationsAsynchronously);
             task.ContinueWith(_ =>
             {
                 tcs.SetFromTask(task);
@@ -106,7 +106,7 @@ namespace Zen.Trunk.Extensions
                 throw new ArgumentNullException(nameof(task));
             }
 
-            var tcs = new TaskCompletionSource<TResult>(state);
+            var tcs = new TaskCompletionSource<TResult>(state, TaskCreationOptions.RunContinuationsAsynchronously);
             task.ContinueWith(_ =>
             {
                 tcs.SetFromTask(task);
@@ -274,7 +274,7 @@ namespace Zen.Trunk.Extensions
         /// <returns>The new Task that may time out.</returns>
         public static Task WithTimeout(this Task task, TimeSpan timeout)
         {
-            var result = new TaskCompletionSource<object>(task.AsyncState);
+            var result = new TaskCompletionSource<object>(task.AsyncState, TaskCreationOptions.RunContinuationsAsynchronously);
             var timer = new Timer(
                 state => ((TaskCompletionSource<object>)state).TrySetCanceled(),
                 result,
@@ -300,7 +300,7 @@ namespace Zen.Trunk.Extensions
         /// <returns>The new Task that may time out.</returns>
         public static Task<TResult> WithTimeout<TResult>(this Task<TResult> task, TimeSpan timeout)
         {
-            var result = new TaskCompletionSource<TResult>(task.AsyncState);
+            var result = new TaskCompletionSource<TResult>(task.AsyncState, TaskCreationOptions.RunContinuationsAsynchronously);
             var timer = new Timer(
                 state => ((TaskCompletionSource<TResult>)state).TrySetCanceled(),
                 result,
