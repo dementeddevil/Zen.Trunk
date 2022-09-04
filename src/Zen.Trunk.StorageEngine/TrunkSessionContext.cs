@@ -116,7 +116,7 @@ namespace Zen.Trunk.Storage
             {
                 var result = await session
                     .CommitAsync()
-                    .WithTimeout(session.DefaultTransactionTimeout)
+                    .WithTimeout(session.TransactionTimeout)
                     .ConfigureAwait(false);
                 if (result)
                 {
@@ -135,7 +135,7 @@ namespace Zen.Trunk.Storage
             {
                 var result = await session
                     .RollbackAsync()
-                    .WithTimeout(session.DefaultTransactionTimeout)
+                    .WithTimeout(session.TransactionTimeout)
                     .ConfigureAwait(false);
                 if (result)
                 {

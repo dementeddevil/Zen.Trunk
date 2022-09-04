@@ -24,7 +24,7 @@ namespace Zen.Trunk.Storage.Locking
         /// <value>
         /// The timeout.
         /// </value>
-        TimeSpan DefaultTransactionTimeout { get; }
+        TimeSpan TransactionTimeout { get; }
 
         /// <summary>
         /// Switches the shared database lock.

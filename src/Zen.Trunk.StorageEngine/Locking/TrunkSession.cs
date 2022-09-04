@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Serilog;
+using Zen.Trunk.Extensions;
 
 namespace Zen.Trunk.Storage.Locking
 {
@@ -19,10 +20,10 @@ namespace Zen.Trunk.Storage.Locking
         private bool _isCompleting;
         private bool _isCompleted;
 
-        public TrunkSession(SessionId sessionId, TimeSpan defaultTransactionTimeout)
+        public TrunkSession(SessionId sessionId, TimeSpan transactionTimeout)
         {
             SessionId = sessionId;
-            DefaultTransactionTimeout = defaultTransactionTimeout;
+            TransactionTimeout = transactionTimeout;
         }
 
         /// <summary>
@@ -34,12 +35,12 @@ namespace Zen.Trunk.Storage.Locking
         public SessionId SessionId { get; }
 
         /// <summary>
-        /// Gets the default transaction timeout.
+        /// Gets the transaction timeout.
         /// </summary>
         /// <value>
-        /// The default transaction timeout.
+        /// The transaction timeout.
         /// </value>
-        public TimeSpan DefaultTransactionTimeout { get; }
+        public TimeSpan TransactionTimeout { get; }
 
         /// <summary>
         /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
@@ -99,7 +100,9 @@ namespace Zen.Trunk.Storage.Locking
         {
             CheckNotCompleted();
 
-            await ReleaseAsync().ConfigureAwait(false);
+            await ReleaseAsync()
+                .WithTimeout(TransactionTimeout)
+                .ConfigureAwait(false);
             return true;
         }
 
@@ -107,7 +110,9 @@ namespace Zen.Trunk.Storage.Locking
         {
             CheckNotCompleted();
 
-            await ReleaseAsync().ConfigureAwait(false);
+            await ReleaseAsync()
+                .WithTimeout(TransactionTimeout)
+                .ConfigureAwait(false);
             return true;
         }
 

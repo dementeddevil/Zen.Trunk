@@ -9,7 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Autofac" Version="6.1.0" />
+    <PackageReference Include="Autofac" Version="6.4.0" />
     <PackageReference Include="SuperSocket" Version="1.6.6.1" />
   </ItemGroup>
 

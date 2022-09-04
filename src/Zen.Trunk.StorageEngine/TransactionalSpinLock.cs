@@ -1,11 +1,8 @@
-﻿using Serilog.Core;
-using Serilog.Events;
-using System;
-using System.Collections.Concurrent;
-using System.Diagnostics;
-using System.Linq;
+﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Serilog.Core;
+using Serilog.Events;
 using Zen.Trunk.Storage.Locking;
 
 namespace Zen.Trunk.Storage
@@ -32,7 +29,6 @@ namespace Zen.Trunk.Storage
 
         private static int NextTransactionLockId = 1;
         private readonly SpinLock _spinLock = new SpinLock(true);
-        //private readonly ConcurrentQueue<TransactionId> _waiting = new ConcurrentQueue<TransactionId>();
         private readonly int _transactionLockId;
 
         /// <summary>
@@ -55,22 +51,6 @@ namespace Zen.Trunk.Storage
                 var lockTaken = false;
                 try
                 {
-                    //if (transactionId != TransactionId.Zero)
-                    //{
-                    //    if (!_waiting.Contains(transactionId))
-                    //    {
-                    //        _waiting.Enqueue(transactionId);
-                    //    }
-
-                    //    while (true)
-                    //    {
-                    //        if (_waiting.TryPeek(out TransactionId lockOwner) && lockOwner == transactionId)
-                    //        {
-                    //            lockTaken = true;
-                    //            break;
-                    //        }
-                    //    }
-                    //}
                     Serilog.Log.Debug("Spinlock -> Enter {ThreadId}", Thread.CurrentThread.ManagedThreadId);
                     _spinLock.Enter(ref lockTaken);
 
@@ -80,14 +60,6 @@ namespace Zen.Trunk.Storage
                 {
                     if (lockTaken)
                     {
-                        //if (_waiting.TryPeek(out TransactionId lockOwner) && lockOwner == transactionId)
-                        //{
-                        //    _waiting.TryDequeue(out lockOwner);
-                        //}
-                        //else
-                        //{
-                        //    Serilog.Log.Warning("Lock not held by caller.");
-                        //}
                         Serilog.Log.Debug("Spinlock -> Exit {ThreadId}", Thread.CurrentThread.ManagedThreadId);
                         _spinLock.Exit(true);
                     }
