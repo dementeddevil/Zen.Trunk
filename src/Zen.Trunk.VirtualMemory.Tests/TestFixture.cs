@@ -66,15 +66,16 @@ namespace Zen.Trunk.VirtualMemory.Tests
                 .Enrich.WithThreadName()
                 .MinimumLevel.Verbose()
                 .WriteTo.Debug(Serilog.Events.LogEventLevel.Verbose, "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Properties}{NewLine}{Exception}");
-                //.WriteTo.Trace()
-                //.WriteTo.ApplicationInsights(
-                //    telemetryConfiguration,
-                //    TelemetryConverter.Traces);
+            //.WriteTo.Trace()
+            //.WriteTo.ApplicationInsights(
+            //    telemetryConfiguration,
+            //    TelemetryConverter.Traces);
         }
 
         private ILifetimeScope InitializeScope()
         {
-            var telemetryConfiguration = new TelemetryConfiguration("d47e9f15-e0a7-4c11-9585-bafdd12911fb");
+            var telemetryConfiguration = new TelemetryConfiguration();
+            telemetryConfiguration.ConnectionString = "InstrumentationKey=d47e9f15-e0a7-4c11-9585-bafdd12911fb";
             telemetryConfiguration.TelemetryInitializers.Add(new HttpDependenciesParsingTelemetryInitializer());
             telemetryConfiguration.TelemetryInitializers.Add(new OperationCorrelationTelemetryInitializer());
 
@@ -95,7 +96,7 @@ namespace Zen.Trunk.VirtualMemory.Tests
             var dependencyTrackingModule = new DependencyTrackingTelemetryModule();
             dependencyTrackingModule.ExcludeComponentCorrelationHttpHeadersOnDomains.Add("core.windows.net");
             dependencyTrackingModule.Initialize(telemetryConfiguration);
-            
+
             var logger = CreateLoggerConfiguration(telemetryConfiguration).CreateLogger();
             Log.Logger = logger;
 
